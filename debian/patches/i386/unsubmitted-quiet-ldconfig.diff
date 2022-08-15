@@ -1,0 +1,16 @@
+--- a/sysdeps/unix/sysv/linux/x86/readelflib.c
++++ b/sysdeps/unix/sysv/linux/x86/readelflib.c
+@@ -63,8 +63,11 @@
+ #ifndef __x86_64__
+ failed:
+ #endif
+-      error (0, 0, _("%s is for unknown machine %d.\n"),
+-	     file_name, elf_header->e_machine);
++      if (opt_verbose)
++	{
++	  error (0, 0, _("%s is for unknown machine %d.\n"),
++		file_name, elf_header->e_machine);
++	}
+       return 1;
+     }
+ 

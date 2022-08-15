@@ -1,0 +1,32 @@
+2021-09-14  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* po/fr.po: Fix French translation of short options.
+
+2014-05-05  Aurelien Jarno  <aurelien@aurel32.net>
+
+	* po/fr.po: Fix French translation of inappropriate.
+
+---
+ po/fr.po |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/po/fr.po
++++ b/po/fr.po
+@@ -39,7 +39,7 @@
+ msgid "Mandatory or optional arguments to long options are also mandatory or optional for any corresponding short options."
+ msgstr ""
+ "Les arguments obligatoires ou optionnels pour les options de forme longue\n"
+-"le sont aussi pour les options de   courte."
++"le sont aussi pour les options de forme courte."
+ 
+ #: argp/argp-help.c:1713
+ msgid "Usage:"
+@@ -5651,7 +5651,7 @@
+ #. TRANS modes on an ordinary file.
+ #: sysdeps/gnu/errlist.h:170
+ msgid "Inappropriate ioctl for device"
+-msgstr "Ioctl() inappropré pour un périphérique"
++msgstr "Ioctl() inapproprié pour un périphérique"
+ 
+ #. TRANS An attempt to execute a file that is currently open for writing, or
+ #. TRANS write to a file that is currently being executed.  Often using a

@@ -1,0 +1,239 @@
+commited for 2.35
+
+commit 8c86ba446367fd676457e51eb44d7af2e5d9a392
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Jan 22 00:12:05 2022 +0000
+
+    htl: Fix cleaning the reply port
+    
+    If any RPC fails, the reply port will already be deallocated.
+    __pthread_thread_terminate thus has to defer taking its name until the very last
+    __thread_terminate_release which doesn't reply a message.  But then we
+    have to read from the pthread structure.
+    
+    This introduces __pthread_dealloc_finish() which does the recording of
+    the thread termination, so the slot can be reused really only just before
+    the __thread_terminate_release call. Only the real thread can set it, so
+    let's decouple this from the pthread_state by just removing the
+    PTHREAD_TERMINATED state and add a terminated field.
+
+diff --git a/htl/pt-alloc.c b/htl/pt-alloc.c
+index 4b012a0c32..f6ab201812 100644
+--- a/htl/pt-alloc.c
++++ b/htl/pt-alloc.c
+@@ -54,6 +54,7 @@ initialize_pthread (struct __pthread *new)
+ 
+   new->state_lock = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
+   new->state_cond = (pthread_cond_t) PTHREAD_COND_INITIALIZER;
++  new->terminated = FALSE;
+ 
+   memset (&new->res_state, '\0', sizeof (new->res_state));
+ 
+@@ -84,10 +85,10 @@ __pthread_alloc (struct __pthread **pthread)
+     {
+       /* There is no need to take NEW->STATE_LOCK: if NEW is on this
+          list, then it is protected by __PTHREAD_FREE_THREADS_LOCK
+-         except in __pthread_dealloc where after it is added to the
++         except in __pthread_dealloc_finish where after it is added to the
+          list (with the lock held), it drops the lock and then sets
+          NEW->STATE and immediately stops using NEW.  */
+-      if (new->state == PTHREAD_TERMINATED)
++      if (new->terminated)
+ 	{
+ 	  __pthread_dequeue (new);
+ 	  break;
+diff --git a/htl/pt-create.c b/htl/pt-create.c
+index f8a1d21147..ce52ed9f52 100644
+--- a/htl/pt-create.c
++++ b/htl/pt-create.c
+@@ -256,7 +256,10 @@ __pthread_create_internal (struct __pthread **thread,
+ failed_starting:
+   /* If joinable, a reference was added for the caller.  */
+   if (pthread->state == PTHREAD_JOINABLE)
+-    __pthread_dealloc (pthread);
++    {
++      __pthread_dealloc (pthread);
++      __pthread_dealloc_finish (pthread);
++    }
+ 
+   __pthread_setid (pthread->thread, NULL);
+   atomic_decrement (&__pthread_total);
+@@ -278,6 +281,7 @@ failed_thread_alloc:
+ 			      / __vm_page_size) * __vm_page_size + stacksize);
+ failed_stack_alloc:
+   __pthread_dealloc (pthread);
++  __pthread_dealloc_finish (pthread);
+ failed:
+   return err;
+ }
+diff --git a/htl/pt-dealloc.c b/htl/pt-dealloc.c
+index 9cca718c7f..c776e3471d 100644
+--- a/htl/pt-dealloc.c
++++ b/htl/pt-dealloc.c
+@@ -29,12 +29,10 @@ extern struct __pthread *__pthread_free_threads;
+ extern pthread_mutex_t __pthread_free_threads_lock;
+ 
+ 
+-/* Deallocate the thread structure for PTHREAD.  */
++/* Deallocate the content of the thread structure for PTHREAD.  */
+ void
+ __pthread_dealloc (struct __pthread *pthread)
+ {
+-  assert (pthread->state != PTHREAD_TERMINATED);
+-
+   if (!atomic_decrement_and_test (&pthread->nr_refs))
+     return;
+ 
+@@ -56,13 +54,18 @@ __pthread_dealloc (struct __pthread *pthread)
+   __pthread_mutex_lock (&__pthread_free_threads_lock);
+   __pthread_enqueue (&__pthread_free_threads, pthread);
+   __pthread_mutex_unlock (&__pthread_free_threads_lock);
++}
+ 
+-  /* Setting PTHREAD->STATE to PTHREAD_TERMINATED makes this TCB
++/* Confirm deallocation of the thread structure for PTHREAD.  */
++void
++__pthread_dealloc_finish (struct __pthread *pthread)
++{
++  /* Setting PTHREAD->TERMINATED makes this TCB
+      available for reuse.  After that point, we can no longer assume
+      that PTHREAD is valid.
+ 
+      Note that it is safe to not lock this update to PTHREAD->STATE:
+      the only way that it can now be accessed is in __pthread_alloc,
+      which reads this variable.  */
+-  pthread->state = PTHREAD_TERMINATED;
++  pthread->terminated = TRUE;
+ }
+diff --git a/htl/pt-detach.c b/htl/pt-detach.c
+index 97017ed8f2..cb611f1b8f 100644
+--- a/htl/pt-detach.c
++++ b/htl/pt-detach.c
+@@ -62,12 +62,6 @@ __pthread_detach (pthread_t thread)
+       __pthread_dealloc (pthread);
+       break;
+ 
+-    case PTHREAD_TERMINATED:
+-      /* Pretend THREAD wasn't there in the first place.  */
+-      __pthread_mutex_unlock (&pthread->state_lock);
+-      err = ESRCH;
+-      break;
+-
+     default:
+       /* Thou shalt not detach non-joinable threads!  */
+       __pthread_mutex_unlock (&pthread->state_lock);
+diff --git a/htl/pt-internal.h b/htl/pt-internal.h
+index 738efd5c6f..f01cb7ceb2 100644
+--- a/htl/pt-internal.h
++++ b/htl/pt-internal.h
+@@ -48,8 +48,6 @@ enum pthread_state
+   PTHREAD_DETACHED,
+   /* A joinable thread exited and its return code is available.  */
+   PTHREAD_EXITED,
+-  /* The thread structure is unallocated and available for reuse.  */
+-  PTHREAD_TERMINATED
+ };
+ 
+ #ifndef PTHREAD_KEY_MEMBERS
+@@ -95,6 +93,8 @@ struct __pthread
+   enum pthread_state state;
+   pthread_mutex_t state_lock;	/* Locks the state.  */
+   pthread_cond_t state_cond;	/* Signalled when the state changes.  */
++  bool terminated;		/* Whether the kernel thread is over
++				   and we can reuse this structure.  */
+ 
+   /* Resolver state.  */
+   struct __res_state res_state;
+@@ -209,12 +209,18 @@ extern int __pthread_create_internal (struct __pthread **__restrict pthread,
+    kernel thread or a stack).  THREAD has one reference.  */
+ extern int __pthread_alloc (struct __pthread **thread);
+ 
+-/* Deallocate the thread structure.  This is the dual of
++/* Deallocate the content of the thread structure.  This is the dual of
+    __pthread_alloc (N.B. it does not call __pthread_stack_dealloc nor
+-   __pthread_thread_terminate).  THREAD loses one reference and is
+-   released if the reference counter drops to 0.  */
++   __pthread_thread_terminate).  THREAD loses one reference, and if
++   if the reference counter drops to 0 this returns 1, and the caller has
++   to call __pthread_dealloc_finish when it is really finished with using
++   THREAD.  */
+ extern void __pthread_dealloc (struct __pthread *thread);
+ 
++/* Confirm deallocating the thread structure.  Before calling this
++   the structure will not be reused yet.  */
++extern void __pthread_dealloc_finish (struct __pthread *pthread);
++
+ 
+ /* Allocate a stack of size STACKSIZE.  The stack base shall be
+    returned in *STACKADDR.  */
+diff --git a/htl/pt-join.c b/htl/pt-join.c
+index 203e649d5e..45268134d0 100644
+--- a/htl/pt-join.c
++++ b/htl/pt-join.c
+@@ -75,12 +75,6 @@ __pthread_join_common (pthread_t thread, void **status, int try,
+       __pthread_dealloc (pthread);
+       break;
+ 
+-    case PTHREAD_TERMINATED:
+-      /* Pretend THREAD wasn't there in the first place.  */
+-      __pthread_mutex_unlock (&pthread->state_lock);
+-      err = ESRCH;
+-      break;
+-
+     default:
+       /* Thou shalt not join non-joinable threads!  */
+       __pthread_mutex_unlock (&pthread->state_lock);
+diff --git a/sysdeps/mach/htl/pt-thread-terminate.c b/sysdeps/mach/htl/pt-thread-terminate.c
+index 9bd6c3434d..eb60aa057c 100644
+--- a/sysdeps/mach/htl/pt-thread-terminate.c
++++ b/sysdeps/mach/htl/pt-thread-terminate.c
+@@ -35,6 +35,7 @@ __pthread_thread_terminate (struct __pthread *thread)
+   void *stackaddr;
+   size_t stacksize;
+   error_t err;
++  int self;
+ 
+   kernel_thread = thread->kernel_thread;
+ 
+@@ -52,25 +53,32 @@ __pthread_thread_terminate (struct __pthread *thread)
+ 
+   wakeup_port = thread->wakeupmsg.msgh_remote_port;
+ 
+-  /* Each thread has its own reply port, allocated from MiG stub code calling
+-     __mig_get_reply_port.  Destroying it is a bit tricky because the calls
+-     involved are also RPCs, causing the creation of a new reply port if
+-     currently null. The __thread_terminate_release call is actually a one way
+-     simple routine designed not to require a reply port.  */
+   self_ktid = __mach_thread_self ();
+-  reply_port = (self_ktid == kernel_thread)
+-      ? __mig_get_reply_port () : MACH_PORT_NULL;
++  self = self_ktid == kernel_thread;
+   __mach_port_deallocate (__mach_task_self (), self_ktid);
+ 
+   /* The kernel thread won't be there any more.  */
+   thread->kernel_thread = MACH_PORT_DEAD;
+ 
+-  /* Finally done with the thread structure.  */
++  /* Release thread resources.  */
+   __pthread_dealloc (thread);
+ 
+-  /* The wake up port is now no longer needed.  */
++  /* The wake up port (needed for locks in __pthread_dealloc) is now no longer
++     needed.  */
+   __mach_port_destroy (__mach_task_self (), wakeup_port);
+ 
++  /* Each thread has its own reply port, allocated from MiG stub code calling
++     __mig_get_reply_port.  Destroying it is a bit tricky because the calls
++     involved are also RPCs, causing the creation of a new reply port if
++     currently null. The __thread_terminate_release call is actually a one way
++     simple routine designed not to require a reply port.  */
++  reply_port = self ? __mig_get_reply_port () : MACH_PORT_NULL;
++  /* From here we shall not use a MIG reply port any more.  */
++
++  /* Finally done with the thread structure (we still needed it to access the
++     reply port).  */
++  __pthread_dealloc_finish (thread);
++
+   /* Terminate and release all that's left.  */
+   err = __thread_terminate_release (kernel_thread, mach_task_self (),
+ 				    kernel_thread, reply_port,

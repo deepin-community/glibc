@@ -1,0 +1,21 @@
+
+AT_EXECFN is Linux specific
+
+---
+ elf/rtld.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/elf/rtld.c
++++ b/elf/rtld.c
+@@ -1430,9 +1430,11 @@
+ 	  case AT_ENTRY:
+ 	    av->a_un.a_val = *user_entry;
+ 	    break;
++# ifdef AT_EXECFN
+ 	  case AT_EXECFN:
+ 	    av->a_un.a_val = (uintptr_t) _dl_argv[0];
+ 	    break;
++# endif
+ 	  }
+ #endif
+ 

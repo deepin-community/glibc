@@ -1,0 +1,23 @@
+Committed for 2.35
+
+commit cf44f08379c667116c505a5060c770d7712e6812
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Dec 14 01:01:48 2021 +0100
+
+    mach: Fix spurious inclusion of stack_chk_fail_local in libmachuser.a
+    
+    When linking programs statically, stack_chk_fail_local already comes
+    from libc_nonshared, so we don't need it in lib{mach,hurd}user.a.
+
+diff --git a/mach/Machrules b/mach/Machrules
+index 5839378009..ebb0fabd7a 100644
+--- a/mach/Machrules
++++ b/mach/Machrules
+@@ -223,6 +223,7 @@ endif
+ ifdef interface-library
+ 
+ $(interface-library)-routines = $(interface-routines) stack_chk_fail_local
++$(interface-library)-shared-only-routines = stack_chk_fail_local
+ extra-libs += $(interface-library)
+ extra-libs-others += $(interface-library)
+ 

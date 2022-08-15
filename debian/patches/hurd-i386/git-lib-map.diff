@@ -1,0 +1,52 @@
+Committed for 2.35
+
+commit 8c0727af63198661c0ae3641a9d66609021754a7
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Fri Dec 31 18:17:40 2021 +0100
+
+    hurd: Avoid overzealous shared objects constraints
+    
+    407765e9f24f ("hurd: Fix ELF_MACHINE_USER_ADDRESS_MASK value") switched
+    ELF_MACHINE_USER_ADDRESS_MASK from 0xf8000000UL to 0xf0000000UL to let
+    libraries etc. get loaded at 0x08000000. But
+    ELF_MACHINE_USER_ADDRESS_MASK is actually only meaningful for the main
+    program anyway, so keep it at 0xf8000000UL to prevent the program loader
+    from putting ld.so beyond 0x08000000. And conversely, drop the use of
+    ELF_MACHINE_USER_ADDRESS_MASK for shared objects, which don't need any
+    constraints since the program will have already be loaded by then.
+
+diff --git a/sysdeps/i386/dl-machine.h b/sysdeps/i386/dl-machine.h
+index 2f0dbc27a9..b5a5dd0983 100644
+--- a/sysdeps/i386/dl-machine.h
++++ b/sysdeps/i386/dl-machine.h
+@@ -117,7 +117,7 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
+ 
+ /* Mask identifying addresses reserved for the user program,
+    where the dynamic linker should not map anything.  */
+-#define ELF_MACHINE_USER_ADDRESS_MASK	0xf0000000UL
++#define ELF_MACHINE_USER_ADDRESS_MASK	0xf8000000UL
+ 
+ /* Initial entry point code for the dynamic linker.
+    The C function `_dl_start' is the real entry point;
+diff --git a/sysdeps/mach/hurd/dl-sysdep.c b/sysdeps/mach/hurd/dl-sysdep.c
+index 968a58f668..b1a151abc1 100644
+--- a/sysdeps/mach/hurd/dl-sysdep.c
++++ b/sysdeps/mach/hurd/dl-sysdep.c
+@@ -476,7 +476,7 @@ __mmap (void *addr, size_t len, int prot, int flags, int fd, off_t offset)
+ 
+   mapaddr = (vm_address_t) addr;
+   err = __vm_map (__mach_task_self (),
+-		  &mapaddr, (vm_size_t) len, ELF_MACHINE_USER_ADDRESS_MASK,
++		  &mapaddr, (vm_size_t) len, 0,
+ 		  !(flags & MAP_FIXED),
+ 		  memobj_rd,
+ 		  (vm_offset_t) offset,
+@@ -491,7 +491,7 @@ __mmap (void *addr, size_t len, int prot, int flags, int fd, off_t offset)
+       if (! err)
+ 	err = __vm_map (__mach_task_self (),
+ 			&mapaddr, (vm_size_t) len,
+-			ELF_MACHINE_USER_ADDRESS_MASK,
++			0,
+ 			!(flags & MAP_FIXED),
+ 			memobj_rd, (vm_offset_t) offset,
+ 			flags & (MAP_COPY|MAP_PRIVATE),

@@ -1,0 +1,21 @@
+#! /bin/sh
+set -e
+
+if [ "$1" = remove ]; then
+    # When both the multiarch and the corresponding biarch packages are
+    # installed, removing the multiarch package will remove the dynamic
+    # linker. Recreate it in the postinst.
+    ARCH=${DPKG_MAINTSCRIPT_ARCH}
+    target=$(dpkg-query -L LIBC-${ARCH} 2>/dev/null | grep -E '/lib.+/(ld\.so|RTLD_SO)$' || true)
+    if [ -f "$target" ] && ! [ -f RTLDDIR/RTLD_SO ] ; then
+        ln -sf ${target#RTLDDIR/} RTLDDIR/RTLD_SO
+    fi
+fi
+
+if [ "$1" = deconfigure ]; then
+    :; # blah, do something useful with ldso
+fi
+
+#DEBHELPER#
+
+exit 0

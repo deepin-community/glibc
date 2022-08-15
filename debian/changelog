@@ -1,0 +1,5 @@
+glibc (2.35-deepin) stable; urgency=medium
+
+  * ['Rebuild  against by  current gcc 11.2']
+
+ -- Deepin Packages Builder <packages@deepin.org>  Thu, 11 Aug 2022 21:55:45 +0800

@@ -1,0 +1,27 @@
+Committed for 2.35
+
+commit 60dfb30976761c9b20a22f18356e0c3e581f5394
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Aug 31 19:41:02 2021 +0200
+
+    hurd msync: Drop bogus test
+
+    MS_SYNC is actually 0, so we cannot test that both MS_SYNC and MS_ASYNC
+    are set.
+
+---
+ sysdeps/mach/hurd/msync.c |    3 ---
+ 1 file changed, 3 deletions(-)
+
+--- a/sysdeps/mach/hurd/msync.c
++++ b/sysdeps/mach/hurd/msync.c
+@@ -47,9 +47,6 @@ msync (void *addr, size_t length, int fl
+   kern_return_t err;
+   int cancel_oldtype;
+ 
+-  if (flags & (MS_SYNC | MS_ASYNC) == (MS_SYNC | MS_ASYNC))
+-    return __hurd_fail (EINVAL);
+-
+   while (cur < target)
+     {
+       vm_address_t begin = cur;

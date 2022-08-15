@@ -1,0 +1,23 @@
+Committed for 2.35
+
+commit 35cf8a85ed87b70db021d3b8a5026cec9d9094dd
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Fri Dec 31 18:25:49 2021 +0100
+
+    hurd: Bump BRK_START to 0x20000000
+    
+    By nowadays uses, 256MiB is not that large for the program+libraries.
+    Let's push the heap further to leave room for e.g. clang.
+
+diff --git a/sysdeps/mach/hurd/i386/vm_param.h b/sysdeps/mach/hurd/i386/vm_param.h
+index 5869b40e43..d3a1399e55 100644
+--- a/sysdeps/mach/hurd/i386/vm_param.h
++++ b/sysdeps/mach/hurd/i386/vm_param.h
+@@ -19,6 +19,6 @@
+ #define _I386_VM_PARAM_H
+ 
+ /* Arbitrary start of the brk. This is after usual binary and library mappings.  */
+-#define BRK_START	0x10000000
++#define BRK_START	0x20000000
+ 
+ #endif /* i386/vm_param.h */

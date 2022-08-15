@@ -1,0 +1,25 @@
+Fix compatibility with binaries that reference __stack_chk_guard
+TODO: find where these references are coming from.
+
+Index: glibc-2.32/sysdeps/mach/hurd/dl-sysdep.c
+===================================================================
+--- glibc-2.32.orig/sysdeps/mach/hurd/dl-sysdep.c
++++ glibc-2.32/sysdeps/mach/hurd/dl-sysdep.c
+@@ -68,6 +68,8 @@ void *_dl_random attribute_relro = NULL;
+ 
+ struct hurd_startup_data *_dl_hurd_data;
+ 
++uintptr_t __stack_chk_guard attribute_relro;
++
+ 
+ ElfW(Addr)
+ _dl_sysdep_start (void **start_argptr,
+Index: glibc-2.32/sysdeps/mach/hurd/i386/ld.abilist
+===================================================================
+--- glibc-2.32.orig/sysdeps/mach/hurd/i386/ld.abilist
++++ glibc-2.32/sysdeps/mach/hurd/i386/ld.abilist
+@@ -17,3 +17,4 @@ GLIBC_2.2.6 _r_debug D 0x14
+ GLIBC_2.3 ___tls_get_addr F
+ GLIBC_2.3 __tls_get_addr F
+ GLIBC_2.34 __rtld_version_placeholder F
++GLIBC_2.4 __stack_chk_guard D 0x4

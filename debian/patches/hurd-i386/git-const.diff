@@ -1,0 +1,98 @@
+Committed for 2.35
+
+commit ba8726791d48c0af285c47f4acd7a0f3d7c51dc9
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Jan 16 18:28:40 2022 +0000
+
+    hurd: Make RPC input array parameters const
+    
+    This follows mig's cf4bcc3f1435 ("Also add const qualifiers on server
+    side")
+
+diff --git a/hurd/hurdauth.c b/hurd/hurdauth.c
+index e602179a3f..9086e9484c 100644
+--- a/hurd/hurdauth.c
++++ b/hurd/hurdauth.c
+@@ -165,8 +165,8 @@ _S_msg_add_auth (mach_port_t me,
+ kern_return_t
+ _S_msg_del_auth (mach_port_t me,
+ 		 task_t task,
+-		 intarray_t uids, mach_msg_type_number_t nuids,
+-		 intarray_t gids, mach_msg_type_number_t ngids)
++		 const_intarray_t uids, mach_msg_type_number_t nuids,
++		 const_intarray_t gids, mach_msg_type_number_t ngids)
+ {
+   error_t err;
+   auth_t newauth;
+diff --git a/hurd/hurdmsg.c b/hurd/hurdmsg.c
+index 4e6ddf2836..cad8300968 100644
+--- a/hurd/hurdmsg.c
++++ b/hurd/hurdmsg.c
+@@ -93,7 +93,7 @@ _S_msg_get_init_ports (mach_port_t msgport, mach_port_t auth,
+ 
+ kern_return_t
+ _S_msg_set_init_ports (mach_port_t msgport, mach_port_t auth,
+-		       mach_port_t *ports, mach_msg_type_number_t nports)
++		       const mach_port_t *ports, mach_msg_type_number_t nports)
+ {
+   mach_msg_type_number_t i;
+   error_t err;
+@@ -243,7 +243,7 @@ _S_msg_set_init_int (mach_port_t msgport, mach_port_t auth,
+ 
+ kern_return_t
+ _S_msg_set_init_ints (mach_port_t msgport, mach_port_t auth,
+-		      int *values, mach_msg_type_number_t nvalues)
++		      const int *values, mach_msg_type_number_t nvalues)
+ {
+   error_t err;
+   mach_msg_type_number_t i;
+@@ -295,7 +295,7 @@ _S_msg_set_fd (mach_port_t msgport, mach_port_t auth,
+ 
+ kern_return_t
+ _S_msg_get_env_variable (mach_port_t msgport,
+-			 string_t variable, //
++			 const_string_t variable, //
+ 			 char **data, mach_msg_type_number_t *datalen)
+ {
+   error_t err;
+@@ -322,8 +322,8 @@ _S_msg_get_env_variable (mach_port_t msgport,
+ 
+ kern_return_t
+ _S_msg_set_env_variable (mach_port_t msgport, mach_port_t auth,
+-			 string_t variable, //
+-			 string_t value, //
++			 const_string_t variable, //
++			 const_string_t value, //
+ 			 int replace)
+ {
+   AUTHCHECK;
+@@ -367,7 +367,7 @@ _S_msg_get_environment (mach_port_t msgport,
+ 
+ kern_return_t
+ _S_msg_set_environment (mach_port_t msgport, mach_port_t auth,
+-			char *data, mach_msg_type_number_t datalen)
++			const char *data, mach_msg_type_number_t datalen)
+ {
+   int _hurd_split_args (char *, mach_msg_type_number_t, char **);
+   int envc;
+@@ -441,6 +441,6 @@ out:
+ kern_return_t
+ _S_msg_set_dtable (mach_port_t process,
+ 		   mach_port_t refport,
+-		   portarray_t dtable,
++		   const_portarray_t dtable,
+ 		   mach_msg_type_number_t dtableCnt)
+ { return EOPNOTSUPP; }
+diff --git a/hurd/report-wait.c b/hurd/report-wait.c
+index 49f38bff07..676a34a480 100644
+--- a/hurd/report-wait.c
++++ b/hurd/report-wait.c
+@@ -234,7 +234,7 @@ _S_msg_report_wait (mach_port_t msgport, thread_t thread,
+ 
+ kern_return_t
+ _S_msg_describe_ports (mach_port_t msgport, mach_port_t refport,
+-		       mach_port_t *ports, mach_msg_type_number_t nports,
++		       const mach_port_t *ports, mach_msg_type_number_t nports,
+ 		       char **desc, mach_msg_type_number_t *desclen)
+ {
+   char *p, *end;

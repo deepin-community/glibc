@@ -1,0 +1,28 @@
+Committed for glibc 2.35
+
+commit 13710e7e6af6c8965cc9a63a0660cb4ce1966557
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Aug 10 17:16:54 2021 +0200
+
+    hurd: Add support for AT_NO_AUTOMOUNT
+
+diff --git a/hurd/hurd/fd.h b/hurd/hurd/fd.h
+index 7165a8f1fc..111f680670 100644
+--- a/hurd/hurd/fd.h
++++ b/hurd/hurd/fd.h
+@@ -295,9 +295,15 @@ __hurd_at_flags (int *at_flags, int *flags)
+ 
+   *flags |= (*at_flags & AT_SYMLINK_NOFOLLOW) ? O_NOLINK : 0;
+   *at_flags &= ~AT_SYMLINK_NOFOLLOW;
++
+   if (*at_flags & AT_SYMLINK_FOLLOW)
+     *flags &= ~O_NOLINK;
+   *at_flags &= ~AT_SYMLINK_FOLLOW;
++
++  if (*at_flags & AT_NO_AUTOMOUNT)
++    *flags |= O_NOTRANS;
++  *at_flags &= ~AT_NO_AUTOMOUNT;
++
+   if (*at_flags != 0)
+     return EINVAL;
+ 

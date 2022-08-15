@@ -1,0 +1,22 @@
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: [PATCH] Correction traduction « Computer bought the farm »
+
+* po/fr.po: Fix EIEIO french translation.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+---
+ po/fr.po |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/po/fr.po
++++ b/po/fr.po
+@@ -6307,7 +6307,7 @@
+ #. TRANS @c an idiomatic funny way of saying that the computer died.
+ #: sysdeps/gnu/errlist.h:773
+ msgid "Computer bought the farm"
+-msgstr "L'ordinateur a acheté la ferme"
++msgstr "L'ordinateur a cassé sa pipe"
+ 
+ #. TRANS In @theglibc{}, this is another name for @code{EAGAIN} (above).
+ #. TRANS The values are always the same, on every operating system.

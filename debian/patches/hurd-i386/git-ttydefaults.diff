@@ -1,0 +1,28 @@
+Commited for 2.35
+
+commit d5b0046e3ddf8ea82a3eff74068b8fd2665b98db
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Fri Jan 7 00:19:42 2022 +0100
+
+    ttydefaults.h: Fix CSTATUS to control-t
+    
+    4.4BSD actually defaults CSTATUS to control-t, so our generic header should
+    as well.
+
+diff --git a/sysdeps/generic/sys/ttydefaults.h b/sysdeps/generic/sys/ttydefaults.h
+index 683dc8d805..41e691c4f8 100644
+--- a/sysdeps/generic/sys/ttydefaults.h
++++ b/sysdeps/generic/sys/ttydefaults.h
+@@ -61,11 +61,7 @@
+ #endif
+ #define	CERASE		0177
+ #define	CINTR		CTRL('c')
+-#ifdef _POSIX_VDISABLE
+-# define CSTATUS	_POSIX_VDISABLE
+-#else
+-# define CSTATUS	((unsigned char)'\377')	/* XXX avoid _POSIX_VDISABLE */
+-#endif
++#define	CSTATUS		CTRL('t')
+ #define	CKILL		CTRL('u')
+ #define	CMIN		1
+ #define	CQUIT		034		/* FS, ^\ */

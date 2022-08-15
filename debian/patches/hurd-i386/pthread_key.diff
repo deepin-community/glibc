@@ -1,0 +1,144 @@
+commit 315c9e794a5fb8f9672081dbd7493b5fd036ab05
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon Feb 14 00:15:13 2022 +0100
+
+    htl: Make pthread_[gs]etspecific not check for key validity
+    
+    Since __pthread_key_create might be concurrently reallocating the
+    __pthread_key_destructors array, it's not safe to access it without the
+    mutex held. Posix explicitly says we are allowed to prefer performance
+    over error detection.
+
+commit 33038a7d917889547c711be158ed34739af26351
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon Feb 14 00:47:18 2022 +0100
+
+    mach: Fix LLL_SHARED value
+    
+    Mach defines GSYNC_SHARED, not SYNC_SHARED.
+
+commit 06dbfcced3101886029ea3a46bcc98887d60f61e
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon Feb 14 01:38:03 2022 +0100
+
+    htl: Fix initializing the key lock
+    
+    The static pthread_once_t in the pt-key.h header was creating one
+    pthread_once_t per includer.  We have to use a shared common
+    pthread_once_t instead.
+
+commit 7a06be051c01b4325927efab5b4e4280bb4a5a42
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon Feb 14 01:39:35 2022 +0100
+
+    htl: Destroy thread-specific data before releasing joins
+    
+    Applications may want to assume that after pthread_join() returns, all
+    thread-specific data has been released.
+
+diff --git a/sysdeps/htl/pt-getspecific.c b/sysdeps/htl/pt-getspecific.c
+index af1161206a..a9dfd8a775 100644
+--- a/sysdeps/htl/pt-getspecific.c
++++ b/sysdeps/htl/pt-getspecific.c
+@@ -25,8 +25,7 @@ __pthread_getspecific (pthread_key_t key)
+ {
+   struct __pthread *self;
+ 
+-  if (key < 0 || key >= __pthread_key_count
+-      || __pthread_key_destructors[key] == PTHREAD_KEY_INVALID)
++  if (key < 0 || key >= __pthread_key_count)
+     return NULL;
+ 
+   self = _pthread_self ();
+diff --git a/sysdeps/htl/pt-setspecific.c b/sysdeps/htl/pt-setspecific.c
+index 982d25d012..d201416d5d 100644
+--- a/sysdeps/htl/pt-setspecific.c
++++ b/sysdeps/htl/pt-setspecific.c
+@@ -25,8 +25,7 @@ __pthread_setspecific (pthread_key_t key, const void *value)
+ {
+   struct __pthread *self = _pthread_self ();
+ 
+-  if (key < 0 || key >= __pthread_key_count
+-      || __pthread_key_destructors[key] == PTHREAD_KEY_INVALID)
++  if (key < 0 || key >= __pthread_key_count)
+     return EINVAL;
+ 
+   if (key >= self->thread_specifics_size)
+diff --git a/mach/lowlevellock.h b/mach/lowlevellock.h
+index 6336694902..a4f6af4c29 100644
+--- a/mach/lowlevellock.h
++++ b/mach/lowlevellock.h
+@@ -35,7 +35,7 @@
+ #define LLL_LOCK_INITIALIZER   0
+ 
+ #define LLL_PRIVATE        0
+-#define LLL_SHARED         SYNC_SHARED
++#define LLL_SHARED         GSYNC_SHARED
+ 
+ /* Interruptible version of __gsync_wait.  */
+ extern kern_return_t __gsync_wait_intr
+diff --git a/sysdeps/htl/pt-key-create.c b/sysdeps/htl/pt-key-create.c
+index ca4908c55c..f8dc5ac0c5 100644
+--- a/sysdeps/htl/pt-key-create.c
++++ b/sysdeps/htl/pt-key-create.c
+@@ -24,6 +24,7 @@
+ #include <pthreadP.h>
+ 
+ pthread_mutex_t __pthread_key_lock;
++pthread_once_t __pthread_key_once = PTHREAD_ONCE_INIT;
+ 
+ void (**__pthread_key_destructors) (void *arg);
+ int __pthread_key_size;
+diff --git a/sysdeps/htl/pt-key.h b/sysdeps/htl/pt-key.h
+index 34c12d51ab..ef652ecc6f 100644
+--- a/sysdeps/htl/pt-key.h
++++ b/sysdeps/htl/pt-key.h
+@@ -47,14 +47,15 @@ extern int __pthread_key_invalid_count;
+ /* Protects the above variables.  This must be a recursive lock: the
+    destructors may call pthread_key_delete.  */
+ extern pthread_mutex_t __pthread_key_lock;
++
++/* Protects the initialization of the mutex above.  */
++extern pthread_once_t __pthread_key_once;
+ 
+ #include <assert.h>
+ 
+ static inline void
+ __pthread_key_lock_ready (void)
+ {
+-  static pthread_once_t o = PTHREAD_ONCE_INIT;
+-
+   void do_init (void)
+   {
+     int err;
+@@ -73,5 +74,5 @@ __pthread_key_lock_ready (void)
+     assert_perror (err);
+   }
+ 
+-  __pthread_once (&o, do_init);
++  __pthread_once (&__pthread_key_once, do_init);
+ }
+diff --git a/htl/pt-exit.c b/htl/pt-exit.c
+index db1c14c520..f0759c8738 100644
+--- a/htl/pt-exit.c
++++ b/htl/pt-exit.c
+@@ -54,6 +54,9 @@ __pthread_exit (void *status)
+     /* We are the last thread.  */
+     exit (0);
+ 
++  /* Destroy any thread specific data.  */
++  __pthread_destroy_specific (self);
++
+   /* Note that after this point the process can be terminated at any
+      point if another thread calls `pthread_exit' and happens to be
+      the last thread.  */
+@@ -92,9 +95,6 @@ __pthread_exit (void *status)
+       break;
+     }
+ 
+-  /* Destroy any thread specific data.  */
+-  __pthread_destroy_specific (self);
+-
+   /* Destroy any signal state.  */
+   __pthread_sigstate_destroy (self);
+ 

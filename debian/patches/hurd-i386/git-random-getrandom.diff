@@ -1,0 +1,51 @@
+commit 33e8e95cbd0d6724553f390142d4b11352d59dd0
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Dec 30 21:25:24 2021 +0100
+
+    hurd: Make getrandom a stub inside the random translator
+    
+    glibc uses /dev/urandom for getrandom(), and from version 2.34 malloc
+    initialization uses it. We have to detect when we are running the random
+    translator itself, in which case we can't read ourself.
+
+commit edb5ab841a049c8a8267ebc4d537eec690952daa
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Jan 1 17:51:18 2022 +0100
+
+    hurd: Use __trivfs_server_name instead of trivfs_server_name
+    
+    The latter violates namespace contraints
+
+---
+ sysdeps/mach/hurd/getrandom.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+--- a/sysdeps/mach/hurd/getrandom.c
++++ b/sysdeps/mach/hurd/getrandom.c
+@@ -21,6 +21,8 @@
+ #include <unistd.h>
+ #include <not-cancel.h>
+ 
++extern char *__trivfs_server_name __attribute__((weak));
++
+ /* Write up to LENGTH bytes of randomness starting at BUFFER.
+    Return the number of bytes written, or -1 on error.  */
+ ssize_t
+@@ -31,6 +33,17 @@ __getrandom (void *buffer, size_t length
+   size_t amount_read;
+   int fd;
+ 
++  if (&__trivfs_server_name && __trivfs_server_name
++      && __trivfs_server_name[0] == 'r'
++      && __trivfs_server_name[1] == 'a'
++      && __trivfs_server_name[2] == 'n'
++      && __trivfs_server_name[3] == 'd'
++      && __trivfs_server_name[4] == 'o'
++      && __trivfs_server_name[5] == 'm'
++      && __trivfs_server_name[6] == '\0')
++    /* We are random, don't try to read ourselves!  */
++    return length;
++
+   if (flags & GRND_RANDOM)
+     random_source = "/dev/random";
+ 

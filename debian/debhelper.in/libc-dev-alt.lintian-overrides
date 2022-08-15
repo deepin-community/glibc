@@ -1,0 +1,14 @@
+# Those file are actually .o files not package in a ar archive, and
+# thus should not be stripped
+LIBC-dev-FLAVOR: unstripped-binary-or-object */libmcheck.a
+
+# All functionality formerly implemented in the libraries libpthread,
+# libdl, libutil, libanl has been integrated into libc. For backwards
+# compatibility, empty static archives libpthread.a, libdl.a, libutil.a,
+# libanl.a are provided, so that the linker options keep working.
+LIBC-dev-FLAVOR: no-code-sections [*/libanl.a]
+LIBC-dev-FLAVOR: no-code-sections [*/libdl.a]
+LIBC-dev-FLAVOR: no-code-sections [*/libpthread.a]
+LIBC-dev-FLAVOR: no-code-sections [*/libpthread_nonshared.a]
+LIBC-dev-FLAVOR: no-code-sections [*/librt.a]
+LIBC-dev-FLAVOR: no-code-sections [*/libutil.a]
