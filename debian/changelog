@@ -4,7 +4,7 @@ glibc (2.35-deepin1) unstable; urgency=medium
   * Apply changes from
     https://sourceware.org/git/glibc.git/release/2.35/master.
 
- -- Tianyu Chen <billchenchina2001@gmail.com>  Tue, 25 Apr 2023 15:08:37 +0800
+ -- Tianyu Chen <chentianyu1@uniontech.com>  Tue, 25 Apr 2023 15:08:37 +0800
 
 glibc (2.35-deepin) stable; urgency=medium
 
