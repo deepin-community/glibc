@@ -1,0 +1,29 @@
+commit 1d1ce7d637fdeb911f82d10f6a23287b5dca2a3b
+Author: Szabolcs Nagy <szabolcs.nagy@arm.com>
+Date:   Fri Jan 28 10:51:49 2022 +0000
+
+    Fix elf/loadfail test build dependencies
+    
+    There was no direct or indirect make dependency on testobj3.so so the
+    test could fail with
+    
+    /B/elf/loadfail: failed to load shared object: testobj3.so: cannot open
+     shared object file: No such file or directory
+    
+    Reviewed-by: Carlos O'Donell <carlos@redhat.com>
+
+diff --git a/elf/Makefile b/elf/Makefile
+index 718e826290..1fa1a519a5 100644
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -1468,7 +1468,9 @@ preloadtest-ENV = \
+ 
+ LDFLAGS-loadfail = -rdynamic
+ 
+-$(objpfx)loadfail.out: $(objpfx)failobj.so
++$(objpfx)loadfail.out: $(objpfx)failobj.so $(objpfx)testobj1.so \
++		       $(objpfx)testobj2.so $(objpfx)testobj3.so \
++		       $(objpfx)testobj4.so $(objpfx)testobj5.so
+ 
+ LDFLAGS-multiload = -rdynamic
+ CFLAGS-multiload.c += -DOBJDIR=\"$(elf-objpfx)\"

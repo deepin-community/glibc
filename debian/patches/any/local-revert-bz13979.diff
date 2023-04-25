@@ -12,9 +12,13 @@ Warn if user requests __FORTIFY_SOURCE but it is disabled
         * include/features.h: Warn if user requests __FORTIFY_SOURCE
         checking but the checks are disabled for any reason.
 
+---
+ include/features.h |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
 --- a/include/features.h
 +++ b/include/features.h
-@@ -392,10 +392,9 @@
+@@ -407,10 +407,9 @@
  # define __USE_GNU	1
  #endif
  
@@ -26,5 +30,5 @@ Warn if user requests __FORTIFY_SOURCE but it is disabled
 +    && defined __OPTIMIZE__ && __OPTIMIZE__ > 0
 +# if !__GNUC_PREREQ (4, 1)
  #  warning _FORTIFY_SOURCE requires GCC 4.1 or later
- # elif _FORTIFY_SOURCE > 2 && __glibc_clang_prereq (9, 0)
- #  if _FORTIFY_SOURCE > 3
+ # elif _FORTIFY_SOURCE > 2 && (__glibc_clang_prereq (9, 0)		      \
+ 			       || __GNUC_PREREQ (12, 0))

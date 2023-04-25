@@ -1,0 +1,133 @@
+commit 9e5c991106cb04b489272de0ef6a7a6bcef50477 (origin/master, origin/HEAD)
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Wed Sep 14 18:52:52 2022 +0200
+
+    hurd: Fix readlink() hanging on fifo
+
+    readlink() opens the target with O_READ to be able to read the symlink
+    content. When the target is actually a fifo, that would hang waiting for a
+    writer (caught in the coreutils testsuite). We thus have to first lookup the
+    target without O_READ to perform io_stat and lookout for fifos, and only
+    after checking the symlink type, we can re-lookup with O_READ.
+
+commit 5652e12cce80825297c3e0666991deb10310343c (HEAD -> master, origin-rw/master)
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Sep 15 21:53:57 2022 +0200
+
+    hurd: Make readlink* just reopen the file used for stat
+    
+    9e5c991106cb ("hurd: Fix readlink() hanging on fifo") separated opening
+    the file for the stat call from opening the file for the read call. That
+    however opened a small window for the file to change. Better make this
+    atomic by reopening the file with O_READ.
+
+Index: glibc-2.36/sysdeps/mach/hurd/readlink.c
+===================================================================
+--- glibc-2.36.orig/sysdeps/mach/hurd/readlink.c
++++ glibc-2.36/sysdeps/mach/hurd/readlink.c
+@@ -28,30 +28,41 @@ ssize_t
+ __readlink (const char *file_name, char *buf, size_t len)
+ {
+   error_t err;
+-  file_t file;
++  file_t file_stat;
+   struct stat64 st;
+ 
+-  file = __file_name_lookup (file_name, O_READ | O_NOLINK, 0);
+-  if (file == MACH_PORT_NULL)
++  file_stat = __file_name_lookup (file_name, O_NOLINK, 0);
++  if (file_stat == MACH_PORT_NULL)
+     return -1;
+ 
+-  err = __io_stat (file, &st);
++  err = __io_stat (file_stat, &st);
+   if (! err)
+     if (S_ISLNK (st.st_mode))
+       {
++	enum retry_type doretry;
++	char retryname[1024];
++	file_t file;
+ 	char *rbuf = buf;
+ 
+-	err = __io_read (file, &rbuf, &len, 0, len);
+-	if (!err && rbuf != buf)
++	err = __dir_lookup (file_stat, "", O_READ | O_NOLINK, 0, &doretry, retryname, &file);
++	if (! err && (doretry != FS_RETRY_NORMAL || retryname[0] != '\0'))
++	  err = EGRATUITOUS;
++	if (! err)
+ 	  {
+-	    memcpy (buf, rbuf, len);
+-	    __vm_deallocate (__mach_task_self (), (vm_address_t)rbuf, len);
++	    err = __io_read (file, &rbuf, &len, 0, len);
++	    if (!err && rbuf != buf)
++	      {
++		memcpy (buf, rbuf, len);
++		__vm_deallocate (__mach_task_self (), (vm_address_t)rbuf, len);
++	      }
++
++	    __mach_port_deallocate (__mach_task_self (), file);
+ 	  }
+       }
+     else
+       err = EINVAL;
+ 
+-  __mach_port_deallocate (__mach_task_self (), file);
++  __mach_port_deallocate (__mach_task_self (), file_stat);
+ 
+   if (err)
+     return __hurd_fail (err);
+Index: glibc-2.36/sysdeps/mach/hurd/readlinkat.c
+===================================================================
+--- glibc-2.36.orig/sysdeps/mach/hurd/readlinkat.c
++++ glibc-2.36/sysdeps/mach/hurd/readlinkat.c
+@@ -29,30 +29,41 @@ ssize_t
+ readlinkat (int fd, const char *file_name, char *buf, size_t len)
+ {
+   error_t err;
+-  file_t file;
++  file_t file_stat;
+   struct stat64 st;
+ 
+-  file = __file_name_lookup_at (fd, 0, file_name, O_READ | O_NOLINK, 0);
+-  if (file == MACH_PORT_NULL)
++  file_stat = __file_name_lookup_at (fd, 0, file_name, O_NOLINK, 0);
++  if (file_stat == MACH_PORT_NULL)
+     return -1;
+ 
+-  err = __io_stat (file, &st);
++  err = __io_stat (file_stat, &st);
+   if (! err)
+     if (S_ISLNK (st.st_mode))
+       {
++	enum retry_type doretry;
++	char retryname[1024];
++	file_t file;
+ 	char *rbuf = buf;
+ 
+-	err = __io_read (file, &rbuf, &len, 0, len);
+-	if (!err && rbuf != buf)
++	err = __dir_lookup (file_stat, "", O_READ | O_NOLINK, 0, &doretry, retryname, &file);
++	if (! err && (doretry != FS_RETRY_NORMAL || retryname[0] != '\0'))
++	  err = EGRATUITOUS;
++	if (! err)
+ 	  {
+-	    memcpy (buf, rbuf, len);
+-	    __vm_deallocate (__mach_task_self (), (vm_address_t)rbuf, len);
++	    err = __io_read (file, &rbuf, &len, 0, len);
++	    if (!err && rbuf != buf)
++	      {
++		memcpy (buf, rbuf, len);
++		__vm_deallocate (__mach_task_self (), (vm_address_t)rbuf, len);
++	      }
++
++	    __mach_port_deallocate (__mach_task_self (), file);
+ 	  }
+       }
+     else
+       err = EINVAL;
+ 
+-  __mach_port_deallocate (__mach_task_self (), file);
++  __mach_port_deallocate (__mach_task_self (), file_stat);
+ 
+   return err ? __hurd_fail (err) : len;
+ }

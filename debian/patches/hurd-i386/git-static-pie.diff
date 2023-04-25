@@ -1,0 +1,81 @@
+commit af6b1cce9812273c7f597be6536d28eaec6fb89b
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon Aug 22 22:34:31 2022 +0200
+
+    hurd: Fix starting static binaries with stack protection enabled
+    
+    gcc introduces gs:0x14 accesses in most functions, so we need some tcbhead
+    to be ready very early during initialization.  This configures a static area
+    which can be referenced by various protected functions, until proper TLS is
+    set up.
+
+diff --git a/sysdeps/mach/hurd/i386/init-first.c b/sysdeps/mach/hurd/i386/init-first.c
+index f10d4a1bc2..7d8721856b 100644
+--- a/sysdeps/mach/hurd/i386/init-first.c
++++ b/sysdeps/mach/hurd/i386/init-first.c
+@@ -42,6 +42,11 @@ extern int __libc_argc attribute_hidden;
+ extern char **__libc_argv attribute_hidden;
+ extern char **_dl_argv;
+ 
++#ifndef SHARED
++unsigned short __init1_desc;
++static tcbhead_t __init1_tcbhead;
++#endif
++
+ /* Things that want to be run before _hurd_init or much anything else.
+    Importantly, these are called before anything tries to use malloc.  */
+ DEFINE_HOOK (_hurd_preinit_hook, (void));
+@@ -243,6 +248,13 @@ first_init (void)
+   /* Initialize data structures so we can do RPCs.  */
+   __mach_init ();
+ 
++#ifndef SHARED
++  /* In the static case, we need to set up TLS early so that the stack
++     protection guard can be read at gs:0x14 by the gcc-generated snippets.  */
++  _hurd_tls_init(&__init1_tcbhead);
++  asm ("movw %%gs,%w0" : "=m" (__init1_desc));
++#endif
++
+   RUN_RELHOOK (_hurd_preinit_hook, ());
+ }
+ 
+@@ -285,6 +297,7 @@ strong_alias (posixland_init, __libc_init_first);
+    This poorly-named function is called by static-start.S,
+    which should not exist at all.  */
+ void
++inhibit_stack_protector
+ _hurd_stack_setup (void)
+ {
+   intptr_t caller = (intptr_t) __builtin_return_address (0);
+diff --git a/sysdeps/mach/hurd/i386/tls.h b/sysdeps/mach/hurd/i386/tls.h
+index 264ed9a9c5..3817b7230d 100644
+--- a/sysdeps/mach/hurd/i386/tls.h
++++ b/sysdeps/mach/hurd/i386/tls.h
+@@ -49,7 +49,6 @@ typedef struct
+   mach_port_t reply_port;      /* This thread's reply port.  */
+   struct hurd_sigstate *_hurd_sigstate;
+ } tcbhead_t;
+-#endif
+ 
+ /* Return tcbhead_t from a TLS segment descriptor.  */
+ # define HURD_DESC_TLS(desc)						      \
+@@ -60,10 +59,18 @@ typedef struct
+   })
+ 
+ /* Return 1 if TLS is not initialized yet.  */
++#ifndef SHARED
++extern unsigned short __init1_desc;
++#define __HURD_DESC_INITIAL(gs, ds) ((gs) == (ds) || (gs) == __init1_desc)
++#else
++#define __HURD_DESC_INITIAL(gs, ds) ((gs) == (ds))
++#endif
++
+ #define __LIBC_NO_TLS()							      \
+   ({ unsigned short ds, gs;						      \
+      asm ("movw %%ds,%w0; movw %%gs,%w1" : "=q" (ds), "=q" (gs));	      \
+-     __builtin_expect (ds == gs, 0); })
++     __builtin_expect(__HURD_DESC_INITIAL(gs, ds), 0); })
++#endif
+ 
+ /* The TCB can have any size and the memory following the address the
+    thread pointer points to is unspecified.  Allocate the TCB there.  */

@@ -1,0 +1,27 @@
+commit af6e07dad78dd6367e81d5a4fec7056f1af3e806
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon Aug 15 11:25:55 2022 +0200
+
+    non-linux: bits/in.h: Add more RFC options
+
+diff --git a/bits/in.h b/bits/in.h
+index 076cce08aa..ad898cce89 100644
+--- a/bits/in.h
++++ b/bits/in.h
+@@ -104,6 +104,16 @@ struct ip_opts
+ #define IPV6_PATHMTU		61
+ #define IPV6_DONTFRAG		62
+ 
++/* Advanced API (RFC3542) (2).  */
++#define IPV6_RECVTCLASS		66
++#define IPV6_TCLASS		67
++
++/* RFC5014.  */
++#define IPV6_ADDR_PREFERENCES	72
++
++/* RFC5082.  */
++#define IPV6_MINHOPCOUNT	73
++
+ /* Obsolete synonyms for the above.  */
+ #define IPV6_ADD_MEMBERSHIP	IPV6_JOIN_GROUP
+ #define IPV6_DROP_MEMBERSHIP	IPV6_LEAVE_GROUP
