@@ -1,0 +1,87 @@
+commit ffd0b295d96aa58d65e642d7519f4d8c33acb3f0
+Author: Damien Zammit <damien@zamaudio.com>
+Date:   Wed Sep 21 00:41:31 2022 +0200
+
+    hurd: Add ifrtreq structure to net/route.h
+    
+    As used by the hurdish route ioctls.
+
+Index: glibc-2.34/sysdeps/mach/hurd/net/route.h
+===================================================================
+--- glibc-2.34.orig/sysdeps/mach/hurd/net/route.h
++++ glibc-2.34/sysdeps/mach/hurd/net/route.h
+@@ -25,44 +25,24 @@
+ #include <sys/socket.h>
+ #include <sys/types.h>
+ #include <netinet/in.h>
++#include <net/if.h>
+ 
+ 
+-/* This structure gets passed by the SIOCADDRT and SIOCDELRT calls. */
+-struct rtentry
++typedef struct ifrtreq
+   {
+-    unsigned long int rt_pad1;
+-    struct sockaddr rt_dst;		/* Target address.  */
+-    struct sockaddr rt_gateway;		/* Gateway addr (RTF_GATEWAY).  */
+-    struct sockaddr rt_genmask;		/* Target network mask (IP).  */
+-    unsigned short int rt_flags;
+-    short int rt_pad2;
+-    unsigned long int rt_pad3;
+-    unsigned char rt_tos;
+-    unsigned char rt_class;
+-    short int rt_pad4;
+-    short int rt_metric;		/* +1 for binary compatibility!  */
+-    char *rt_dev;			/* Forcing the device at add.  */
+-    unsigned long int rt_mtu;		/* Per route MTU/Window.  */
+-    unsigned long int rt_window;	/* Window clamping.  */
+-    unsigned short int rt_irtt;		/* Initial RTT.  */
+-  };
+-/* Compatibility hack.  */
+-#define rt_mss	rt_mtu
+-
+-
+-struct in6_rtmsg
+-  {
+-    struct in6_addr rtmsg_dst;
+-    struct in6_addr rtmsg_src;
+-    struct in6_addr rtmsg_gateway;
+-    uint32_t rtmsg_type;
+-    uint16_t rtmsg_dst_len;
+-    uint16_t rtmsg_src_len;
+-    uint32_t rtmsg_metric;
+-    unsigned long int rtmsg_info;
+-    uint32_t rtmsg_flags;
+-    int rtmsg_ifindex;
+-  };
++    char ifname[IF_NAMESIZE];
++    in_addr_t rt_dest;
++    in_addr_t rt_mask;
++    in_addr_t rt_gateway;
++    int rt_flags;
++    int rt_metric;
++    int rt_mtu;
++    int rt_window;
++    int rt_irtt;
++    int rt_tos;
++    int rt_class;
++  } ifrtreq_t;
++#define _IOT_ifrtreq _IOT (_IOTS(char), IF_NAMESIZE, _IOTS(int), 10, 0, 0)
+ 
+ 
+ #define	RTF_UP		0x0001		/* Route usable.  */
+Index: glibc-2.34/sysdeps/mach/hurd/bits/ioctls.h
+===================================================================
+--- glibc-2.34.orig/sysdeps/mach/hurd/bits/ioctls.h
++++ glibc-2.34/sysdeps/mach/hurd/bits/ioctls.h
+@@ -281,8 +281,8 @@ enum __ioctl_datum { IOC_8, IOC_16, IOC_
+ #define	SIOCSPGRP	_IOW('s',  8, int)		/* set process group */
+ #define	SIOCGPGRP	_IOR('s',  9, int)		/* get process group */
+ 
+-#define	SIOCADDRT	_IOW('r', 10, struct ortentry)	/* add route */
+-#define	SIOCDELRT	_IOW('r', 11, struct ortentry)	/* delete route */
++#define	SIOCADDRT	_IOW('r', 10, struct ifrtreq)	/* add route */
++#define	SIOCDELRT	_IOW('r', 11, struct ifrtreq)	/* delete route */
+ 
+ #define	SIOCSIFADDR	_IOW('i', 12, struct ifreq)	/* set ifnet address */
+ #define	OSIOCGIFADDR	_IOWR('i',13, struct ifreq)	/* get ifnet address */

@@ -1,0 +1,32 @@
+commit dba88b4f44d80864ec78595526e081ab9b5af278
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Fri Aug 19 02:16:54 2022 +0200
+
+    hurd: Assume non-suid during bootstrap
+    
+    We do not have a hurd data block only when bootstrapping the system, in
+    which case we don't have a notion of suid yet anyway.
+    
+    This is needed, otherwise init_standard_fds would check that standard
+    file descriptors are allocated, which is meaningless during bootstrap.
+
+diff --git a/sysdeps/mach/hurd/i386/init-first.c b/sysdeps/mach/hurd/i386/init-first.c
+index 534a796e0d..f10d4a1bc2 100644
+--- a/sysdeps/mach/hurd/i386/init-first.c
++++ b/sysdeps/mach/hurd/i386/init-first.c
+@@ -95,8 +95,13 @@ init1 (int argc, char *arg0, ...)
+   d = (void *) ++envp;
+ 
+   if ((void *) d == argv[0])
+-    /* No Hurd data block to process.  */
+-    return;
++    {
++      /* No Hurd data block to process.  */
++#ifndef SHARED
++      __libc_enable_secure = 0;
++#endif
++      return;
++    }
+ 
+ #ifndef SHARED
+   __libc_enable_secure = d->flags & EXEC_SECURE;

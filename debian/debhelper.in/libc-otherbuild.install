@@ -1,3 +1,2 @@
-# This file is used for making NPTL and other
-# optimized libraries.
+# This file is used for optimized libraries.
 TMPDIR/SLIBDIR/*.so* SLIBDIR

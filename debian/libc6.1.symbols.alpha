@@ -4,11 +4,12 @@ ld-linux.so.2 #PACKAGE# #MINVER#
  __tls_get_addr@GLIBC_2.3 2.3.5
 libc.so.6.1 #PACKAGE# #MINVER#
 #include "symbols.wildcards"
+### sysconf(_SC_MINSIGSTKSZ) and sysconf(_SC_SIGSTKSZ) added in glibc 2.34
+ __sysconf@GLIBC_2.2 2.34
+ sysconf@GLIBC_2.0 2.34
 libBrokenLocale.so.1.1 #PACKAGE# #MINVER#
 #include "symbols.wildcards"
-libSegFault.so #PACKAGE# #MINVER#
-#include "symbols.wildcards"
-libcrypt.so.1.1 #PACKAGE# #MINVER#
+libc_malloc_debug.so.0 #PACKAGE# #MINVER#
 #include "symbols.wildcards"
 libdl.so.2.1 #PACKAGE# #MINVER#
 #include "symbols.wildcards"

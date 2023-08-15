@@ -230,6 +230,16 @@ tests-unsupported += tst-malloc-thread-fail-malloc-hugetlb1
 tests-unsupported += tst-malloc-thread-fail-malloc-hugetlb2
 tests-unsupported += tst-dynarray-fail
 
+# This overflows pflocal with select requests
+tests-unsupported += tst-pthread_cancel-select-loop
+
+# These stay stuck
+tests-unsupported += tst-audit14
+tests-unsupported += tst-audit14a
+tests-unsupported += tst-audit15
+tests-unsupported += tst-audit16
+tests-unsupported += tst-audit17
+
 # We don't provide /proc/cpuinfo yet
 test-xfail-test-multiarch = yes
 test-xfail-tst-cpu-features-cpuinfo = yes
@@ -264,7 +274,6 @@ test-xfail-tst-audit15 = yes
 test-xfail-tst-audit15-cmp = yes
 test-xfail-tst-audit16 = yes
 test-xfail-tst-audit16-cmp = yes
-test-xfail-tst-audit17 = yes
 test-xfail-tst-audit18 = yes
 test-xfail-tst-audit20 = yes
 test-xfail-tst-audit23 = yes
@@ -284,6 +293,7 @@ test-xfail-tst-sprofil = yes
 # Missing RT signals.
 # And without rt_sigqueueinfo thread_expire_timer can't pass the si_code = SI_TIMER
 test-xfail-tst-timer4 = yes
+test-xfail-tst-timer5 = yes
 
 # This generates GiBs of data instead of sparse files, putting build box on its knees
 tests-unsupported += test-lfs
@@ -330,6 +340,9 @@ test-xfail-test-errno = yes
 # new in 2.27
 test-xfail-tst-tls1-static-non-pie = yes
 
+# new in 2.30
+test-xfail-tst-nss-files-hosts-long = yes
+
 # wants pthread_barrierattr_setpshared
 test-xfail-tst-pututxline-cache = yes
 test-xfail-tst-pututxline-lockfail = yes
@@ -348,6 +361,9 @@ test-xfail-tst-initfinilazyfail = yes
 # Mach misses getting adjtime without privileges
 test-xfail-tst-adjtime = yes
 test-xfail-tst-join15 = yes
+test-xfail-tst-reload1 = yes
+test-xfail-tst-reload2 = yes
+test-xfail-tst-canon-bz26341 = yes
 
 # fixed in 2.33
 test-xfail-tst-spawn4-compat = yes
@@ -356,7 +372,11 @@ test-xfail-tst-spawn4-compat = yes
 test-xfail-test-cxa_atexit-race2 = yes
 test-xfail-tst-itimer = yes
 test-xfail-tst-wait3 = yes
+test-xfail-tst-nss-compat1 = yes
 test-xfail-test-fesetexcept-traps = yes
+test-xfail-tst-dlinfo-phdr = yes
+test-xfail-tst-tls-allocation-failure-static-patched = yes
+test-xfail-tst-cancel29 = yes
 
 # new in 2.35
 test-xfail-tst-compathooks-on = yes
@@ -364,27 +384,7 @@ test-xfail-tst-sched_getaffinity = yes
 test-xfail-tst-malloc-tcache-leak-malloc-hugetlb1 = yes
 test-xfail-tst-malloc-tcache-leak-malloc-hugetlb2 = yes
 test-xfail-tst-p_align3 = yes
-test-xfail-tst-spawn6 = yes
-
-# fixed in 2.35
-test-xfail-tst-safe-linking = yes
-test-xfail-tst-gmon-static = yes
-test-xfail-tst-gmon-static-gprof = yes
-test-xfail-tst-audit11 = yes
-test-xfail-tst-audit12 = yes
-test-xfail-tst-auditmany = yes
-test-xfail-tst-timespec_getres = yes
-# upstreamed in 2.35
-test-xfail-tst-mallocfork2 = yes
-test-xfail-tst-mallocfork2-mcheck = yes
-test-xfail-tst-mallocfork2-malloc-check = yes
-test-xfail-tst-nss-compat1 = yes
-test-xfail-tst-reload1 = yes
-test-xfail-tst-reload2 = yes
-test-xfail-tst-nss-files-hosts-long = yes
-test-xfail-tst-vfork3 = yes
-test-xfail-tst-timer5 = yes
-test-xfail-tst-mqueue10 = yes
+tests-unsupported += tst-spawn6
 
 # actually never succeded
 test-xfail-tst-create_format1 = yes
@@ -785,24 +785,44 @@ test-xfail-check-execstack = yes
 # Theses failures are due to a bug in the cvt.s.d instruction on some FPU
 # (at least Octeon 3 and XBurst). The tininess detection is done on a
 # before-rounding basis instead of an after-rounding basis.
-test-xfail-test-float-fma = yes
-test-xfail-test-float-finite-fma = yes
-test-xfail-test-float32-fma = yes
-test-xfail-test-float32-finite-fma = yes
 test-xfail-test-float-double-add = yes
+test-xfail-test-float-double-div = yes
+test-xfail-test-float-double-fma = yes
+test-xfail-test-float-double-mul = yes
 test-xfail-test-float-double-sub = yes
+test-xfail-test-float-finite-fma = yes
+test-xfail-test-float-fma = yes
 test-xfail-test-float-ldouble-add = yes
+test-xfail-test-float-ldouble-div = yes
+test-xfail-test-float-ldouble-fma = yes
+test-xfail-test-float-ldouble-mul = yes
 test-xfail-test-float-ldouble-sub = yes
+test-xfail-test-float32-finite-fma = yes
 test-xfail-test-float32-float32x-add = yes
+test-xfail-test-float32-float32x-div = yes
+test-xfail-test-float32-float32x-fma = yes
+test-xfail-test-float32-float32x-mul = yes
 test-xfail-test-float32-float32x-sub = yes
 test-xfail-test-float32-float64-add = yes
+test-xfail-test-float32-float64-div = yes
+test-xfail-test-float32-float64-fma = yes
+test-xfail-test-float32-float64-mul = yes
 test-xfail-test-float32-float64-sub = yes
+test-xfail-test-float32-fma = yes
 
 # Theses failures are due to a bug in the cvt.d.s instruction on some FPU
 # (at least Octeon 3 and XBurst). The qNaN payload is not preserved in
 # the conversion and a new qNaN is generated.
 test-xfail-tst-strfrom = yes
 test-xfail-tst-strfrom-locale = yes
+
+# These audit failures seems to be due to the MIPS ELF specificities:
+test-xfail-tst-audit24a = yes
+test-xfail-tst-audit24b = yes
+test-xfail-tst-audit24c = yes
+test-xfail-tst-audit24d = yes
+test-xfail-tst-audit25a = yes
+test-xfail-tst-audit25b = yes
 endif
 
 

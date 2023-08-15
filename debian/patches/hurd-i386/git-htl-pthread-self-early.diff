@@ -1,0 +1,58 @@
+Will be committed for 2.37
+
+commit 302bf01641d0addebe2aea69b9924bd781f76d81
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Jul 28 22:01:49 2022 +0200
+
+    htl: Let pthread_self and cancellability called early
+    
+    When applications redirect some functions they might get called before
+    libpthread is fully initialized.  They may still expected pthread_self
+    and cancellable functions to work, so cope with such calls in that
+    situation.
+
+diff --git a/htl/cancellation.c b/htl/cancellation.c
+index a5d5d2ac04..7d38944718 100644
+--- a/htl/cancellation.c
++++ b/htl/cancellation.c
+@@ -25,6 +25,10 @@ int __pthread_enable_asynccancel (void)
+   struct __pthread *p = _pthread_self ();
+   int oldtype;
+ 
++  if (___pthread_self == NULL)
++    /* We are not initialized yet, we can't be cancelled anyway.  */
++    return PTHREAD_CANCEL_DEFERRED;
++
+   __pthread_mutex_lock (&p->cancel_lock);
+   oldtype = p->cancel_type;
+   p->cancel_type = PTHREAD_CANCEL_ASYNCHRONOUS;
+@@ -39,6 +43,10 @@ void __pthread_disable_asynccancel (int oldtype)
+ {
+   struct __pthread *p = _pthread_self ();
+ 
++  if (___pthread_self == NULL)
++    /* We are not initialized yet, we can't be cancelled anyway.  */
++    return;
++
+   __pthread_mutex_lock (&p->cancel_lock);
+   p->cancel_type = oldtype;
+   __pthread_mutex_unlock (&p->cancel_lock);
+diff --git a/htl/pt-self.c b/htl/pt-self.c
+index 6fd3c98b82..e05ec69bf5 100644
+--- a/htl/pt-self.c
++++ b/htl/pt-self.c
+@@ -24,7 +24,13 @@
+ pthread_t
+ __pthread_self (void)
+ {
+-  struct __pthread *self = _pthread_self ();
++  struct __pthread *self;
++
++  if (___pthread_self == NULL)
++    /* We are not initialized yet, we are the first thread.  */
++    return 1;
++
++  self = _pthread_self ();
+   assert (self != NULL);
+ 
+   return self->thread;

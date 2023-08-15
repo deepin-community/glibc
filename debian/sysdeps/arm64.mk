@@ -1,2 +1,2 @@
 # configuration options for all flavours
-extra_config_options = --enable-multi-arch --enable-static-pie --enable-memory-tagging
+extra_config_options = --enable-multi-arch --enable-memory-tagging

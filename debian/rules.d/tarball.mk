@@ -1,9 +1,9 @@
 GLIBC_GIT = https://sourceware.org/git/glibc.git
-GLIBC_BRANCH = release/$(GLIBC_VERSION)/master
-GLIBC_TAG = glibc-$(GLIBC_VERSION)
+GLIBC_BRANCH = release/$(DEB_VERSION_UPSTREAM)/master
+GLIBC_TAG = glibc-$(DEB_VERSION_UPSTREAM)
 GLIBC_CHECKOUT = glibc-checkout
-GLIBC_DIR = glibc-$(GLIBC_VERSION)
-DEB_ORIG = ../glibc_$(GLIBC_VERSION).orig.tar.xz
+GLIBC_DIR = glibc-$(DEB_VERSION_UPSTREAM)
+DEB_ORIG = ../glibc_$(DEB_VERSION_UPSTREAM).orig.tar.xz
 GIT_UPDATES_DIFF = debian/patches/git-updates.diff
 
 get-orig-source: $(DEB_ORIG)

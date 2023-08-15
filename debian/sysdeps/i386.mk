@@ -1,5 +1,5 @@
 # configuration options for all flavours
-extra_config_options = --enable-multi-arch --enable-static-pie
+extra_config_options = --enable-multi-arch
 
 # multilib flavours
 ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
@@ -20,7 +20,7 @@ amd64_libdir = /usr/lib64
 
 define amd64_extra_install
 cp debian/tmp-amd64/usr/bin/ldd \
-	debian/tmp-libc/usr/bin
+	debian/tmp/usr/bin
 endef
 
 define libc6-dev-amd64_extra_pkg_install

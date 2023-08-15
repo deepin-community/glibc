@@ -35,7 +35,7 @@ Index: glibc-2.29/nss/Makefile
 --- glibc-2.29.orig/nss/Makefile
 +++ glibc-2.29/nss/Makefile
 @@ -59,7 +59,7 @@ tests			= test-netdb test-digits-dots ts
- 			  tst-nss-test5
+ 			  tst-nss-test_errno
  xtests			= bug-erange
  
 -tests-container = \

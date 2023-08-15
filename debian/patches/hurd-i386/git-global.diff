@@ -1,0 +1,23 @@
+commit f9b152c83f6b80562bd554e9d188636888909450
+Author: H.J. Lu <hjl.tools@gmail.com>
+Date:   Fri Oct 15 11:29:24 2021 -0700
+
+    elf: Make global.out depend on reldepmod4.so [BZ #28457]
+    
+    The global test is linked with globalmod1.so which dlopens reldepmod4.so.
+    Make global.out depend on reldepmod4.so.  This fixes BZ #28457.
+    Reviewed-by: Florian Weimer <fweimer@redhat.com>
+
+diff --git a/elf/Makefile b/elf/Makefile
+index bdcf4cb885..7e4f0c3121 100644
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -991,7 +991,7 @@ $(objpfx)tst-rtld-preload.out: tst-rtld-preload.sh $(objpfx)ld.so \
+ $(objpfx)initfirst.out: $(objpfx)firstobj.so
+ 
+ $(objpfx)global: $(objpfx)globalmod1.so
+-$(objpfx)global.out: $(objpfx)reldepmod1.so
++$(objpfx)global.out: $(objpfx)reldepmod1.so $(objpfx)reldepmod4.so
+ 
+ $(objpfx)dblload.out: $(objpfx)dblloadmod1.so $(objpfx)dblloadmod2.so
+ 

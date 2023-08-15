@@ -1,5 +1,5 @@
 # these manpages are provided by the manpages package
-libc-devtools: binary-without-manpage usr/bin/memusage
-libc-devtools: binary-without-manpage usr/bin/memusagestat
-libc-devtools: binary-without-manpage usr/bin/mtrace
-libc-devtools: binary-without-manpage usr/bin/sprof
+no-manual-page [usr/bin/memusage]
+no-manual-page [usr/bin/memusagestat]
+no-manual-page [usr/bin/mtrace]
+no-manual-page [usr/bin/sprof]
