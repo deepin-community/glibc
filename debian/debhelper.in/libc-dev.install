@@ -1,22 +1,20 @@
-TMPDIR/LIBDIR/libanl.a LIBDIR
-TMPDIR/LIBDIR/libBrokenLocale.a LIBDIR
-TMPDIR/LIBDIR/libc.a LIBDIR
-TMPDIR/LIBDIR/libc_nonshared.a LIBDIR
-TMPDIR/LIBDIR/libdl.a LIBDIR
-TMPDIR/LIBDIR/libg.a LIBDIR
-TMPDIR/LIBDIR/libm.a LIBDIR
-TMPDIR/LIBDIR/libm-*.a LIBDIR
-TMPDIR/LIBDIR/libmcheck.a LIBDIR
-TMPDIR/LIBDIR/libmvec.a LIBDIR
-TMPDIR/LIBDIR/libpthread.a LIBDIR
-TMPDIR/LIBDIR/libpthread_nonshared.a LIBDIR
-TMPDIR/LIBDIR/libresolv.a LIBDIR
-TMPDIR/LIBDIR/librt.a LIBDIR
-TMPDIR/LIBDIR/libutil.a LIBDIR
-
-TMPDIR/LIBDIR/*.o LIBDIR
-TMPDIR/LIBDIR/*.so LIBDIR
-TMPDIR/LIBDIR/audit/* LIBDIR/audit
-
-TMPDIR/usr/include/* usr/include
-TMPDIR/usr/share/gdb/* usr/share/gdb
+usr/include
+usr/lib/*/*.o
+usr/lib/*/*.so
+usr/lib/*/audit
+usr/lib/*/libBrokenLocale.a
+usr/lib/*/libanl.a
+usr/lib/*/libc.a
+usr/lib/*/libc_nonshared.a
+usr/lib/*/libdl.a
+usr/lib/*/libg.a
+usr/lib/*/libm-*.a
+usr/lib/*/libm.a
+usr/lib/*/libmcheck.a
+usr/lib/*/libmvec.a
+usr/lib/*/libpthread.a
+usr/lib/*/libpthread_nonshared.a
+usr/lib/*/libresolv.a
+usr/lib/*/librt.a
+usr/lib/*/libutil.a
+usr/share/gdb

@@ -1,0 +1,29 @@
+We could perhaps rather make _hurd_check_ids' __USEPORT call use _hurd_ports_use
+to nicely fail here.
+
+Index: glibc-2.34/elf/dl-tunables.c
+===================================================================
+--- glibc-2.34.orig/elf/dl-tunables.c
++++ glibc-2.34/elf/dl-tunables.c
+@@ -268,7 +268,7 @@ static __always_inline void
+ maybe_enable_malloc_check (void)
+ {
+   tunable_id_t id = TUNABLE_ENUM_NAME (glibc, malloc, check);
+-  if (__libc_enable_secure && __access_noerrno ("/etc/suid-debug", F_OK) == 0)
++  if (0 && __libc_enable_secure && __access_noerrno ("/etc/suid-debug", F_OK) == 0)
+     tunable_list[id].security_level = TUNABLE_SECLEVEL_NONE;
+ }
+ 
+Index: glibc-2.34/sysdeps/mach/hurd/i386/localplt.data
+===================================================================
+--- glibc-2.34.orig/sysdeps/mach/hurd/i386/localplt.data
++++ glibc-2.34/sysdeps/mach/hurd/i386/localplt.data
+@@ -32,7 +32,7 @@ ld.so: __mmap
+ ld.so: __fstat64
+ ld.so: __stat64
+ ld.so: __access
+-ld.so: __access_noerrno
++#ld.so: __access_noerrno
+ ld.so: __getpid
+ ld.so: __getcwd
+ ld.so: __sbrk

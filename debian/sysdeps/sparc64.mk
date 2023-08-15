@@ -1,7 +1,7 @@
 # configuration options for all flavours
 CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)$(DEB_GCC_VERSION) -no-pie -fno-PIE
 CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)$(DEB_GCC_VERSION) -no-pie -fno-PIE
-extra_config_options = --disable-multi-arch
+extra_config_options = --disable-multi-arch --disable-default-pie
 
 # main library
 libc_rtlddir = /lib64

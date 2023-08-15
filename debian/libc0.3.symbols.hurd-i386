@@ -5,11 +5,12 @@ libc.so.0.3 #PACKAGE# #MINVER#
  (symver|optional)HURD_CTHREADS_0.3 2.11
  __errno_location@GLIBC_2.2.6 2.29-8~
  __h_errno_location@GLIBC_2.2.6 2.29-8~
+### sysconf(_SC_MINSIGSTKSZ) and sysconf(_SC_SIGSTKSZ) added in glibc 2.34
+ __sysconf@GLIBC_2.2.6 2.34
+ sysconf@GLIBC_2.2.6 2.34
 libBrokenLocale.so.1 #PACKAGE# #MINVER#
 #include "symbols.wildcards"
-libSegFault.so #PACKAGE# #MINVER#
-#include "symbols.wildcards"
-libcrypt.so.1 #PACKAGE# #MINVER#
+libc_malloc_debug.so.0 #PACKAGE# #MINVER#
 #include "symbols.wildcards"
 libdl.so.2 #PACKAGE# #MINVER#
 #include "symbols.wildcards"
@@ -121,6 +122,7 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  __fsys_set_options@Base 2.11
  __fsys_startup@Base 2.11
  __fsys_syncfs@Base 2.11
+ __gsync_wait_intr@Base 2.31-6~
  __ifsock_getsockaddr@Base 2.11
  __interrupt_operation@Base 2.11
  __io_async@Base 2.11
@@ -338,6 +340,8 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  __proc_reassign@Base 2.11
  __proc_reassign_request@Base 2.11
  __proc_reauthenticate@Base 2.11
+ __proc_reauthenticate_complete@Base 2.31-13+hurd.2~
+ __proc_reauthenticate_reassign@Base 2.31-13+hurd.1~
  __proc_reauthenticate_request@Base 2.11
  __proc_register_version@Base 2.11
  __proc_register_version_request@Base 2.11
@@ -500,6 +504,7 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  fsys_set_options@Base 2.11
  fsys_startup@Base 2.11
  fsys_syncfs@Base 2.11
+ gsync_wait_intr@Base 2.31-6~
  ifsock_getsockaddr@Base 2.11
  interrupt_operation@Base 2.11
  io_async@Base 2.11
@@ -717,6 +722,8 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  proc_reassign@Base 2.11
  proc_reassign_request@Base 2.11
  proc_reauthenticate@Base 2.11
+ proc_reauthenticate_complete@Base 2.31-13+hurd.2~
+ proc_reauthenticate_reassign@Base 2.31-13+hurd.1~
  proc_reauthenticate_request@Base 2.11
  proc_register_version@Base 2.11
  proc_register_version_request@Base 2.11
@@ -974,6 +981,7 @@ libmachuser.so.1 #PACKAGE# #MINVER#
  __vm_protect@Base 2.11
  __vm_read@Base 2.11
  __vm_region@Base 2.11
+ __vm_region_create_proxy@Base 2.33-2~1
  __vm_set_default_memory_manager@Base 2.11
  __vm_statistics@Base 2.11
  __vm_wire@Base 2.11
@@ -1136,6 +1144,7 @@ libmachuser.so.1 #PACKAGE# #MINVER#
  vm_protect@Base 2.11
  vm_read@Base 2.11
  vm_region@Base 2.11
+ vm_region_create_proxy@Base 2.33-2~1
  vm_set_default_memory_manager@Base 2.11
  vm_statistics@Base 2.11
  vm_wire@Base 2.11

@@ -1,0 +1,61 @@
+commit 4565083abc972bffe810e4151f8f3cb48531e526
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon Aug 22 22:27:24 2022 +0200
+
+    htl: Make pthread*_cond_timedwait register wref before releasing mutex
+    
+    Otherwise another thread could be rightly trying to destroy the condition,
+    see e.g. tst-cond20.
+
+diff --git a/sysdeps/htl/pt-cond-timedwait.c b/sysdeps/htl/pt-cond-timedwait.c
+index 6f4cb41bf1..4352e54fff 100644
+--- a/sysdeps/htl/pt-cond-timedwait.c
++++ b/sysdeps/htl/pt-cond-timedwait.c
+@@ -142,13 +142,15 @@ __pthread_cond_timedwait_internal (pthread_cond_t *cond,
+ 
+   __pthread_mutex_unlock (&self->cancel_lock);
+ 
+-  /* Release MUTEX before blocking.  */
+-  __pthread_mutex_unlock (mutex);
+-
+   /* Increase the waiter reference count.  Relaxed MO is sufficient because
+-     we only need to synchronize when decrementing the reference count.  */
++     we only need to synchronize when decrementing the reference count.
++     We however need to have the mutex held to prevent concurrency with
++     a pthread_cond_destroy.  */
+   atomic_fetch_add_relaxed (&cond->__wrefs, 2);
+ 
++  /* Release MUTEX before blocking.  */
++  __pthread_mutex_unlock (mutex);
++
+   /* Block the thread.  */
+   if (abstime != NULL)
+     err = __pthread_timedblock (self, abstime, clock_id);
+diff --git a/sysdeps/mach/hurd/htl/pt-hurd-cond-timedwait.c b/sysdeps/mach/hurd/htl/pt-hurd-cond-timedwait.c
+index 16f0d3b309..1677925755 100644
+--- a/sysdeps/mach/hurd/htl/pt-hurd-cond-timedwait.c
++++ b/sysdeps/mach/hurd/htl/pt-hurd-cond-timedwait.c
+@@ -103,6 +103,12 @@ __pthread_hurd_cond_timedwait_internal (pthread_cond_t *cond,
+   __pthread_spin_unlock (&cond->__lock);
+   __spin_unlock (&ss->lock);
+ 
++  /* Increase the waiter reference count.  Relaxed MO is sufficient because
++     we only need to synchronize when decrementing the reference count.
++     We however need to have the mutex held to prevent concurrency with
++     a pthread_cond_destroy.  */
++  atomic_fetch_add_relaxed (&cond->__wrefs, 2);
++
+   if (cancel)
+     {
+       /* Cancelled on entry.  Just leave the mutex locked.  */
+@@ -115,10 +121,6 @@ __pthread_hurd_cond_timedwait_internal (pthread_cond_t *cond,
+       /* Release MUTEX before blocking.  */
+       __pthread_mutex_unlock (mutex);
+ 
+-  /* Increase the waiter reference count.  Relaxed MO is sufficient because
+-     we only need to synchronize when decrementing the reference count.  */
+-  atomic_fetch_add_relaxed (&cond->__wrefs, 2);
+-
+       /* Block the thread.  */
+       if (abstime != NULL)
+ 	err = __pthread_timedblock (self, abstime, clock_id);

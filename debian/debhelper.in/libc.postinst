@@ -1,6 +1,5 @@
 #!/bin/sh
 set -e
-export LC_ALL=C
 
 type=$1
 preversion=$2
@@ -27,8 +26,12 @@ then
 	. /usr/share/debconf/confmodule
     fi
 
+    # Only change LC_ALL after loading debconf to ensure the debconf templates
+    # are properly localized.
+    export LC_ALL=C
+
     if [ -n "$preversion" ] && [ -x "$(command -v ischroot)" ] && ! ischroot; then
-	if dpkg --compare-versions "$preversion" lt GLIBC_VERSION; then
+	if dpkg --compare-versions "$preversion" lt DEB_VERSION_UPSTREAM; then
 	    check="apache2.2-common apache apache-ssl apache-perl autofs at"
 	    check="$check boa cucipop courier-authdaemon cron cups exim"
 	    check="$check exim4-base dovecot-common cucipop incron lprng lpr"
@@ -147,7 +150,7 @@ then
 	    else
 		echo "Nothing to restart."
 	    fi
-	fi # end upgrading and $preversion lt GLIBC_VERSION
+	fi # end upgrading and $preversion lt DEB_VERSION_UPSTREAM
     fi # Upgrading
 
     # Restart init.  Currently handles chroots, systemd and upstart, and
@@ -156,6 +159,9 @@ then
     TELINIT=yes
     if ischroot 2>/dev/null; then
         # Don't bother trying to re-exec init from a chroot:
+        TELINIT=no
+    elif [ -n "${DPKG_ROOT:-}" ]; then
+        # Do not re-exec init if we are operating on a chroot from outside:
         TELINIT=no
     elif [ -d /run/systemd/system ]; then
         # Restart systemd on upgrade, but carefully.

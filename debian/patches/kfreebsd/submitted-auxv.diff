@@ -36,7 +36,7 @@ https://sourceware.org/bugzilla/show_bug.cgi?id=15794
    for (p = GLRO(dl_auxv); p->a_type != AT_NULL; p++)
 --- /dev/null
 +++ b/bits/auxv.h
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,90 @@
 +/* Copyright (C) 1995-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -126,11 +126,10 @@ https://sourceware.org/bugzilla/show_bug.cgi?id=15794
 +#define AT_L3_CACHESIZE		46
 +#define AT_L3_CACHEGEOMETRY	47
 +
-+#define AT_MINSIGSTKSZ		51 /* Stack needed for signal delivery
-+				      (AArch64).  */
++#define AT_MINSIGSTKSZ		51 /* Stack needed for signal delivery  */
 --- a/elf/elf.h
 +++ b/elf/elf.h
-@@ -1154,81 +1154,7 @@
+@@ -1154,80 +1154,7 @@
      } a_un;
  } Elf64_auxv_t;
  
@@ -206,8 +205,7 @@ https://sourceware.org/bugzilla/show_bug.cgi?id=15794
 -#define AT_L3_CACHESIZE		46
 -#define AT_L3_CACHEGEOMETRY	47
 -
--#define AT_MINSIGSTKSZ		51 /* Stack needed for signal delivery
--				      (AArch64).  */
+-#define AT_MINSIGSTKSZ		51 /* Stack needed for signal delivery  */
 -
 +#include <bits/auxv.h>
  /* Note section contents.  Each entry in the note section begins with

@@ -45,7 +45,7 @@ endef
 
 # Need to put a tri-arch aware version of ldd in the base package
 define mipsn32_extra_install
-cp debian/tmp-mipsn32/usr/bin/ldd debian/tmp-libc/usr/bin
+cp debian/tmp-mipsn32/usr/bin/ldd debian/tmp/usr/bin
 endef
 
 endif # multilib

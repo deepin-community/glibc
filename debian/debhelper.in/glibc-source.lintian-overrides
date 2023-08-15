@@ -2,32 +2,29 @@
 # of glibc-source binary package to allow re-use of it for cross
 # compiler packages.
 
-glibc-source: missing-dep-for-interpreter make => make | build-essential | dpkg-dev (usr/src/glibc/debian/rules)
-glibc-source: shell-script-fails-syntax-check usr/src/glibc/debian/debhelper.in/libc-otherbuild.postinst
-glibc-source: shell-script-fails-syntax-check usr/src/glibc/debian/debhelper.in/libc-otherbuild.postrm
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/libc-alt.preinst
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/libc-alt.postrm
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/libc-bin.postinst
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/libc-dev-alt.preinst
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/libc-dev-alt.preinst.i386
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/libc-dev-alt.postinst
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/libc-otherbuild.postinst
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/libc-otherbuild.postrm
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/libc.postinst
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/libc.postrm
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/libc.preinst
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/libc.prerm
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/locales-all.postinst
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/locales-all.prerm
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/locales.config
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/locales.postinst
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/locales.postrm
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/locales.prerm
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/nscd.init
-glibc-source: script-not-executable usr/src/glibc/debian/debhelper.in/nscd.postrm
-glibc-source: script-not-executable usr/src/glibc/debian/generate-supported.mk
-glibc-source: script-not-executable usr/src/glibc/debian/local/manpages/Makefile
-glibc-source: script-not-executable usr/src/glibc/debian/local/usr_sbin/locale-gen
-glibc-source: script-not-executable usr/src/glibc/debian/local/usr_sbin/update-locale
-glibc-source: script-not-executable usr/src/glibc/debian/local/usr_sbin/validlocale
-glibc-source: script-not-executable usr/src/glibc/debian/shlibs-add-udebs
+script-not-executable usr/src/glibc/debian/debhelper.in/libc-alt.preinst
+script-not-executable usr/src/glibc/debian/debhelper.in/libc-alt.postrm
+script-not-executable usr/src/glibc/debian/debhelper.in/libc-bin.postinst
+script-not-executable usr/src/glibc/debian/debhelper.in/libc-dev-alt.preinst
+script-not-executable usr/src/glibc/debian/debhelper.in/libc-dev-alt.preinst.i386
+script-not-executable usr/src/glibc/debian/debhelper.in/libc-dev-alt.postinst
+script-not-executable usr/src/glibc/debian/debhelper.in/libc-otherbuild.postinst
+script-not-executable usr/src/glibc/debian/debhelper.in/libc-otherbuild.postrm
+script-not-executable usr/src/glibc/debian/debhelper.in/libc.postinst
+script-not-executable usr/src/glibc/debian/debhelper.in/libc.postrm
+script-not-executable usr/src/glibc/debian/debhelper.in/libc.preinst
+script-not-executable usr/src/glibc/debian/debhelper.in/libc.prerm
+script-not-executable usr/src/glibc/debian/debhelper.in/locales-all.postinst
+script-not-executable usr/src/glibc/debian/debhelper.in/locales-all.prerm
+script-not-executable usr/src/glibc/debian/debhelper.in/locales.config
+script-not-executable usr/src/glibc/debian/debhelper.in/locales.postinst
+script-not-executable usr/src/glibc/debian/debhelper.in/locales.postrm
+script-not-executable usr/src/glibc/debian/debhelper.in/locales.prerm
+script-not-executable usr/src/glibc/debian/debhelper.in/nscd.init
+script-not-executable usr/src/glibc/debian/debhelper.in/nscd.postrm
+script-not-executable usr/src/glibc/debian/generate-supported.mk
+script-not-executable usr/src/glibc/debian/local/manpages/Makefile
+script-not-executable usr/src/glibc/debian/local/usr_sbin/locale-gen
+script-not-executable usr/src/glibc/debian/local/usr_sbin/update-locale
+script-not-executable usr/src/glibc/debian/local/usr_sbin/validlocale
+script-not-executable usr/src/glibc/debian/shlibs-add-udebs

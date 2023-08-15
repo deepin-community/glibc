@@ -1,3 +1,2 @@
-debian/tmp-libc/usr/sbin/nscd usr/sbin
+usr/sbin/nscd
 nscd/nscd.conf /etc
-

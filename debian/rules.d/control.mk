@@ -1,7 +1,7 @@
 libc_packages := libc6 libc6.1 libc0.1 libc0.3
 libc0_1_archs := kfreebsd-amd64 kfreebsd-i386
 libc0_3_archs := hurd-i386
-libc6_archs   := amd64 arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32el mips64 mips64el mipsr6 mipsr6el \
+libc6_archs   := amd64 arc arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32el mips64 mips64el mipsr6 mipsr6el \
                  mipsn32r6 mipsn32r6el mips64r6 mips64r6el nios2 powerpc ppc64 ppc64el riscv64 \
                  sparc sparc64 s390x sh3 sh4 x32
 libc6_1_archs := alpha ia64
@@ -40,12 +40,10 @@ $(stamp)control: debian/rules.d/control.mk $(control_deps) debian/tests/control.
 	cat debian/control.in/mips32		>> $@T
 	cat debian/control.in/mipsn32		>> $@T
 	cat debian/control.in/mips64		>> $@T
-#	cat debian/control.in/armhf		>> $@T
-#	cat debian/control.in/armel		>> $@T
 	cat debian/control.in/kfreebsd-i386	>> $@T
 	cat debian/control.in/x32		>> $@T
 	cat debian/control.in/opt		>> $@T
-	sed -e 's%@libc@%$(libc)%g' -e 's%@GLIBC_VERSION@%$(GLIBC_VERSION)%g' -e 's%@GPP_CROSS_DEP@%$(GPP_CROSS_DEP)%g' < $@T > debian/control
+	sed -e 's%@libc@%$(libc)%g' -e 's%@DEB_VERSION_UPSTREAM@%$(DEB_VERSION_UPSTREAM)%g' -e 's%@GPP_CROSS_DEP@%$(GPP_CROSS_DEP)%g' < $@T > debian/control
 	rm $@T
 
 	# And generate the tests control file with the current GCC

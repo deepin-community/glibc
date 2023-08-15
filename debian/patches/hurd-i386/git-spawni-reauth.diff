@@ -1,0 +1,24 @@
+Committed for 2.36
+
+commit eff158b75dee466ac0c37a17b2165072ee0b7aeb
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu May 5 02:14:43 2022 +0200
+
+    hurd spawni: Fix reauthenticating closed fds
+    
+    When an fd is closed, the port cell remains, but the port becomes
+    MACH_PORT_NULL, so we have to guard against it.
+
+diff --git a/sysdeps/mach/hurd/spawni.c b/sysdeps/mach/hurd/spawni.c
+index f19b688411..ffc62e660e 100644
+--- a/sysdeps/mach/hurd/spawni.c
++++ b/sysdeps/mach/hurd/spawni.c
+@@ -154,7 +154,7 @@ __spawni (pid_t *pid, const char *file,
+      reauthenticated, or was newly opened on behalf of the child.  */
+   error_t reauthenticate_fd (int fd)
+     {
+-      if (dtable_cells[fd] != NULL)
++      if (dtable_cells[fd] != NULL && dtable[fd] != MACH_PORT_NULL)
+ 	{
+ 	  file_t newfile;
+ 	  mach_port_t ref = __mach_reply_port ();

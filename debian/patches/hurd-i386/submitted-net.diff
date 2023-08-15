@@ -1,25 +1,21 @@
 http://sourceware.org/ml/libc-alpha/2009-01/msg00026.html
 
-Note: disabled on !hurd, because it breaks kfreebsd, as it hides their
-<net/route.h>
+TODO: re-submit, now that it doesn't pose <net/route.h> problems any more.
 
 commit b4da06a7e200d0cf8d132a83852e473b7795f691
 Author: Samuel Thibault <sthibault@dalton.bordeaux.inria.fr>
 Date:   Sun Jan 10 23:55:28 2010 +0100
 
-    Factorize ethernet,if_arp,if_ether,if_ppp,route.h
+    Factorize ethernet,if_arp,if_ether,if_ppp
     
     2010-01-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
     
     	* sysdeps/mach/hurd/Makefile (sysdep_headers) [subdir=socket]:
     	Remove net/ethernet.h net/if_arp.h net/if_ether.h net/if_ppp.h
-    	net/route.h.
     	* sysdeps/gnu/Makefile (sysdep_headers) [subdir=socket]:
     	Add net/ethernet.h net/if_arp.h net/if_ether.h net/if_ppp.h
-    	net/route.h.
     	* sysdeps/unix/sysv/linux/Makefile (sysdep_headers)
     	[subdir=socket]: Remove net/ethernet.h net/if_arp.h net/if_ppp.h
-    	net/route.h
     
     	* sysdeps/mach/hurd/net/ethernet.h: Remove file.
     	* sysdeps/unix/sysv/linux/net/ethernet.h: Move file to...
@@ -49,10 +45,6 @@ Date:   Sun Jan 10 23:55:28 2010 +0100
     	* sysdeps/gnu/net/if_ppp.h: ... this.
     	* sysdeps/mach/hurd/net/if_ppp.h: Remove file.
     
-    	* sysdeps/unix/sysv/linux/net/route.h: Move file to...
-    	* sysdeps/gnu/net/route.h: ... this.
-    	* sysdeps/mach/hurd/net/route.h: Remove file.
-
 No topgit branch, TODO?
 
 ---
@@ -61,42 +53,38 @@ No topgit branch, TODO?
  sysdeps/gnu/net/if_arp.h                   |  184 +++++++++++++++++++++++++++++
  sysdeps/gnu/net/if_ether.h                 |  116 ++++++++++++++++++
  sysdeps/gnu/net/if_ppp.h                   |  169 ++++++++++++++++++++++++++
- sysdeps/gnu/net/route.h                    |  145 ++++++++++++++++++++++
  sysdeps/gnu/netinet/if_ether.h             |  104 ++++++++++++++++
  sysdeps/mach/hurd/Makefile                 |    5 
  sysdeps/mach/hurd/net/ethernet.h           |   76 -----------
  sysdeps/mach/hurd/net/if_arp.h             |  145 ----------------------
  sysdeps/mach/hurd/net/if_ether.h           |   85 -------------
  sysdeps/mach/hurd/net/if_ppp.h             |  169 --------------------------
- sysdeps/mach/hurd/net/route.h              |  141 ----------------------
  sysdeps/unix/sysv/linux/Makefile           |    3 
  sysdeps/unix/sysv/linux/net/ethernet.h     |   84 -------------
  sysdeps/unix/sysv/linux/net/if_arp.h       |  184 -----------------------------
  sysdeps/unix/sysv/linux/net/if_ether.h     |    7 +
  sysdeps/unix/sysv/linux/net/if_ppp.h       |  169 --------------------------
- sysdeps/unix/sysv/linux/net/route.h        |  145 ----------------------
  sysdeps/unix/sysv/linux/netinet/if_ether.h |  105 ----------------
- 20 files changed, 815 insertions(+), 1310 deletions(-)
+ 17 files changed, 815 insertions(+), 1310 deletions(-)
 
 Index: glibc-2.27/sysdeps/gnu/Makefile
 ===================================================================
 --- glibc-2.27.orig/sysdeps/gnu/Makefile
 +++ glibc-2.27/sysdeps/gnu/Makefile
-@@ -87,3 +87,8 @@ librt-sysdep_routines += rt-unwind-resum
+@@ -87,3 +87,7 @@ librt-sysdep_routines += rt-unwind-resum
  librt-shared-only-routines += rt-unwind-resume
  CFLAGS-rt-unwind-resume.c += -fexceptions -fasynchronous-unwind-tables
  endif
 +
 +ifeq ($(subdir),socket)
-+sysdep_headers += net/ethernet.h net/if_arp.h net/if_ether.h \
-+		  net/route.h
++sysdep_headers += net/ethernet.h net/if_arp.h net/if_ether.h
 +endif
 Index: glibc-2.27/sysdeps/gnu/net/ethernet.h
 ===================================================================
 --- /dev/null
 +++ glibc-2.27/sysdeps/gnu/net/ethernet.h
 @@ -0,0 +1,83 @@
-+/* Copyright (C) 1997-2021 Free Software Foundation, Inc.
++/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -183,11 +171,10 @@ Index: glibc-2.27/sysdeps/gnu/net/if_arp.h
 ===================================================================
 --- /dev/null
 +++ glibc-2.27/sysdeps/gnu/net/if_arp.h
-@@ -0,0 +1,183 @@
+@@ -0,0 +1,184 @@
 +/* Definitions for Address Resolution Protocol.
-+   Copyright (C) 1997-2021 Free Software Foundation, Inc.
++   Copyright (C) 1997-2022 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
-+   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
 +   modify it under the terms of the GNU Lesser General Public
@@ -281,6 +268,8 @@ Index: glibc-2.27/sysdeps/gnu/net/if_arp.h
 +#define ARPHRD_ROSE	270
 +#define ARPHRD_X25	271		/* CCITT X.25.  */
 +#define ARPHRD_HWX25	272		/* Boards with X.25 in firmware.  */
++#define ARPHRD_CAN	280		/* Controller Area Network.  */
++#define ARPHRD_MCTP	290
 +#define ARPHRD_PPP	512
 +#define ARPHRD_CISCO	513		/* Cisco HDLC.  */
 +#define ARPHRD_HDLC	ARPHRD_CISCO
@@ -372,7 +361,7 @@ Index: glibc-2.27/sysdeps/gnu/net/if_ether.h
 --- /dev/null
 +++ glibc-2.27/sysdeps/gnu/net/if_ether.h
 @@ -0,0 +1,115 @@
-+/* Copyright (C) 1997-2021 Free Software Foundation, Inc.
++/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -663,161 +652,12 @@ Index: glibc-2.27/sysdeps/gnu/net/if_ppp.h
 +__END_DECLS
 +
 +#endif /* net/if_ppp.h */
-Index: glibc-2.27/sysdeps/gnu/net/route.h
-===================================================================
---- /dev/null
-+++ glibc-2.27/sysdeps/gnu/net/route.h
-@@ -0,0 +1,144 @@
-+/* Copyright (C) 1997-2021 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <https://www.gnu.org/licenses/>.  */
-+
-+/* Based on the 4.4BSD and Linux version of this file.  */
-+
-+#ifndef _NET_ROUTE_H
-+#define _NET_ROUTE_H	1
-+
-+#include <features.h>
-+#include <sys/socket.h>
-+#include <sys/types.h>
-+#include <netinet/in.h>
-+#include <bits/wordsize.h>
-+
-+
-+/* This structure gets passed by the SIOCADDRT and SIOCDELRT calls. */
-+struct rtentry
-+  {
-+    unsigned long int rt_pad1;
-+    struct sockaddr rt_dst;		/* Target address.  */
-+    struct sockaddr rt_gateway;		/* Gateway addr (RTF_GATEWAY).  */
-+    struct sockaddr rt_genmask;		/* Target network mask (IP).  */
-+    unsigned short int rt_flags;
-+    short int rt_pad2;
-+    unsigned long int rt_pad3;
-+    unsigned char rt_tos;
-+    unsigned char rt_class;
-+#if __WORDSIZE == 64
-+    short int rt_pad4[3];
-+#else
-+    short int rt_pad4;
-+#endif
-+    short int rt_metric;		/* +1 for binary compatibility!  */
-+    char *rt_dev;			/* Forcing the device at add.  */
-+    unsigned long int rt_mtu;		/* Per route MTU/Window.  */
-+    unsigned long int rt_window;	/* Window clamping.  */
-+    unsigned short int rt_irtt;		/* Initial RTT.  */
-+  };
-+/* Compatibility hack.  */
-+#define rt_mss	rt_mtu
-+
-+
-+struct in6_rtmsg
-+  {
-+    struct in6_addr rtmsg_dst;
-+    struct in6_addr rtmsg_src;
-+    struct in6_addr rtmsg_gateway;
-+    uint32_t rtmsg_type;
-+    uint16_t rtmsg_dst_len;
-+    uint16_t rtmsg_src_len;
-+    uint32_t rtmsg_metric;
-+    unsigned long int rtmsg_info;
-+    uint32_t rtmsg_flags;
-+    int rtmsg_ifindex;
-+  };
-+
-+
-+#define	RTF_UP		0x0001		/* Route usable.  */
-+#define	RTF_GATEWAY	0x0002		/* Destination is a gateway.  */
-+
-+#define	RTF_HOST	0x0004		/* Host entry (net otherwise).  */
-+#define RTF_REINSTATE	0x0008		/* Reinstate route after timeout.  */
-+#define	RTF_DYNAMIC	0x0010		/* Created dyn. (by redirect).  */
-+#define	RTF_MODIFIED	0x0020		/* Modified dyn. (by redirect).  */
-+#define RTF_MTU		0x0040		/* Specific MTU for this route.  */
-+#define RTF_MSS		RTF_MTU		/* Compatibility.  */
-+#define RTF_WINDOW	0x0080		/* Per route window clamping.  */
-+#define RTF_IRTT	0x0100		/* Initial round trip time.  */
-+#define RTF_REJECT	0x0200		/* Reject route.  */
-+#define	RTF_STATIC	0x0400		/* Manually injected route.  */
-+#define	RTF_XRESOLVE	0x0800		/* External resolver.  */
-+#define RTF_NOFORWARD   0x1000		/* Forwarding inhibited.  */
-+#define RTF_THROW	0x2000		/* Go to next class.  */
-+#define RTF_NOPMTUDISC  0x4000		/* Do not send packets with DF.  */
-+
-+/* for IPv6 */
-+#define RTF_DEFAULT	0x00010000	/* default - learned via ND	*/
-+#define RTF_ALLONLINK	0x00020000	/* fallback, no routers on link	*/
-+#define RTF_ADDRCONF	0x00040000	/* addrconf route - RA		*/
-+
-+#define RTF_LINKRT	0x00100000	/* link specific - device match	*/
-+#define RTF_NONEXTHOP	0x00200000	/* route with no nexthop	*/
-+
-+#define RTF_CACHE	0x01000000	/* cache entry			*/
-+#define RTF_FLOW	0x02000000	/* flow significant route	*/
-+#define RTF_POLICY	0x04000000	/* policy route			*/
-+
-+#define RTCF_VALVE	0x00200000
-+#define RTCF_MASQ	0x00400000
-+#define RTCF_NAT	0x00800000
-+#define RTCF_DOREDIRECT 0x01000000
-+#define RTCF_LOG	0x02000000
-+#define RTCF_DIRECTSRC	0x04000000
-+
-+#define RTF_LOCAL	0x80000000
-+#define RTF_INTERFACE	0x40000000
-+#define RTF_MULTICAST	0x20000000
-+#define RTF_BROADCAST	0x10000000
-+#define RTF_NAT		0x08000000
-+
-+#define RTF_ADDRCLASSMASK	0xF8000000
-+#define RT_ADDRCLASS(flags)	((uint32_t) flags >> 23)
-+
-+#define RT_TOS(tos)		((tos) & IPTOS_TOS_MASK)
-+
-+#define RT_LOCALADDR(flags)	((flags & RTF_ADDRCLASSMASK) \
-+				 == (RTF_LOCAL|RTF_INTERFACE))
-+
-+#define RT_CLASS_UNSPEC		0
-+#define RT_CLASS_DEFAULT	253
-+
-+#define RT_CLASS_MAIN		254
-+#define RT_CLASS_LOCAL		255
-+#define RT_CLASS_MAX		255
-+
-+
-+#define RTMSG_ACK		NLMSG_ACK
-+#define RTMSG_OVERRUN		NLMSG_OVERRUN
-+
-+#define RTMSG_NEWDEVICE		0x11
-+#define RTMSG_DELDEVICE		0x12
-+#define RTMSG_NEWROUTE		0x21
-+#define RTMSG_DELROUTE		0x22
-+#define RTMSG_NEWRULE		0x31
-+#define RTMSG_DELRULE		0x32
-+#define RTMSG_CONTROL		0x40
-+
-+#define RTMSG_AR_FAILED		0x51	/* Address Resolution failed.  */
-+
-+#endif /* net/route.h */
 Index: glibc-2.27/sysdeps/gnu/netinet/if_ether.h
 ===================================================================
 --- /dev/null
 +++ glibc-2.27/sysdeps/gnu/netinet/if_ether.h
 @@ -0,0 +1,103 @@
-+/* Copyright (C) 1996-2021 Free Software Foundation, Inc.
++/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -924,23 +764,21 @@ Index: glibc-2.27/sysdeps/mach/hurd/Makefile
 ===================================================================
 --- glibc-2.27.orig/sysdeps/mach/hurd/Makefile
 +++ glibc-2.27/sysdeps/mach/hurd/Makefile
-@@ -202,10 +202,6 @@ ifeq ($(subdir),sunrpc)
- sysdep_headers += nfs/nfs.h
+@@ -202,7 +202,7 @@ ifeq ($(subdir),sunrpc)
  endif
  
--ifeq ($(subdir),socket)
+ ifeq ($(subdir),socket)
 -sysdep_headers += net/ethernet.h net/if_arp.h net/if_ether.h net/route.h
--endif
--
- ifeq ($(subdir),nis)
- CFLAGS-ypclnt.c += -DUSE_BINDINGDIR=1
++sysdep_headers += net/route.h
  endif
+ 
+ ifeq ($(subdir),nis)
 Index: glibc-2.27/sysdeps/mach/hurd/net/ethernet.h
 ===================================================================
 --- glibc-2.27.orig/sysdeps/mach/hurd/net/ethernet.h
 +++ /dev/null
 @@ -1,76 +0,0 @@
--/* Copyright (C) 1997-2021 Free Software Foundation, Inc.
+-/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -1020,11 +858,10 @@ Index: glibc-2.27/sysdeps/mach/hurd/net/if_arp.h
 ===================================================================
 --- glibc-2.27.orig/sysdeps/mach/hurd/net/if_arp.h
 +++ /dev/null
-@@ -1,145 +0,0 @@
+@@ -1,144 +0,0 @@
 -/* Definitions for Address Resolution Protocol.
--   Copyright (C) 1997-2021 Free Software Foundation, Inc.
+-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
--   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
 -   modify it under the terms of the GNU Lesser General Public
@@ -1171,7 +1008,7 @@ Index: glibc-2.27/sysdeps/mach/hurd/net/if_ether.h
 --- glibc-2.27.orig/sysdeps/mach/hurd/net/if_ether.h
 +++ /dev/null
 @@ -1,84 +0,0 @@
--/* Copyright (C) 1997-2021 Free Software Foundation, Inc.
+-/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -1255,151 +1092,6 @@ Index: glibc-2.27/sysdeps/mach/hurd/net/if_ether.h
 -};
 -
 -#endif	/* net/if_ether.h */
-Index: glibc-2.27/sysdeps/mach/hurd/net/route.h
-===================================================================
---- glibc-2.27.orig/sysdeps/mach/hurd/net/route.h
-+++ /dev/null
-@@ -1,140 +0,0 @@
--/* Copyright (C) 1997-2021 Free Software Foundation, Inc..
--   This file is part of the GNU C Library.
--
--   The GNU C Library is free software; you can redistribute it and/or
--   modify it under the terms of the GNU Lesser General Public
--   License as published by the Free Software Foundation; either
--   version 2.1 of the License, or (at your option) any later version.
--
--   The GNU C Library is distributed in the hope that it will be useful,
--   but WITHOUT ANY WARRANTY; without even the implied warranty of
--   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
--   Lesser General Public License for more details.
--
--   You should have received a copy of the GNU Lesser General Public
--   License along with the GNU C Library; if not, see
--   <https://www.gnu.org/licenses/>.  */
--
--/* Based on the 4.4BSD and Linux version of this file.  */
--
--#ifndef _NET_ROUTE_H
--
--#define _NET_ROUTE_H	1
--#include <features.h>
--
--#include <sys/socket.h>
--#include <sys/types.h>
--#include <netinet/in.h>
--
--
--/* This structure gets passed by the SIOCADDRT and SIOCDELRT calls. */
--struct rtentry
--  {
--    unsigned long int rt_pad1;
--    struct sockaddr rt_dst;		/* Target address.  */
--    struct sockaddr rt_gateway;		/* Gateway addr (RTF_GATEWAY).  */
--    struct sockaddr rt_genmask;		/* Target network mask (IP).  */
--    unsigned short int rt_flags;
--    short int rt_pad2;
--    unsigned long int rt_pad3;
--    unsigned char rt_tos;
--    unsigned char rt_class;
--    short int rt_pad4;
--    short int rt_metric;		/* +1 for binary compatibility!  */
--    char *rt_dev;			/* Forcing the device at add.  */
--    unsigned long int rt_mtu;		/* Per route MTU/Window.  */
--    unsigned long int rt_window;	/* Window clamping.  */
--    unsigned short int rt_irtt;		/* Initial RTT.  */
--  };
--/* Compatibility hack.  */
--#define rt_mss	rt_mtu
--
--
--struct in6_rtmsg
--  {
--    struct in6_addr rtmsg_dst;
--    struct in6_addr rtmsg_src;
--    struct in6_addr rtmsg_gateway;
--    uint32_t rtmsg_type;
--    uint16_t rtmsg_dst_len;
--    uint16_t rtmsg_src_len;
--    uint32_t rtmsg_metric;
--    unsigned long int rtmsg_info;
--    uint32_t rtmsg_flags;
--    int rtmsg_ifindex;
--  };
--
--
--#define	RTF_UP		0x0001		/* Route usable.  */
--#define	RTF_GATEWAY	0x0002		/* Destination is a gateway.  */
--
--#define	RTF_HOST	0x0004		/* Host entry (net otherwise).  */
--#define RTF_REINSTATE	0x0008		/* Reinstate route after timeout.  */
--#define	RTF_DYNAMIC	0x0010		/* Created dyn. (by redirect).  */
--#define	RTF_MODIFIED	0x0020		/* Modified dyn. (by redirect).  */
--#define RTF_MTU		0x0040		/* Specific MTU for this route.  */
--#define RTF_MSS		RTF_MTU		/* Compatibility.  */
--#define RTF_WINDOW	0x0080		/* Per route window clamping.  */
--#define RTF_IRTT	0x0100		/* Initial round trip time.  */
--#define RTF_REJECT	0x0200		/* Reject route.  */
--#define	RTF_STATIC	0x0400		/* Manually injected route.  */
--#define	RTF_XRESOLVE	0x0800		/* External resolver.  */
--#define RTF_NOFORWARD   0x1000		/* Forwarding inhibited.  */
--#define RTF_THROW	0x2000		/* Go to next class.  */
--#define RTF_NOPMTUDISC  0x4000		/* Do not send packets with DF.  */
--
--/* for IPv6 */
--#define RTF_DEFAULT	0x00010000	/* default - learned via ND	*/
--#define RTF_ALLONLINK	0x00020000	/* fallback, no routers on link	*/
--#define RTF_ADDRCONF	0x00040000	/* addrconf route - RA		*/
--
--#define RTF_LINKRT	0x00100000	/* link specific - device match	*/
--#define RTF_NONEXTHOP	0x00200000	/* route with no nexthop	*/
--
--#define RTF_CACHE	0x01000000	/* cache entry			*/
--#define RTF_FLOW	0x02000000	/* flow significant route	*/
--#define RTF_POLICY	0x04000000	/* policy route			*/
--
--#define RTCF_VALVE	0x00200000
--#define RTCF_MASQ	0x00400000
--#define RTCF_NAT	0x00800000
--#define RTCF_DOREDIRECT 0x01000000
--#define RTCF_LOG	0x02000000
--#define RTCF_DIRECTSRC	0x04000000
--
--#define RTF_LOCAL	0x80000000
--#define RTF_INTERFACE	0x40000000
--#define RTF_MULTICAST	0x20000000
--#define RTF_BROADCAST	0x10000000
--#define RTF_NAT		0x08000000
--
--#define RTF_ADDRCLASSMASK	0xF8000000
--#define RT_ADDRCLASS(flags)	((uint32_t) flags >> 23)
--
--#define RT_TOS(tos)		((tos) & IPTOS_TOS_MASK)
--
--#define RT_LOCALADDR(flags)	((flags & RTF_ADDRCLASSMASK) \
--				 == (RTF_LOCAL|RTF_INTERFACE))
--
--#define RT_CLASS_UNSPEC		0
--#define RT_CLASS_DEFAULT	253
--
--#define RT_CLASS_MAIN		254
--#define RT_CLASS_LOCAL		255
--#define RT_CLASS_MAX		255
--
--
--#define RTMSG_ACK		NLMSG_ACK
--#define RTMSG_OVERRUN		NLMSG_OVERRUN
--
--#define RTMSG_NEWDEVICE		0x11
--#define RTMSG_DELDEVICE		0x12
--#define RTMSG_NEWROUTE		0x21
--#define RTMSG_DELROUTE		0x22
--#define RTMSG_NEWRULE		0x31
--#define RTMSG_DELRULE		0x32
--#define RTMSG_CONTROL		0x40
--
--#define RTMSG_AR_FAILED		0x51	/* Address Resolution failed.  */
--
--#endif /* net/route.h */
 Index: glibc-2.27/sysdeps/unix/sysv/linux/Makefile
 ===================================================================
 --- glibc-2.27.orig/sysdeps/unix/sysv/linux/Makefile
@@ -1410,7 +1102,7 @@ Index: glibc-2.27/sysdeps/unix/sysv/linux/Makefile
  ifeq ($(subdir),socket)
 -sysdep_headers += net/if_ppp.h net/ppp-comp.h \
 -		  net/ppp_defs.h net/if_arp.h net/route.h net/ethernet.h \
-+sysdep_headers += net/ppp-comp.h net/ppp_defs.h \
++sysdep_headers += net/ppp-comp.h net/ppp_defs.h net/route.h \
  		  net/if_slip.h net/if_packet.h net/if_shaper.h \
 		  bits/socket-constants.h
  sysdep_routines += cmsg_nxthdr
@@ -1419,7 +1111,7 @@ Index: glibc-2.27/sysdeps/unix/sysv/linux/net/ethernet.h
 --- glibc-2.27.orig/sysdeps/unix/sysv/linux/net/ethernet.h
 +++ /dev/null
 @@ -1,83 +0,0 @@
--/* Copyright (C) 1997-2021 Free Software Foundation, Inc.
+-/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -1506,11 +1198,10 @@ Index: glibc-2.27/sysdeps/unix/sysv/linux/net/if_arp.h
 ===================================================================
 --- glibc-2.27.orig/sysdeps/unix/sysv/linux/net/if_arp.h
 +++ /dev/null
-@@ -1,183 +0,0 @@
+@@ -1,184 +0,0 @@
 -/* Definitions for Address Resolution Protocol.
--   Copyright (C) 1997-2021 Free Software Foundation, Inc.
+-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
--   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
 -   modify it under the terms of the GNU Lesser General Public
@@ -1604,6 +1295,8 @@ Index: glibc-2.27/sysdeps/unix/sysv/linux/net/if_arp.h
 -#define ARPHRD_ROSE	270
 -#define ARPHRD_X25	271		/* CCITT X.25.  */
 -#define ARPHRD_HWX25	272		/* Boards with X.25 in firmware.  */
+-#define ARPHRD_CAN	280		/* Controller Area Network.  */
+-#define ARPHRD_MCTP	290
 -#define ARPHRD_PPP	512
 -#define ARPHRD_CISCO	513		/* Cisco HDLC.  */
 -#define ARPHRD_HDLC	ARPHRD_CISCO
@@ -1878,161 +1571,12 @@ Index: glibc-2.27/sysdeps/unix/sysv/linux/net/if_ppp.h
 -__END_DECLS
 -
 -#endif /* net/if_ppp.h */
-Index: glibc-2.27/sysdeps/unix/sysv/linux/net/route.h
-===================================================================
---- glibc-2.27.orig/sysdeps/unix/sysv/linux/net/route.h
-+++ /dev/null
-@@ -1,144 +0,0 @@
--/* Copyright (C) 1997-2021 Free Software Foundation, Inc.
--   This file is part of the GNU C Library.
--
--   The GNU C Library is free software; you can redistribute it and/or
--   modify it under the terms of the GNU Lesser General Public
--   License as published by the Free Software Foundation; either
--   version 2.1 of the License, or (at your option) any later version.
--
--   The GNU C Library is distributed in the hope that it will be useful,
--   but WITHOUT ANY WARRANTY; without even the implied warranty of
--   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
--   Lesser General Public License for more details.
--
--   You should have received a copy of the GNU Lesser General Public
--   License along with the GNU C Library; if not, see
--   <https://www.gnu.org/licenses/>.  */
--
--/* Based on the 4.4BSD and Linux version of this file.  */
--
--#ifndef _NET_ROUTE_H
--#define _NET_ROUTE_H	1
--
--#include <features.h>
--#include <sys/socket.h>
--#include <sys/types.h>
--#include <netinet/in.h>
--#include <bits/wordsize.h>
--
--
--/* This structure gets passed by the SIOCADDRT and SIOCDELRT calls. */
--struct rtentry
--  {
--    unsigned long int rt_pad1;
--    struct sockaddr rt_dst;		/* Target address.  */
--    struct sockaddr rt_gateway;		/* Gateway addr (RTF_GATEWAY).  */
--    struct sockaddr rt_genmask;		/* Target network mask (IP).  */
--    unsigned short int rt_flags;
--    short int rt_pad2;
--    unsigned long int rt_pad3;
--    unsigned char rt_tos;
--    unsigned char rt_class;
--#if __WORDSIZE == 64
--    short int rt_pad4[3];
--#else
--    short int rt_pad4;
--#endif
--    short int rt_metric;		/* +1 for binary compatibility!  */
--    char *rt_dev;			/* Forcing the device at add.  */
--    unsigned long int rt_mtu;		/* Per route MTU/Window.  */
--    unsigned long int rt_window;	/* Window clamping.  */
--    unsigned short int rt_irtt;		/* Initial RTT.  */
--  };
--/* Compatibility hack.  */
--#define rt_mss	rt_mtu
--
--
--struct in6_rtmsg
--  {
--    struct in6_addr rtmsg_dst;
--    struct in6_addr rtmsg_src;
--    struct in6_addr rtmsg_gateway;
--    uint32_t rtmsg_type;
--    uint16_t rtmsg_dst_len;
--    uint16_t rtmsg_src_len;
--    uint32_t rtmsg_metric;
--    unsigned long int rtmsg_info;
--    uint32_t rtmsg_flags;
--    int rtmsg_ifindex;
--  };
--
--
--#define	RTF_UP		0x0001		/* Route usable.  */
--#define	RTF_GATEWAY	0x0002		/* Destination is a gateway.  */
--
--#define	RTF_HOST	0x0004		/* Host entry (net otherwise).  */
--#define RTF_REINSTATE	0x0008		/* Reinstate route after timeout.  */
--#define	RTF_DYNAMIC	0x0010		/* Created dyn. (by redirect).  */
--#define	RTF_MODIFIED	0x0020		/* Modified dyn. (by redirect).  */
--#define RTF_MTU		0x0040		/* Specific MTU for this route.  */
--#define RTF_MSS		RTF_MTU		/* Compatibility.  */
--#define RTF_WINDOW	0x0080		/* Per route window clamping.  */
--#define RTF_IRTT	0x0100		/* Initial round trip time.  */
--#define RTF_REJECT	0x0200		/* Reject route.  */
--#define	RTF_STATIC	0x0400		/* Manually injected route.  */
--#define	RTF_XRESOLVE	0x0800		/* External resolver.  */
--#define RTF_NOFORWARD   0x1000		/* Forwarding inhibited.  */
--#define RTF_THROW	0x2000		/* Go to next class.  */
--#define RTF_NOPMTUDISC  0x4000		/* Do not send packets with DF.  */
--
--/* for IPv6 */
--#define RTF_DEFAULT	0x00010000	/* default - learned via ND	*/
--#define RTF_ALLONLINK	0x00020000	/* fallback, no routers on link	*/
--#define RTF_ADDRCONF	0x00040000	/* addrconf route - RA		*/
--
--#define RTF_LINKRT	0x00100000	/* link specific - device match	*/
--#define RTF_NONEXTHOP	0x00200000	/* route with no nexthop	*/
--
--#define RTF_CACHE	0x01000000	/* cache entry			*/
--#define RTF_FLOW	0x02000000	/* flow significant route	*/
--#define RTF_POLICY	0x04000000	/* policy route			*/
--
--#define RTCF_VALVE	0x00200000
--#define RTCF_MASQ	0x00400000
--#define RTCF_NAT	0x00800000
--#define RTCF_DOREDIRECT 0x01000000
--#define RTCF_LOG	0x02000000
--#define RTCF_DIRECTSRC	0x04000000
--
--#define RTF_LOCAL	0x80000000
--#define RTF_INTERFACE	0x40000000
--#define RTF_MULTICAST	0x20000000
--#define RTF_BROADCAST	0x10000000
--#define RTF_NAT		0x08000000
--
--#define RTF_ADDRCLASSMASK	0xF8000000
--#define RT_ADDRCLASS(flags)	((uint32_t) flags >> 23)
--
--#define RT_TOS(tos)		((tos) & IPTOS_TOS_MASK)
--
--#define RT_LOCALADDR(flags)	((flags & RTF_ADDRCLASSMASK) \
--				 == (RTF_LOCAL|RTF_INTERFACE))
--
--#define RT_CLASS_UNSPEC		0
--#define RT_CLASS_DEFAULT	253
--
--#define RT_CLASS_MAIN		254
--#define RT_CLASS_LOCAL		255
--#define RT_CLASS_MAX		255
--
--
--#define RTMSG_ACK		NLMSG_ACK
--#define RTMSG_OVERRUN		NLMSG_OVERRUN
--
--#define RTMSG_NEWDEVICE		0x11
--#define RTMSG_DELDEVICE		0x12
--#define RTMSG_NEWROUTE		0x21
--#define RTMSG_DELROUTE		0x22
--#define RTMSG_NEWRULE		0x31
--#define RTMSG_DELRULE		0x32
--#define RTMSG_CONTROL		0x40
--
--#define RTMSG_AR_FAILED		0x51	/* Address Resolution failed.  */
--
--#endif /* net/route.h */
 Index: glibc-2.27/sysdeps/unix/sysv/linux/netinet/if_ether.h
 ===================================================================
 --- glibc-2.27.orig/sysdeps/unix/sysv/linux/netinet/if_ether.h
 +++ /dev/null
 @@ -1,104 +0,0 @@
--/* Copyright (C) 1996-2021 Free Software Foundation, Inc.
+-/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or

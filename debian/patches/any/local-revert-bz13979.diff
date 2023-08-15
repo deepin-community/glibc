@@ -12,6 +12,10 @@ Warn if user requests __FORTIFY_SOURCE but it is disabled
         * include/features.h: Warn if user requests __FORTIFY_SOURCE
         checking but the checks are disabled for any reason.
 
+---
+ include/features.h |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
 --- a/include/features.h
 +++ b/include/features.h
 @@ -407,10 +407,9 @@

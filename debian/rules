@@ -29,11 +29,13 @@
 # These are done as absolute paths so that in the case of filesystem size
 # limitations, they can be overridden and spread all over.
 build-tree := build-tree
+debian-tmp = debian/tmp$(filter-out -libc,-$(curpass))
 stamp := $(CURDIR)/stamp-dir/
 DUMMY := $(shell mkdir -p $(stamp))
 
 # Beyond here you shouldn't need to customise anything:
 DEB_HOST_ARCH         ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_HOST_ARCH_CPU     ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_CPU)
 DEB_HOST_ARCH_ENDIAN  ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_ENDIAN)
 DEB_HOST_ARCH_OS      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_GNU_TYPE     ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
@@ -42,23 +44,17 @@ DEB_BUILD_ARCH        ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 DEB_BUILD_ARCH_BITS   ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH_BITS)
 DEB_BUILD_GNU_TYPE    ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
-DEB_SOURCE_PACKAGE := $(strip $(shell egrep '^Source: ' debian/control | cut -f 2 -d ':'))
-
-DEB_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
-GLIBC_VERSION = $(shell echo $(DEB_VERSION) | sed -e 's/.*://' -e 's/[+-].*//')
-
-SOURCE_DATE_EPOCH ?= $(shell dpkg-parsechangelog -STimestamp)
+include /usr/share/dpkg/pkg-info.mk
 
 # The minimum package version with which these packages are compatible.
-shlib_dep_ver = $(GLIBC_VERSION)
+shlib_dep_ver = $(DEB_VERSION_UPSTREAM)
 shlib_dep = $(libc) (>= $(shlib_dep_ver))
 
 DEB_BUILDDIR ?= $(build-tree)/$(DEB_HOST_ARCH)-$(curpass)
 DEB_BUILDDIRLIBC ?= $(build-tree)/$(DEB_HOST_ARCH)-libc
 
 GLIBC_SOURCES = $(filter-out debian $(shell basename $(stamp)) $(build-tree), $(wildcard *))
-		 
-export DEB_BUILD_OPTIONS="nocheck"
+
 # Support multiple makes at once based on number of processors
 ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 NJOBS := -j $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
@@ -70,6 +66,9 @@ define unsetenv
   $(1) =
 endef
 $(foreach v, CPPFLAGS CFLAGS CXXFLAGS LDFLAGS, $(if $(filter environment,$(origin $(v))),$(eval $(call unsetenv, $(v)))))
+
+# export debhelper substitution variables
+export $(build-tree)
 
 # Default setup
 GLIBC_PASSES ?= libc
@@ -91,13 +90,15 @@ slibdir=/lib/$(DEB_HOST_MULTIARCH)
 libdir=/usr/lib/$(DEB_HOST_MULTIARCH)
 mvec = no
 
+rtld_so=$(shell awk 'BEGIN {FS="="} /^ld\.so-version/ {print $$2}' $(DEB_BUILDDIR)/soversions.mk)
+libc_so=$(shell awk 'BEGIN {FS="="} /^libc\.so-version/ {print "libc.so"$$2}' $(DEB_BUILDDIR)/soversions.mk)
 
 BASE_CC = gcc
 BASE_CXX = g++
 BASE_MIG = mig
 DEB_GCC_VERSION ?= -11
 
-RUN_TESTSUITE = no
+RUN_TESTSUITE = yes
 TIMEOUTFACTOR = 25
 
 # Set cross and native compiler names, including version.
@@ -129,8 +130,8 @@ curpass = $(filter-out %_,$(subst _,_ ,$@))
 
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
   DEB_ARCH_REGULAR_PACKAGES = $(libc)-dev
-  DEB_INDEP_REGULAR_PACKAGES = 
-  DEB_UDEB_PACKAGES = 
+  DEB_INDEP_REGULAR_PACKAGES =
+  DEB_UDEB_PACKAGES =
   ifeq ($(filter nocheck,$(DEB_BUILD_OPTIONS)),)
     DEB_BUILD_OPTIONS+=nocheck
   endif
@@ -204,7 +205,7 @@ build-arch: $(stamp)info \
 	build-arch-post-check
 
 ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
-build-arch: $(stamp)build_C.UTF-8 \
+build-arch: $(stamp)build_C.utf8 \
 	$(stamp)build_locales-all
 endif
 
