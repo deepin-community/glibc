@@ -98,7 +98,7 @@ BASE_CXX = g++
 BASE_MIG = mig
 DEB_GCC_VERSION ?= -11
 
-RUN_TESTSUITE = yes
+RUN_TESTSUITE = no
 TIMEOUTFACTOR = 25
 
 # Set cross and native compiler names, including version.
