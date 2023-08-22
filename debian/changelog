@@ -1,3 +1,9 @@
+glibc (2.35-4deepin) unstable; urgency=medium
+
+  * d/rules: disable testsuite.
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Tue, 22 Aug 2023 17:36:47 +0800
+
 glibc (2.35-4) unstable; urgency=medium
 
   [ Luca Boccassi ]
