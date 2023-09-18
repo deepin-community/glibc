@@ -122,6 +122,7 @@
 #define __NR_mbind 235
 #define __NR_membarrier 283
 #define __NR_memfd_create 279
+#define __NR_memfd_secret 447
 #define __NR_migrate_pages 238
 #define __NR_mincore 232
 #define __NR_mkdirat 34
@@ -228,6 +229,7 @@
 #define __NR_sendmsg 211
 #define __NR_sendto 206
 #define __NR_set_mempolicy 237
+#define __NR_set_mempolicy_home_node 450
 #define __NR_set_robust_list 99
 #define __NR_set_tid_address 96
 #define __NR_setdomainname 162

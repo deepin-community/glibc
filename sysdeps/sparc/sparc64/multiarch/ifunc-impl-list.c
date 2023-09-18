@@ -1,5 +1,5 @@
 /* Enumerate available IFUNC implementations of a function.  sparc version.
-   Copyright (C) 2012-2022 Free Software Foundation, Inc.
+   Copyright (C) 2012-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@ size_t
 __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 			size_t max)
 {
-  size_t i = 0;
+  size_t i = max;
   int hwcap;
 
   hwcap = GLRO(dl_hwcap);
@@ -61,15 +61,6 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 			      __mempcpy_ultra3)
 	      IFUNC_IMPL_ADD (array, i, mempcpy, 1, __mempcpy_ultra1));
 
-  IFUNC_IMPL (i, name, bzero,
-	      IFUNC_IMPL_ADD (array, i, bzero, hwcap & HWCAP_SPARC_ADP,
-			      __bzero_niagara7)
-	      IFUNC_IMPL_ADD (array, i, bzero, hwcap & HWCAP_SPARC_CRYPTO,
-			      __bzero_niagara4)
-	      IFUNC_IMPL_ADD (array, i, bzero, hwcap & HWCAP_SPARC_BLKINIT,
-			      __bzero_niagara1)
-	      IFUNC_IMPL_ADD (array, i, bzero, 1, __bzero_ultra1));
-
   IFUNC_IMPL (i, name, memset,
 	      IFUNC_IMPL_ADD (array, i, memset, hwcap & HWCAP_SPARC_ADP,
 			      __memset_niagara7)
@@ -84,5 +75,5 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 			      __memmove_niagara7)
 	      IFUNC_IMPL_ADD (array, i, memmove, 1, __memmove_ultra1));
 
-  return i;
+  return 0;
 }

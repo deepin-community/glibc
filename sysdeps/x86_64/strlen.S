@@ -1,5 +1,5 @@
-/* SSE2 version of strlen.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+/* strlen dispatch for RTLD and non-multiarch build
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,12 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include "multiarch/strlen-vec.S"
+#define STRLEN	strlen
+
+#define DEFAULT_IMPL_V1	"multiarch/strlen-sse2.S"
+#define DEFAULT_IMPL_V3	"multiarch/strlen-avx2.S"
+#define DEFAULT_IMPL_V4	"multiarch/strlen-evex.S"
+
+#include "isa-default-impl.h"
 
 libc_hidden_builtin_def (strlen)

@@ -4,7 +4,7 @@ use strict;
 use Getopt::Long;
 
 my $progname     = "update-locale";
-my $locale_file  = "/etc/default/locale";
+my $locale_file  = "/etc/locale.conf";
 
 my $help         = 0;
 my $reset        = 0;
@@ -28,7 +28,7 @@ Options:
    --help              display this message and exit
    --reset             ignore variables defined in the locale file
    --locale-file=FILE  file containing locale variables
-                       (Default: /etc/default/locale)
+                       (Default: /etc/locale.conf)
    --no-checks         do not perform sanity checks on locale variables
 ";
 	exit $rc;

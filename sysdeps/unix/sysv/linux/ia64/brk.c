@@ -1,5 +1,5 @@
 /* brk system call for Linux/ia64.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,7 +16,6 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <dl-sysdep.h>
-/* brk is used by statup before TCB is properly set.  */
-#undef USE_DL_SYSINFO
+/* brk is used by startup before TCB is properly set up.  */
+#define IA64_USE_NEW_STUB 0
 #include <sysdeps/unix/sysv/linux/brk.c>

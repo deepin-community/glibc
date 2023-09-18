@@ -1,4 +1,4 @@
-# Copyright (C) 1992-2022 Free Software Foundation, Inc.
+# Copyright (C) 1992-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -83,16 +83,17 @@ tests		:= test-utime test-stat test-stat2 test-lfs tst-getcwd \
 		   tst-ftw-bz28126
 
 tests-time64 := \
+  tst-fcntl-time64 \
+  tst-fts-time64 \
   tst-futimens-time64 \
   tst-futimes-time64\
-  tst-fts-time64 \
+  tst-futimesat-time64 \
+  tst-lchmod-time64 \
   tst-lutimes-time64 \
   tst-stat-time64 \
-  tst-futimesat-time64 \
   tst-utime-time64 \
   tst-utimensat-time64 \
   tst-utimes-time64 \
-  tst-fcntl-time64 \
   # tests-time64
 
 # Likewise for statx, but we do not need static linking here.
@@ -106,20 +107,21 @@ endif
 
 include ../Rules
 
-CFLAGS-open.c += -fexceptions -fasynchronous-unwind-tables
+CFLAGS-open.c += -fexceptions -fasynchronous-unwind-tables $(config-cflags-wno-ignored-attributes)
+CFLAGS-openat.c += $(config-cflags-wno-ignored-attributes)
 CFLAGS-open64.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-creat.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-creat64.c += -fexceptions -fasynchronous-unwind-tables
-CFLAGS-fcntl.c += -fexceptions -fasynchronous-unwind-tables
-CFLAGS-fcntl64.c += -fexceptions -fasynchronous-unwind-tables
+CFLAGS-fcntl.c += -fexceptions -fasynchronous-unwind-tables $(config-cflags-wno-ignored-attributes)
+CFLAGS-fcntl64.c += -fexceptions -fasynchronous-unwind-tables $(config-cflags-wno-ignored-attributes)
 CFLAGS-poll.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-ppoll.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-lockf.c += -fexceptions -fasynchronous-unwind-tables
-CFLAGS-lockf64.c += -fexceptions -fasynchronous-unwind-tables
+CFLAGS-lockf64.c += -fexceptions -fasynchronous-unwind-tables $(config-cflags-wno-ignored-attributes)
 CFLAGS-statfs.c += -fexceptions
 CFLAGS-fstatfs.c += -fexceptions
-CFLAGS-statvfs.c += -fexceptions
-CFLAGS-fstatvfs.c += -fexceptions
+CFLAGS-statvfs.c += -fexceptions $(config-cflags-wno-ignored-attributes)
+CFLAGS-fstatvfs.c += -fexceptions $(config-cflags-wno-ignored-attributes)
 CFLAGS-fts.c += -Wno-uninitialized $(uses-callbacks) -fexceptions
 CFLAGS-fts64.c += -Wno-uninitialized $(uses-callbacks) -fexceptions
 CFLAGS-fts64-time64.c += -Wno-uninitialized $(uses-callbacks) -fexceptions
@@ -130,12 +132,14 @@ CFLAGS-posix_fallocate.c += -fexceptions
 CFLAGS-posix_fallocate64.c += -fexceptions
 CFLAGS-fallocate.c += -fexceptions
 CFLAGS-fallocate64.c += -fexceptions
-CFLAGS-read.c += -fexceptions -fasynchronous-unwind-tables
-CFLAGS-write.c += -fexceptions -fasynchronous-unwind-tables
+CFLAGS-read.c += -fexceptions -fasynchronous-unwind-tables $(config-cflags-wno-ignored-attributes)
+CFLAGS-write.c += -fexceptions -fasynchronous-unwind-tables $(config-cflags-wno-ignored-attributes)
 CFLAGS-close.c += -fexceptions -fasynchronous-unwind-tables
+CFLAGS-lseek64.c += $(config-cflags-wno-ignored-attributes)
 
 CFLAGS-test-stat.c += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE
 CFLAGS-test-lfs.c += -D_LARGEFILE64_SOURCE
+CFLAGS-tst-lchmod.c += -D_FILE_OFFSET_BITS=64
 
 test-stat2-ARGS = Makefile . $(objpfx)test-stat2
 

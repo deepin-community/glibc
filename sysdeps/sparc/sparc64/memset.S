@@ -1,6 +1,6 @@
 /* Set a block of memory to some byte value.
    For UltraSPARC.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,6 +26,16 @@
 #define FPRS_FEF	4
 
 #define SET_BLOCKS(base, offset, source)		\
+	stx		source, [base - offset - 0x18];	\
+	stx		source, [base - offset - 0x10];	\
+	stx		source, [base - offset - 0x08];	\
+	stx		source, [base - offset - 0x00];
+
+#define ZERO_BLOCKS(base, offset, source)		\
+	stx		source, [base - offset - 0x38];	\
+	stx		source, [base - offset - 0x30];	\
+	stx		source, [base - offset - 0x28];	\
+	stx		source, [base - offset - 0x20];	\
 	stx		source, [base - offset - 0x18];	\
 	stx		source, [base - offset - 0x10];	\
 	stx		source, [base - offset - 0x08];	\
@@ -174,22 +184,7 @@ ENTRY(memset)
 	 nop
 	ba,pt		%xcc, 18b
 	 ldd		[%o0], %f0
-END(memset)
-libc_hidden_builtin_def (memset)
 
-#define ZERO_BLOCKS(base, offset, source)		\
-	stx		source, [base - offset - 0x38];	\
-	stx		source, [base - offset - 0x30];	\
-	stx		source, [base - offset - 0x28];	\
-	stx		source, [base - offset - 0x20];	\
-	stx		source, [base - offset - 0x18];	\
-	stx		source, [base - offset - 0x10];	\
-	stx		source, [base - offset - 0x08];	\
-	stx		source, [base - offset - 0x00];
-
-	.text
-	.align		32
-ENTRY(__bzero)
 #ifndef USE_BPR
 	srl		%o1, 0, %o1
 #endif
@@ -307,6 +302,5 @@ ENTRY(__bzero)
 	 stb		%g0, [%o0 - 1]
 0:	retl
 	 mov		%o5, %o0
-END(__bzero)
-
-weak_alias (__bzero, bzero)
+END(memset)
+libc_hidden_builtin_def (memset)

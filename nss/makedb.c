@@ -1,5 +1,5 @@
 /* Create simple DB database from textual input.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -47,6 +47,7 @@
 
 /* SELinux support.  */
 #ifdef HAVE_SELINUX
+# include <selinux/label.h>
 # include <selinux/selinux.h>
 #endif
 
@@ -386,7 +387,7 @@ print_version (FILE *stream, struct argp_state *state)
 Copyright (C) %s Free Software Foundation, Inc.\n\
 This is free software; see the source for copying conditions.  There is NO\n\
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
-"), "2022");
+"), "2023");
   fprintf (stream, gettext ("Written by %s.\n"), "Ulrich Drepper");
 }
 
@@ -855,18 +856,13 @@ print_database (int fd)
 
 #ifdef HAVE_SELINUX
 
-/* security_context_t and matchpathcon (along with several other symbols) were
-   marked as deprecated by the SELinux API starting from version 3.1.  We use
-   them here, but should eventually switch to the newer API.  */
-DIAG_PUSH_NEEDS_COMMENT
-DIAG_IGNORE_NEEDS_COMMENT (10, "-Wdeprecated-declarations");
-
 static void
 set_file_creation_context (const char *outname, mode_t mode)
 {
   static int enabled;
   static int enforcing;
-  security_context_t ctx;
+  struct selabel_handle *label_hnd = NULL;
+  char* ctx;
 
   /* Check if SELinux is enabled, and remember. */
   if (enabled == 0)
@@ -878,9 +874,17 @@ set_file_creation_context (const char *outname, mode_t mode)
   if (enforcing == 0)
     enforcing = security_getenforce () ? 1 : -1;
 
+  /* Open the file contexts backend. */
+  label_hnd = selabel_open(SELABEL_CTX_FILE, NULL, 0);
+  if (!label_hnd)
+    {
+      error (enforcing > 0 ? EXIT_FAILURE : 0, 0,
+	     gettext ("cannot initialize SELinux context"));
+      return;
+    }
   /* Determine the context which the file should have. */
   ctx = NULL;
-  if (matchpathcon (outname, S_IFREG | mode, &ctx) == 0 && ctx != NULL)
+  if (selabel_lookup(label_hnd, &ctx, outname, S_IFREG | mode) == 0)
     {
       if (setfscreatecon (ctx) != 0)
 	error (enforcing > 0 ? EXIT_FAILURE : 0, 0,
@@ -889,8 +893,10 @@ set_file_creation_context (const char *outname, mode_t mode)
 
       freecon (ctx);
     }
+
+  /* Close the file contexts backend. */
+  selabel_close(label_hnd);
 }
-DIAG_POP_NEEDS_COMMENT
 
 static void
 reset_file_creation_context (void)

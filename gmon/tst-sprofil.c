@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -161,7 +161,7 @@ main (int argc, char **argv)
   for (i = 0; i < NELEMS (taddr); ++i)
     for (j = 0; j < 0x10000 / sizeof (int); ++j)
       if (buf[i][j] != 0)
-	printf ("%0*Zx\t%u\t(buffer %d)\n",
+	printf ("%0*zx\t%u\t(buffer %d)\n",
 		(int) (sizeof (size_t) * 2),
 		(taddr[i] + ((char *) &buf[i][j] - (char *) &buf[i][0])),
 		buf[i][j], i);

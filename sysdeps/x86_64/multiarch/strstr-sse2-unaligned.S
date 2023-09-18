@@ -1,5 +1,5 @@
 /* strstr with unaligned loads
-   Copyright (C) 2009-2022 Free Software Foundation, Inc.
+   Copyright (C) 2009-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
+#include "../strchr-isa-default-impl.h"
 
 ENTRY(__strstr_sse2_unaligned)
 	movzbl	(%rsi), %eax
@@ -75,7 +76,7 @@ L(next_pair_index):
 	.p2align 4
 L(strchr):
 	movzbl	%al, %esi
-	jmp	__strchr_sse2
+	jmp	DEFAULT_STRCHR
 
 	.p2align 4
 L(pair_loop):
@@ -267,7 +268,7 @@ L(next_pair3):
 	.p2align 4
 L(switch_strstr):
 	movq	%rdi, %rdi
-	jmp	__strstr_sse2
+	jmp	__strstr_generic
 
 	.p2align 4
 L(cross_page):

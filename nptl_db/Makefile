@@ -1,4 +1,4 @@
-# Copyright (C) 2002-2022 Free Software Foundation, Inc.
+# Copyright (C) 2002-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -48,6 +48,12 @@ libthread_db-inhibit-o = $(filter-out .os,$(object-suffixes))
 
 # The ps_* callback functions are not defined.
 libthread_db.so-no-z-defs = yes
+
+# This is a hack.  This is not the correct solution.  When this glibc
+# is tested, the gdb used could be loaded by the host glibc, which
+# may not support DT_RELR, and report a failure instead of unsupported.
+# For now, build this without DT_RELR support to avoid this situation.
+libthread_db.so-no-dt-relr = yes
 
 tests-special += $(objpfx)db-symbols.out
 

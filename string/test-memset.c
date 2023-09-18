@@ -1,5 +1,5 @@
 /* Test memset functions.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -50,51 +50,19 @@
 # define BIG_CHAR WCHAR_MAX
 #endif /* WIDE */
 
-CHAR *SIMPLE_MEMSET (CHAR *, int, size_t);
-
 #ifdef TEST_BZERO
 typedef void (*proto_t) (char *, size_t);
-void simple_bzero (char *, size_t);
-void builtin_bzero (char *, size_t);
-
-IMPL (simple_bzero, 0)
-IMPL (builtin_bzero, 0)
-#ifdef TEST_EXPLICIT_BZERO
+# ifdef TEST_EXPLICIT_BZERO
 IMPL (explicit_bzero, 1)
-#else
+# else
 IMPL (bzero, 1)
-#endif
-
-void
-simple_bzero (char *s, size_t n)
-{
-  SIMPLE_MEMSET (s, 0, n);
-}
-
-void
-builtin_bzero (char *s, size_t n)
-{
-  __builtin_bzero (s, n);
-}
+# endif
 #else
 typedef CHAR *(*proto_t) (CHAR *, int, size_t);
-
-IMPL (SIMPLE_MEMSET, 0)
-# ifndef WIDE
-char *builtin_memset (char *, int, size_t);
-IMPL (builtin_memset, 0)
-# endif /* !WIDE */
 IMPL (MEMSET, 1)
-
-# ifndef WIDE
-char *
-builtin_memset (char *s, int c, size_t n)
-{
-  return __builtin_memset (s, c, n);
-}
-# endif /* !WIDE */
 #endif /* !TEST_BZERO */
 
+/* Naive implementation to verify results.  */
 CHAR *
 inhibit_loop_to_libcall
 SIMPLE_MEMSET (CHAR *s, int c, size_t n)
@@ -106,26 +74,28 @@ SIMPLE_MEMSET (CHAR *s, int c, size_t n)
 }
 
 static void
-do_one_test (impl_t *impl, CHAR *s, int c __attribute ((unused)), size_t n)
+do_one_test (impl_t *impl, CHAR *s, int c __attribute ((unused)), size_t n, int space_below, int space_above)
 {
-  CHAR buf[n + 2];
-  CHAR *tstbuf = buf + 1;
-  CHAR sentinel = c - 1;
-  buf[0] = sentinel;
-  buf[n + 1] = sentinel;
+  CHAR buf[n];
+  CHAR sentinel = ~c;
+  if (space_below)
+      s[-1] = sentinel;
+  if (space_above)
+      s[n] = sentinel;
+  SIMPLE_MEMSET(s, ~c, n);
 #ifdef TEST_BZERO
-  simple_bzero (tstbuf, n);
+  SIMPLE_MEMSET (buf, 0, n);
   CALL (impl, s, n);
-  if (memcmp (s, tstbuf, n) != 0
-      || buf[0] != sentinel
-      || buf[n + 1] != sentinel)
+  if (memcmp (s, buf, n) != 0
+      || (space_below && s[-1] != sentinel)
+      || (space_above && s[n] != sentinel))
 #else
   CHAR *res = CALL (impl, s, c, n);
   if (res != s
-      || SIMPLE_MEMSET (tstbuf, c, n) != tstbuf
-      || MEMCMP (s, tstbuf, n) != 0
-      || buf[0] != sentinel
-      || buf[n + 1] != sentinel)
+      || SIMPLE_MEMSET (buf, c, n) != buf
+      || MEMCMP (s, buf, n) != 0
+      || (space_below && s[-1] != sentinel)
+      || (space_above && s[n] != sentinel))
 #endif /* !TEST_BZERO */
     {
       error (0, 0, "Wrong result in function %s", impl->name);
@@ -137,12 +107,16 @@ do_one_test (impl_t *impl, CHAR *s, int c __attribute ((unused)), size_t n)
 static void
 do_test (size_t align, int c, size_t len)
 {
+  int space_below, space_above;
   align &= 4095;
   if ((align + len) * sizeof (CHAR) > page_size)
     return;
 
+  space_below = !!align;
+  space_above = !((align + len + 1) * sizeof (CHAR) > page_size);
+
   FOR_EACH_IMPL (impl, 0)
-    do_one_test (impl, (CHAR *) (buf1) + align, c, len);
+    do_one_test (impl, (CHAR *) (buf1) + align, c, len, space_below, space_above);
 }
 
 #ifndef TEST_BZERO

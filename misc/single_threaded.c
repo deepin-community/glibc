@@ -1,5 +1,5 @@
 /* Support for single-thread optimizations.  Statically linked version.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,3 +25,5 @@ char __libc_single_threaded;
 #else
 char __libc_single_threaded = 1;
 #endif
+libc_hidden_data_def_alias (__libc_single_threaded,
+			    __libc_single_threaded_internal)

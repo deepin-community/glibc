@@ -1,5 +1,5 @@
 /* Per-thread state.  Linux version.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,11 +28,6 @@ __glibc_tls_internal (void)
   return &THREAD_SELF->tls_state;
 }
 
-static inline void
-__glibc_tls_internal_free (void)
-{
-  free (THREAD_SELF->tls_state.strsignal_buf);
-  free (THREAD_SELF->tls_state.strerror_l_buf);
-}
+extern void __glibc_tls_internal_free (void) attribute_hidden;
 
 #endif

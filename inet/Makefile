@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2022 Free Software Foundation, Inc.
+# Copyright (C) 1991-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -106,6 +106,9 @@ CFLAGS-either_ntoh.c += -fexceptions
 CFLAGS-either_hton.c += -fexceptions
 CFLAGS-getnetgrent.c += -fexceptions
 CFLAGS-getnetgrent_r.c += -fexceptions
+CFLAGS-in6_addr.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-if_index.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-ifaddrs.c += $(config-cflags-wno-ignored-attributes)
 
 CFLAGS-tst-checks-posix.c += -std=c99
 CFLAGS-tst-sockaddr.c += -fno-strict-aliasing

@@ -1,5 +1,5 @@
 /* Definition for thread-local data handling.  NPTL/ARC version.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -75,8 +75,7 @@ typedef struct
 	long result_var;					\
 	__builtin_set_thread_pointer (tcbp);     		\
 	result_var = INTERNAL_SYSCALL_CALL (arc_settls, (tcbp));\
-	INTERNAL_SYSCALL_ERROR_P (result_var)			\
-	  ? "settls syscall error" : NULL;			\
+	!INTERNAL_SYSCALL_ERROR_P (result_var);			\
    })
 
 /* Value passed to 'clone' for initialization of the thread register.  */
@@ -103,7 +102,7 @@ typedef struct
 #define THREAD_GSCOPE_RESET_FLAG() \
   do									     \
     { int __res								     \
-	= atomic_exchange_rel (&THREAD_SELF->header.gscope_flag,	     \
+	= atomic_exchange_release (&THREAD_SELF->header.gscope_flag,	     \
 			       THREAD_GSCOPE_FLAG_UNUSED);		     \
       if (__res == THREAD_GSCOPE_FLAG_WAIT)				     \
 	lll_futex_wake (&THREAD_SELF->header.gscope_flag, 1, LLL_PRIVATE);   \

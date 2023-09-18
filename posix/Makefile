@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2022 Free Software Foundation, Inc.
+# Copyright (C) 1991-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ headers	:= sys/utsname.h sys/times.h sys/wait.h sys/types.h unistd.h	      \
 	   bits/waitflags.h bits/waitstatus.h sys/unistd.h sched.h	      \
 	   bits/sched.h bits/cpu-set.h re_comp.h wait.h bits/environments.h   \
 	   cpio.h spawn.h bits/unistd.h bits/types/struct_sched_param.h	      \
-	   bits/unistd_ext.h
+	   bits/unistd_ext.h bits/types/idtype_t.h bits/mman_ext.h
 
 routines :=								      \
 	uname								      \
@@ -248,9 +248,9 @@ $(objpfx)config-name.h: $(..)scripts/config-uname.sh $(common-objpfx)config.make
 CFLAGS-getaddrinfo.c += -DRESOLVER -fexceptions
 CFLAGS-pause.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-pread.c += -fexceptions -fasynchronous-unwind-tables
-CFLAGS-pread64.c += -fexceptions -fasynchronous-unwind-tables
+CFLAGS-pread64.c += -fexceptions -fasynchronous-unwind-tables $(config-cflags-wno-ignored-attributes)
 CFLAGS-pwrite.c += -fexceptions -fasynchronous-unwind-tables
-CFLAGS-pwrite64.c += -fexceptions -fasynchronous-unwind-tables
+CFLAGS-pwrite64.c += -fexceptions -fasynchronous-unwind-tables $(config-cflags-wno-ignored-attributes)
 CFLAGS-sleep.c += -fexceptions
 CFLAGS-wait.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-waitid.c += -fexceptions -fasynchronous-unwind-tables
@@ -279,7 +279,7 @@ CFLAGS-execl.os = -fomit-frame-pointer
 CFLAGS-execvp.os = -fomit-frame-pointer
 CFLAGS-execlp.os = -fomit-frame-pointer
 CFLAGS-nanosleep.c += -fexceptions -fasynchronous-unwind-tables
-CFLAGS-fork.c = $(libio-mtsafe)
+CFLAGS-fork.c = $(libio-mtsafe) $(config-cflags-wno-ignored-attributes)
 
 tstgetopt-ARGS = -a -b -cfoobar --required foobar --optional=bazbug \
 		--none random --col --color --colour

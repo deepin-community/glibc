@@ -96,9 +96,10 @@ libc_so=$(shell awk 'BEGIN {FS="="} /^libc\.so-version/ {print "libc.so"$$2}' $(
 BASE_CC = gcc
 BASE_CXX = g++
 BASE_MIG = mig
-DEB_GCC_VERSION ?= -11
+# If you override DEB_GCC_VERSION, consider adding DEB_CFLAGS_APPEND=-Wno-error.
+DEB_GCC_VERSION ?= -12
 
-RUN_TESTSUITE = no
+RUN_TESTSUITE = yes
 TIMEOUTFACTOR = 25
 
 # Set cross and native compiler names, including version.
@@ -178,7 +179,6 @@ NOSTRIP_$(libc)-dbg = 1
 
 # Put the debug files from these packages in $(libc)-dbg
 DEBUG_$(libc) = 1
-DEBUG_libc6.1-alphaev67 = 1
 
 ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
   ifeq ($(threads),yes)
@@ -194,8 +194,7 @@ clean:: unpatch
 	rm -rf $(build-tree)
 	rm -rf $(stamp)
 	rm -rf debian/include
-	rm -f debian/control.in/libc0.1 debian/control.in/libc0.3 \
-		debian/control.in/libc6 debian/control.in/libc6.1 \
+	rm -f debian/control.in/libc0.3	debian/control.in/libc6 debian/control.in/libc6.1 \
 		debian/*.preinst.* debian/*.links.*
 
 # Required Debian targets

@@ -1,5 +1,5 @@
 /* Function atanh vectorized with AVX2, wrapper version.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 #include <sysdep.h>
 #include "svml_d_wrapper_impl.h"
 
-	.text
+	.section .text.avx2, "ax", @progbits
 ENTRY (_ZGVdN4v_atanh)
 WRAPPER_IMPL_AVX _ZGVbN2v_atanh
 END (_ZGVdN4v_atanh)

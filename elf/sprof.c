@@ -1,5 +1,5 @@
 /* Read and display shared object profiling data.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -390,7 +390,7 @@ Copyright (C) %s Free Software Foundation, Inc.\n\
 This is free software; see the source for copying conditions.  There is NO\n\
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
 "),
-	   "2022");
+	   "2023");
   fprintf (stream, gettext ("Written by %s.\n"), "Ulrich Drepper");
 }
 
@@ -476,7 +476,7 @@ load_shobj (const char *name)
   result->kcountsize = textsize / HISTFRACTION;
   result->hashfraction = HASHFRACTION;
   if (do_test)
-    printf ("hashfraction = %d\ndivider = %Zu\n",
+    printf ("hashfraction = %d\ndivider = %zu\n",
 	    result->hashfraction,
 	    result->hashfraction * sizeof (struct here_fromstruct));
   result->tossize = textsize / HASHFRACTION;
@@ -495,7 +495,7 @@ load_shobj (const char *name)
 			      * sizeof (struct here_cg_arc_record)));
 
   if (do_test)
-    printf ("expected size: %Zd\n", result->expected_size);
+    printf ("expected size: %zd\n", result->expected_size);
 
 #define SCALE_1_TO_1	0x10000L
 
@@ -1357,15 +1357,15 @@ generate_call_graph (struct profdata *profdata)
 		     ? sortsym[runp->idx]->name : "<UNKNOWN>"));
 
 	    if (runp->idx != (size_t) -1l)
-	      printf (" [%Zd]", runp->idx);
+	      printf (" [%zd]", runp->idx);
 	    putchar_unlocked ('\n');
 
 	    runp = runp->next;
 	  }
 
 	/* Info about the function itself.  */
-	n = printf ("[%Zu]", cnt);
-	printf ("%*s%5.1f%8.2f%8.2f%9" PRIdMAX "         %s [%Zd]\n",
+	n = printf ("[%zu]", cnt);
+	printf ("%*s%5.1f%8.2f%8.2f%9" PRIdMAX "         %s [%zd]\n",
 		(int) (7 - n), " ",
 		total_ticks ? (100.0 * sortsym[cnt]->ticks) / total_ticks : 0,
 		sortsym[cnt]->ticks * tick_unit,
@@ -1384,7 +1384,7 @@ generate_call_graph (struct profdata *profdata)
 		    runp->count);
 
 	    if (runp->idx != (size_t) -1l)
-	      printf ("%-9" PRIdMAX "   %s [%Zd]\n",
+	      printf ("%-9" PRIdMAX "   %s [%zd]\n",
 		      sortsym[runp->idx]->calls,
 		      sortsym[runp->idx]->name,
 		      runp->idx);

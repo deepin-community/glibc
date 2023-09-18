@@ -1,0 +1,70 @@
+commit 63550530d98db6e9c30dc96a3ea08411b873b23e
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Feb 9 19:58:43 2023 +0100
+
+    hurd: Fix unwinding over INTR_MSG_TRAP
+    
+    We used to use .cfi_adjust_cfa_offset around %esp manipulation
+    asm instructions to fix unwinding, but when building glibc with
+    -fno-omit-frame-pointer this is bogus since in that case %ebp is the CFA and
+    does not move.
+    
+    Instead, let's force -fno-omit-frame-pointer when building intr-msg.c so
+    that %ebp can always be used and no .cfi_adjust_cfa_offset is needed.
+
+diff --git a/hurd/Makefile b/hurd/Makefile
+index 77cb16cdf7..7c34e9ad0d 100644
+--- a/hurd/Makefile
++++ b/hurd/Makefile
+@@ -89,6 +89,9 @@ generated += $(inlines:=.c)
+ # Avoid ssp before TLS is initialized.
+ CFLAGS-hurdstartup.o = $(no-stack-protector)
+ CFLAGS-RPC_exec_startup_get_info.o = $(no-stack-protector)
++
++# Make it simpler to unwind over INTR_MSG_TRAP
++CFLAGS-intr-msg.o = -fno-omit-frame-pointer
+ 
+ # Make generated headers compatible with all support standards
+ migheaderpipe := | sed -e 's/\<ino64_t\>/__ino64_t/' -e 's/\<loff_t\>/__loff_t/'
+diff --git a/sysdeps/mach/hurd/i386/intr-msg.h b/sysdeps/mach/hurd/i386/intr-msg.h
+index 58f2f37c17..29cb4620da 100644
+--- a/sysdeps/mach/hurd/i386/intr-msg.h
++++ b/sysdeps/mach/hurd/i386/intr-msg.h
+@@ -41,21 +41,13 @@
+        "_hurd_intr_rpc_msg_do:"						      \
+        /* Ok, push the mach_msg_trap arguments.  */			      \
+        "				pushl 24(%4)\n"			      \
+-       "				.cfi_adjust_cfa_offset 4\n"	      \
+        "				pushl %2\n"			      \
+-       "				.cfi_adjust_cfa_offset 4\n"	      \
+        "				pushl 16(%4)\n"			      \
+-       "				.cfi_adjust_cfa_offset 4\n"	      \
+        "				pushl 12(%4)\n"			      \
+-       "				.cfi_adjust_cfa_offset 4\n"	      \
+        "				pushl 8(%4)\n"			      \
+-       "				.cfi_adjust_cfa_offset 4\n"	      \
+        "				pushl %1\n"			      \
+-       "				.cfi_adjust_cfa_offset 4\n"	      \
+        "				pushl (%4)\n"			      \
+-       "				.cfi_adjust_cfa_offset 4\n"	      \
+        "				pushl $0\n"			      \
+-       "				.cfi_adjust_cfa_offset 4\n"	      \
+        /* TODO: remove this ecx kludge, we don't need it any more */	      \
+        "				movl %%esp, %%ecx\n"		      \
+        "_hurd_intr_rpc_msg_cx_sp:	movl $-25, %%eax\n"		      \
+@@ -63,15 +55,10 @@
+        "_hurd_intr_rpc_msg_in_trap:"					      \
+        /* Ok, clean the arguments and update OPTION and TIMEOUT.  */	      \
+        "				addl $8, %%esp\n"		      \
+-       "				.cfi_adjust_cfa_offset -8\n"	      \
+        "				popl %1\n"			      \
+-       "				.cfi_adjust_cfa_offset -4\n"	      \
+        "				addl $12, %%esp\n"		      \
+-       "				.cfi_adjust_cfa_offset -12\n"	      \
+        "				popl %2\n"			      \
+-       "				.cfi_adjust_cfa_offset -4\n"	      \
+        "				addl $4, %%esp\n"		      \
+-       "				.cfi_adjust_cfa_offset -4\n"	      \
+        "_hurd_intr_rpc_msg_sp_restored:"				      \
+        : "=a" (err), "+r" (option), "+r" (timeout), "=m" (*intr_port_p)	      \
+        : "r" (&msg), "m" (*cancel_p), "i" (EINTR)			      \

@@ -1,5 +1,5 @@
 /* Determine protocol families for which interfaces exist.  Linux version.
-   Copyright (C) 2003-2022 Free Software Foundation, Inc.
+   Copyright (C) 2003-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -72,8 +72,8 @@ static uint32_t nl_timestamp;
 uint32_t
 __bump_nl_timestamp (void)
 {
-  if (atomic_increment_val (&nl_timestamp) == 0)
-    atomic_increment (&nl_timestamp);
+  if (atomic_fetch_add_relaxed (&nl_timestamp, 1) + 1 == 0)
+    atomic_fetch_add_relaxed (&nl_timestamp, 1);
 
   return nl_timestamp;
 }
@@ -278,7 +278,7 @@ make_request (int fd, pid_t pid)
     {
       free (result);
 
-      atomic_add (&noai6ai_cached.usecnt, 2);
+      atomic_fetch_add_relaxed (&noai6ai_cached.usecnt, 2);
       noai6ai_cached.seen_ipv4 = seen_ipv4;
       noai6ai_cached.seen_ipv6 = seen_ipv6;
       result = &noai6ai_cached;
@@ -309,7 +309,7 @@ __check_pf (bool *seen_ipv4, bool *seen_ipv6,
   if (cache_valid_p ())
     {
       data = cache;
-      atomic_increment (&cache->usecnt);
+      atomic_fetch_add_relaxed (&cache->usecnt, 1);
     }
   else
     {
@@ -349,7 +349,7 @@ __check_pf (bool *seen_ipv4, bool *seen_ipv6,
       *in6ai = data->in6ai;
 
       if (olddata != NULL && olddata->usecnt > 0
-	  && atomic_add_zero (&olddata->usecnt, -1))
+	  && atomic_fetch_add_relaxed (&olddata->usecnt, -1) == 1)
 	free (olddata);
 
       return;
@@ -377,7 +377,7 @@ __free_in6ai (struct in6addrinfo *ai)
 	(struct cached_data *) ((char *) ai
 				- offsetof (struct cached_data, in6ai));
 
-      if (atomic_add_zero (&data->usecnt, -1))
+      if (atomic_fetch_add_relaxed (&data->usecnt, -1) == 1)
 	{
 	  __libc_lock_lock (lock);
 

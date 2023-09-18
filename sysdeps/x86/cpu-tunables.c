@@ -1,6 +1,6 @@
 /* x86 CPU feature tuning.
    This file is part of the GNU C Library.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,8 @@
    since IFUNC must be set up by init_cpu_features.  */
 # if defined USE_MULTIARCH && !defined SHARED
 #  ifdef __x86_64__
-#   define DEFAULT_MEMCMP	__memcmp_sse2
+/* DEFAULT_MEMCMP by sysdeps/x86_64/memcmp-isa-default-impl.h.  */
+#   include <sysdeps/x86_64/memcmp-isa-default-impl.h>
 #  else
 #   define DEFAULT_MEMCMP	__memcmp_ia32
 #  endif

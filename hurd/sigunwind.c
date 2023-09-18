@@ -1,5 +1,5 @@
 /* longjmp cleanup function for unwinding past signal handlers.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
 #include <jmpbuf-unwind.h>
 #include <assert.h>
 #include <stdint.h>
-
+#include <pointer_guard.h>
 
 /* _hurd_setup_sighandler puts a link on the `active resources' chain so that
    _longjmp_unwind will call this function with the `struct sigcontext *'
@@ -73,9 +73,7 @@ _hurdsig_longjmp_from_handler (void *data, jmp_buf env, int val)
 
       inline uintptr_t demangle_ptr (uintptr_t x)
 	{
-# ifdef PTR_DEMANGLE
 	  PTR_DEMANGLE (x);
-# endif
 	  return x;
 	}
 

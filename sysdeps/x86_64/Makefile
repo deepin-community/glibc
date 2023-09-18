@@ -14,7 +14,14 @@ sysdep_noprof += _mcount
 endif
 
 ifeq ($(subdir),string)
-sysdep_routines += strcasecmp_l-nonascii strncase_l-nonascii
+sysdep_routines += \
+  strcasecmp_l-nonascii \
+  strcspn-generic \
+  strncase_l-nonascii \
+  strpbrk-generic \
+  strspn-generic \
+  varshift \
+# sysdep_routines
 gen-as-const-headers += locale-defines.sym
 tests += \
   tst-rsi-strlen
@@ -50,19 +57,10 @@ $(objpfx)tst-quad2pie: $(objpfx)tst-quadmod2pie.o
 CFLAGS-tst-quad1pie.c = $(PIE-ccflag)
 CFLAGS-tst-quad2pie.c = $(PIE-ccflag)
 
-tests += tst-x86_64-1
-modules-names += x86_64/tst-x86_64mod-1
-LDFLAGS-tst-x86_64mod-1.so = -Wl,-soname,tst-x86_64mod-1.so
-ifneq (no,$(have-tunables))
-# Test the state size for XSAVE when XSAVEC is disabled.
-tst-x86_64-1-ENV = GLIBC_TUNABLES=glibc.cpu.hwcaps=-XSAVEC
-endif
-
-$(objpfx)tst-x86_64-1: $(objpfx)x86_64/tst-x86_64mod-1.so
-
 ifneq (no,$(have-tunables))
 tests += tst-platform-1
 modules-names += tst-platformmod-1 x86_64/tst-platformmod-2
+extra-test-objs += tst-platformmod-2.o
 CFLAGS-tst-platform-1.c = -mno-avx
 CFLAGS-tst-platformmod-1.c = -mno-avx
 CFLAGS-tst-platformmod-2.c = -mno-avx
@@ -188,14 +186,21 @@ gen-as-const-headers += tlsdesc.sym rtld-offsets.sym
 endif
 
 ifeq ($(subdir),wcsmbs)
+
+sysdep_routines += \
+  wcpcpy-generic \
+  wcpncpy-generic \
+  wcscat-generic \
+  wcscpy-generic \
+  wcsncat-generic \
+  wcsncmp-generic \
+  wcsncpy-generic \
+  wcsnlen-generic \
+# sysdep_routines
+
 tests += \
   tst-rsi-wcslen
 endif
-
-$(objpfx)x86_64/tst-x86_64mod-1.os: $(objpfx)tst-x86_64mod-1.os
-	$(make-target-directory)
-	rm -f $@
-	ln $< $@
 
 do-tests-clean common-mostlyclean: tst-x86_64-1-clean
 

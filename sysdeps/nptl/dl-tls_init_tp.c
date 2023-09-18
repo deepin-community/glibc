@@ -1,5 +1,5 @@
 /* Completion of TCB initialization after TLS_INIT_TP.  NPTL version.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -128,7 +128,4 @@ __tls_init_tp (void)
      It will be bigger than it actually is, but for unwind.c/pt-longjmp.c
      purposes this is good enough.  */
   THREAD_SETMEM (pd, stackblock_size, (size_t) __libc_stack_end);
-
-  THREAD_SETMEM (pd, cancelstate, PTHREAD_CANCEL_ENABLE);
-  THREAD_SETMEM (pd, canceltype, PTHREAD_CANCEL_DEFERRED);
 }

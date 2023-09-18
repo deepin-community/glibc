@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
 #include <wchar.h>
 #include <wcsmbsload.h>
 
-#include <sysdep.h>
+#include <pointer_guard.h>
 
 #ifndef EILSEQ
 # define EILSEQ EINVAL
@@ -78,10 +78,8 @@ __mbrtowc (wchar_t *pwc, const char *s, size_t n, mbstate_t *ps)
 	goto ilseq;
     }
   __gconv_fct fct = fcts->towc->__fct;
-#ifdef PTR_DEMANGLE
   if (fcts->towc->__shlib_handle != NULL)
     PTR_DEMANGLE (fct);
-#endif
   status = DL_CALL_FCT (fct, (fcts->towc, &data, &inbuf, endbuf,
 			      NULL, &dummy, 0, 1));
 

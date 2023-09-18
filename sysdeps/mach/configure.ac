@@ -6,12 +6,13 @@ if test "x$MIG" = xMISSING; then
 fi
 LIBC_CONFIG_VAR([MIG], [$MIG])
 
+OLD_CPPFLAGS=$CPPFLAGS
 if test -n "$sysheaders"; then
-  OLD_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="$CPPFLAGS $SYSINCLUDES"
 fi
 
 ### Sanity checks for Mach header installation
+CPPFLAGS="$CPPFLAGS -ffreestanding"
 AC_CHECK_HEADER(mach/mach_types.h,,
                 [AC_MSG_ERROR([cannot find Mach headers])], -)
 AC_CHECK_HEADER(mach/mach_types.defs,, [dnl
@@ -130,6 +131,4 @@ fi])
 
 hurd_MIG_RETCODE
 
-if test -n "$sysheaders"; then
-  CPPFLAGS=$OLD_CPPFLAGS
-fi
+CPPFLAGS=$OLD_CPPFLAGS

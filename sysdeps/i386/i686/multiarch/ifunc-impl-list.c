@@ -1,5 +1,5 @@
 /* Enumerate available IFUNC implementations of a function.  i686 version.
-   Copyright (C) 2012-2022 Free Software Foundation, Inc.
+   Copyright (C) 2012-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,9 +22,6 @@
 #include <ifunc-impl-list.h>
 #include "init-arch.h"
 
-/* Maximum number of IFUNC implementations.  */
-#define MAX_IFUNC	4
-
 /* Fill ARRAY of MAX elements with IFUNC implementations for function
    NAME and return the number of valid entries.  */
 
@@ -32,27 +29,7 @@ size_t
 __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 			size_t max)
 {
-  assert (max >= MAX_IFUNC);
-
-  size_t i = 0;
-
-  /* Support sysdeps/i386/i686/multiarch/bcopy.S.  */
-  IFUNC_IMPL (i, name, bcopy,
-	      IFUNC_IMPL_ADD (array, i, bcopy, CPU_FEATURE_USABLE (SSSE3),
-			      __bcopy_ssse3_rep)
-	      IFUNC_IMPL_ADD (array, i, bcopy, CPU_FEATURE_USABLE (SSSE3),
-			      __bcopy_ssse3)
-	      IFUNC_IMPL_ADD (array, i, bcopy, CPU_FEATURE_USABLE (SSE2),
-			      __bcopy_sse2_unaligned)
-	      IFUNC_IMPL_ADD (array, i, bcopy, 1, __bcopy_ia32))
-
-  /* Support sysdeps/i386/i686/multiarch/bzero.S.  */
-  IFUNC_IMPL (i, name, bzero,
-	      IFUNC_IMPL_ADD (array, i, bzero, CPU_FEATURE_USABLE (SSE2),
-			      __bzero_sse2_rep)
-	      IFUNC_IMPL_ADD (array, i, bzero, CPU_FEATURE_USABLE (SSE2),
-			      __bzero_sse2)
-	      IFUNC_IMPL_ADD (array, i, bzero, 1, __bzero_ia32))
+  size_t i = max;
 
   /* Support sysdeps/i386/i686/multiarch/memchr.S.  */
   IFUNC_IMPL (i, name, memchr,
@@ -376,5 +353,5 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 	      IFUNC_IMPL_ADD (array, i, strncmp, 1, __strncmp_ia32))
 #endif
 
-  return i;
+  return 0;
 }

@@ -1,5 +1,5 @@
 /* Load a shared object at run time.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -75,7 +75,7 @@ dlopen_implementation (const char *file, int mode, void *dl_caller)
 void *
 ___dlopen (const char *file, int mode)
 {
-  if (!rtld_active ())
+  if (GLRO (dl_dlfcn_hook) != NULL)
     return GLRO (dl_dlfcn_hook)->dlopen (file, mode, RETURN_ADDRESS (0));
   else
     return dlopen_implementation (file, mode, RETURN_ADDRESS (0));
@@ -90,7 +90,7 @@ compat_symbol (libdl, ___dlopen, dlopen, GLIBC_2_1);
 void *
 __dlopen (const char *file, int mode, void *dl_caller)
 {
-  return dlopen_implementation (file, mode, RETURN_ADDRESS (0));
+  return dlopen_implementation (file, mode, dl_caller);
 }
 
 void *

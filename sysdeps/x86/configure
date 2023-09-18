@@ -33,8 +33,8 @@ $as_echo "$libc_cv_x86_cet_available" >&6; }
 fi
 if test $enable_cet != no; then
   # Check if assembler supports CET.
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $AS supports CET" >&5
-$as_echo_n "checking whether $AS supports CET... " >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether assembler supports CET" >&5
+$as_echo_n "checking whether assembler supports CET... " >&6; }
 if ${libc_cv_x86_cet_as+:} false; then :
   $as_echo_n "(cached) " >&6
 else
@@ -189,3 +189,6 @@ $as_echo "$libc_cv_have_x86_movbe" >&6; }
 fi
 config_vars="$config_vars
 enable-x86-isa-level = $libc_cv_include_x86_isa_level"
+
+$as_echo "#define SUPPORT_STATIC_PIE 1" >>confdefs.h
+

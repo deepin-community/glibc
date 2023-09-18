@@ -1,0 +1,24 @@
+commit baeb4015426e6724127829ead4fb39cfb377a3d9
+Author: Flavio Cruz <flaviocruz@gmail.com>
+Date:   Tue May 16 22:59:24 2023 -0400
+
+    Use TASK_THREAD_TIMES_INFO_COUNT when calling task_info with TASK_THREAD_TIMES_INFO
+    
+    This hasn't caused any problems yet but we are passing a pointer to struct
+    task_thread_times_info which can cause problems if we populate over the
+    existing size of the struct.
+    Message-Id: <ZGRDDNcOM2hA3CuT@jupiter.tail36e24.ts.net>
+
+diff --git a/sysdeps/mach/clock_gettime.c b/sysdeps/mach/clock_gettime.c
+index cc8c821a7f..be775ed2bb 100644
+--- a/sysdeps/mach/clock_gettime.c
++++ b/sysdeps/mach/clock_gettime.c
+@@ -62,7 +62,7 @@ __clock_gettime (clockid_t clock_id, struct timespec *ts)
+ 	time_value_add (&t, &bi.system_time);
+ 
+ 	/* Live threads CPU time.  */
+-	count = TASK_EVENTS_INFO_COUNT;
++	count = TASK_THREAD_TIMES_INFO_COUNT;
+ 	err = __task_info (__mach_task_self (), TASK_THREAD_TIMES_INFO,
+ 			   (task_info_t) &tti, &count);
+ 	if (err)

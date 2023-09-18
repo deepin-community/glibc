@@ -1,5 +1,5 @@
 /* Uncancelable versions of cancelable interfaces.  Generic version.
-   Copyright (C) 2003-2022 Free Software Foundation, Inc.
+   Copyright (C) 2003-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 # define NOT_CANCEL_H
 
 #include <fcntl.h>
+#include <poll.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -48,5 +49,9 @@
   (void) __writev (fd, iov, n)
 #define __fcntl64_nocancel(fd, cmd, ...) \
   __fcntl64 (fd, cmd, __VA_ARGS__)
+#define __getrandom_nocancel(buf, size, flags) \
+  __getrandom (buf, size, flags)
+#define __poll_infinity_nocancel(fds, nfds) \
+  __poll (fds, nfds, -1)
 
 #endif /* NOT_CANCEL_H  */

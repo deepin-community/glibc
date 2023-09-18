@@ -1,5 +1,5 @@
 /* Test memchr functions.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -44,11 +44,10 @@
 #endif /* WIDE */
 
 typedef CHAR *(*proto_t) (const CHAR *, int, size_t);
-CHAR *SIMPLE_MEMCHR (const CHAR *, int, size_t);
 
-IMPL (SIMPLE_MEMCHR, 0)
 IMPL (MEMCHR, 1)
 
+/* Naive implementation to verify results.  */
 CHAR *
 SIMPLE_MEMCHR (const CHAR *s, int c, size_t n)
 {
@@ -248,8 +247,12 @@ test_main (void)
   /* BZ#21182 - wrong overflow calculation for i686 implementation
      with address near end of the page.  */
   for (i = 2; i < 16; ++i)
-    /* page_size is in fact getpagesize() * 2.  */
-    do_test (page_size / 2 - i, i, i, 1, 0x9B);
+    {
+      /* page_size is in fact getpagesize() * 2.  */
+      do_test (page_size / 2 - i, i, i, 1, 0x9B);
+      do_test (page_size / 2 - i, i - 1, i - 1, 1, 0x9B);
+      do_test (page_size / 2 - (i * 4), i + 128, i + 128, i, 0x9B);
+    }
 
   do_random_tests ();
   do_overflow_tests ();

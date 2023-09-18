@@ -1,5 +1,5 @@
 /* Locate the shared object symbol nearest a given address.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -71,18 +71,10 @@ determine_info (const ElfW(Addr) addr, struct link_map *match, Dl_info *info,
 	    }
 	}
     }
-  else
+  else if (match->l_info[DT_HASH] != NULL)
     {
-      const ElfW(Sym) *symtabend;
-      if (match->l_info[DT_HASH] != NULL)
-	symtabend = (symtab
-		     + ((Elf_Symndx *) D_PTR (match, l_info[DT_HASH]))[1]);
-      else
-	/* There is no direct way to determine the number of symbols in the
-	   dynamic symbol table and no hash table is present.  The ELF
-	   binary is ill-formed but what shall we do?  Use the beginning of
-	   the string table which generally follows the symbol table.  */
-	symtabend = (const ElfW(Sym) *) strtab;
+      const ElfW (Sym) *symtabend
+	  = (symtab + ((Elf_Symndx *) D_PTR (match, l_info[DT_HASH]))[1]);
 
       for (; (void *) symtab < (void *) symtabend; ++symtab)
 	if ((ELFW(ST_BIND) (symtab->st_info) == STB_GLOBAL
@@ -96,6 +88,8 @@ determine_info (const ElfW(Addr) addr, struct link_map *match, Dl_info *info,
 	    && symtab->st_name < strtabsize)
 	  matchsym = (ElfW(Sym) *) symtab;
     }
+  /* In the absence of a hash table, treat the object as if it has no symbol.
+   */
 
   if (mapp)
     *mapp = match;

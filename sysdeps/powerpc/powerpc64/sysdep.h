@@ -1,5 +1,5 @@
 /* Assembly macros for 64-bit PowerPC.
-   Copyright (C) 2002-2022 Free Software Foundation, Inc.
+   Copyright (C) 2002-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -469,14 +469,16 @@ LT_LABELSUFFIX(name,_name_end): ; \
 	.tc _rtld_global_ro[TC],_rtld_global_ro
 # endif
 # define __GLRO(rOUT, var, offset)		\
-	ld	rOUT,.LC__ ## var@toc(r2);	\
+	addis	rOUT,r2,.LC__ ## var@toc@ha;	\
+	ld	rOUT,.LC__ ## var@toc@l(rOUT);	\
 	lwz	rOUT,offset(rOUT)
 #else
 # define __GLRO_DEF(var)			\
 .LC__ ## var:					\
 	.tc _ ## var[TC],_ ## var
 # define __GLRO(rOUT, var, offset)		\
-	ld	rOUT,.LC__ ## var@toc(r2);	\
+	addis	rOUT,r2,.LC__ ## var@toc@ha;	\
+	ld	rOUT,.LC__ ## var@toc@l(rOUT);	\
 	lwz	rOUT,0(rOUT)
 #endif
 

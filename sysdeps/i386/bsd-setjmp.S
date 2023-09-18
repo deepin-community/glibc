@@ -1,5 +1,5 @@
 /* BSD `setjmp' entry point to `sigsetjmp (..., 1)'.  i386 version.
-   Copyright (C) 1994-2022 Free Software Foundation, Inc.
+   Copyright (C) 1994-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
    in setjmp doesn't clobber the state restored by longjmp.  */
 
 #include <sysdep.h>
+#include <pointer_guard.h>
 #include <jmpbuf-offsets.h>
 #include <jmp_buf-ssp.h>
 #include <stap-probe.h>

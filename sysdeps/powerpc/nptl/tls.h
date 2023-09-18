@@ -1,5 +1,5 @@
 /* Definition for thread-local data handling.  NPTL/PowerPC version.
-   Copyright (C) 2003-2022 Free Software Foundation, Inc.
+   Copyright (C) 2003-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -44,8 +44,6 @@
 #endif /* __powerpc64__ */
 
 #ifndef __ASSEMBLER__
-
-# include <hwcapinfo.h>
 
 /* Get system call information.  */
 # include <sysdep.h>
@@ -100,6 +98,8 @@ typedef struct
   dtv_t *dtv;
 } tcbhead_t;
 
+# include <hwcapinfo.h>
+
 /* This is the size of the initial TCB.  */
 # define TLS_INIT_TCB_SIZE	0
 
@@ -137,9 +137,9 @@ typedef struct
 # define TLS_INIT_TP(tcbp) \
   ({ 									      \
     __thread_register = (void *) (tcbp) + TLS_TCB_OFFSET;		      \
-    THREAD_SET_HWCAP (__tcb_hwcap);					      \
-    THREAD_SET_AT_PLATFORM (__tcb_platform);				      \
-    NULL;								      \
+    THREAD_SET_HWCAP (__tcb.hwcap);					      \
+    THREAD_SET_AT_PLATFORM (__tcb.at_platform);				      \
+    true;								      \
   })
 
 /* Value passed to 'clone' for initialization of the thread register.  */
@@ -214,7 +214,7 @@ typedef struct
 #define THREAD_GSCOPE_RESET_FLAG() \
   do									     \
     { int __res								     \
-	= atomic_exchange_rel (&THREAD_SELF->header.gscope_flag,	     \
+	= atomic_exchange_release (&THREAD_SELF->header.gscope_flag,	     \
 			       THREAD_GSCOPE_FLAG_UNUSED);		     \
       if (__res == THREAD_GSCOPE_FLAG_WAIT)				     \
 	lll_futex_wake (&THREAD_SELF->header.gscope_flag, 1, LLL_PRIVATE);   \

@@ -1,6 +1,6 @@
 /* Round argument to nearest integral value according to current rounding
    direction.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,16 +24,22 @@
 #include <math_private.h>
 #include <libm-alias-ldouble.h>
 #include <fix-fp-int-convert-overflow.h>
+#include <math-use-builtins.h>
 
-static const _Float128 two112[2] =
-{
-  L(5.19229685853482762853049632922009600E+33), /* 0x406F000000000000, 0 */
- L(-5.19229685853482762853049632922009600E+33)  /* 0xC06F000000000000, 0 */
-};
 
 long long int
 __llrintl (_Float128 x)
 {
+#if USE_LLRINTL_BUILTIN
+  return __builtin_llrintl (x);
+#else
+  /* Use generic implementation.  */
+  static const _Float128 two112[2] =
+  {
+    L(5.19229685853482762853049632922009600E+33), /* 0x406F000000000000, 0 */
+   L(-5.19229685853482762853049632922009600E+33)  /* 0xC06F000000000000, 0 */
+  };
+
   int32_t j0;
   uint64_t i0,i1;
   _Float128 w;
@@ -102,6 +108,7 @@ __llrintl (_Float128 x)
     }
 
   return sx ? -result : result;
+#endif /* ! USE_LLRINTL_BUILTIN  */
 }
 
 libm_alias_ldouble (__llrint, llrint)

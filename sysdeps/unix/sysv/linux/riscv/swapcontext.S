@@ -1,5 +1,5 @@
 /* Save and set current context.
-   Copyright (C) 2009-2022 Free Software Foundation, Inc.
+   Copyright (C) 2009-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -118,7 +118,7 @@ LEAF (__swapcontext)
 	jr	t1
 
 
-99:	j	__syscall_error
+99:	tail	__syscall_error
 
 PSEUDO_END (__swapcontext)
 

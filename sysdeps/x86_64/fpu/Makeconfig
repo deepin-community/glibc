@@ -1,6 +1,6 @@
 # Generate libmvec.mk for libmvec ABI tests.
 
-# Copyright (C) 2021-2022 Free Software Foundation, Inc.
+# Copyright (C) 2021-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -52,11 +52,32 @@ libmvec-funcs = \
 
 # Define libmvec function for benchtests directory.
 libmvec-bench-funcs = \
+  acos \
+  acosh \
+  asin \
+  asinh \
+  atan \
+  atan2 \
+  atanh \
+  cbrt \
   cos \
+  cosh \
+  erf \
+  erfc \
   exp \
+  exp10 \
+  exp2 \
+  expm1 \
+  hypot \
   log \
+  log10 \
+  log1p \
+  log2 \
   pow \
   sin \
+  sinh \
+  tan \
+  tanh \
 
 bench-libmvec-double = \
   $(addprefix double-vlen1-, $(libmvec-bench-funcs)) \
@@ -91,6 +112,12 @@ libmvec-abi-func-avx512f-tests = \
 
 $(common-objpfx)libmvec.mk: $(common-objpfx)config.make
 	(echo "ifeq (\$$(subdir)\$$(build-mathvec),mathyes)"; \
+	 echo; \
+	 echo "extra-test-objs += \\"; \
+	 for i in "" "-avx" "-avx2" "-avx512f"; do \
+	   echo "  test-libmvec$$i.o \\"; \
+	 done; \
+	 echo "# extra-test-objs"; \
 	 echo; \
 	 for i in "" "-avx" "-avx2" "-avx512f"; do \
 	   for t in $(libmvec-abi-func-tests); do \

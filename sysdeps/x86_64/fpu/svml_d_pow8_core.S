@@ -1,5 +1,5 @@
 /* Function pow vectorized with AVX-512. Wrapper to AVX2 version.
-   Copyright (C) 2014-2022 Free Software Foundation, Inc.
+   Copyright (C) 2014-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 #include <sysdep.h>
 #include "svml_d_wrapper_impl.h"
 
-	.text
+	.section .text.evex512, "ax", @progbits
 ENTRY (_ZGVeN8vv_pow)
 WRAPPER_IMPL_AVX512_ff _ZGVdN4vv_pow
 END (_ZGVeN8vv_pow)

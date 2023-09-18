@@ -1,5 +1,5 @@
 /* pthread_getspecific.  Hurd version.
-   Copyright (C) 2002-2022 Free Software Foundation, Inc.
+   Copyright (C) 2002-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,8 +25,7 @@ __pthread_getspecific (pthread_key_t key)
 {
   struct __pthread *self;
 
-  if (key < 0 || key >= __pthread_key_count
-      || __pthread_key_destructors[key] == PTHREAD_KEY_INVALID)
+  if (key < 0 || key >= __pthread_key_count)
     return NULL;
 
   self = _pthread_self ();

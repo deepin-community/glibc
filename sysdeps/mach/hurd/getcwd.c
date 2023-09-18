@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -274,6 +274,8 @@ __hurd_canonicalize_directory_name_internal (file_t thisdir,
   /* Set errno.  */
   (void) __hurd_fail (err);
  lose:
+  if (orig_size == 0)
+    free (file_name);
   cleanup ();
   return NULL;
 }

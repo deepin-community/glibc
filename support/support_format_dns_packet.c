@@ -1,5 +1,5 @@
 /* Convert a DNS packet to a human-readable representation.
-   Copyright (C) 2016-2022 Free Software Foundation, Inc.
+   Copyright (C) 2016-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -30,17 +30,6 @@ struct in_buffer
   const unsigned char *data;
   size_t size;
 };
-
-static inline bool
-extract_8 (struct in_buffer *in, unsigned char *value)
-{
-  if (in->size == 0)
-    return false;
-  *value = in->data[0];
-  ++in->data;
-  --in->size;
-  return true;
-}
 
 static inline bool
 extract_16 (struct in_buffer *in, unsigned short *value)
@@ -99,6 +88,17 @@ extract_name (struct in_buffer full, struct in_buffer *in, struct dname *value)
   in->data += ret;
   in->size -= ret;
   return true;
+}
+
+static void
+extract_name_data (struct in_buffer full, struct in_buffer *rdata,
+                   const struct dname *owner, const char *typename, FILE *out)
+{
+  struct dname name;
+  if (extract_name (full, rdata, &name))
+    fprintf (out, "data: %s %s %s\n", owner->name, typename, name.name);
+  else
+    fprintf (out, "error: malformed CNAME/PTR record\n");
 }
 
 char *
@@ -206,14 +206,11 @@ support_format_dns_packet (const unsigned char *buffer, size_t length)
           }
           break;
         case T_CNAME:
+          extract_name_data (full, &rdata, &rname, "CNAME", mem.out);
+          break;
         case T_PTR:
-          {
-            struct dname name;
-            if (extract_name (full, &rdata, &name))
-              fprintf (mem.out, "name: %s\n", name.name);
-            else
-              fprintf (mem.out, "error: malformed CNAME/PTR record\n");
-          }
+          extract_name_data (full, &rdata, &rname, "PTR", mem.out);
+          break;
         }
     }
 

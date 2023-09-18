@@ -1,5 +1,5 @@
 /* Convert socket address to string using Name Service Switch modules.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -83,105 +83,115 @@ libc_freeres_ptr (static char *domain);
    now ignored.  */
 #define DEPRECATED_NI_IDN 192
 
-static char *
+/* Return true if no memory allocation failure happened (even if domain
+   name could not be obtained) or false otherwise.  */
+static bool
+nrl_domainname_core (struct scratch_buffer *tmpbuf)
+{
+  char *c;
+  struct hostent *h, th;
+  int herror;
+
+  while (__gethostbyname_r ("localhost", &th, tmpbuf->data, tmpbuf->length,
+			    &h, &herror))
+    {
+      if (herror == NETDB_INTERNAL && errno == ERANGE)
+	{
+	  if (!scratch_buffer_grow (tmpbuf))
+	    return false;
+	}
+      else
+	break;
+    }
+
+  if (h != NULL && (c = strchr (h->h_name, '.')) != NULL)
+    {
+      domain = __strdup (++c);
+      return domain != NULL;
+    }
+
+  /* The name contains no domain information.  Use the name
+     now to get more information.  */
+  while (__gethostname (tmpbuf->data, tmpbuf->length))
+    if (!scratch_buffer_grow (tmpbuf))
+      return false;
+
+  if ((c = strchr (tmpbuf->data, '.')) != NULL)
+    {
+      domain = __strdup (++c);
+      return domain != NULL;
+    }
+
+  /* We need to preserve the hostname.  */
+  size_t hstnamelen = strlen (tmpbuf->data) + 1;
+  while (__gethostbyname_r (tmpbuf->data, &th, tmpbuf->data + hstnamelen,
+			    tmpbuf->length - hstnamelen, &h, &herror))
+    {
+      if (herror == NETDB_INTERNAL && errno == ERANGE)
+	{
+	  if (!scratch_buffer_grow_preserve (tmpbuf))
+	    return false;
+	}
+      else
+	break;
+    }
+
+  if (h != NULL && (c = strchr(h->h_name, '.')) != NULL)
+    {
+      domain = __strdup (++c);
+      return domain != NULL;
+    }
+
+  struct in_addr in_addr = { .s_addr = htonl (INADDR_LOOPBACK) };
+
+  while (__gethostbyaddr_r ((const char *) &in_addr, sizeof (struct in_addr),
+			    AF_INET, &th, tmpbuf->data, tmpbuf->length, &h,
+			    &herror))
+    {
+      if (herror == NETDB_INTERNAL && errno == ERANGE)
+	{
+	  if (!scratch_buffer_grow (tmpbuf))
+	    return false;
+	}
+      else
+	break;
+    }
+
+  if (h != NULL && (c = strchr (h->h_name, '.')) != NULL)
+    {
+      domain = __strdup (++c);
+      return domain != NULL;
+    }
+  return true;
+}
+
+static bool
 nrl_domainname (void)
 {
   static int not_first;
 
-  if (! not_first)
+  if (__glibc_likely (atomic_load_acquire (&not_first) != 0))
+    return true;
+
+  int r = true;
+
+  __libc_lock_define_initialized (static, lock);
+  __libc_lock_lock (lock);
+
+  if (atomic_load_relaxed (&not_first) == 0)
     {
-      __libc_lock_define_initialized (static, lock);
-      __libc_lock_lock (lock);
+      struct scratch_buffer tmpbuf;
+      scratch_buffer_init (&tmpbuf);
 
-      if (! not_first)
-	{
-	  char *c;
-	  struct hostent *h, th;
-	  int herror;
-	  struct scratch_buffer tmpbuf;
+      if ((r = nrl_domainname_core (&tmpbuf)))
+	atomic_store_release (&not_first, 1);
 
-	  scratch_buffer_init (&tmpbuf);
-	  not_first = 1;
-
-	  while (__gethostbyname_r ("localhost", &th,
-				    tmpbuf.data, tmpbuf.length,
-				    &h, &herror))
-	    {
-	      if (herror == NETDB_INTERNAL && errno == ERANGE)
-		{
-		  if (!scratch_buffer_grow (&tmpbuf))
-		    goto done;
-		}
-	      else
-		break;
-	    }
-
-	  if (h && (c = strchr (h->h_name, '.')))
-	    domain = __strdup (++c);
-	  else
-	    {
-	      /* The name contains no domain information.  Use the name
-		 now to get more information.  */
-	      while (__gethostname (tmpbuf.data, tmpbuf.length))
-		if (!scratch_buffer_grow (&tmpbuf))
-		  goto done;
-
-	      if ((c = strchr (tmpbuf.data, '.')))
-		domain = __strdup (++c);
-	      else
-		{
-		  /* We need to preserve the hostname.  */
-		  const char *hstname = strdupa (tmpbuf.data);
-
-		  while (__gethostbyname_r (hstname, &th,
-					    tmpbuf.data, tmpbuf.length,
-					    &h, &herror))
-		    {
-		      if (herror == NETDB_INTERNAL && errno == ERANGE)
-			{
-			  if (!scratch_buffer_grow (&tmpbuf))
-			    goto done;
-			}
-		      else
-			break;
-		    }
-
-		  if (h && (c = strchr(h->h_name, '.')))
-		    domain = __strdup (++c);
-		  else
-		    {
-		      struct in_addr in_addr;
-
-		      in_addr.s_addr = htonl (INADDR_LOOPBACK);
-
-		      while (__gethostbyaddr_r ((const char *) &in_addr,
-						sizeof (struct in_addr),
-						AF_INET, &th,
-						tmpbuf.data, tmpbuf.length,
-						&h, &herror))
-			{
-			  if (herror == NETDB_INTERNAL && errno == ERANGE)
-			    {
-			      if (!scratch_buffer_grow (&tmpbuf))
-				goto done;
-			    }
-			  else
-			    break;
-			}
-
-		      if (h && (c = strchr (h->h_name, '.')))
-			domain = __strdup (++c);
-		    }
-		}
-	    }
-	done:
-	  scratch_buffer_free (&tmpbuf);
-	}
-
-      __libc_lock_unlock (lock);
+      scratch_buffer_free (&tmpbuf);
     }
 
-  return domain;
+  __libc_lock_unlock (lock);
+
+  return r;
 };
 
 /* Copy a string to a destination buffer with length checking.  Return
@@ -277,13 +287,17 @@ gni_host_inet_name (struct scratch_buffer *tmpbuf,
 
   if (h)
     {
-      char *c;
-      if ((flags & NI_NOFQDN)
-	  && (c = nrl_domainname ())
-	  && (c = strstr (h->h_name, c))
-	  && (c != h->h_name) && (*(--c) == '.'))
-	/* Terminate the string after the prefix.  */
-	*c = '\0';
+      if (flags & NI_NOFQDN)
+	{
+	  if (!nrl_domainname ())
+	    return EAI_MEMORY;
+
+	  char *c = domain;
+	  if (c != NULL && (c = strstr (h->h_name, c))
+	       && (c != h->h_name) && (*(--c) == '.'))
+	    /* Terminate the string after the prefix.  */
+	    *c = '\0';
+	}
 
       /* If requested, convert from the IDN format.  */
       bool do_idn = flags & NI_IDN;

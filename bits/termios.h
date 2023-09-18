@@ -1,5 +1,5 @@
 /* termios type and macro definitions.  4.4 BSD/generic GNU version.
-   Copyright (C) 1993-2022 Free Software Foundation, Inc.
+   Copyright (C) 1993-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -246,7 +246,7 @@ struct termios
 # define NOKERNINFO (1 << 25)	/* Disable VSTATUS.  */
 # define PENDIN	(1 << 29)	/* Retype pending input (state).  */
 #endif
-#define	_NOFLSH	(1 << 31)	/* Disable flush after interrupt.  */
+#define	_NOFLSH	(1U << 31)	/* Disable flush after interrupt.  */
 #define	NOFLSH	_NOFLSH
 
   /* Control characters.  */

@@ -1,5 +1,5 @@
 /* Function sincos vectorized with AVX2.
-   Copyright (C) 2014-2022 Free Software Foundation, Inc.
+   Copyright (C) 2014-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 #include <sysdep.h>
 #include "svml_d_trig_data.h"
 
-	.text
+	.section .text.avx2, "ax", @progbits
 ENTRY (_ZGVdN4vl8l8_sincos_avx2)
 /*
    ALGORITHM DESCRIPTION:

@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -103,6 +103,16 @@ struct ip_opts
 #define IPV6_RECVPATHMTU	60
 #define IPV6_PATHMTU		61
 #define IPV6_DONTFRAG		62
+
+/* Advanced API (RFC3542) (2).  */
+#define IPV6_RECVTCLASS		66
+#define IPV6_TCLASS		67
+
+/* RFC5014.  */
+#define IPV6_ADDR_PREFERENCES	72
+
+/* RFC5082.  */
+#define IPV6_MINHOPCOUNT	73
 
 /* Obsolete synonyms for the above.  */
 #define IPV6_ADD_MEMBERSHIP	IPV6_JOIN_GROUP

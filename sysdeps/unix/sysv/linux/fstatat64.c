@@ -1,5 +1,5 @@
 /* Get file status.  Linux version.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,6 +40,12 @@ _Static_assert (sizeof (__blkcnt_t) == sizeof (__blkcnt64_t),
                 "__blkcnt_t and __blkcnt64_t must match");
 #endif
 
+#if (__WORDSIZE == 32 \
+     && (!defined __SYSCALL_WORDSIZE || __SYSCALL_WORDSIZE == 32)) \
+     || defined STAT_HAS_TIME32 \
+     || (!defined __NR_newfstatat && !defined __NR_fstatat64)
+# define FSTATAT_USE_STATX 1
+
 static inline int
 fstatat64_time64_statx (int fd, const char *file, struct __stat64_t64 *buf,
 			int flag)
@@ -73,11 +79,6 @@ fstatat64_time64_statx (int fd, const char *file, struct __stat64_t64 *buf,
 
   return r;
 }
-
-#if (__WORDSIZE == 32 \
-     && (!defined __SYSCALL_WORDSIZE || __SYSCALL_WORDSIZE == 32)) \
-     || defined STAT_HAS_TIME32
-# define FSTATAT_USE_STATX 1
 #else
 # define FSTATAT_USE_STATX 0
 #endif

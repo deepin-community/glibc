@@ -1,5 +1,5 @@
 /* Locating objects in the process image.  ld.so implementation.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -788,6 +788,9 @@ _dl_find_object_update (struct link_map *new_map)
   for (struct link_map *l = new_map; l != NULL; l = l->l_next)
     /* Skip proxy maps and already-processed maps.  */
     count += l == l->l_real && !l->l_find_object_processed;
+  if (count == 0)
+    return true;
+
   struct link_map **map_array = malloc (count * sizeof (*map_array));
   if (map_array == NULL)
     return false;
@@ -797,8 +800,6 @@ _dl_find_object_update (struct link_map *new_map)
       if (l == l->l_real && !l->l_find_object_processed)
         map_array[i++] = l;
   }
-  if (count == 0)
-    return true;
 
   _dl_find_object_link_map_sort (map_array, count);
   bool ok = _dl_find_object_update_1 (map_array, count);

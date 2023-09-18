@@ -1,5 +1,5 @@
 /* Look up a symbol in a shared object loaded by `dlopen'.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -144,7 +144,7 @@ RTLD_NEXT used in code not dynamically loaded"));
 	l = l->l_loader;
 
       result = GLRO(dl_lookup_symbol_x) (name, match, &ref, l->l_local_scope,
-					 vers, 0, 0, match);
+					 vers, 0, flags, match);
     }
   else
     {

@@ -1,5 +1,5 @@
 /* Check resulting signal mask from POSIX timer using SIGEV_THREAD.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ thread_handler (union sigval sv)
       if (sigismember (&ss, sig))
 	{
 	  TEST_VERIFY (sig != SIGKILL && sig != SIGSTOP);
-	  TEST_VERIFY (!__is_internal_signal (sig));
+	  TEST_VERIFY (!is_internal_signal (sig));
 	}
       if (test_verbose && sigismember (&ss, sig))
 	printf ("%d, ", sig);

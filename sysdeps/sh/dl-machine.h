@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  SH version.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -149,20 +149,8 @@ _dl_start_user:\n\
 	 add r0,r12\n\
 	.align 2\n\
 1:	.long _GLOBAL_OFFSET_TABLE_\n\
-2:	! See if we were run as a command with the executable file\n\
-	! name as an extra leading argument.\n\
-	mov.l .L_dl_skip_args,r0\n\
-	mov.l @(r0,r12),r0\n\
-	mov.l @r0,r0\n\
-	! Get the original argument count.\n\
+2:	! Get the original argument count.\n\
 	mov.l @r15,r5\n\
-	! Subtract _dl_skip_args from it.\n\
-	sub r0,r5\n\
-	! Adjust the stack pointer to skip _dl_skip_args words.\n\
-	shll2 r0\n\
-	add r0,r15\n\
-	! Store back the modified argument count.\n\
-	mov.l r5,@r15\n\
 	! Compute argv address and envp.\n\
 	mov r15,r6\n\
 	add #4,r6\n\
@@ -188,8 +176,6 @@ _dl_start_user:\n\
 	.align 2\n\
 .L_dl_start:\n\
 	.long _dl_start@PLT\n\
-.L_dl_skip_args:\n\
-	.long _dl_skip_args@GOT\n\
 .L_dl_init:\n\
 	.long _dl_init@PLT\n\
 .L_dl_loaded:\n\
@@ -391,7 +377,7 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 	  break;
 	case R_SH_DIR32:
 	  {
-#if !defined RTLD_BOOTSTRAP && !defined RESOLVE_CONFLICT_FIND_MAP
+#if !defined RTLD_BOOTSTRAP
 	   /* This is defined in rtld.c, but nowhere in the static
 	      libc.a; make the reference weak so static programs can
 	      still link.  This declaration cannot be done when

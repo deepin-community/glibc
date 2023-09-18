@@ -1,5 +1,5 @@
 /* Enumerate available IFUNC implementations of a function.  ARM version.
-   Copyright (C) 2013-2022 Free Software Foundation, Inc.
+   Copyright (C) 2013-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ size_t
 __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 			size_t max)
 {
-  size_t i = 0;
+  size_t i = max;
 
   bool use_neon = true;
 #ifdef __ARM_NEON__
@@ -57,5 +57,5 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 	      IFUNC_IMPL_ADD (array, i, memchr, use_neon, __memchr_neon)
 	      IFUNC_IMPL_ADD (array, i, memchr, 1, __memchr_noneon));
 
-  return i;
+  return 0;
 }

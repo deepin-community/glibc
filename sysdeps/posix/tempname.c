@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -181,13 +181,13 @@ try_file (char *tmpl, void *flags)
 }
 
 static int
-try_dir (char *tmpl, void *flags _GL_UNUSED)
+try_dir (char *tmpl, _GL_UNUSED void *flags)
 {
   return __mkdir (tmpl, S_IRUSR | S_IWUSR | S_IXUSR);
 }
 
 static int
-try_nocreate (char *tmpl, void *flags _GL_UNUSED)
+try_nocreate (char *tmpl, _GL_UNUSED void *flags)
 {
   struct_stat64 st;
 

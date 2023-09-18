@@ -1,5 +1,5 @@
 /* Global list of NSS service modules.
-   Copyright (c) 2020-2022 Free Software Foundation, Inc.
+   Copyright (c) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysdep.h>
+#include <pointer_guard.h>
 
 /* Suffix after .so of NSS service modules.  This is a bit of magic,
    but we assume LIBNSS_FILES_SO looks like "libnss_files.so.2" and we
@@ -128,10 +128,8 @@ module_load_builtin (struct nss_module *module,
     case nss_module_failed:
       bind (module->functions.untyped);
 
-#ifdef PTR_MANGLE
       for (int i = 0; i < nss_module_functions_count; ++i)
 	PTR_MANGLE (module->functions.untyped[i]);
-#endif
 
       module->handle = NULL;
       /* Synchronizes with unlocked __nss_module_load atomic_load_acquire.  */
@@ -153,9 +151,7 @@ module_load_nss_files (struct nss_module *module)
   if (is_nscd)
     {
       void (*cb) (size_t, struct traced_file *) = nscd_init_cb;
-# ifdef PTR_DEMANGLE
       PTR_DEMANGLE (cb);
-# endif
       _nss_files_init (cb);
     }
 #endif
@@ -239,9 +235,7 @@ module_load (struct nss_module *module)
         }
       pointers[idx] = __libc_dlsym (handle, function_name);
       free (function_name);
-#ifdef PTR_MANGLE
       PTR_MANGLE (pointers[idx]);
-#endif
     }
 
 # ifdef USE_NSCD
@@ -264,9 +258,7 @@ module_load (struct nss_module *module)
       if (ifct != NULL)
 	{
 	  void (*cb) (size_t, struct traced_file *) = nscd_init_cb;
-#  ifdef PTR_DEMANGLE
 	  PTR_DEMANGLE (cb);
-#  endif
 	  ifct (cb);
 	}
     }
@@ -330,8 +322,18 @@ name_search (const void *left, const void *right)
 void *
 __nss_module_get_function (struct nss_module *module, const char *name)
 {
+  /* A successful dlopen might clobber errno.   */
+  int saved_errno = errno;
+
   if (!__nss_module_load (module))
-    return NULL;
+    {
+      /* Reporting module load failure is currently inaccurate.  See
+	 bug 22041.  Not changing errno is the conservative choice.  */
+      __set_errno (saved_errno);
+      return NULL;
+    }
+
+  __set_errno (saved_errno);
 
   function_name *name_entry = bsearch (name, nss_function_name_array,
                                        array_length (nss_function_name_array),
@@ -339,9 +341,7 @@ __nss_module_get_function (struct nss_module *module, const char *name)
   assert (name_entry != NULL);
   size_t idx = name_entry - nss_function_name_array;
   void *fptr = module->functions.untyped[idx];
-#ifdef PTR_DEMANGLE
   PTR_DEMANGLE (fptr);
-#endif
   return fptr;
 }
 
@@ -372,9 +372,7 @@ __nss_disable_nscd (void (*cb) (size_t, struct traced_file *))
 {
   void (*cb1) (size_t, struct traced_file *);
   cb1 = cb;
-# ifdef PTR_MANGLE
   PTR_MANGLE (cb);
-# endif
   nscd_init_cb = cb;
   is_nscd = true;
 

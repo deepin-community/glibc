@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2003-2022 Free Software Foundation, Inc.
+# Copyright (C) 2003-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -32,9 +32,9 @@
 # #include <sys/stat.h>
 # EOF
 # gcc -D_GNU_SOURCE -E - |
-# egrep '^typedef.*;$' |
+# grep -E '^typedef.*;$' |
 # sed 's/^typedef[[:space:]]*//;s/\([[:space:]]\{1,\}__attribute__.*\);/;/;s/.*[[:space:]]\([*]\|\)\(.*\);/\2/' |
-# egrep -v '^_' |
+# grep -E -v '^_' |
 # LC_ALL=C sort -u
 #
 data=$1

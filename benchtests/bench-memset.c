@@ -1,5 +1,5 @@
 /* Measure memset functions.
-   Copyright (C) 2013-2022 Free Software Foundation, Inc.
+   Copyright (C) 2013-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -74,7 +74,6 @@ do_test (json_ctx_t *json_ctx, size_t align, int c, size_t len)
   FOR_EACH_IMPL (impl, 0)
     {
       do_one_test (json_ctx, impl, (CHAR *) (buf1) + align, c, len);
-      alloc_bufs ();
     }
 
   json_array_end (json_ctx);
@@ -88,8 +87,9 @@ test_main (void)
   size_t i;
   int c = 0;
 
-  test_init ();
 
+  test_init ();
+  alloc_bufs ();
   json_init (&json_ctx, 0, stdout);
 
   json_document_begin (&json_ctx);
@@ -110,7 +110,7 @@ test_main (void)
     {
       for (i = 0; i < 18; ++i)
 	do_test (&json_ctx, 0, c, 1 << i);
-      for (i = 1; i < 64; ++i)
+      for (i = 0; i < 64; ++i)
 	{
 	  do_test (&json_ctx, i, c, i);
 	  do_test (&json_ctx, 4096 - i, c, i);

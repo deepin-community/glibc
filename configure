@@ -620,12 +620,9 @@ libc_cv_cc_loop_to_function
 libc_cv_cc_submachine
 libc_cv_cc_nofma
 libc_cv_mtls_dialect_gnu2
-fno_unit_at_a_time
 libc_cv_has_glob_dat
-libc_cv_hashstyle
 libc_cv_fpie
 libc_cv_z_execstack
-libc_cv_z_combreloc
 ASFLAGS_config
 libc_cv_cc_with_libunwind
 libc_cv_insert
@@ -638,26 +635,6 @@ CXX_CMATH_HEADER
 CXX_CSTDLIB_HEADER
 CXX_SYSINCLUDES
 SYSINCLUDES
-PYTHON
-PYTHON_PROG
-AUTOCONF
-NM
-BISON
-AWK
-SED
-MAKEINFO
-MSGFMT
-MAKE
-LD
-AS
-GPROF
-OBJCOPY
-OBJDUMP
-AR
-LN_S
-INSTALL_DATA
-INSTALL_SCRIPT
-INSTALL_PROGRAM
 sysnames
 submachine
 multi_arch
@@ -666,6 +643,26 @@ no_stack_protector
 stack_protector
 libc_cv_ssp
 libc_cv_with_fp
+PYTHON
+PYTHON_PROG
+AUTOCONF
+BISON
+AWK
+SED
+MAKEINFO
+MSGFMT
+MAKE
+LD
+NM
+OBJDUMP
+READELF
+GPROF
+OBJCOPY
+AR
+LN_S
+INSTALL_DATA
+INSTALL_SCRIPT
+INSTALL_PROGRAM
 base_machine
 have_tunables
 build_pt_chown
@@ -688,7 +685,6 @@ sysheaders
 ac_ct_CXX
 CXXFLAGS
 CXX
-READELF
 CPP
 cross_compiling
 BUILD_CC
@@ -730,7 +726,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -845,7 +840,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1098,15 +1092,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1244,7 +1229,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1397,7 +1382,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -2886,98 +2870,6 @@ if test -z "$CPP"; then
   CPP="$CC -E"
 fi
 
-if test -n "$ac_tool_prefix"; then
-  # Extract the first word of "${ac_tool_prefix}readelf", so it can be a program name with args.
-set dummy ${ac_tool_prefix}readelf; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_READELF+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$READELF"; then
-  ac_cv_prog_READELF="$READELF" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_READELF="${ac_tool_prefix}readelf"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-READELF=$ac_cv_prog_READELF
-if test -n "$READELF"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $READELF" >&5
-$as_echo "$READELF" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-fi
-if test -z "$ac_cv_prog_READELF"; then
-  ac_ct_READELF=$READELF
-  # Extract the first word of "readelf", so it can be a program name with args.
-set dummy readelf; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_ac_ct_READELF+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$ac_ct_READELF"; then
-  ac_cv_prog_ac_ct_READELF="$ac_ct_READELF" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_ac_ct_READELF="readelf"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-ac_ct_READELF=$ac_cv_prog_ac_ct_READELF
-if test -n "$ac_ct_READELF"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_READELF" >&5
-$as_echo "$ac_ct_READELF" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-  if test "x$ac_ct_READELF" = x; then
-    READELF="false"
-  else
-    case $cross_compiling:$ac_tool_warned in
-yes:)
-{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
-$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
-ac_tool_warned=yes ;;
-esac
-    READELF=$ac_ct_READELF
-  fi
-else
-  READELF="$ac_cv_prog_READELF"
-fi
-
 
 # We need the C++ compiler only for testing.
 ac_ext=cpp
@@ -3388,7 +3280,7 @@ fi
 if test "${with_default_link+set}" = set; then :
   withval=$with_default_link; use_default_link=$withval
 else
-  use_default_link=default
+  use_default_link=no
 fi
 
 
@@ -3948,528 +3840,6 @@ fi
 test -n "$base_machine" || base_machine=$machine
 
 
-# Determine whether to use fpu or nofpu sysdeps directories.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for use of fpu sysdeps directories" >&5
-$as_echo_n "checking for use of fpu sysdeps directories... " >&6; }
-if ${libc_cv_with_fp+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat > conftest.c <<EOF
-#if $with_fp_cond
-int dummy;
-#else
-# error "no hardware floating point"
-#endif
-EOF
-libc_cv_with_fp=no
-if ${CC-cc} $CFLAGS $CPPFLAGS -S conftest.c -o conftest.s \
-   1>&5 2>&5 ; then
-  libc_cv_with_fp=yes
-fi
-rm -f conftest*
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_with_fp" >&5
-$as_echo "$libc_cv_with_fp" >&6; }
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -fstack-protector" >&5
-$as_echo_n "checking for -fstack-protector... " >&6; }
-if ${libc_cv_ssp+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -Werror -fstack-protector -xc /dev/null -S -o /dev/null'
-  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }; then :
-  libc_cv_ssp=yes
-else
-  libc_cv_ssp=no
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_ssp" >&5
-$as_echo "$libc_cv_ssp" >&6; }
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -fstack-protector-strong" >&5
-$as_echo_n "checking for -fstack-protector-strong... " >&6; }
-if ${libc_cv_ssp_strong+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -Werror -fstack-protector-strong -xc /dev/null -S -o /dev/null'
-  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }; then :
-  libc_cv_ssp_strong=yes
-else
-  libc_cv_ssp_strong=no
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_ssp_strong" >&5
-$as_echo "$libc_cv_ssp_strong" >&6; }
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -fstack-protector-all" >&5
-$as_echo_n "checking for -fstack-protector-all... " >&6; }
-if ${libc_cv_ssp_all+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -Werror -fstack-protector-all -xc /dev/null -S -o /dev/null'
-  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }; then :
-  libc_cv_ssp_all=yes
-else
-  libc_cv_ssp_all=no
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_ssp_all" >&5
-$as_echo "$libc_cv_ssp_all" >&6; }
-
-stack_protector=
-no_stack_protector=
-if test "$libc_cv_ssp" = yes; then
-  no_stack_protector="-fno-stack-protector -DSTACK_PROTECTOR_LEVEL=0"
-  $as_echo "#define HAVE_CC_NO_STACK_PROTECTOR 1" >>confdefs.h
-
-fi
-
-if test "$enable_stack_protector" = yes && test "$libc_cv_ssp" = yes; then
-  stack_protector="-fstack-protector"
-  $as_echo "#define STACK_PROTECTOR_LEVEL 1" >>confdefs.h
-
-elif test "$enable_stack_protector" = all && test "$libc_cv_ssp_all" = yes; then
-  stack_protector="-fstack-protector-all"
-  $as_echo "#define STACK_PROTECTOR_LEVEL 2" >>confdefs.h
-
-elif test "$enable_stack_protector" = strong && test "$libc_cv_ssp_strong" = yes; then
-  stack_protector="-fstack-protector-strong"
-  $as_echo "#define STACK_PROTECTOR_LEVEL 3" >>confdefs.h
-
-else
-  stack_protector="-fno-stack-protector"
-  $as_echo "#define STACK_PROTECTOR_LEVEL 0" >>confdefs.h
-
-fi
-
-
-
-
-if test -n "$stack_protector"; then
-      no_ssp=-fno-stack-protector
-else
-  no_ssp=
-
-  if test "$enable_stack_protector" != no; then
-    as_fn_error $? "--enable-stack-protector=$enable_stack_protector specified, but specified level of stack protection is not supported by the compiler." "$LINENO" 5
-  fi
-fi
-
-# For the multi-arch option we need support in the assembler & linker.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for assembler and linker STT_GNU_IFUNC support" >&5
-$as_echo_n "checking for assembler and linker STT_GNU_IFUNC support... " >&6; }
-if ${libc_cv_ld_gnu_indirect_function+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat > conftest.S <<EOF
-.type foo,%gnu_indirect_function
-foo:
-.globl _start
-_start:
-.globl __start
-__start:
-.data
-#ifdef _LP64
-.quad foo
-#else
-.long foo
-#endif
-EOF
-libc_cv_ld_gnu_indirect_function=no
-if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS \
-	    -nostartfiles -nostdlib $no_ssp \
-	    -o conftest conftest.S 1>&5 2>&5; then
-  # Do a link to see if the backend supports IFUNC relocs.
-  $READELF -r conftest 1>&5
-  LC_ALL=C $READELF -Wr conftest | grep -q 'IRELATIVE\|R_SPARC_JMP_IREL' && {
-    libc_cv_ld_gnu_indirect_function=yes
-  }
-fi
-rm -f conftest*
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_ld_gnu_indirect_function" >&5
-$as_echo "$libc_cv_ld_gnu_indirect_function" >&6; }
-
-# Check if gcc supports attribute ifunc as it is used in libc_ifunc macro.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gcc attribute ifunc support" >&5
-$as_echo_n "checking for gcc attribute ifunc support... " >&6; }
-if ${libc_cv_gcc_indirect_function+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat > conftest.c <<EOF
-extern int func (int);
-int used_func (int a)
-{
-  return a;
-}
-static void *resolver ()
-{
-  return &used_func;
-}
-extern __typeof (func) func __attribute__ ((ifunc ("resolver")));
-EOF
-libc_cv_gcc_indirect_function=no
-if ${CC-cc} -c conftest.c -o conftest.o 1>&5 \
-   2>&5 ; then
-  if $READELF -s conftest.o | grep IFUNC >/dev/null 2>&5; then
-    libc_cv_gcc_indirect_function=yes
-  fi
-fi
-rm -f conftest*
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_gcc_indirect_function" >&5
-$as_echo "$libc_cv_gcc_indirect_function" >&6; }
-
-# Check if linker supports textrel relocation with ifunc (used on elf/tests).
-# Note that it relies on libc_cv_ld_gnu_indirect_function test above.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the linker supports textrels along with ifunc" >&5
-$as_echo_n "checking whether the linker supports textrels along with ifunc... " >&6; }
-if ${libc_cv_textrel_ifunc+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat > conftest.S <<EOF
-.type foo,%gnu_indirect_function
-foo:
-.globl _start
-_start:
-.globl __start
-__start:
-.data
-#ifdef _LP64
-.quad foo
-#else
-.long foo
-#endif
-.text
-.globl address
-address:
-#ifdef _LP64
-.quad address
-#else
-.long address
-#endif
-EOF
-libc_cv_textrel_ifunc=no
-if test $libc_cv_ld_gnu_indirect_function = yes; then
-   if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -nostartfiles -nostdlib $no_ssp -pie -o conftest conftest.S'
-  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }; then
-     libc_cv_textrel_ifunc=yes
-   fi
-fi
-rm -f conftest*
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_textrel_ifunc" >&5
-$as_echo "$libc_cv_textrel_ifunc" >&6; }
-
-
-# Check if CC supports attribute retain as it is used in attribute_used_retain macro.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GNU attribute retain support" >&5
-$as_echo_n "checking for GNU attribute retain support... " >&6; }
-if ${libc_cv_gnu_retain+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat > conftest.c <<EOF
-static int var  __attribute__ ((used, retain, section ("__libc_atexit")));
-EOF
-libc_cv_gnu_retain=no
-if ${CC-cc} -Werror -c conftest.c -o /dev/null 1>&5 \
-   2>&5 ; then
-  libc_cv_gnu_retain=yes
-fi
-rm -f conftest*
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_gnu_retain" >&5
-$as_echo "$libc_cv_gnu_retain" >&6; }
-if test $libc_cv_gnu_retain = yes; then
-  $as_echo "#define HAVE_GNU_RETAIN 1" >>confdefs.h
-
-fi
-config_vars="$config_vars
-have-gnu-retain = $libc_cv_gnu_retain"
-
-# Check if gcc warns about alias for function with incompatible types.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if compiler warns about alias for function with incompatible types" >&5
-$as_echo_n "checking if compiler warns about alias for function with incompatible types... " >&6; }
-if ${libc_cv_gcc_incompatible_alias+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat > conftest.c <<EOF
-int __redirect_foo (const void *s, int c);
-
-__typeof (__redirect_foo) *foo_impl (void) __asm__ ("foo");
-__typeof (__redirect_foo) *foo_impl (void)
-{
-  return 0;
-}
-
-extern __typeof (__redirect_foo) foo_alias __attribute__ ((alias ("foo")));
-EOF
-libc_cv_gcc_incompatible_alias=yes
-if ${CC-cc} -Werror -c conftest.c -o conftest.o 1>&5 2>&5 ; then
-  libc_cv_gcc_incompatible_alias=no
-fi
-rm -f conftest*
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_gcc_incompatible_alias" >&5
-$as_echo "$libc_cv_gcc_incompatible_alias" >&6; }
-
-if test x"$libc_cv_ld_gnu_indirect_function" != xyes; then
-  if test x"$multi_arch" = xyes; then
-    as_fn_error $? "--enable-multi-arch support requires assembler and linker support" "$LINENO" 5
-  else
-    multi_arch=no
-  fi
-fi
-if test x"$libc_cv_gcc_indirect_function" != xyes; then
-  # GCC 8+ emits a warning for alias with incompatible types and it might
-  # fail to build ifunc resolvers aliases to either weak or internal
-  # symbols.  Disables multiarch build in this case.
-  if test x"$libc_cv_gcc_incompatible_alias" == xyes; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: gcc emits a warning for alias between functions of incompatible types" >&5
-$as_echo "$as_me: WARNING: gcc emits a warning for alias between functions of incompatible types" >&2;}
-    if test x"$multi_arch" = xyes; then
-      as_fn_error $? "--enable-multi-arch support requires a gcc with gnu-indirect-function support" "$LINENO" 5
-    fi
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Multi-arch is disabled." >&5
-$as_echo "$as_me: WARNING: Multi-arch is disabled." >&2;}
-    multi_arch=no
-  elif test x"$multi_arch" = xyes; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: --enable-multi-arch support recommends a gcc with gnu-indirect-function support.
-Please use a gcc which supports it by default or configure gcc with --enable-gnu-indirect-function" >&5
-$as_echo "$as_me: WARNING: --enable-multi-arch support recommends a gcc with gnu-indirect-function support.
-Please use a gcc which supports it by default or configure gcc with --enable-gnu-indirect-function" >&2;}
-  fi
-fi
-multi_arch_d=
-if test x"$multi_arch" != xno; then
-  multi_arch_d=/multiarch
-fi
-
-# Compute the list of sysdep directories for this configuration.
-# This can take a while to compute.
-sysdep_dir=$srcdir/sysdeps
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking sysdep dirs" >&5
-$as_echo_n "checking sysdep dirs... " >&6; }
-# Make sco3.2v4 become sco3.2.4 and sunos4.1.1_U1 become sunos4.1.1.U1.
-os="`echo $os | sed 's/\([0-9A-Z]\)[v_]\([0-9A-Z]\)/\1.\2/g'`"
-
-test "x$base_os" != x || case "$os" in
-gnu*)
-  base_os=mach/hurd ;;
-linux*)
-  base_os=unix/sysv ;;
-esac
-
-# For sunos4.1.1, try sunos4.1.1, then sunos4.1, then sunos4, then sunos.
-tail=$os
-ostry=$os
-while o=`echo $tail | sed 's/\.[^.]*$//'`; test $o != $tail; do
-  ostry="$ostry /$o"
-  tail=$o
-done
-o=`echo $tail | sed 's/[0-9]*$//'`
-if test $o != $tail; then
-  ostry="$ostry /$o"
-fi
-# For linux-gnu, try linux-gnu, then linux.
-o=`echo $tail | sed 's/-.*$//'`
-if test $o != $tail; then
-  ostry="$ostry /$o"
-fi
-
-# For unix/sysv/sysv4, try unix/sysv/sysv4, then unix/sysv, then unix.
-base=
-tail=$base_os
-while b=`echo $tail | sed 's@^\(.*\)/\([^/]*\)$@& \1@'`; test -n "$b"; do
-  set $b
-  base="$base /$1"
-  tail="$2"
-done
-
-# For sparc/sparc32, try sparc/sparc32 and then sparc.
-mach=
-tail=$machine${submachine:+/$submachine}
-while m=`echo $tail | sed 's@^\(.*\)/\([^/]*\)$@& \1@'`; test -n "$m"; do
-  set $m
-  # Prepend the machine's FPU directory unless the architecture specific
-  # preconfigure disables it.
-  if test "$libc_cv_with_fp" = yes; then
-    maybe_fpu=/fpu
-  else
-    maybe_fpu=/nofpu
-  fi
-  # For each machine term, try it with and then without /multiarch.
-  for try_fpu in $maybe_fpu ''; do
-    for try_multi in $multi_arch_d ''; do
-      mach="$mach /$1$try_fpu$try_multi"
-    done
-  done
-  tail="$2"
-done
-
-
-# Find what sysdep directories exist.
-sysnames=
-for b in $base ''; do
-  for m0 in $mach ''; do
-    for v in /$vendor ''; do
-      test "$v" = / && continue
-      for o in /$ostry ''; do
-	test "$o" = / && continue
-	for m in $mach ''; do
-	  try_suffix="$m0$b$v$o$m"
-	  if test -n "$try_suffix"; then
-	    try_srcdir="${srcdir}/"
-	    try="sysdeps$try_suffix"
-	    test -n "$enable_debug_configure" &&
-	    echo "$0 DEBUG: try $try" >&2
-	    if test -d "$try_srcdir$try"; then
-	      sysnames="$sysnames $try"
-	      { test -n "$o" || test -n "$b"; } && os_used=t
-	      { test -n "$m" || test -n "$m0"; } && machine_used=t
-	      case x${m0:-$m} in
-	      x*/$submachine) submachine_used=t ;;
-	      esac
-	    fi
-	  fi
-	done
-      done
-    done
-  done
-done
-
-# If the assembler supports gnu_indirect_function symbol type and the
-# architecture supports multi-arch, we enable multi-arch by default.
-case $sysnames in
-*"$multi_arch_d"*)
-  ;;
-*)
-  test x"$multi_arch" = xdefault && multi_arch=no
-  ;;
-esac
-if test x"$multi_arch" != xno; then
-  $as_echo "#define USE_MULTIARCH 1" >>confdefs.h
-
-fi
-
-
-if test -z "$os_used" && test "$os" != none; then
-  as_fn_error $? "Operating system $os is not supported." "$LINENO" 5
-fi
-if test -z "$machine_used" && test "$machine" != none; then
-  as_fn_error $? "The $machine is not supported." "$LINENO" 5
-fi
-if test -z "$submachine_used" && test -n "$submachine"; then
-  as_fn_error $? "The $submachine subspecies of $host_cpu is not supported." "$LINENO" 5
-fi
-
-
-# We have now validated the configuration.
-
-# Expand the list of system names into a full list of directories
-# from each element's parent name and Implies file (if present).
-set $sysnames
-names=
-while test $# -gt 0; do
-  name=$1
-  shift
-
-  case " $names " in *" $name "*)
-    # Already in the list.
-    continue
-  esac
-
-  # Report each name as we discover it, so there is no long pause in output.
-  echo $ECHO_N "$name $ECHO_C" >&6
-
-  name_base=`echo $name | sed -e 's@\(.*sysdeps\)/.*@\1@'`
-
-  case $name in
-    /*) xsrcdir= ;;
-    *)  xsrcdir=$srcdir/ ;;
-  esac
-  test -n "$enable_debug_configure" &&
-  echo "DEBUG: name/Implies $xsrcdir$name/Implies" >&2
-
-  for implies_file in Implies Implies-before Implies-after; do
-    implies_type=`echo $implies_file | sed s/-/_/`
-    eval ${implies_type}=
-    if test -f $xsrcdir$name/$implies_file; then
-      # Collect more names from the `Implies' file (removing comments).
-      implied_candidate="`sed 's/#.*$//' < $xsrcdir$name/$implies_file`"
-      for x in $implied_candidate; do
-	found=no
-	if test -d $xsrcdir$name_base/$x; then
-	  eval "${implies_type}=\"\$${implies_type} \$name_base/\$x\""
-	  found=yes
-	fi
-	try="sysdeps/$x"
-	try_srcdir=$srcdir/
-	test -n "$enable_debug_configure" &&
-	 echo "DEBUG: $name $implies_file $x try() {$try_srcdir}$try" >&2
-	if test $try != $xsrcdir$name_base/$x && test -d $try_srcdir$try;
-	then
-	  eval "${implies_type}=\"\$${implies_type} \$try\""
-	  found=yes
-	fi
-	if test $found = no; then
-	  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $name/$implies_file specifies nonexistent $x" >&5
-$as_echo "$as_me: WARNING: $name/$implies_file specifies nonexistent $x" >&2;}
-	fi
-      done
-    fi
-  done
-
-  # Add NAME to the list of names.
-  names="$names $name"
-
-  # Find the parent of NAME, using the empty string if it has none.
-  parent="`echo $name | sed -n -e 's=/[^/]*$==' -e '/sysdeps$/q' -e p`"
-
-  test -n "$enable_debug_configure" &&
-    echo "DEBUG: $name Implies='$Implies' rest='$*' parent='$parent' \
-Implies_before='$Implies_before' Implies_after='$Implies_after'" >&2
-
-  # Add the names implied by NAME, and NAME's parent (if it has one), to
-  # the list of names to be processed (the argument list).  We prepend the
-  # implied names to the list and append the parent.  We want implied
-  # directories to come before further directories inferred from the
-  # configuration components; this ensures that for sysv4, unix/common
-  # (implied by unix/sysv/sysv4) comes before unix/sysv (in ostry (here $*)
-  # after sysv4).
-  sysnames="`echo $Implies $* $Implies_before $parent $Implies_after`"
-  test -n "$sysnames" && set $sysnames
-done
-
-# Add the default directories.
-default_sysnames="sysdeps/generic"
-sysnames="$names $default_sysnames"
-
-# The other names were emitted during the scan.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $default_sysnames" >&5
-$as_echo "$default_sysnames" >&6; }
-
-
 ### Locate tools.
 
 # Find a good install program.  We prefer a C program (faster),
@@ -4591,121 +3961,36 @@ case "$CC" in
     *fuse-ld=lld*) LDNAME=ld.lld;;
     *)             LDNAME=ld;;
 esac
-AS=`$CC -print-prog-name=as`
-LD=`$CC -print-prog-name=$LDNAME`
-AR=`$CC -print-prog-name=ar`
-
-OBJDUMP=`$CC -print-prog-name=objdump`
-
-OBJCOPY=`$CC -print-prog-name=objcopy`
-
-GPROF=`$CC -print-prog-name=gprof`
-
-
-# Determine whether we are using GNU binutils.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $AS is GNU as" >&5
-$as_echo_n "checking whether $AS is GNU as... " >&6; }
-if ${libc_cv_prog_as_gnu+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  # Most GNU programs take a -v and spit out some text including
-# the word 'GNU'.  Some try to read stdin, so give them /dev/null.
-if $AS -o conftest -v </dev/null 2>&1 | grep GNU > /dev/null 2>&1; then
-  libc_cv_prog_as_gnu=yes
-else
-  libc_cv_prog_as_gnu=no
+if test -z "$LD"; then
+    LD=`$CC -print-prog-name=$LDNAME`
 fi
-rm -fr contest*
+if test -z "$AR"; then
+    AR=`$CC -print-prog-name=ar`
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_prog_as_gnu" >&5
-$as_echo "$libc_cv_prog_as_gnu" >&6; }
-rm -f a.out
-gnu_as=$libc_cv_prog_as_gnu
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $LD is GNU ld" >&5
-$as_echo_n "checking whether $LD is GNU ld... " >&6; }
-if ${libc_cv_prog_ld_gnu+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  # Most GNU programs take a -v and spit out some text including
-# the word 'GNU'.  Some try to read stdin, so give them /dev/null.
-if $LD -o conftest -v </dev/null 2>&1 | grep GNU > /dev/null 2>&1; then
-  libc_cv_prog_ld_gnu=yes
-else
-  libc_cv_prog_ld_gnu=no
+if test -z "$OBJCOPY"; then
+    OBJCOPY=`$CC -print-prog-name=objcopy`
 fi
-rm -fr contest*
+
+if test -z "$GPROF"; then
+    GPROF=`$CC -print-prog-name=gprof`
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_prog_ld_gnu" >&5
-$as_echo "$libc_cv_prog_ld_gnu" >&6; }
-gnu_ld=$libc_cv_prog_ld_gnu
+
+if test -z "$READELF"; then
+    READELF=`$CC -print-prog-name=readelf`
+fi
+
+if test -z "$OBJDUMP"; then
+    OBJDUMP=`$CC -print-prog-name=objdump`
+fi
+
+if test -z "$NM"; then
+    NM=`$CC -print-prog-name=nm`
+fi
+
 
 
 # Accept binutils 2.25 or newer.
-for ac_prog in $AS
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_AS+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$AS"; then
-  ac_cv_prog_AS="$AS" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_AS="$ac_prog"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-AS=$ac_cv_prog_AS
-if test -n "$AS"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $AS" >&5
-$as_echo "$AS" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-  test -n "$AS" && break
-done
-
-if test -z "$AS"; then
-  ac_verc_fail=yes
-else
-  # Found it, now check the version.
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking version of $AS" >&5
-$as_echo_n "checking version of $AS... " >&6; }
-  ac_prog_version=`$AS --version 2>&1 | sed -n 's/^.*GNU assembler.* \([0-9]*\.[0-9.]*\).*$/\1/p'`
-  case $ac_prog_version in
-    '') ac_prog_version="v. ?.??, bad"; ac_verc_fail=yes;;
-    2.1[0-9][0-9]*|2.2[5-9]*|2.[3-9][0-9]*|[3-9].*|[1-9][0-9]*)
-       ac_prog_version="$ac_prog_version, ok"; ac_verc_fail=no;;
-    *) ac_prog_version="$ac_prog_version, bad"; ac_verc_fail=yes;;
-
-  esac
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_prog_version" >&5
-$as_echo "$ac_prog_version" >&6; }
-fi
-if test $ac_verc_fail = yes; then
-  AS=: critic_missing="$critic_missing as"
-fi
-
-
 libc_cv_with_lld=no
 case $($LD --version) in
   "GNU gold"*)
@@ -5324,99 +4609,6 @@ if test $libc_cv_compiler_ok != yes; then :
   critic_missing="$critic_missing compiler"
 fi
 
-if test -n "$ac_tool_prefix"; then
-  # Extract the first word of "${ac_tool_prefix}nm", so it can be a program name with args.
-set dummy ${ac_tool_prefix}nm; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_NM+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$NM"; then
-  ac_cv_prog_NM="$NM" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_NM="${ac_tool_prefix}nm"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-NM=$ac_cv_prog_NM
-if test -n "$NM"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $NM" >&5
-$as_echo "$NM" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-fi
-if test -z "$ac_cv_prog_NM"; then
-  ac_ct_NM=$NM
-  # Extract the first word of "nm", so it can be a program name with args.
-set dummy nm; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_ac_ct_NM+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$ac_ct_NM"; then
-  ac_cv_prog_ac_ct_NM="$ac_ct_NM" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_ac_ct_NM="nm"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-ac_ct_NM=$ac_cv_prog_ac_ct_NM
-if test -n "$ac_ct_NM"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_NM" >&5
-$as_echo "$ac_ct_NM" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-  if test "x$ac_ct_NM" = x; then
-    NM="false"
-  else
-    case $cross_compiling:$ac_tool_warned in
-yes:)
-{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
-$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
-ac_tool_warned=yes ;;
-esac
-    NM=$ac_ct_NM
-  fi
-else
-  NM="$ac_cv_prog_NM"
-fi
-
-
 if test "x$maintainer" = "xyes"; then
   for ac_prog in autoconf
 do
@@ -5567,6 +4759,528 @@ $as_echo "$as_me: WARNING:
 *** some features or tests will be disabled.
 *** Check the INSTALL file for required versions." >&2;}
 
+
+# Determine whether to use fpu or nofpu sysdeps directories.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for use of fpu sysdeps directories" >&5
+$as_echo_n "checking for use of fpu sysdeps directories... " >&6; }
+if ${libc_cv_with_fp+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat > conftest.c <<EOF
+#if $with_fp_cond
+int dummy;
+#else
+# error "no hardware floating point"
+#endif
+EOF
+libc_cv_with_fp=no
+if ${CC-cc} $CFLAGS $CPPFLAGS -S conftest.c -o conftest.s \
+   1>&5 2>&5 ; then
+  libc_cv_with_fp=yes
+fi
+rm -f conftest*
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_with_fp" >&5
+$as_echo "$libc_cv_with_fp" >&6; }
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -fstack-protector" >&5
+$as_echo_n "checking for -fstack-protector... " >&6; }
+if ${libc_cv_ssp+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -Werror -fstack-protector -xc /dev/null -S -o /dev/null'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then :
+  libc_cv_ssp=yes
+else
+  libc_cv_ssp=no
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_ssp" >&5
+$as_echo "$libc_cv_ssp" >&6; }
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -fstack-protector-strong" >&5
+$as_echo_n "checking for -fstack-protector-strong... " >&6; }
+if ${libc_cv_ssp_strong+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -Werror -fstack-protector-strong -xc /dev/null -S -o /dev/null'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then :
+  libc_cv_ssp_strong=yes
+else
+  libc_cv_ssp_strong=no
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_ssp_strong" >&5
+$as_echo "$libc_cv_ssp_strong" >&6; }
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -fstack-protector-all" >&5
+$as_echo_n "checking for -fstack-protector-all... " >&6; }
+if ${libc_cv_ssp_all+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -Werror -fstack-protector-all -xc /dev/null -S -o /dev/null'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then :
+  libc_cv_ssp_all=yes
+else
+  libc_cv_ssp_all=no
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_ssp_all" >&5
+$as_echo "$libc_cv_ssp_all" >&6; }
+
+stack_protector=
+no_stack_protector=
+if test "$libc_cv_ssp" = yes; then
+  no_stack_protector="-fno-stack-protector -DSTACK_PROTECTOR_LEVEL=0"
+  $as_echo "#define HAVE_CC_NO_STACK_PROTECTOR 1" >>confdefs.h
+
+fi
+
+if test "$enable_stack_protector" = yes && test "$libc_cv_ssp" = yes; then
+  stack_protector="-fstack-protector"
+  $as_echo "#define STACK_PROTECTOR_LEVEL 1" >>confdefs.h
+
+elif test "$enable_stack_protector" = all && test "$libc_cv_ssp_all" = yes; then
+  stack_protector="-fstack-protector-all"
+  $as_echo "#define STACK_PROTECTOR_LEVEL 2" >>confdefs.h
+
+elif test "$enable_stack_protector" = strong && test "$libc_cv_ssp_strong" = yes; then
+  stack_protector="-fstack-protector-strong"
+  $as_echo "#define STACK_PROTECTOR_LEVEL 3" >>confdefs.h
+
+else
+  stack_protector="-fno-stack-protector"
+  $as_echo "#define STACK_PROTECTOR_LEVEL 0" >>confdefs.h
+
+fi
+
+
+
+
+if test -n "$stack_protector"; then
+      no_ssp=-fno-stack-protector
+else
+  no_ssp=
+
+  if test "$enable_stack_protector" != no; then
+    as_fn_error $? "--enable-stack-protector=$enable_stack_protector specified, but specified level of stack protection is not supported by the compiler." "$LINENO" 5
+  fi
+fi
+
+# For the multi-arch option we need support in the assembler & linker.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for assembler and linker STT_GNU_IFUNC support" >&5
+$as_echo_n "checking for assembler and linker STT_GNU_IFUNC support... " >&6; }
+if ${libc_cv_ld_gnu_indirect_function+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat > conftest.S <<EOF
+.type foo,%gnu_indirect_function
+foo:
+.globl _start
+_start:
+.globl __start
+__start:
+.data
+#ifdef _LP64
+.quad foo
+#else
+.long foo
+#endif
+EOF
+libc_cv_ld_gnu_indirect_function=no
+if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS \
+	    -nostartfiles -nostdlib $no_ssp \
+	    -o conftest conftest.S 1>&5 2>&5; then
+  # Do a link to see if the backend supports IFUNC relocs.
+  $READELF -r conftest 1>&5
+  LC_ALL=C $READELF -Wr conftest | grep -q 'IRELATIVE\|R_SPARC_JMP_IREL' && {
+    libc_cv_ld_gnu_indirect_function=yes
+  }
+fi
+rm -f conftest*
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_ld_gnu_indirect_function" >&5
+$as_echo "$libc_cv_ld_gnu_indirect_function" >&6; }
+
+# Check if gcc supports attribute ifunc as it is used in libc_ifunc macro.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gcc attribute ifunc support" >&5
+$as_echo_n "checking for gcc attribute ifunc support... " >&6; }
+if ${libc_cv_gcc_indirect_function+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat > conftest.c <<EOF
+extern int func (int);
+int used_func (int a)
+{
+  return a;
+}
+static void *resolver ()
+{
+  return &used_func;
+}
+extern __typeof (func) func __attribute__ ((ifunc ("resolver")));
+EOF
+libc_cv_gcc_indirect_function=no
+if ${CC-cc} -c conftest.c -o conftest.o 1>&5 \
+   2>&5 ; then
+  if $READELF -s conftest.o | grep IFUNC >/dev/null 2>&5; then
+    libc_cv_gcc_indirect_function=yes
+  fi
+fi
+rm -f conftest*
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_gcc_indirect_function" >&5
+$as_echo "$libc_cv_gcc_indirect_function" >&6; }
+
+# Check if linker supports textrel relocation with ifunc (used on elf/tests).
+# Note that it relies on libc_cv_ld_gnu_indirect_function test above.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the linker supports textrels along with ifunc" >&5
+$as_echo_n "checking whether the linker supports textrels along with ifunc... " >&6; }
+if ${libc_cv_textrel_ifunc+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat > conftest.S <<EOF
+.type foo,%gnu_indirect_function
+foo:
+.globl _start
+_start:
+.globl __start
+__start:
+.data
+#ifdef _LP64
+.quad foo
+#else
+.long foo
+#endif
+.text
+.globl address
+address:
+#ifdef _LP64
+.quad address
+#else
+.long address
+#endif
+EOF
+libc_cv_textrel_ifunc=no
+if test $libc_cv_ld_gnu_indirect_function = yes; then
+   if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -nostartfiles -nostdlib $no_ssp -pie -o conftest conftest.S'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then
+     libc_cv_textrel_ifunc=yes
+   fi
+fi
+rm -f conftest*
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_textrel_ifunc" >&5
+$as_echo "$libc_cv_textrel_ifunc" >&6; }
+
+
+# Check if CC supports attribute retain as it is used in attribute_used_retain macro.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GNU attribute retain support" >&5
+$as_echo_n "checking for GNU attribute retain support... " >&6; }
+if ${libc_cv_gnu_retain+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat > conftest.c <<EOF
+static int var  __attribute__ ((used, retain, section ("__libc_atexit")));
+EOF
+libc_cv_gnu_retain=no
+if ${CC-cc} -Werror -c conftest.c -o /dev/null 1>&5 \
+   2>&5 ; then
+  libc_cv_gnu_retain=yes
+fi
+rm -f conftest*
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_gnu_retain" >&5
+$as_echo "$libc_cv_gnu_retain" >&6; }
+if test $libc_cv_gnu_retain = yes; then
+  $as_echo "#define HAVE_GNU_RETAIN 1" >>confdefs.h
+
+fi
+config_vars="$config_vars
+have-gnu-retain = $libc_cv_gnu_retain"
+
+# Check if gcc warns about alias for function with incompatible types.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if compiler warns about alias for function with incompatible types" >&5
+$as_echo_n "checking if compiler warns about alias for function with incompatible types... " >&6; }
+if ${libc_cv_gcc_incompatible_alias+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat > conftest.c <<EOF
+int __redirect_foo (const void *s, int c);
+
+__typeof (__redirect_foo) *foo_impl (void) __asm__ ("foo");
+__typeof (__redirect_foo) *foo_impl (void)
+{
+  return 0;
+}
+
+extern __typeof (__redirect_foo) foo_alias __attribute__ ((alias ("foo")));
+EOF
+libc_cv_gcc_incompatible_alias=yes
+if ${CC-cc} -Werror -c conftest.c -o conftest.o 1>&5 2>&5 ; then
+  libc_cv_gcc_incompatible_alias=no
+fi
+rm -f conftest*
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_gcc_incompatible_alias" >&5
+$as_echo "$libc_cv_gcc_incompatible_alias" >&6; }
+
+if test x"$libc_cv_ld_gnu_indirect_function" != xyes; then
+  if test x"$multi_arch" = xyes; then
+    as_fn_error $? "--enable-multi-arch support requires assembler and linker support" "$LINENO" 5
+  else
+    multi_arch=no
+  fi
+fi
+if test x"$libc_cv_gcc_indirect_function" != xyes; then
+  # GCC 8+ emits a warning for alias with incompatible types and it might
+  # fail to build ifunc resolvers aliases to either weak or internal
+  # symbols.  Disables multiarch build in this case.
+  if test x"$libc_cv_gcc_incompatible_alias" = xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: gcc emits a warning for alias between functions of incompatible types" >&5
+$as_echo "$as_me: WARNING: gcc emits a warning for alias between functions of incompatible types" >&2;}
+    if test x"$multi_arch" = xyes; then
+      as_fn_error $? "--enable-multi-arch support requires a gcc with gnu-indirect-function support" "$LINENO" 5
+    fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Multi-arch is disabled." >&5
+$as_echo "$as_me: WARNING: Multi-arch is disabled." >&2;}
+    multi_arch=no
+  elif test x"$multi_arch" = xyes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: --enable-multi-arch support recommends a gcc with gnu-indirect-function support.
+Please use a gcc which supports it by default or configure gcc with --enable-gnu-indirect-function" >&5
+$as_echo "$as_me: WARNING: --enable-multi-arch support recommends a gcc with gnu-indirect-function support.
+Please use a gcc which supports it by default or configure gcc with --enable-gnu-indirect-function" >&2;}
+  fi
+fi
+multi_arch_d=
+if test x"$multi_arch" != xno; then
+  multi_arch_d=/multiarch
+fi
+
+# Compute the list of sysdep directories for this configuration.
+# This can take a while to compute.
+sysdep_dir=$srcdir/sysdeps
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking sysdep dirs" >&5
+$as_echo_n "checking sysdep dirs... " >&6; }
+# Make sco3.2v4 become sco3.2.4 and sunos4.1.1_U1 become sunos4.1.1.U1.
+os="`echo $os | sed 's/\([0-9A-Z]\)[v_]\([0-9A-Z]\)/\1.\2/g'`"
+
+test "x$base_os" != x || case "$os" in
+gnu*)
+  base_os=mach/hurd ;;
+linux*)
+  base_os=unix/sysv ;;
+esac
+
+# For sunos4.1.1, try sunos4.1.1, then sunos4.1, then sunos4, then sunos.
+tail=$os
+ostry=$os
+while o=`echo $tail | sed 's/\.[^.]*$//'`; test $o != $tail; do
+  ostry="$ostry /$o"
+  tail=$o
+done
+o=`echo $tail | sed 's/[0-9]*$//'`
+if test $o != $tail; then
+  ostry="$ostry /$o"
+fi
+# For linux-gnu, try linux-gnu, then linux.
+o=`echo $tail | sed 's/-.*$//'`
+if test $o != $tail; then
+  ostry="$ostry /$o"
+fi
+
+# For unix/sysv/sysv4, try unix/sysv/sysv4, then unix/sysv, then unix.
+base=
+tail=$base_os
+while b=`echo $tail | sed 's@^\(.*\)/\([^/]*\)$@& \1@'`; test -n "$b"; do
+  set $b
+  base="$base /$1"
+  tail="$2"
+done
+
+# For sparc/sparc32, try sparc/sparc32 and then sparc.
+mach=
+tail=$machine${submachine:+/$submachine}
+while m=`echo $tail | sed 's@^\(.*\)/\([^/]*\)$@& \1@'`; test -n "$m"; do
+  set $m
+  # Prepend the machine's FPU directory unless the architecture specific
+  # preconfigure disables it.
+  if test "$libc_cv_with_fp" = yes; then
+    maybe_fpu=/fpu
+  else
+    maybe_fpu=/nofpu
+  fi
+  # For each machine term, try it with and then without /multiarch.
+  for try_fpu in $maybe_fpu ''; do
+    for try_multi in $multi_arch_d ''; do
+      mach="$mach /$1$try_fpu$try_multi"
+    done
+  done
+  tail="$2"
+done
+
+
+# Find what sysdep directories exist.
+sysnames=
+for b in $base ''; do
+  for m0 in $mach ''; do
+    for v in /$vendor ''; do
+      test "$v" = / && continue
+      for o in /$ostry ''; do
+	test "$o" = / && continue
+	for m in $mach ''; do
+	  try_suffix="$m0$b$v$o$m"
+	  if test -n "$try_suffix"; then
+	    try_srcdir="${srcdir}/"
+	    try="sysdeps$try_suffix"
+	    test -n "$enable_debug_configure" &&
+	    echo "$0 DEBUG: try $try" >&2
+	    if test -d "$try_srcdir$try"; then
+	      sysnames="$sysnames $try"
+	      { test -n "$o" || test -n "$b"; } && os_used=t
+	      { test -n "$m" || test -n "$m0"; } && machine_used=t
+	      case x${m0:-$m} in
+	      x*/$submachine) submachine_used=t ;;
+	      esac
+	    fi
+	  fi
+	done
+      done
+    done
+  done
+done
+
+# If the assembler supports gnu_indirect_function symbol type and the
+# architecture supports multi-arch, we enable multi-arch by default.
+case $sysnames in
+*"$multi_arch_d"*)
+  ;;
+*)
+  test x"$multi_arch" = xdefault && multi_arch=no
+  ;;
+esac
+if test x"$multi_arch" != xno; then
+  $as_echo "#define USE_MULTIARCH 1" >>confdefs.h
+
+fi
+
+
+if test -z "$os_used" && test "$os" != none; then
+  as_fn_error $? "Operating system $os is not supported." "$LINENO" 5
+fi
+if test -z "$machine_used" && test "$machine" != none; then
+  as_fn_error $? "The $machine is not supported." "$LINENO" 5
+fi
+if test -z "$submachine_used" && test -n "$submachine"; then
+  as_fn_error $? "The $submachine subspecies of $host_cpu is not supported." "$LINENO" 5
+fi
+
+
+# We have now validated the configuration.
+
+# Expand the list of system names into a full list of directories
+# from each element's parent name and Implies file (if present).
+set $sysnames
+names=
+while test $# -gt 0; do
+  name=$1
+  shift
+
+  case " $names " in *" $name "*)
+    # Already in the list.
+    continue
+  esac
+
+  # Report each name as we discover it, so there is no long pause in output.
+  echo $ECHO_N "$name $ECHO_C" >&6
+
+  name_base=`echo $name | sed -e 's@\(.*sysdeps\)/.*@\1@'`
+
+  case $name in
+    /*) xsrcdir= ;;
+    *)  xsrcdir=$srcdir/ ;;
+  esac
+  test -n "$enable_debug_configure" &&
+  echo "DEBUG: name/Implies $xsrcdir$name/Implies" >&2
+
+  for implies_file in Implies Implies-before Implies-after; do
+    implies_type=`echo $implies_file | sed s/-/_/`
+    eval ${implies_type}=
+    if test -f $xsrcdir$name/$implies_file; then
+      # Collect more names from the `Implies' file (removing comments).
+      implied_candidate="`sed 's/#.*$//' < $xsrcdir$name/$implies_file`"
+      for x in $implied_candidate; do
+	found=no
+	if test -d $xsrcdir$name_base/$x; then
+	  eval "${implies_type}=\"\$${implies_type} \$name_base/\$x\""
+	  found=yes
+	fi
+	try="sysdeps/$x"
+	try_srcdir=$srcdir/
+	test -n "$enable_debug_configure" &&
+	 echo "DEBUG: $name $implies_file $x try() {$try_srcdir}$try" >&2
+	if test $try != $xsrcdir$name_base/$x && test -d $try_srcdir$try;
+	then
+	  eval "${implies_type}=\"\$${implies_type} \$try\""
+	  found=yes
+	fi
+	if test $found = no; then
+	  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $name/$implies_file specifies nonexistent $x" >&5
+$as_echo "$as_me: WARNING: $name/$implies_file specifies nonexistent $x" >&2;}
+	fi
+      done
+    fi
+  done
+
+  # Add NAME to the list of names.
+  names="$names $name"
+
+  # Find the parent of NAME, using the empty string if it has none.
+  parent="`echo $name | sed -n -e 's=/[^/]*$==' -e '/sysdeps$/q' -e p`"
+
+  test -n "$enable_debug_configure" &&
+    echo "DEBUG: $name Implies='$Implies' rest='$*' parent='$parent' \
+Implies_before='$Implies_before' Implies_after='$Implies_after'" >&2
+
+  # Add the names implied by NAME, and NAME's parent (if it has one), to
+  # the list of names to be processed (the argument list).  We prepend the
+  # implied names to the list and append the parent.  We want implied
+  # directories to come before further directories inferred from the
+  # configuration components; this ensures that for sysv4, unix/common
+  # (implied by unix/sysv/sysv4) comes before unix/sysv (in ostry (here $*)
+  # after sysv4).
+  sysnames="`echo $Implies $* $Implies_before $parent $Implies_after`"
+  test -n "$sysnames" && set $sysnames
+done
+
+# Add the default directories.
+default_sysnames="sysdeps/generic"
+sysnames="$names $default_sysnames"
+
+# The other names were emitted during the scan.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $default_sysnames" >&5
+$as_echo "$default_sysnames" >&6; }
+
 # if using special system headers, find out the compiler's sekrit
 # header directory and add that to the list.  NOTE: Only does the right
 # thing on a system that doesn't need fixincludes.  (Not presently a problem.)
@@ -5594,8 +5308,8 @@ fi
 # copy of those headers in Makerules.
 if test -n "$CXX"; then
   find_cxx_header () {
-    echo "#include <$1>" | $CXX -M -MP -x c++ - 2>/dev/null \
-	 | sed -n "\,$1:,{s/:\$//;p}"
+    echo "#include <$1>" | $CXX -H -fsyntax-only -x c++ - 2>&1 \
+	 | $AWK '$1 == "."{print $2}'
   }
   CXX_CSTDLIB_HEADER="$(find_cxx_header cstdlib)"
   CXX_CMATH_HEADER="$(find_cxx_header cmath)"
@@ -5979,71 +5693,31 @@ if test $libc_cv_as_noexecstack = yes; then
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -z combreloc" >&5
-$as_echo_n "checking for -z combreloc... " >&6; }
-if ${libc_cv_z_combreloc+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat > conftest.c <<EOF
-extern int bar (int);
-extern int mumble;
-int foo (void) { return bar (mumble); }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker that supports -z execstack" >&5
+$as_echo_n "checking for linker that supports -z execstack... " >&6; }
+libc_linker_feature=no
+cat > conftest.c <<EOF
+int _start (void) { return 42; }
 EOF
-if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS
-			-fPIC -shared $no_ssp -o conftest.so conftest.c
-			-nostdlib -nostartfiles
-			-Wl,-z,combreloc 1>&5'
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		  -Wl,-z,execstack -nostdlib -nostartfiles
+		  -fPIC -shared -o conftest.so conftest.c
+		  1>&5'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
   (eval $ac_try) 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; }
 then
-  if $READELF -S conftest.so | grep -E '.rela?.dyn' > /dev/null; then
-    libc_cv_z_combreloc=yes
+  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,-z,execstack -nostdlib \
+      -nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
+      | grep "warning: -z execstack ignored" > /dev/null 2>&1; then
+    true
   else
-    libc_cv_z_combreloc=no
+    libc_linker_feature=yes
   fi
-else
-  libc_cv_z_combreloc=no
 fi
 rm -f conftest*
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_z_combreloc" >&5
-$as_echo "$libc_cv_z_combreloc" >&6; }
-if test "$libc_cv_z_combreloc" = yes; then
-  $as_echo "#define HAVE_Z_COMBRELOC 1" >>confdefs.h
-
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker that supports -z execstack" >&5
-$as_echo_n "checking for linker that supports -z execstack... " >&6; }
-libc_linker_feature=no
-if test x"$gnu_ld" = x"yes"; then
-  cat > conftest.c <<EOF
-int _start (void) { return 42; }
-EOF
-  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
-		    -Wl,-z,execstack -nostdlib -nostartfiles
-		    -fPIC -shared -o conftest.so conftest.c
-		    1>&5'
-  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }
-  then
-    if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,-z,execstack -nostdlib \
-	-nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
-	| grep "warning: -z execstack ignored" > /dev/null 2>&1; then
-      true
-    else
-      libc_linker_feature=yes
-    fi
-  fi
-  rm -f conftest*
-fi
 if test $libc_linker_feature = yes; then
   libc_cv_z_execstack=yes
 else
@@ -6056,30 +5730,28 @@ $as_echo "$libc_linker_feature" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker that supports -z start-stop-gc" >&5
 $as_echo_n "checking for linker that supports -z start-stop-gc... " >&6; }
 libc_linker_feature=no
-if test x"$gnu_ld" = x"yes"; then
-  cat > conftest.c <<EOF
+cat > conftest.c <<EOF
 int _start (void) { return 42; }
 EOF
-  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
-		    -Wl,-z,start-stop-gc -nostdlib -nostartfiles
-		    -fPIC -shared -o conftest.so conftest.c
-		    1>&5'
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		  -Wl,-z,start-stop-gc -nostdlib -nostartfiles
+		  -fPIC -shared -o conftest.so conftest.c
+		  1>&5'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
   (eval $ac_try) 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; }
-  then
-    if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,-z,start-stop-gc -nostdlib \
-	-nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
-	| grep "warning: -z start-stop-gc ignored" > /dev/null 2>&1; then
-      true
-    else
-      libc_linker_feature=yes
-    fi
+then
+  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,-z,start-stop-gc -nostdlib \
+      -nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
+      | grep "warning: -z start-stop-gc ignored" > /dev/null 2>&1; then
+    true
+  else
+    libc_linker_feature=yes
   fi
-  rm -f conftest*
 fi
+rm -f conftest*
 if test $libc_linker_feature = yes; then
   libc_cv_z_start_stop_gc=yes
 else
@@ -6093,30 +5765,28 @@ have-z-start-stop-gc = $libc_cv_z_start_stop_gc"
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker that supports --depaudit" >&5
 $as_echo_n "checking for linker that supports --depaudit... " >&6; }
 libc_linker_feature=no
-if test x"$gnu_ld" = x"yes"; then
-  cat > conftest.c <<EOF
+cat > conftest.c <<EOF
 int _start (void) { return 42; }
 EOF
-  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
-		    -Wl,--depaudit,x -nostdlib -nostartfiles
-		    -fPIC -shared -o conftest.so conftest.c
-		    1>&5'
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		  -Wl,--depaudit,x -nostdlib -nostartfiles
+		  -fPIC -shared -o conftest.so conftest.c
+		  1>&5'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
   (eval $ac_try) 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; }
-  then
-    if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,--depaudit,x -nostdlib \
-	-nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
-	| grep "warning: --depaudit ignored" > /dev/null 2>&1; then
-      true
-    else
-      libc_linker_feature=yes
-    fi
+then
+  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,--depaudit,x -nostdlib \
+      -nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
+      | grep "warning: --depaudit ignored" > /dev/null 2>&1; then
+    true
+  else
+    libc_linker_feature=yes
   fi
-  rm -f conftest*
 fi
+rm -f conftest*
 if test $libc_linker_feature = yes; then
   libc_cv_depaudit=yes
 else
@@ -6127,33 +5797,66 @@ $as_echo "$libc_linker_feature" >&6; }
 config_vars="$config_vars
 have-depaudit = $libc_cv_depaudit"
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker that supports --no-dynamic-linker" >&5
-$as_echo_n "checking for linker that supports --no-dynamic-linker... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker that supports -z pack-relative-relocs" >&5
+$as_echo_n "checking for linker that supports -z pack-relative-relocs... " >&6; }
 libc_linker_feature=no
-if test x"$gnu_ld" = x"yes"; then
-  cat > conftest.c <<EOF
+cat > conftest.c <<EOF
 int _start (void) { return 42; }
 EOF
-  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
-		    -Wl,--no-dynamic-linker -nostdlib -nostartfiles
-		    -fPIC -shared -o conftest.so conftest.c
-		    1>&5'
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		  -Wl,-z,pack-relative-relocs -nostdlib -nostartfiles
+		  -fPIC -shared -o conftest.so conftest.c
+		  1>&5'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
   (eval $ac_try) 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; }
-  then
-    if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,--no-dynamic-linker -nostdlib \
-	-nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
-	| grep "warning: --no-dynamic-linker ignored" > /dev/null 2>&1; then
-      true
-    else
-      libc_linker_feature=yes
-    fi
+then
+  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,-z,pack-relative-relocs -nostdlib \
+      -nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
+      | grep "warning: -z pack-relative-relocs ignored" > /dev/null 2>&1; then
+    true
+  else
+    libc_linker_feature=yes
   fi
-  rm -f conftest*
 fi
+rm -f conftest*
+if test $libc_linker_feature = yes; then
+  libc_cv_dt_relr=yes
+else
+  libc_cv_dt_relr=no
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_linker_feature" >&5
+$as_echo "$libc_linker_feature" >&6; }
+config_vars="$config_vars
+have-dt-relr = $libc_cv_dt_relr"
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker that supports --no-dynamic-linker" >&5
+$as_echo_n "checking for linker that supports --no-dynamic-linker... " >&6; }
+libc_linker_feature=no
+cat > conftest.c <<EOF
+int _start (void) { return 42; }
+EOF
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		  -Wl,--no-dynamic-linker -nostdlib -nostartfiles
+		  -fPIC -shared -o conftest.so conftest.c
+		  1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then
+  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,--no-dynamic-linker -nostdlib \
+      -nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
+      | grep "warning: --no-dynamic-linker ignored" > /dev/null 2>&1; then
+    true
+  else
+    libc_linker_feature=yes
+  fi
+fi
+rm -f conftest*
 if test $libc_linker_feature = yes; then
   libc_cv_no_dynamic_linker=yes
 else
@@ -6208,96 +5911,6 @@ $as_echo "$libc_cv_fpie" >&6; }
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for --hash-style option" >&5
-$as_echo_n "checking for --hash-style option... " >&6; }
-if ${libc_cv_hashstyle+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat > conftest.c <<EOF
-int _start (void) { return 42; }
-EOF
-if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
-			    -fPIC -shared -o conftest.so conftest.c
-			    -Wl,--hash-style=both -nostdlib 1>&5'
-  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }
-then
-  libc_cv_hashstyle=yes
-else
-  libc_cv_hashstyle=no
-fi
-rm -f conftest*
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_hashstyle" >&5
-$as_echo "$libc_cv_hashstyle" >&6; }
-
-
-# The linker's default -shared behavior is good enough if it
-# does these things that our custom linker scripts ensure that
-# all allocated NOTE sections come first.
-if test "$use_default_link" = default; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sufficient default -shared layout" >&5
-$as_echo_n "checking for sufficient default -shared layout... " >&6; }
-if ${libc_cv_use_default_link+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-    libc_cv_use_default_link=no
-  cat > conftest.s <<\EOF
-	  .section .note.a,"a",%note
-	  .balign 4
-	  .long 4,4,9
-	  .string "GNU"
-	  .string "foo"
-	  .section .note.b,"a",%note
-	  .balign 4
-	  .long 4,4,9
-	  .string "GNU"
-	  .string "bar"
-EOF
-  if { ac_try='  ${CC-cc} $ASFLAGS -shared -o conftest.so conftest.s 1>&5'
-  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; } &&
-       ac_try=`$READELF -S conftest.so | sed -n \
-	 '${x;p;}
-	  s/^ *\[ *[1-9][0-9]*\]  *\([^ ][^ ]*\)  *\([^ ][^ ]*\) .*$/\2 \1/
-	  t a
-	  b
-	  : a
-	  H'`
-  then
-    libc_seen_a=no libc_seen_b=no
-    set -- $ac_try
-    while test $# -ge 2 -a "$1" = NOTE; do
-      case "$2" in
-      .note.a) libc_seen_a=yes ;;
-      .note.b) libc_seen_b=yes ;;
-      esac
-      shift 2
-    done
-    case "$libc_seen_a$libc_seen_b" in
-    yesyes)
-      libc_cv_use_default_link=yes
-      ;;
-    *)
-      echo >&5 "\
-$libc_seen_a$libc_seen_b from:
-$ac_try"
-      ;;
-    esac
-  fi
-  rm -f conftest*
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_use_default_link" >&5
-$as_echo "$libc_cv_use_default_link" >&6; }
-  use_default_link=$libc_cv_use_default_link
-fi
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GLOB_DAT reloc" >&5
 $as_echo_n "checking for GLOB_DAT reloc... " >&6; }
 if ${libc_cv_has_glob_dat+:} false; then :
@@ -6331,37 +5944,6 @@ fi
 $as_echo "$libc_cv_has_glob_dat" >&6; }
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -fno-toplevel-reorder -fno-section-anchors" >&5
-$as_echo_n "checking for -fno-toplevel-reorder -fno-section-anchors... " >&6; }
-if ${libc_cv_fno_toplevel_reorder+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat > conftest.c <<EOF
-int foo;
-EOF
-if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -S -fno-toplevel-reorder -fno-section-anchors
-			    conftest.c 1>&5'
-  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }
-then
-  libc_cv_fno_toplevel_reorder=yes
-else
-  libc_cv_fno_toplevel_reorder=no
-fi
-rm -f conftest*
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_fno_toplevel_reorder" >&5
-$as_echo "$libc_cv_fno_toplevel_reorder" >&6; }
-if test $libc_cv_fno_toplevel_reorder = yes; then
-  fno_unit_at_a_time="-fno-toplevel-reorder -fno-section-anchors"
-else
-  fno_unit_at_a_time=-fno-unit-at-a-time
-fi
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for -mtls-dialect=gnu2" >&5
 $as_echo_n "checking for -mtls-dialect=gnu2... " >&6; }
 if ${libc_cv_mtls_dialect_gnu2+:} false; then :
@@ -6393,6 +5975,35 @@ $as_echo "$libc_cv_mtls_dialect_gnu2" >&6; }
 
 config_vars="$config_vars
 have-mtls-dialect-gnu2 = $libc_cv_mtls_dialect_gnu2"
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if -Wno-ignored-attributes is required for aliases" >&5
+$as_echo_n "checking if -Wno-ignored-attributes is required for aliases... " >&6; }
+if ${libc_cv_wno_ignored_attributes+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat > conftest.c <<EOF
+void __foo (void)
+{
+}
+extern __typeof (__foo) foo __attribute__ ((weak, alias ("__foo")));
+extern __typeof (__foo) bar __attribute__ ((weak, alias ("foo")));
+EOF
+libc_cv_wno_ignored_attributes=""
+if ! { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -Werror -c conftest.c'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then
+  libc_cv_wno_ignored_attributes="-Wno-ignored-attributes"
+fi
+rm -f conftest*
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_wno_ignored_attributes" >&5
+$as_echo "$libc_cv_wno_ignored_attributes" >&6; }
+config_vars="$config_vars
+config-cflags-wno-ignored-attributes = $libc_cv_wno_ignored_attributes"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether cc puts quotes around section names" >&5
 $as_echo_n "checking whether cc puts quotes around section names... " >&6; }
@@ -6532,6 +6143,28 @@ $as_echo "$libc_cv_cc_submachine" >&6; }
   fi
 fi
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for compiler option that -fsignaling-nans" >&5
+$as_echo_n "checking for compiler option that -fsignaling-nans... " >&6; }
+if ${libc_cv_cc_signaling_nans+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if { ac_try='${CC-cc} -Werror -fsignaling-nans -xc /dev/null -S -o /dev/null'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then :
+  libc_cv_cc_signaling_nans=-fsignaling-nans
+else
+  libc_cv_cc_signaling_nans=
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_cc_signaling_nans" >&5
+$as_echo "$libc_cv_cc_signaling_nans" >&6; }
+config_vars="$config_vars
+config-cflags-signaling-nans = $libc_cv_cc_signaling_nans"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -fno-tree-loop-distribute-patterns with \
 __attribute__ ((__optimize__))" >&5

@@ -1,5 +1,5 @@
 /* Using math gcc builtins instead of generic implementation.  Generic version.
-   Copyright (C) 2019-2022 Free Software Foundation, Inc.
+   Copyright (C) 2019-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -36,5 +36,9 @@
 #include <math-use-builtins-fma.h>
 #include <math-use-builtins-fmax.h>
 #include <math-use-builtins-fmin.h>
+#include <math-use-builtins-fabs.h>
+#include <math-use-builtins-lrint.h>
+#include <math-use-builtins-llrint.h>
+#include <math-use-builtins-logb.h>
 
 #endif /* MATH_USE_BUILTINS_H  */

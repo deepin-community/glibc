@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@
 #include <kernel-features.h>
 #include <nptl-stack.h>
 #include <libc-lock.h>
+#include <tls-internal.h>
 
 /* Default alignment of stack.  */
 #ifndef STACK_ALIGN
@@ -119,8 +120,6 @@ get_cached_stack (size_t *sizep, void **memp)
 
   /* Cancellation handling is back to the default.  */
   result->cancelhandling = 0;
-  result->cancelstate = PTHREAD_CANCEL_ENABLE;
-  result->canceltype = PTHREAD_CANCEL_DEFERRED;
   result->cleanup = NULL;
   result->setup_failed = 0;
 
@@ -129,7 +128,7 @@ get_cached_stack (size_t *sizep, void **memp)
 
   result->exiting = false;
   __libc_lock_init (result->exit_lock);
-  result->tls_state = (struct tls_internal_t) { 0 };
+  memset (&result->tls_state, 0, sizeof result->tls_state);
 
   /* Clear the DTV.  */
   dtv_t *dtv = GET_DTV (TLS_TPADJ (result));
@@ -294,9 +293,6 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 
       /* This is at least the second thread.  */
       pd->header.multiple_threads = 1;
-#ifndef TLS_MULTIPLE_THREADS_IN_TCB
-      __libc_multiple_threads = 1;
-#endif
 
 #ifdef NEED_DL_SYSINFO
       SETUP_THREAD_SYSINFO (pd);
@@ -415,9 +411,6 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 
 	  /* This is at least the second thread.  */
 	  pd->header.multiple_threads = 1;
-#ifndef TLS_MULTIPLE_THREADS_IN_TCB
-	  __libc_multiple_threads = 1;
-#endif
 
 #ifdef NEED_DL_SYSINFO
 	  SETUP_THREAD_SYSINFO (pd);

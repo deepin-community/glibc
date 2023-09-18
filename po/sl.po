@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libc 2.22-pre1\n"
 "Report-Msgid-Bugs-To: bug-coreutils@gnu.org\n"
-"POT-Creation-Date: 2022-01-29 17:34-0500\n"
+"POT-Creation-Date: 2023-01-23 08:47-0500\n"
 "PO-Revision-Date: 2016-01-04 23:59+0100\n"
 "Last-Translator: Primož Peterlin <primozz.peterlin@gmail.com>\n"
 "Language-Team: Slovenian <translation-team-sl@lists.sourceforge.net>\n"
@@ -69,7 +69,7 @@ msgstr "Poda kratka navodila za uporabo"
 
 #: argp/argp-parse.c:103 catgets/gencat.c:108 catgets/gencat.c:112
 #: iconv/iconv_prog.c:60 iconv/iconv_prog.c:61 nscd/nscd.c:106 nscd/nscd.c:110
-#: nss/makedb.c:120
+#: nss/makedb.c:121
 msgid "NAME"
 msgstr "IME"
 
@@ -119,7 +119,7 @@ msgstr "Ustvari zaglavno datoteko C IME z definicijami simbolov"
 msgid "Do not use existing catalog, force new output file"
 msgstr "Ne uporabljaj obstoječega kataloga, zahtevaj novo izhodno datoteko"
 
-#: catgets/gencat.c:112 nss/makedb.c:120
+#: catgets/gencat.c:112 nss/makedb.c:121
 msgid "Write output to file NAME"
 msgstr "Zapiši izhod na datoteko IME"
 
@@ -137,12 +137,12 @@ msgstr ""
 "-o IZHODNA_DATOTEKA [VHODNA_DATOTEKA]...\n"
 "[IZHODNA_DATOTEKA [VHODNA_DATOTEKA]...]"
 
-#: catgets/gencat.c:228 debug/pcprofiledump.c:208 elf/ldconfig.c:311
+#: catgets/gencat.c:228 debug/pcprofiledump.c:208 elf/ldconfig.c:216
 #: elf/pldd.c:246 elf/sln.c:77 elf/sprof.c:371 iconv/iconv_prog.c:387
 #: iconv/iconvconfig.c:380 locale/programs/locale.c:275
 #: locale/programs/localedef.c:437 login/programs/pt_chown.c:88
-#: malloc/memusagestat.c:562 nss/getent.c:952 nss/makedb.c:369
-#: posix/getconf.c:503 sysdeps/unix/sysv/linux/lddlibc4.c:60
+#: malloc/memusagestat.c:562 nss/getent.c:961 nss/makedb.c:370
+#: posix/getconf.c:503
 #, c-format
 msgid ""
 "For bug reporting instructions, please see:\n"
@@ -152,12 +152,11 @@ msgstr ""
 "%s.\n"
 
 #: catgets/gencat.c:244 debug/pcprofiledump.c:224 debug/xtrace.sh:63
-#: elf/ldconfig.c:327 elf/ldd.bash.in:38 elf/pldd.c:262 elf/sotruss.sh:75
+#: elf/ldconfig.c:232 elf/ldd.bash.in:38 elf/pldd.c:262 elf/sotruss.sh:75
 #: elf/sprof.c:388 iconv/iconv_prog.c:404 iconv/iconvconfig.c:397
 #: locale/programs/locale.c:292 locale/programs/localedef.c:459
 #: login/programs/pt_chown.c:62 malloc/memusage.sh:70 malloc/memusagestat.c:580
-#: nscd/nscd.c:521 nss/getent.c:87 nss/makedb.c:385 posix/getconf.c:485
-#: sysdeps/unix/sysv/linux/lddlibc4.c:67
+#: nscd/nscd.c:521 nss/getent.c:92 nss/makedb.c:386 posix/getconf.c:485
 #, c-format
 msgid ""
 "Copyright (C) %s Free Software Foundation, Inc.\n"
@@ -170,10 +169,10 @@ msgstr ""
 "niti jamstev USTREZNOSTI ZA PRODAJO ali PRIMERNOSTI ZA RABO.\n"
 
 #: catgets/gencat.c:249 debug/pcprofiledump.c:229 debug/xtrace.sh:67
-#: elf/ldconfig.c:332 elf/pldd.c:267 elf/sprof.c:394 iconv/iconv_prog.c:409
+#: elf/ldconfig.c:237 elf/pldd.c:267 elf/sprof.c:394 iconv/iconv_prog.c:409
 #: iconv/iconvconfig.c:402 locale/programs/locale.c:297
 #: locale/programs/localedef.c:464 malloc/memusage.sh:74
-#: malloc/memusagestat.c:585 nscd/nscd.c:526 nss/getent.c:92 nss/makedb.c:390
+#: malloc/memusagestat.c:585 nscd/nscd.c:526 nss/getent.c:97 nss/makedb.c:391
 #: posix/getconf.c:490
 #, c-format
 msgid "Written by %s.\n"
@@ -184,7 +183,7 @@ msgid "*standard input*"
 msgstr "*standardni vhod*"
 
 #: catgets/gencat.c:286 iconv/iconv_charmap.c:172 iconv/iconv_prog.c:272
-#: nss/makedb.c:246
+#: nss/makedb.c:247
 #, c-format
 msgid "cannot open input file `%s'"
 msgstr "Vhodne datoteke »%s« ni mogoče odpreti"
@@ -240,7 +239,7 @@ msgstr "okvarjena vrstici se ne upošteva"
 msgid "cannot open output file `%s'"
 msgstr "izhodne datoteke »%s« ni mogoče odpreti"
 
-#: catgets/gencat.c:1186 locale/programs/linereader.c:559
+#: catgets/gencat.c:1186 locale/programs/linereader.c:588
 msgid "invalid escape sequence"
 msgstr "neveljavno ubežno zaporedje"
 
@@ -350,7 +349,7 @@ msgstr "izvedljivega programa \\»$program« ni moč najti\\n<"
 msgid "\\`$program' is no executable\\n"
 msgstr "\\»$program« ni izvedljiv program\\n<<"
 
-#: dlfcn/dlinfo.c:43
+#: dlfcn/dlinfo.c:48
 msgid "unsupported dlinfo request"
 msgstr "nepodprt zahtevek dlinfo"
 
@@ -366,114 +365,97 @@ msgstr "napačna zaščita"
 msgid "invalid mode parameter"
 msgstr "napačen parameter zaščita"
 
-#: elf/cache.c:179
-msgid "unknown"
-msgstr "neznano"
-
-#: elf/cache.c:253
-msgid "Unknown OS"
-msgstr "Neznan OS"
-
-#: elf/cache.c:258
-#, c-format
-msgid ", OS ABI: %s %d.%d.%d"
-msgstr ", OS ABI: %s %d.%d.%d"
-
-#: elf/cache.c:319 elf/ldconfig.c:1437
+#: elf/cache.c:293 elf/ldconfig.c:1238
 #, c-format
 msgid "Can't open cache file %s\n"
 msgstr "Ni mogoče odpreti predpomnilniške datoteke %s\n"
 
-#: elf/cache.c:333
+#: elf/cache.c:307
 #, c-format
 msgid "mmap of cache file failed.\n"
 msgstr "mmap predpomnilniške datoteke ni uspel.\n"
 
-#: elf/cache.c:337 elf/cache.c:351 elf/cache.c:362
+#: elf/cache.c:311 elf/cache.c:325 elf/cache.c:336
 #, c-format
 msgid "File is not a cache file.\n"
 msgstr "Datoteka ni predpomnilniška datoteka.\n"
 
-#: elf/cache.c:391 elf/cache.c:406
+#: elf/cache.c:365 elf/cache.c:380
 #, c-format
 msgid "%d libs found in cache `%s'\n"
 msgstr "%d knjižnic najdeno v predpomnilniku »%s«\n"
 
-#: elf/cache.c:725
+#: elf/cache.c:682
 #, c-format
 msgid "Can't create temporary cache file %s"
 msgstr "Začasne predpomnilniške datoteke %s ni mogoče ustvariti"
 
-#: elf/cache.c:733 elf/cache.c:743 elf/cache.c:747 elf/cache.c:752
-#: elf/cache.c:770
+#: elf/cache.c:690 elf/cache.c:700 elf/cache.c:704 elf/cache.c:709
+#: elf/cache.c:728
 #, c-format
 msgid "Writing of cache data failed"
 msgstr "Zapisovanje predpomnilniških podatkov ni uspelo"
 
-#: elf/cache.c:765
+#: elf/cache.c:723
 #, c-format
 msgid "Changing access rights of %s to %#o failed"
 msgstr "Sprememba pravic dostopa za %s na %#o ni uspela"
 
-#: elf/cache.c:774
+#: elf/cache.c:732
 #, c-format
 msgid "Renaming of %s to %s failed"
 msgstr "Preimenovanje %s v %s ni uspelo"
 
-#: elf/dl-close.c:386 elf/dl-open.c:298
+#: elf/dl-catch.c:85
+msgid "error while loading shared libraries"
+msgstr "napaka ob nalaganju deljene knjižnice"
+
+#: elf/dl-catch.c:118
+msgid "DYNAMIC LINKER BUG!!!"
+msgstr "NAPAKA DINAMIČNEGA POVEZOVALNIKA!!!"
+
+#: elf/dl-close.c:346 elf/dl-open.c:298
 msgid "cannot create scope list"
 msgstr "seznama področja ni mogoče ustvariti"
 
-#: elf/dl-close.c:815
+#: elf/dl-close.c:775
 msgid "shared object not open"
 msgstr "deljeni predmet ni odprt"
 
-#: elf/dl-deps.c:112
+#: elf/dl-deps.c:96
 msgid "DST not allowed in SUID/SGID programs"
 msgstr "DST ni dovoljen pri programih SUID/SGID"
 
-#: elf/dl-deps.c:125
+#: elf/dl-deps.c:109
 msgid "empty dynamic string token substitution"
 msgstr "prazna zamenjava dinamičnega niza žetonov"
 
-#: elf/dl-deps.c:131
+#: elf/dl-deps.c:115
 #, c-format
 msgid "cannot load auxiliary `%s' because of empty dynamic string token substitution\n"
 msgstr "pomožne datoteke »%s« ni mogoče naložiti zaradi prazne zamenjave dinamičnega niza žetonov\n"
 
-#: elf/dl-deps.c:443
+#: elf/dl-deps.c:427
 msgid "cannot allocate dependency list"
 msgstr "seznama odvisnosti ni mogoče dodeliti"
 
-#: elf/dl-deps.c:483 elf/dl-deps.c:548
+#: elf/dl-deps.c:467
 msgid "cannot allocate symbol search list"
 msgstr "seznama iskalnih simbolov ni mogoče dodeliti"
 
-#: elf/dl-deps.c:528
-msgid "Filters not supported with LD_TRACE_PRELINKING"
-msgstr "Pri LD_TRACE_PRELINKING filtri niso podprti"
-
-#: elf/dl-error-skeleton.c:80
-msgid "error while loading shared libraries"
-msgstr "napaka ob nalaganju deljene knjižnice"
-
-#: elf/dl-error-skeleton.c:113
-msgid "DYNAMIC LINKER BUG!!!"
-msgstr "NAPAKA DINAMIČNEGA POVEZOVALNIKA!!!"
-
-#: elf/dl-fptr.c:88 sysdeps/hppa/dl-fptr.c:95
+#: elf/dl-fptr.c:88 sysdeps/hppa/dl-fptr.c:96
 msgid "cannot map pages for fdesc table"
 msgstr "strani za tabelo fdesc ni mogoče preslikati"
 
-#: elf/dl-fptr.c:192 sysdeps/hppa/dl-fptr.c:213
+#: elf/dl-fptr.c:192 sysdeps/hppa/dl-fptr.c:214
 msgid "cannot map pages for fptr table"
 msgstr "strani za tabelo fptr ni mogoče preslikati"
 
-#: elf/dl-fptr.c:221 sysdeps/hppa/dl-fptr.c:242
+#: elf/dl-fptr.c:221 sysdeps/hppa/dl-fptr.c:243
 msgid "internal error: symidx out of range of fptr table"
 msgstr "interna napaka: symidx je izven obsega tabele fptr"
 
-#: elf/dl-hwcaps.c:247 elf/dl-hwcaps.c:262
+#: elf/dl-hwcaps.c:196
 msgid "cannot create capability list"
 msgstr "seznama sposobnosti ni mogoče ustvariti"
 
@@ -497,43 +479,43 @@ msgstr "polja iskalnih poti ni mogoče ustvariti"
 msgid "cannot stat shared object"
 msgstr "statusa deljenega predmeta ni mogoče ugotoviti"
 
-#: elf/dl-load.c:1069 elf/dl-load.c:2282
+#: elf/dl-load.c:1069 elf/dl-load.c:2226
 msgid "cannot create shared object descriptor"
 msgstr "deljenega predmetnega deskriptorja ni mogoče ustvariti"
 
-#: elf/dl-load.c:1088 elf/dl-load.c:1661 elf/dl-load.c:1763
+#: elf/dl-load.c:1088 elf/dl-load.c:1661 elf/dl-load.c:1769
 msgid "cannot read file data"
 msgstr "podatkov datoteke ni mogoče prebrati"
 
-#: elf/dl-load.c:1223
+#: elf/dl-load.c:1233
 msgid "object file has no loadable segments"
 msgstr "predmetna datoteka nima včitljivega segmenta"
 
-#: elf/dl-load.c:1240
+#: elf/dl-load.c:1250
 msgid "cannot dynamically load executable"
 msgstr "dinamično nalaganje izvedljive datoteke ni mogoče"
 
-#: elf/dl-load.c:1247
+#: elf/dl-load.c:1257
 msgid "object file has no dynamic section"
 msgstr "predmetna datoteka nima dinamične sekcije"
 
-#: elf/dl-load.c:1284
+#: elf/dl-load.c:1294
 msgid "shared object cannot be dlopen()ed"
 msgstr "dlopen() na deljenih predmetih ni mogoč"
 
-#: elf/dl-load.c:1297
+#: elf/dl-load.c:1307
 msgid "cannot allocate memory for program header"
 msgstr "dodelitev pomnilnika za glavo programa ni mogoča"
 
-#: elf/dl-load.c:1330 elf/dl-load.h:131
+#: elf/dl-load.c:1340 elf/dl-load.h:131
 msgid "cannot change memory protections"
 msgstr "sprememba zaščite pomnilnika ni mogoča"
 
-#: elf/dl-load.c:1354
+#: elf/dl-load.c:1364
 msgid "cannot enable executable stack as shared object requires"
 msgstr "izvedljivega sklada ni mogoče omogočiti, kot to zahteva deljeni predmet"
 
-#: elf/dl-load.c:1382
+#: elf/dl-load.c:1392
 msgid "cannot close file descriptor"
 msgstr "datotečnega deskriptorja ni mogoče zapreti"
 
@@ -545,55 +527,55 @@ msgstr "datoteka je prekratka"
 msgid "invalid ELF header"
 msgstr "neveljavna glava ELF"
 
-#: elf/dl-load.c:1709
+#: elf/dl-load.c:1712
 msgid "ELF file data encoding not big-endian"
 msgstr "kodiranje podatkov datoteke ELF ni »big-endian«"
 
-#: elf/dl-load.c:1711
+#: elf/dl-load.c:1714
 msgid "ELF file data encoding not little-endian"
 msgstr "kodiranje podatkov datoteke ELF ni »little-endian«"
 
-#: elf/dl-load.c:1715
+#: elf/dl-load.c:1718
 msgid "ELF file version ident does not match current one"
 msgstr "identifikator različice datoteke ELF se ne ujema s trenutnim"
 
-#: elf/dl-load.c:1719
+#: elf/dl-load.c:1722
 msgid "ELF file OS ABI invalid"
 msgstr "OS ABI datoteke ELF ni veljaven"
 
-#: elf/dl-load.c:1722
+#: elf/dl-load.c:1725
 msgid "ELF file ABI version invalid"
 msgstr "različica ABI datoteke ELF ni veljavna"
 
-#: elf/dl-load.c:1725
+#: elf/dl-load.c:1728
 msgid "nonzero padding in e_ident"
 msgstr "neničelno zapolnjenje pri e_ident"
 
-#: elf/dl-load.c:1728
+#: elf/dl-load.c:1731
 msgid "internal error"
 msgstr "interna napaka"
 
-#: elf/dl-load.c:1735
+#: elf/dl-load.c:1738
 msgid "ELF file version does not match current one"
 msgstr "različica datoteke ELF se ne ujema s trenutno"
 
-#: elf/dl-load.c:1743
+#: elf/dl-load.c:1750
 msgid "only ET_DYN and ET_EXEC can be loaded"
 msgstr "samo ET_DYN in ET_EXEC je mogoče naložiti"
 
-#: elf/dl-load.c:1748
+#: elf/dl-load.c:1755
 msgid "ELF file's phentsize not the expected size"
 msgstr "phentsize datoteke ELF ni pričakovane velikosti"
 
-#: elf/dl-load.c:2301
+#: elf/dl-load.c:2245
 msgid "wrong ELF class: ELFCLASS64"
 msgstr "napačen razred ELF: ELFCLASS64"
 
-#: elf/dl-load.c:2302
+#: elf/dl-load.c:2246
 msgid "wrong ELF class: ELFCLASS32"
 msgstr "napačen razred ELF: ELFCLASS32"
 
-#: elf/dl-load.c:2305
+#: elf/dl-load.c:2249
 msgid "cannot open shared object file"
 msgstr "deljene predmetne datoteke ni mogoče odpreti"
 
@@ -605,7 +587,7 @@ msgstr "preslikava segmenta iz deljenega predmeta ni uspela"
 msgid "cannot map zero-fill pages"
 msgstr "ničelnih strani ni mogoče preslikati"
 
-#: elf/dl-lookup.c:881
+#: elf/dl-lookup.c:797
 msgid "symbol lookup error"
 msgstr "napaka pri iskanju simbola"
 
@@ -625,28 +607,28 @@ msgstr "neveljavni način za dlopen()"
 msgid "no more namespaces available for dlmopen()"
 msgstr "nobenega imenskega prostora za dlmopen() ni več na voljo"
 
-#: elf/dl-open.c:868
+#: elf/dl-open.c:869
 msgid "invalid target namespace in dlmopen()"
 msgstr "neveljavni ciljni imenski prostor pri dlmopen()"
 
-#: elf/dl-reloc.c:139
+#: elf/dl-reloc.c:140
 msgid "cannot allocate memory in static TLS block"
 msgstr "ni mogoče dodeliti pomnilnika v statičnem bloku TLS"
 
-#: elf/dl-reloc.c:275
+#: elf/dl-reloc.c:288
 msgid "cannot make segment writable for relocation"
 msgstr "segmenta se ne da odščititi za pisanje pred premikom"
 
-#: elf/dl-reloc.c:306
+#: elf/dl-reloc.c:319
 #, c-format
 msgid "%s: out of memory to store relocation results for %s\n"
 msgstr "%s: pomnilnika ni dovolj za shranjevanje rezultatov premikanja %s\n"
 
-#: elf/dl-reloc.c:322
+#: elf/dl-reloc.c:335
 msgid "cannot restore segment prot after reloc"
 msgstr "zaščite segmenta po premiku ni mogoče povrniti"
 
-#: elf/dl-reloc.c:353
+#: elf/dl-reloc.c:366
 msgid "cannot apply additional memory protection after relocation"
 msgstr "dodatne zaščite pomnilnika po premiku ni mogoče uporabiti"
 
@@ -654,7 +636,7 @@ msgstr "dodatne zaščite pomnilnika po premiku ni mogoče uporabiti"
 msgid "RTLD_NEXT used in code not dynamically loaded"
 msgstr "RTLD_NEXT uporabljen v kodi se ni dinamično naložil"
 
-#: elf/dl-tls.c:1039
+#: elf/dl-tls.c:1050
 msgid "cannot create TLS data structures"
 msgstr "podatkovnih struktur TLS ni mogoče ustvariti"
 
@@ -662,170 +644,155 @@ msgstr "podatkovnih struktur TLS ni mogoče ustvariti"
 msgid "version lookup error"
 msgstr "napaka pri vpogledu v različico"
 
-#: elf/dl-version.c:278
+#: elf/dl-version.c:285
 msgid "cannot allocate version reference table"
 msgstr "ni mogoče dodeliti tabele sklicev različic"
 
-#: elf/ldconfig.c:150
+#: elf/ldconfig.c:124
 msgid "Print cache"
 msgstr "Izpiši vsebino predpomnilnika"
 
-#: elf/ldconfig.c:151
+#: elf/ldconfig.c:125
 msgid "Generate verbose messages"
 msgstr "Ustvarjaj obširna sporočila"
 
-#: elf/ldconfig.c:152
+#: elf/ldconfig.c:126
 msgid "Don't build cache"
 msgstr "Ne gradi predpomnilnika"
 
-#: elf/ldconfig.c:154
+#: elf/ldconfig.c:128
 msgid "Change to and use ROOT as root directory"
 msgstr "Spremeni delovni imenik v KOREN in ga uporabi kot korenski imenik"
 
-#: elf/ldconfig.c:154
+#: elf/ldconfig.c:128
 msgid "ROOT"
 msgstr "KOREN"
 
-#: elf/ldconfig.c:155
+#: elf/ldconfig.c:129
 msgid "CACHE"
 msgstr "PREDPOMNILNIK"
 
-#: elf/ldconfig.c:155
+#: elf/ldconfig.c:129
 msgid "Use CACHE as cache file"
 msgstr "Uporabi PREDPOMNILNIK kot predpomnilniško datoteko"
 
-#: elf/ldconfig.c:156
+#: elf/ldconfig.c:130
 msgid "CONF"
 msgstr "KONF"
 
-#: elf/ldconfig.c:156
+#: elf/ldconfig.c:130
 msgid "Use CONF as configuration file"
 msgstr "Uporabi KONF kot nastavitveno datoteko"
 
-#: elf/ldconfig.c:157
+#: elf/ldconfig.c:131
 msgid "Only process directories specified on the command line.  Don't build cache."
 msgstr "Obdelaj le imenike, določene v ukazni vrstici. Ne gradi predpomnilnika."
 
-#: elf/ldconfig.c:158
+#: elf/ldconfig.c:132
 msgid "Manually link individual libraries."
 msgstr "Ročno poveži posamične knjižnice."
 
-#: elf/ldconfig.c:159
+#: elf/ldconfig.c:133
 msgid "FORMAT"
 msgstr "OBLIKA"
 
-#: elf/ldconfig.c:160
+#: elf/ldconfig.c:134
 msgid "Ignore auxiliary cache file"
 msgstr "Ne upoštevaj nadomestne predpomnilniške datoteke"
 
-#: elf/ldconfig.c:168
+#: elf/ldconfig.c:142
 msgid "Configure Dynamic Linker Run Time Bindings."
 msgstr "Nastavi izvajalne povezave dinamičnega povezovalnika."
 
-#: elf/ldconfig.c:371
+#: elf/ldconfig.c:276
 #, c-format
 msgid "Path `%s' given more than once"
 msgstr "Pot »%s« je podana več kot enkrat"
 
-#: elf/ldconfig.c:487
-#, c-format
-msgid "%s is not a known library type"
-msgstr "»%s« ni poznan tip knjižnice"
-
-#: elf/ldconfig.c:519
+#: elf/ldconfig.c:405
 #, c-format
 msgid "Can't stat %s"
 msgstr "Statusa %s ni moč ugotoviti"
 
-#: elf/ldconfig.c:600
+#: elf/ldconfig.c:486
 #, c-format
 msgid "Can't stat %s\n"
 msgstr "Statusa %s ni moč ugotoviti\n"
 
-#: elf/ldconfig.c:610
+#: elf/ldconfig.c:496
 #, c-format
 msgid "%s is not a symbolic link\n"
 msgstr "%s ni simbolna povezava\n"
 
-#: elf/ldconfig.c:629
+#: elf/ldconfig.c:515
 #, c-format
 msgid "Can't unlink %s"
 msgstr "Ni mogoče odstraniti povezave %s"
 
-#: elf/ldconfig.c:635
+#: elf/ldconfig.c:521
 #, c-format
 msgid "Can't link %s to %s"
 msgstr "Ni mogoče ustvariti povezave %s na %s"
 
-#: elf/ldconfig.c:641
+#: elf/ldconfig.c:527
 msgid " (changed)\n"
 msgstr " (zamenjano)\n"
 
-#: elf/ldconfig.c:643
+#: elf/ldconfig.c:529
 msgid " (SKIPPED)\n"
 msgstr " (PRESKOČENO)\n"
 
-#: elf/ldconfig.c:699
+#: elf/ldconfig.c:584
 #, c-format
 msgid "Can't find %s"
 msgstr "Neuspelo iskanje %s"
 
-#: elf/ldconfig.c:715 elf/ldconfig.c:895 elf/ldconfig.c:955 elf/ldconfig.c:987
+#: elf/ldconfig.c:600 elf/ldconfig.c:763 elf/ldconfig.c:830
 #, c-format
 msgid "Cannot lstat %s"
 msgstr "Ni mogoče izvesti lstat %s"
 
-#: elf/ldconfig.c:721
+#: elf/ldconfig.c:606
 #, c-format
 msgid "Ignored file %s since it is not a regular file."
 msgstr "Datoteka %s ni bila upoštevana, ker ni navadna datoteka."
 
-#: elf/ldconfig.c:729
+#: elf/ldconfig.c:614
 #, c-format
 msgid "No link created since soname could not be found for %s"
 msgstr "Povezava ni bila ustvarjena, ker ni bilo moč najti soname za %s"
 
-#: elf/ldconfig.c:828
+#: elf/ldconfig.c:700
 #, c-format
 msgid "Can't open directory %s"
 msgstr "Ni mogoče odpreti imenika %s"
 
-#: elf/ldconfig.c:913 elf/ldconfig.c:975 elf/readlib.c:96
+#: elf/ldconfig.c:780 elf/ldconfig.c:818 elf/readlib.c:78
 #, c-format
 msgid "Input file %s not found.\n"
 msgstr "Vhodne datoteke %s ni moč najti.\n"
 
-#: elf/ldconfig.c:920
+#: elf/ldconfig.c:787
 #, c-format
 msgid "Cannot stat %s"
 msgstr "Statusa %s ni moč ugotoviti"
 
-#: elf/ldconfig.c:1073
-#, c-format
-msgid "libc5 library %s in wrong directory"
-msgstr "knjižnica libc5 %s v napačnem imeniku"
-
-#: elf/ldconfig.c:1076
+#: elf/ldconfig.c:906
 #, c-format
 msgid "libc6 library %s in wrong directory"
 msgstr "knjižnica libc6 %s v napačnem imeniku"
 
-#: elf/ldconfig.c:1079
-#, c-format
-msgid "libc4 library %s in wrong directory"
-msgstr "knjižnica libc4 %s v napačnem imeniku"
-
-#: elf/ldconfig.c:1107
+#: elf/ldconfig.c:925
 #, c-format
 msgid "libraries %s and %s in directory %s have same soname but different type."
 msgstr "knjižnici %s in %s v imeniku %s imata isti soname, a sta različnega tipa."
 
-#: elf/ldconfig.c:1237
+#: elf/ldconfig.c:1050
 #, c-format
 msgid "Warning: ignoring configuration file that cannot be opened: %s"
 msgstr "Opozorilo: nastavitvene datoteke ni mogoče prebrati in se je ne upošteva: %s"
 
-#: elf/ldconfig.c:1304
+#: elf/ldconfig.c:1117
 #, c-format
 msgid "need absolute file name for configuration file when using -r"
 msgstr "ob izbiri -r je potrebo absolutno ime za nastavitveno datoteko"
@@ -836,29 +803,29 @@ msgstr "ob izbiri -r je potrebo absolutno ime za nastavitveno datoteko"
 # ! INEXACT
 # #-#-#-#-#  gettext-tools-0.18.3.sl.po (GNU gettext-tools 0.18.3)  #-#-#-#-#
 #  Morda ,,Zmanjkalo pomnilnika''?
-#: elf/ldconfig.c:1311 locale/programs/xasprintf.c:31
+#: elf/ldconfig.c:1124 locale/programs/xasprintf.c:31
 #: locale/programs/xmalloc.c:63 malloc/obstack.c:416 malloc/obstack.c:418
 #: posix/getconf.c:458 posix/getconf.c:697
 #, c-format
 msgid "memory exhausted"
 msgstr "pomnilnik porabljen"
 
-#: elf/ldconfig.c:1344
+#: elf/ldconfig.c:1157
 #, c-format
 msgid "%s:%u: cannot read directory %s"
 msgstr "%s:%u: imenika %s ni mogoče prebrati"
 
-#: elf/ldconfig.c:1392
+#: elf/ldconfig.c:1195
 #, c-format
 msgid "relative path `%s' used to build cache"
 msgstr "relativna pot »%s« uporabljena za izgradnjo predpomnilnika"
 
-#: elf/ldconfig.c:1416
+#: elf/ldconfig.c:1217
 #, c-format
 msgid "Can't chdir to /"
 msgstr "Sprememba imenika na / ni mogoča"
 
-#: elf/ldconfig.c:1457
+#: elf/ldconfig.c:1258
 #, c-format
 msgid "Can't open cache file directory %s\n"
 msgstr "Ni mogoče odpreti imenika %s s predpomnilniško datoteko\n"
@@ -908,7 +875,7 @@ msgstr "manjkajoči argumenti datoteke"
 msgid "No such file or directory"
 msgstr "Datoteka ali imenik s tem imenom ne obstaja"
 
-#: elf/ldd.bash.in:150 inet/rcmd.c:481
+#: elf/ldd.bash.in:150 inet/rcmd.c:482
 msgid "not regular file"
 msgstr "ni navadna datoteka"
 
@@ -928,42 +895,42 @@ msgstr "zaključek z neznano izhodno kodo"
 msgid "error: you do not have read permission for"
 msgstr "napaka: nimate dovoljenja za branje za"
 
-#: elf/pldd-xx.c:101
+#: elf/pldd-xx.c:103
 #, c-format
 msgid "cannot find program header of process"
 msgstr "programske glave procesa ni mogoče najti"
 
-#: elf/pldd-xx.c:105
+#: elf/pldd-xx.c:107
 #, c-format
 msgid "cannot read program header"
 msgstr "programske glave ni mogoče prebrati"
 
-#: elf/pldd-xx.c:127
+#: elf/pldd-xx.c:129
 #, c-format
 msgid "cannot read dynamic section"
 msgstr "dinamične sekcije ni mogoče prebrati"
 
-#: elf/pldd-xx.c:136
+#: elf/pldd-xx.c:141
 #, c-format
 msgid "cannot read r_debug"
 msgstr "branje r_debug ni mogoče"
 
-#: elf/pldd-xx.c:153
+#: elf/pldd-xx.c:159
 #, c-format
 msgid "cannot read program interpreter"
 msgstr "programskega tolmača ni mogoče prebrati"
 
-#: elf/pldd-xx.c:182
+#: elf/pldd-xx.c:188
 #, c-format
 msgid "cannot read link map"
 msgstr "preslikave povezav ni mogoče prebrati"
 
-#: elf/pldd-xx.c:189
+#: elf/pldd-xx.c:195
 #, c-format
 msgid "cannot read object name"
 msgstr "imena predmeta ni mogoče prebrati"
 
-#: elf/pldd-xx.c:196
+#: elf/pldd-xx.c:202
 #, c-format
 msgid "cannot allocate buffer for object name"
 msgstr "dodelitev medpomnilnika za ime predmeta ni mogoča"
@@ -1026,52 +993,52 @@ msgstr "proces %lu ni program ELF"
 msgid "file %s is truncated\n"
 msgstr "datoteka %s je okrnjena\n"
 
-#: elf/readelflib.c:65
+#: elf/readelflib.c:63
 #, c-format
 msgid "%s is a 32 bit ELF file.\n"
 msgstr "%s je 32-bitna datoteka ELF.\n"
 
-#: elf/readelflib.c:67
+#: elf/readelflib.c:65
 #, c-format
 msgid "%s is a 64 bit ELF file.\n"
 msgstr "%s je 64-bitna datoteka ELF.\n"
 
-#: elf/readelflib.c:69
+#: elf/readelflib.c:67
 #, c-format
 msgid "Unknown ELFCLASS in file %s.\n"
 msgstr "Neznani ELFCLASS v datoteki %s.\n"
 
-#: elf/readelflib.c:76
+#: elf/readelflib.c:74
 #, c-format
 msgid "%s is not a shared object file (Type: %d).\n"
 msgstr "%s ni deljena predmetna datoteka (tip: %d).\n"
 
-#: elf/readelflib.c:104
+#: elf/readelflib.c:101
 #, c-format
 msgid "more than one dynamic segment\n"
 msgstr "več kot en dinamični segment\n"
 
-#: elf/readlib.c:102
+#: elf/readlib.c:84
 #, c-format
 msgid "Cannot fstat file %s.\n"
 msgstr "fstat() na datoteki %s ni mogoče izvesti.\n"
 
-#: elf/readlib.c:113
+#: elf/readlib.c:95
 #, c-format
 msgid "File %s is empty, not checked."
 msgstr "Datoteka %s je prazna, brez preverjanja."
 
-#: elf/readlib.c:119
+#: elf/readlib.c:101
 #, c-format
 msgid "File %s is too small, not checked."
 msgstr "Datoteka %s je premajhna, brez preverjanja."
 
-#: elf/readlib.c:129
+#: elf/readlib.c:111
 #, c-format
 msgid "Cannot mmap file %s.\n"
 msgstr "mmap() na datoteki %s ni mogoče izvesti.\n"
 
-#: elf/readlib.c:168
+#: elf/readlib.c:149
 #, c-format
 msgid "%s is not an ELF file - it has the wrong magic bytes at the start.\n"
 msgstr "%s ni datoteka ELF - magično zaporedje bajtov na začetku je napačno.\n"
@@ -1297,11 +1264,6 @@ msgstr "izhodne datoteke ni mogoče odpreti"
 msgid "error while closing input `%s'"
 msgstr "napaka pri zapiranju vhoda »%s«"
 
-#: iconv/iconv_charmap.c:443
-#, c-format
-msgid "illegal input sequence at position %Zd"
-msgstr "neveljavno vhodno zaporedje na poziciji %Zd"
-
 #: iconv/iconv_charmap.c:462 iconv/iconv_prog.c:518
 #, c-format
 msgid "incomplete character or shift sequence at end of buffer"
@@ -1483,68 +1445,68 @@ msgstr "med vrivanjem v iskalno drevo"
 msgid "cannot generate output file"
 msgstr "izhodne datoteke ni mogoče ustvariti"
 
-#: inet/rcmd.c:158
+#: inet/rcmd.c:159
 msgid "rcmd: Cannot allocate memory\n"
 msgstr "rcmd: Pomnilnika ni mogoče rezervirati\n"
 
-#: inet/rcmd.c:175
+#: inet/rcmd.c:176
 msgid "rcmd: socket: All ports in use\n"
 msgstr "rcmd: socket: Vsa vrata so v rabi\n"
 
-#: inet/rcmd.c:203
+#: inet/rcmd.c:204
 #, c-format
 msgid "connect to address %s: "
 msgstr "priklop na naslov %s: "
 
-#: inet/rcmd.c:216
+#: inet/rcmd.c:217
 #, c-format
 msgid "Trying %s...\n"
 msgstr "Poskuša se %s...\n"
 
-#: inet/rcmd.c:252
+#: inet/rcmd.c:253
 #, c-format
 msgid "rcmd: write (setting up stderr): %m\n"
 msgstr "rcmd: write (nastavljanje stderr): %m\n"
 
-#: inet/rcmd.c:268
+#: inet/rcmd.c:269
 #, c-format
 msgid "rcmd: poll (setting up stderr): %m\n"
 msgstr "rcmd: poll (nastavljanje stderr): %m\n"
 
-#: inet/rcmd.c:271
+#: inet/rcmd.c:272
 msgid "poll: protocol failure in circuit setup\n"
 msgstr "poll: napaka v protokolu pri nastavljanju vezja\n"
 
-#: inet/rcmd.c:303
+#: inet/rcmd.c:304
 msgid "socket: protocol failure in circuit setup\n"
 msgstr "socket: napaka v protokolu pri nastavljanju vezja\n"
 
-#: inet/rcmd.c:327
+#: inet/rcmd.c:328
 #, c-format
 msgid "rcmd: %s: short read"
 msgstr "rcmd: %s: manjkajoči podatki pri branju"
 
-#: inet/rcmd.c:479
+#: inet/rcmd.c:480
 msgid "lstat failed"
 msgstr "lstat ni uspel"
 
-#: inet/rcmd.c:486
+#: inet/rcmd.c:487
 msgid "cannot open"
 msgstr "ni mogoče odpreti"
 
-#: inet/rcmd.c:488
+#: inet/rcmd.c:489
 msgid "fstat failed"
 msgstr "fstat ni uspel"
 
-#: inet/rcmd.c:490
+#: inet/rcmd.c:491
 msgid "bad owner"
 msgstr "nepravi lastnik"
 
-#: inet/rcmd.c:492
+#: inet/rcmd.c:493
 msgid "writeable by other than owner"
 msgstr "dovoljenje za pisanje ima ne-lastnik"
 
-#: inet/rcmd.c:494
+#: inet/rcmd.c:495
 msgid "hard linked somewhere"
 msgstr "obstaja trda povezava"
 
@@ -1651,10 +1613,10 @@ msgid "no symbolic name given for end of range"
 msgstr "simbolno ime za konec razpona ni podano"
 
 #: locale/programs/charmap.c:614 locale/programs/ld-address.c:523
-#: locale/programs/ld-collate.c:2642 locale/programs/ld-collate.c:3806
+#: locale/programs/ld-collate.c:2635 locale/programs/ld-collate.c:3799
 #: locale/programs/ld-ctype.c:2117 locale/programs/ld-ctype.c:2829
 #: locale/programs/ld-identification.c:396 locale/programs/ld-measurement.c:212
-#: locale/programs/ld-messages.c:294 locale/programs/ld-monetary.c:747
+#: locale/programs/ld-messages.c:294 locale/programs/ld-monetary.c:855
 #: locale/programs/ld-name.c:261 locale/programs/ld-numeric.c:324
 #: locale/programs/ld-paper.c:211 locale/programs/ld-telephone.c:275
 #: locale/programs/ld-time.c:958 locale/programs/repertoire.c:311
@@ -1677,10 +1639,10 @@ msgid "%s: error in state machine"
 msgstr "%s: napaka v stroju stanj"
 
 #: locale/programs/charmap.c:855 locale/programs/ld-address.c:539
-#: locale/programs/ld-collate.c:2639 locale/programs/ld-collate.c:3999
+#: locale/programs/ld-collate.c:2632 locale/programs/ld-collate.c:3992
 #: locale/programs/ld-ctype.c:2114 locale/programs/ld-ctype.c:2846
 #: locale/programs/ld-identification.c:412 locale/programs/ld-measurement.c:228
-#: locale/programs/ld-messages.c:310 locale/programs/ld-monetary.c:763
+#: locale/programs/ld-messages.c:310 locale/programs/ld-monetary.c:871
 #: locale/programs/ld-name.c:277 locale/programs/ld-numeric.c:340
 #: locale/programs/ld-paper.c:227 locale/programs/ld-telephone.c:291
 #: locale/programs/ld-time.c:989 locale/programs/locfile.c:1009
@@ -1699,7 +1661,7 @@ msgstr "neznani znak »%s«"
 msgid "number of bytes for byte sequence of beginning and end of range not the same: %d vs %d"
 msgstr "število bajtov v zaporedju bajtov za začetek in konec razpona ni enako: %d proti %d"
 
-#: locale/programs/charmap.c:998 locale/programs/ld-collate.c:2923
+#: locale/programs/charmap.c:998 locale/programs/ld-collate.c:2916
 #: locale/programs/repertoire.c:417
 msgid "invalid names for character range"
 msgstr "neveljavna imena za razpon znakov"
@@ -1717,7 +1679,7 @@ msgstr "<%s> in <%s> sta neveljavni imeni za razpon"
 msgid "upper limit in range is smaller than lower limit"
 msgstr "zgornja meja v razponu je manjša od spodnje meje"
 
-#: locale/programs/ld-address.c:132 locale/programs/ld-collate.c:1570
+#: locale/programs/ld-address.c:132 locale/programs/ld-collate.c:1569
 #: locale/programs/ld-ctype.c:429 locale/programs/ld-identification.c:130
 #: locale/programs/ld-measurement.c:91 locale/programs/ld-messages.c:95
 #: locale/programs/ld-monetary.c:191 locale/programs/ld-name.c:92
@@ -1731,14 +1693,13 @@ msgstr "Za kategorijo %s ni mogoče najti definicije"
 #: locale/programs/ld-address.c:198 locale/programs/ld-address.c:227
 #: locale/programs/ld-address.c:299 locale/programs/ld-address.c:318
 #: locale/programs/ld-address.c:330 locale/programs/ld-identification.c:143
-#: locale/programs/ld-measurement.c:102 locale/programs/ld-monetary.c:203
-#: locale/programs/ld-monetary.c:257 locale/programs/ld-monetary.c:273
-#: locale/programs/ld-monetary.c:285 locale/programs/ld-name.c:103
-#: locale/programs/ld-name.c:140 locale/programs/ld-numeric.c:110
-#: locale/programs/ld-numeric.c:124 locale/programs/ld-paper.c:99
-#: locale/programs/ld-paper.c:108 locale/programs/ld-telephone.c:102
-#: locale/programs/ld-telephone.c:159 locale/programs/ld-time.c:179
-#: locale/programs/ld-time.c:200
+#: locale/programs/ld-measurement.c:102 locale/programs/ld-monetary.c:291
+#: locale/programs/ld-monetary.c:368 locale/programs/ld-monetary.c:389
+#: locale/programs/ld-name.c:103 locale/programs/ld-name.c:140
+#: locale/programs/ld-numeric.c:110 locale/programs/ld-numeric.c:124
+#: locale/programs/ld-paper.c:99 locale/programs/ld-paper.c:108
+#: locale/programs/ld-telephone.c:102 locale/programs/ld-telephone.c:159
+#: locale/programs/ld-time.c:179 locale/programs/ld-time.c:200
 #, c-format
 msgid "%s: field `%s' not defined"
 msgstr "%s: polje »%s« ni določeno"
@@ -1784,8 +1745,8 @@ msgstr "%s: številčna koda države »%d« ni določena"
 #: locale/programs/ld-address.c:431 locale/programs/ld-address.c:468
 #: locale/programs/ld-address.c:506 locale/programs/ld-ctype.c:2478
 #: locale/programs/ld-identification.c:308 locale/programs/ld-measurement.c:195
-#: locale/programs/ld-messages.c:263 locale/programs/ld-monetary.c:502
-#: locale/programs/ld-monetary.c:537 locale/programs/ld-monetary.c:578
+#: locale/programs/ld-messages.c:263 locale/programs/ld-monetary.c:610
+#: locale/programs/ld-monetary.c:645 locale/programs/ld-monetary.c:686
 #: locale/programs/ld-name.c:234 locale/programs/ld-numeric.c:216
 #: locale/programs/ld-paper.c:194 locale/programs/ld-telephone.c:250
 #: locale/programs/ld-time.c:863 locale/programs/ld-time.c:905
@@ -1795,7 +1756,7 @@ msgstr "%s: polje »%s« je deklarirano več kot enkrat"
 
 #: locale/programs/ld-address.c:435 locale/programs/ld-address.c:473
 #: locale/programs/ld-identification.c:312 locale/programs/ld-messages.c:273
-#: locale/programs/ld-monetary.c:506 locale/programs/ld-monetary.c:541
+#: locale/programs/ld-monetary.c:614 locale/programs/ld-monetary.c:649
 #: locale/programs/ld-name.c:238 locale/programs/ld-numeric.c:220
 #: locale/programs/ld-telephone.c:254 locale/programs/ld-time.c:755
 #: locale/programs/ld-time.c:826 locale/programs/ld-time.c:868
@@ -1803,10 +1764,10 @@ msgstr "%s: polje »%s« je deklarirano več kot enkrat"
 msgid "%s: unknown character in field `%s'"
 msgstr "%s: neznani znak v polju »%s«"
 
-#: locale/programs/ld-address.c:520 locale/programs/ld-collate.c:3804
+#: locale/programs/ld-address.c:520 locale/programs/ld-collate.c:3797
 #: locale/programs/ld-ctype.c:2826 locale/programs/ld-identification.c:393
 #: locale/programs/ld-measurement.c:209 locale/programs/ld-messages.c:292
-#: locale/programs/ld-monetary.c:745 locale/programs/ld-name.c:259
+#: locale/programs/ld-monetary.c:853 locale/programs/ld-name.c:259
 #: locale/programs/ld-numeric.c:322 locale/programs/ld-paper.c:209
 #: locale/programs/ld-telephone.c:273 locale/programs/ld-time.c:956
 #, c-format
@@ -1815,12 +1776,12 @@ msgstr "%s: nepopolna vrstica »END«"
 
 #: locale/programs/ld-address.c:530 locale/programs/ld-collate.c:553
 #: locale/programs/ld-collate.c:605 locale/programs/ld-collate.c:901
-#: locale/programs/ld-collate.c:914 locale/programs/ld-collate.c:2608
-#: locale/programs/ld-collate.c:2629 locale/programs/ld-collate.c:3989
+#: locale/programs/ld-collate.c:914 locale/programs/ld-collate.c:2601
+#: locale/programs/ld-collate.c:2622 locale/programs/ld-collate.c:3982
 #: locale/programs/ld-ctype.c:1846 locale/programs/ld-ctype.c:2104
 #: locale/programs/ld-ctype.c:2676 locale/programs/ld-ctype.c:2837
 #: locale/programs/ld-identification.c:403 locale/programs/ld-measurement.c:219
-#: locale/programs/ld-messages.c:301 locale/programs/ld-monetary.c:754
+#: locale/programs/ld-messages.c:301 locale/programs/ld-monetary.c:862
 #: locale/programs/ld-name.c:268 locale/programs/ld-numeric.c:331
 #: locale/programs/ld-paper.c:218 locale/programs/ld-telephone.c:282
 #: locale/programs/ld-time.c:980
@@ -1884,11 +1845,6 @@ msgstr "%s: uteži morajo uporabljati isti simbol za tripičje kot ime"
 msgid "%s: too many values"
 msgstr "%s: preveč vrednosti"
 
-#: locale/programs/ld-collate.c:1062 locale/programs/ld-collate.c:1237
-#, c-format
-msgid "order for `%.*s' already defined at %s:%Zu"
-msgstr "red za »%.*s« je že definiran pri %s:%Zu"
-
 #: locale/programs/ld-collate.c:1112
 #, c-format
 msgid "%s: the start and the end symbol of a range must stand for characters"
@@ -1904,17 +1860,17 @@ msgstr "%s: zaporedji bajtov za prvi in zadnji znak morata imeti isto dolžino"
 msgid "%s: `%s' must be a character"
 msgstr "%s: »%s« mora biti znak"
 
-#: locale/programs/ld-collate.c:1615
+#: locale/programs/ld-collate.c:1614
 #, c-format
 msgid "symbol `%s' not defined"
 msgstr "simbol »%s« ni določen"
 
-#: locale/programs/ld-collate.c:1691 locale/programs/ld-collate.c:1796
+#: locale/programs/ld-collate.c:1690 locale/programs/ld-collate.c:1789
 #, c-format
 msgid "symbol `%s' has the same encoding as"
 msgstr "simbol »%s« ima isto kodiranje kot"
 
-#: locale/programs/ld-collate.c:1695 locale/programs/ld-collate.c:1800
+#: locale/programs/ld-collate.c:1694 locale/programs/ld-collate.c:1793
 #, c-format
 msgid "symbol `%s'"
 msgstr "simbol »%s«"
@@ -1951,7 +1907,7 @@ msgstr "Uspešno"
 msgid "NUMBER"
 msgstr "N"
 
-#: nscd/nscd.c:158 nss/getent.c:986 nss/makedb.c:206
+#: nscd/nscd.c:158 nss/getent.c:995 nss/makedb.c:207
 #, c-format
 msgid "wrong number of arguments"
 msgstr "napačno število argumentov"
@@ -1961,7 +1917,7 @@ msgstr "napačno število argumentov"
 msgid "cannot fork"
 msgstr "vejitev ni mogoča"
 
-#: nss/makedb.c:288
+#: nss/makedb.c:289
 #, c-format
 msgid "cannot create temporary file"
 msgstr "začasne datoteke ni mogoče ustvariti"
@@ -1970,12 +1926,12 @@ msgstr "začasne datoteke ni mogoče ustvariti"
 msgid "undefined"
 msgstr "nedoločeno"
 
-#: posix/getopt.c:620
+#: posix/getopt.c:621
 #, c-format
 msgid "%s: invalid option -- '%c'\n"
 msgstr "%s: neveljavna izbira -- »%c«\n"
 
-#: posix/getopt.c:635 posix/getopt.c:681
+#: posix/getopt.c:636 posix/getopt.c:682
 #, c-format
 msgid "%s: option requires an argument -- '%c'\n"
 msgstr "%s: izbira zahteva argument -- »%c«\n"
@@ -2556,15 +2512,15 @@ msgstr "Programsko povzročena prekinitev povezave"
 msgid "No buffer space available"
 msgstr "Prostor za medpomnilnik ni na voljo"
 
-#: sysdeps/gnu/errlist.h:597
+#: sysdeps/gnu/errlist.h:600
 msgid "Bad font file format"
 msgstr "Okvarjen zapis datoteke s pisavo"
 
-#: sysdeps/gnu/errlist.h:657
+#: sysdeps/gnu/errlist.h:660
 msgid "Remote I/O error"
 msgstr "Oddaljena V/I napaka"
 
-#: sysdeps/gnu/errlist.h:699
+#: sysdeps/gnu/errlist.h:702
 msgid "Authentication error"
 msgstr "Overitvena napaka"
 
@@ -2573,7 +2529,7 @@ msgstr "Overitvena napaka"
 #. TRANS
 #. TRANS C libraries in many older Unix systems have @code{EWOULDBLOCK} as a
 #. TRANS separate error code.
-#: sysdeps/gnu/errlist.h:782
+#: sysdeps/gnu/errlist.h:785
 msgid "Operation would block"
 msgstr "Operacija bi blokirala"
 
@@ -2644,11 +2600,6 @@ msgstr "Prekinjeno s signalom"
 #: sysdeps/posix/gai_strerror-strs.h:17
 msgid "Parameter string not correctly encoded"
 msgstr "Parametrični niz nepravilno kodiran"
-
-#: sysdeps/unix/sysv/linux/lddlibc4.c:80
-#, c-format
-msgid "cannot open `%s'"
-msgstr "ni mogoče odpreti »%s«"
 
 # #-#-#-#-#  coreutils-8.22-pre3.sl.po (GNU coreutils 8.22-pre3)  #-#-#-#-#
 # ! INEXACT

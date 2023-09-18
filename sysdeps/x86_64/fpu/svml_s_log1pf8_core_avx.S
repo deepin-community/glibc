@@ -1,5 +1,5 @@
 /* Function log1pf vectorized in AVX ISA as wrapper to SSE4 ISA version.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 #include <sysdep.h>
 #include "svml_s_wrapper_impl.h"
 
-        .text
+	.section .text.avx2, "ax", @progbits
 ENTRY (_ZGVcN8v_log1pf)
 WRAPPER_IMPL_AVX _ZGVbN4v_log1pf
 END (_ZGVcN8v_log1pf)

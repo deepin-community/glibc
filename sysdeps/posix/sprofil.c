@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -161,18 +161,6 @@ profil_count (uintptr_t pcp, int prof_uint)
       else
 	++prof_info.overflow->sample.us[0];
     }
-}
-
-static inline void
-profil_count_ushort (uintptr_t pcp)
-{
-  profil_count (pcp, 0);
-}
-
-static inline void
-profil_count_uint (uintptr_t pcp)
-{
-  profil_count (pcp, 1);
 }
 
 /* Get the machine-dependent definition of `__profil_counter', the signal

@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -73,7 +73,8 @@ ENTRY(__swapcontext)
 	la	%r3,SC_MASK(%r5)
 	la	%r4,SC_MASK(%r1)
 	lhi	%r5,_NSIG8
-	svc	SYS_ify(rt_sigprocmask)
+	lhi	%r1,SYS_ify(rt_sigprocmask)
+	svc	0
 
 	/* Load fpu context.  */
 	lr	%r5,%r0

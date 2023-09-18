@@ -1,0 +1,191 @@
+commit 69054cb2f08ee4ce061f503b20c1e1b343656595
+Author: Sergey Bugaev <bugaevc@gmail.com>
+Date:   Wed Mar 1 19:23:54 2023 +0300
+
+    hurd: Remove the ecx kludge
+    
+    "We don't need it any more"
+    
+    The INTR_MSG_TRAP macro in intr-msg.h used to play little trick with
+    the stack pointer: it would temporarily save the "real" stack pointer
+    into ecx, while setting esp to point to just before the message buffer,
+    and then invoke the mach_msg trap. This way, INTR_MSG_TRAP reused the
+    on-stack arguments laid out for the containing call of
+    _hurd_intr_rpc_mach_msg (), passing them to the mach_msg trap directly.
+    
+    This, however, required special support in hurdsig.c and trampoline.c,
+    since they now had to recognize when a thread is inside the piece of
+    code where esp doesn't point to the real tip of the stack, and handle
+    this situation specially.
+    
+    Commit 1d20f33ff4fb634310f27493b7b87d0b20f4a0b0 has removed the actual
+    temporary change of esp by actually re-pushing mach_msg arguments onto
+    the stack, and popping them back at end. It did not, however, deal with
+    the rest of "the ecx kludge" code in other files, resulting in potential
+    crashes if a signal arrives in the middle of pushing arguments onto the
+    stack.
+    
+    Fix that by removing "the ecx kludge". Instead, when we want a thread
+    to skip the RPC, but cannot make just make it jump to after the trap
+    since it's not done adjusting the stack yet, set the SYSRETURN register
+    to MACH_SEND_INTERRUPTED (as we do anyway), and rely on the thread
+    itself for detecting this case and skipping the RPC.
+    
+    This simplifies things somewhat and paves the way for a future x86_64
+    port of this code.
+    
+    Signed-off-by: Sergey Bugaev <bugaevc@gmail.com>
+    Message-Id: <20230301162355.426887-1-bugaevc@gmail.com>
+
+diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
+index ea79ffb597..5ff0a91fea 100644
+--- a/hurd/hurdsig.c
++++ b/hurd/hurdsig.c
+@@ -415,6 +415,7 @@ _hurdsig_abort_rpcs (struct hurd_sigstate *ss, int signo, int sigthread,
+ 		     void (*reply) (void))
+ {
+   extern const void _hurd_intr_rpc_msg_about_to;
++  extern const void _hurd_intr_rpc_msg_setup_done;
+   extern const void _hurd_intr_rpc_msg_in_trap;
+   mach_port_t rcv_port = MACH_PORT_NULL;
+   mach_port_t intr_port;
+@@ -434,11 +435,18 @@ _hurdsig_abort_rpcs (struct hurd_sigstate *ss, int signo, int sigthread,
+       && state->basic.PC < (natural_t) &_hurd_intr_rpc_msg_in_trap)
+     {
+       /* The thread is about to do the RPC, but hasn't yet entered
+-	 mach_msg.  Mutate the thread's state so it knows not to try
+-	 the RPC.  */
+-      INTR_MSG_BACK_OUT (&state->basic);
+-      MACHINE_THREAD_STATE_SET_PC (&state->basic,
+-				   &_hurd_intr_rpc_msg_in_trap);
++         mach_msg.  Importantly, it may have already checked ss->cancel for
++         the last time before doing the RPC, so setting that is not enough
++         to make it not enter mach_msg.  Instead, mutate the thread's state
++         so it knows not to try the RPC.
++
++         If the thread is past _hurd_intr_rpc_msg_setup_done, just make it
++         jump to after the trap, since we know it's safe to do so.  Otherwise,
++         we know that the thread is yet to check for the MACH_SEND_INTERRUPTED
++         value we set below, and will skip the trap by itself.  */
++      if (state->basic.PC >= (uintptr_t) &_hurd_intr_rpc_msg_setup_done)
++        MACHINE_THREAD_STATE_SET_PC (&state->basic,
++                                     &_hurd_intr_rpc_msg_in_trap);
+       state->basic.SYSRETURN = MACH_SEND_INTERRUPTED;
+       *state_change = 1;
+     }
+diff --git a/sysdeps/mach/hurd/i386/intr-msg.h b/sysdeps/mach/hurd/i386/intr-msg.h
+index 29cb4620da..21088fa8c4 100644
+--- a/sysdeps/mach/hurd/i386/intr-msg.h
++++ b/sysdeps/mach/hurd/i386/intr-msg.h
+@@ -25,10 +25,13 @@
+ ({									      \
+   error_t err;								      \
+   asm (".globl _hurd_intr_rpc_msg_about_to\n"				      \
+-       ".globl _hurd_intr_rpc_msg_cx_sp\n"				      \
+-       ".globl _hurd_intr_rpc_msg_do_trap\n" 				      \
++       ".globl _hurd_intr_rpc_msg_setup_done\n"				      \
+        ".globl _hurd_intr_rpc_msg_in_trap\n"				      \
+-       ".globl _hurd_intr_rpc_msg_sp_restored\n"			      \
++       /* Clear eax before we do the check for cancel below.  This is to
++          detect eax being set to non-zero (actually MACH_SEND_INTERRUPTED)
++          from the outside (namely, _hurdsig_abort_rpcs), which signals us
++          to skip the trap we were about to enter.  */			      \
++       "				xorl %0, %0\n"			      \
+        "_hurd_intr_rpc_msg_about_to:"					      \
+        /* We need to make a last check of cancel, in case we got interrupted
+           right before _hurd_intr_rpc_msg_about_to.  */			      \
+@@ -36,10 +39,10 @@
+        "				jz _hurd_intr_rpc_msg_do\n"	      \
+        /* We got interrupted, note so and return EINTR.  */		      \
+        "				movl $0, %3\n"			      \
+-       "				movl %6, %%eax\n"		      \
++       "				movl %6, %0\n"			      \
+        "				jmp _hurd_intr_rpc_msg_sp_restored\n" \
+        "_hurd_intr_rpc_msg_do:"						      \
+-       /* Ok, push the mach_msg_trap arguments.  */			      \
++       /* Ok, push the mach_msg_trap arguments and a fake return address.  */ \
+        "				pushl 24(%4)\n"			      \
+        "				pushl %2\n"			      \
+        "				pushl 16(%4)\n"			      \
+@@ -48,9 +51,14 @@
+        "				pushl %1\n"			      \
+        "				pushl (%4)\n"			      \
+        "				pushl $0\n"			      \
+-       /* TODO: remove this ecx kludge, we don't need it any more */	      \
+-       "				movl %%esp, %%ecx\n"		      \
+-       "_hurd_intr_rpc_msg_cx_sp:	movl $-25, %%eax\n"		      \
++       "_hurd_intr_rpc_msg_setup_done:"					      \
++       /* From here on, it is safe to make us jump over the syscall.  Now
++          check if we have been told to skip the syscall while running
++          the above.  */						      \
++       "				test %0, %0\n"			      \
++       "				jnz _hurd_intr_rpc_msg_in_trap\n"     \
++       /* Do the actual syscall.  */					      \
++       "				movl $-25, %%eax\n"		      \
+        "_hurd_intr_rpc_msg_do_trap:	lcall $7, $0 # status in %0\n"	      \
+        "_hurd_intr_rpc_msg_in_trap:"					      \
+        /* Ok, clean the arguments and update OPTION and TIMEOUT.  */	      \
+@@ -60,22 +68,10 @@
+        "				popl %2\n"			      \
+        "				addl $4, %%esp\n"		      \
+        "_hurd_intr_rpc_msg_sp_restored:"				      \
+-       : "=a" (err), "+r" (option), "+r" (timeout), "=m" (*intr_port_p)	      \
+-       : "r" (&msg), "m" (*cancel_p), "i" (EINTR)			      \
+-       : "ecx");							      \
++       : "=&a" (err), "+r" (option), "+r" (timeout), "=m" (*intr_port_p)      \
++       : "r" (&msg), "m" (*cancel_p), "i" (EINTR));			      \
+   err;									      \
+ })
+-
+-
+-static void inline
+-INTR_MSG_BACK_OUT (struct i386_thread_state *state)
+-{
+-  extern const void _hurd_intr_rpc_msg_cx_sp;
+-  if (state->eip >= (natural_t) &_hurd_intr_rpc_msg_cx_sp)
+-    state->uesp = state->ecx;
+-  else
+-    state->ecx = state->uesp;
+-}
+ 
+ #include "hurdfault.h"
+ 
+diff --git a/sysdeps/mach/hurd/i386/trampoline.c b/sysdeps/mach/hurd/i386/trampoline.c
+index 42c9d73207..8f481e79b8 100644
+--- a/sysdeps/mach/hurd/i386/trampoline.c
++++ b/sysdeps/mach/hurd/i386/trampoline.c
+@@ -89,8 +89,6 @@ _hurd_setup_sighandler (struct hurd_sigstate *ss, const struct sigaction *action
+   void trampoline (void);
+   void rpc_wait_trampoline (void);
+   void firewall (void);
+-  extern const void _hurd_intr_rpc_msg_cx_sp;
+-  extern const void _hurd_intr_rpc_msg_sp_restored;
+   void *volatile sigsp;
+   struct sigcontext *scp;
+   struct
+@@ -146,25 +144,6 @@ _hurd_setup_sighandler (struct hurd_sigstate *ss, const struct sigaction *action
+      interrupted RPC frame.  */
+   state->basic.esp = state->basic.uesp;
+ 
+-  /* This code has intimate knowledge of the special mach_msg system call
+-     done in intr-msg.c; that code does (see intr-msg.h):
+-					movl %esp, %ecx
+-					leal ARGS, %esp
+-	_hurd_intr_rpc_msg_cx_sp:	movl $-25, %eax
+-	_hurd_intr_rpc_msg_do_trap:	lcall $7, $0
+-	_hurd_intr_rpc_msg_in_trap:	movl %ecx, %esp
+-	_hurd_intr_rpc_msg_sp_restored:
+-     We must check for the window during which %esp points at the
+-     mach_msg arguments.  The space below until %ecx is used by
+-     the _hurd_intr_rpc_mach_msg frame, and must not be clobbered.  */
+-  if (state->basic.eip >= (int) &_hurd_intr_rpc_msg_cx_sp
+-      && state->basic.eip < (int) &_hurd_intr_rpc_msg_sp_restored)
+-  /* The SP now points at the mach_msg args, but there is more stack
+-     space used below it.  The real SP is saved in %ecx; we must push the
+-     new frame below there (if not on the altstack), and restore that value as
+-     the SP on sigreturn.  */
+-    state->basic.uesp = state->basic.ecx;
+-
+   if ((action->sa_flags & SA_ONSTACK)
+       && !(ss->sigaltstack.ss_flags & (SS_DISABLE|SS_ONSTACK)))
+     {

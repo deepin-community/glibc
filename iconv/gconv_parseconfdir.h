@@ -1,5 +1,5 @@
 /* Handle configuration data.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,11 +29,14 @@
 # define isspace(__c) __isspace_l ((__c), _nl_C_locobj_ptr)
 # define asprintf __asprintf
 # define opendir __opendir
-# define readdir __readdir
+# define readdir64 __readdir64
 # define closedir __closedir
 # define mempcpy __mempcpy
-# define lstat64 __lstat64
+# define struct_stat64 struct __stat64_t64
+# define lstat64 __lstat64_time64
 # define feof_unlocked __feof_unlocked
+#else
+# define struct_stat64 struct stat64
 #endif
 
 /* Name of the file containing the module information in the directories
@@ -145,8 +148,8 @@ gconv_parseconfdir (const char *prefix, const char *dir, size_t dir_len)
   DIR *confdir = opendir (buf);
   if (confdir != NULL)
     {
-      struct dirent *ent;
-      while ((ent = readdir (confdir)) != NULL)
+      struct dirent64 *ent;
+      while ((ent = readdir64 (confdir)) != NULL)
 	{
 	  if (ent->d_type != DT_REG && ent->d_type != DT_UNKNOWN)
 	    continue;
@@ -158,7 +161,7 @@ gconv_parseconfdir (const char *prefix, const char *dir, size_t dir_len)
 	      && strcmp (ent->d_name + len - strlen (suffix), suffix) == 0)
 	    {
 	      char *conf;
-	      struct stat64 st;
+	      struct_stat64 st;
 	      if (asprintf (&conf, "%s/%s", buf, ent->d_name) < 0)
 		continue;
 

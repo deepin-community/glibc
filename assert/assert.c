@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -74,7 +74,7 @@ __assert_fail_base (const char *fmt, const char *assertion, const char *file,
 
 	  /* We have to free the old buffer since the application might
 	     catch the SIGABRT signal.  */
-	  struct abort_msg_s *old = atomic_exchange_acq (&__abort_msg, buf);
+	  struct abort_msg_s *old = atomic_exchange_acquire (&__abort_msg, buf);
 
 	  if (old != NULL)
 	    __munmap (old, old->size);
@@ -101,4 +101,3 @@ __assert_fail (const char *assertion, const char *file, unsigned int line,
   __assert_fail_base (_("%s%s%s:%u: %s%sAssertion `%s' failed.\n%n"),
 		      assertion, file, line, function);
 }
-hidden_def(__assert_fail)

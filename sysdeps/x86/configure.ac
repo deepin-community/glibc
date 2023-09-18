@@ -22,7 +22,7 @@ EOF
 fi
 if test $enable_cet != no; then
   # Check if assembler supports CET.
-  AC_CACHE_CHECK(whether $AS supports CET,
+  AC_CACHE_CHECK(whether assembler supports CET,
 		 libc_cv_x86_cet_as, [dnl
 cat > conftest.s <<EOF
 	incsspd %ecx
@@ -127,3 +127,6 @@ if test $libc_cv_include_x86_isa_level = yes; then
   fi
 fi
 LIBC_CONFIG_VAR([enable-x86-isa-level], [$libc_cv_include_x86_isa_level])
+
+dnl Static PIE is supported.
+AC_DEFINE(SUPPORT_STATIC_PIE)

@@ -1,4 +1,4 @@
-/* Copyright (C) 1998-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -390,7 +390,7 @@ __nscd_get_mapping (request_type type, const char *key,
   struct mapped_database *oldval = *mappedp;
   *mappedp = result;
 
-  if (oldval != NULL && atomic_decrement_val (&oldval->counter) == 0)
+  if (oldval != NULL && atomic_fetch_add_relaxed (&oldval->counter, -1) == 1)
     __nscd_unmap (oldval);
 
   return result;
@@ -425,7 +425,7 @@ __nscd_get_map_ref (request_type type, const char *name,
 				0))
 	    cur = NO_MAPPING;
 	  else
-	    atomic_increment (&cur->counter);
+	    atomic_fetch_add_relaxed (&cur->counter, 1);
 	}
     }
 

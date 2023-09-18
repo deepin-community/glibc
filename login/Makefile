@@ -1,4 +1,4 @@
-# Copyright (C) 1996-2022 Free Software Foundation, Inc.
+# Copyright (C) 1996-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -64,6 +64,7 @@ endif # $(have-GLIBC_2.33)
 include ../Rules
 
 CFLAGS-getpt.c += -fexceptions
+CFLAGS-getlogin_r.c += $(config-cflags-wno-ignored-attributes)
 
 ifeq (yesyes,$(have-fpie)$(build-shared))
 pt_chown-cflags += $(pie-ccflag)

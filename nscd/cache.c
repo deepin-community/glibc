@@ -1,4 +1,4 @@
-/* Copyright (c) 1998-2022 Free Software Foundation, Inc.
+/* Copyright (c) 1998-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -192,7 +192,7 @@ cache_add (int type, const void *key, size_t len, struct datahead *packet,
 
   /* We depend on this value being correct and at least as high as the
      real number of entries.  */
-  atomic_increment (&table->head->nentries);
+  atomic_fetch_add_relaxed (&table->head->nentries, 1);
 
   /* It does not matter that we are not loading the just increment
      value, this is just for statistics.  */

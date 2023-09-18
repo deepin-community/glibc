@@ -1,7 +1,7 @@
 /*
  * IBM Accurate Mathematical Library
  * written by International Business Machines Corp.
- * Copyright (C) 2001-2022 Free Software Foundation, Inc.
+ * Copyright (C) 2001-2023 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -165,14 +165,7 @@ __ieee754_asin(double x){
   /*---------------------------- |x|>=1 -------------------------------*/
   else if (k==0x3ff00000 && u.i[LOW_HALF]==0) return (m>0)?hp0.x:-hp0.x;
   else
-  if (k>0x7ff00000 || (k == 0x7ff00000 && u.i[LOW_HALF] != 0)) return x + x;
-  else {
-    u.i[HIGH_HALF]=0x7ff00000;
-    v.i[HIGH_HALF]=0x7ff00000;
-    u.i[LOW_HALF]=0;
-    v.i[LOW_HALF]=0;
-    return u.x/v.x;  /* NaN */
- }
+    return (x - x) / (x - x);
 }
 #ifndef __ieee754_asin
 libm_alias_finite (__ieee754_asin, __asin)
@@ -334,14 +327,7 @@ __ieee754_acos(double x)
   else
   if (k==0x3ff00000 && u.i[LOW_HALF]==0) return (m>0)?0:2.0*hp0.x;
   else
-  if (k>0x7ff00000 || (k == 0x7ff00000 && u.i[LOW_HALF] != 0)) return x + x;
-  else {
-    u.i[HIGH_HALF]=0x7ff00000;
-    v.i[HIGH_HALF]=0x7ff00000;
-    u.i[LOW_HALF]=0;
-    v.i[LOW_HALF]=0;
-    return u.x/v.x;
-  }
+    return (x - x) / (x - x);
 }
 #ifndef __ieee754_acos
 libm_alias_finite (__ieee754_acos, __acos)

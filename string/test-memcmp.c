@@ -1,5 +1,5 @@
 /* Test and measure memcmp functions.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -85,7 +85,6 @@ SIMPLE_MEMCMP (const char *s1, const char *s2, size_t n)
 
 typedef int (*proto_t) (const CHAR *, const CHAR *, size_t);
 
-IMPL (SIMPLE_MEMCMP, 0)
 IMPL (MEMCMP, 1)
 
 static int
@@ -118,9 +117,6 @@ do_test (size_t align1, size_t align2, size_t len, int exp_result)
   size_t i;
   CHAR *s1, *s2;
 
-  if (len == 0)
-    return;
-
   align1 &= (4096 - CHARBYTES);
   if (align1 + (len + 1) * CHARBYTES >= page_size)
     return;
@@ -135,9 +131,16 @@ do_test (size_t align1, size_t align2, size_t len, int exp_result)
   for (i = 0; i < len; i++)
     s1[i] = s2[i] = 1 + (23 << ((CHARBYTES - 1) * 8)) * i % CHAR__MAX;
 
-  s1[len] = align1;
-  s2[len] = align2;
-  s2[len - 1] -= exp_result;
+  if (len)
+    {
+      s1[len] = align1;
+      s2[len] = align2;
+      s2[len - 1] -= exp_result;
+    }
+  else
+    {
+      exp_result = 0;
+    }
 
   FOR_EACH_IMPL (impl, 0)
     do_one_test (impl, s1, s2, len, exp_result);

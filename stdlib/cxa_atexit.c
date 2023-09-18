@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,7 +21,7 @@
 
 #include <libc-lock.h>
 #include "exit.h"
-#include <sysdep.h>
+#include <pointer_guard.h>
 
 #undef __cxa_atexit
 
@@ -49,9 +49,7 @@ __internal_atexit (void (*func) (void *), void *arg, void *d,
       return -1;
     }
 
-#ifdef PTR_MANGLE
   PTR_MANGLE (func);
-#endif
   new->func.cxa.fn = (void (*) (void *, int)) func;
   new->func.cxa.arg = arg;
   new->func.cxa.dso_handle = d;

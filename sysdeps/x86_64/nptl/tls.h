@@ -1,5 +1,5 @@
 /* Definition for thread-local data handling.  nptl/x86_64 version.
-   Copyright (C) 2002-2022 Free Software Foundation, Inc.
+   Copyright (C) 2002-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -156,7 +156,7 @@ _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
 		     "S" (_thrdescr)					      \
 		   : "memory", "cc", "r11", "cx");			      \
 									      \
-    _result ? "cannot set %fs base address for thread-local storage" : 0;     \
+    _result == 0;							      \
   })
 
 # define TLS_DEFINE_INIT_TP(tp, pd) void *tp = (pd)

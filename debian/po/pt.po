@@ -2,14 +2,14 @@
 # Copyright (C) 2007
 # This file is distributed under the same license as the glibc package.
 # Ricardo Silva <ardoric@gmail.com>, 2007.
-# Pedro Ribeiro <p.m42.ribeiro@gmail.com>, 2010, 2012, 2017
+# Pedro Ribeiro <p.m42.ribeiro@gmail.com>, 2010, 2012, 2017, 2023
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: glibc 2.24-17\n"
+"Project-Id-Version: glibc 2.36-8\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2017-06-13 22:11+0200\n"
-"PO-Revision-Date: 2017-09-07 10:25+0100\n"
+"POT-Creation-Date: 2023-01-03 21:34+0100\n"
+"PO-Revision-Date: 2023-01-09 21:45+0100\n"
 "Last-Translator: Pedro Ribeiro <p.m42.ribeiro@gmail.com>\n"
 "Language-Team: Portuguese <traduz@debianpt.org>\n"
 "Language: pt\n"
@@ -49,8 +49,8 @@ msgid ""
 msgstr ""
 "Por favor escolha quais os locales a gerar. Os locales UTF-8 devem ser "
 "seleccionados, especialmente em instalações de raiz. Outros conjuntos de "
-"caracteres podem ser úteis para compatibilidade com software e sistemas "
-"mais antigos."
+"caracteres podem ser úteis para compatibilidade com software e sistemas mais "
+"antigos."
 
 #. Type: select
 #. Choices
@@ -250,10 +250,13 @@ msgstr "O kernel necessita de ser actualizado"
 #: ../debhelper.in/libc.templates:6001
 msgid ""
 "This version of the GNU libc requires kernel version ${kernel_ver} or "
-"later.  Please upgrade your kernel before installing glibc."
+"later.  Please upgrade your kernel and reboot before installing glibc. You "
+"may need to use \"apt -f install\" after reboot to solve dependencies."
 msgstr ""
 "Esta versão da GNU libc necessita da versão ${kernel_ver} ou mais recente. "
-"Por favor, actualize o kernel antes de instalar a glibc."
+"Por favor, actualize o kernel e reinicie antes de instalar a glibc. Pode ter "
+"que utilizar \"apt -f install\" após o reinício para resolver as "
+"dependências."
 
 #. Type: note
 #. Description

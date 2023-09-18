@@ -1,5 +1,5 @@
 /* Test strcat functions.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -54,11 +54,10 @@
 #endif /* WIDE */
 
 typedef CHAR *(*proto_t) (CHAR *, const CHAR *);
-CHAR *SIMPLE_STRCAT (CHAR *, const CHAR *);
 
-IMPL (SIMPLE_STRCAT, 0)
 IMPL (STRCAT, 1)
 
+/* Naive implementation to verify results.  */
 CHAR *
 SIMPLE_STRCAT (CHAR *dst, const CHAR *src)
 {

@@ -25,6 +25,6 @@ Index: glibc-2.33/misc/getauxval.c
 +    }
 +#endif
 +
- #ifdef AT_HWCAP
    if (type == AT_HWCAP)
      {
+       *result = GLRO(dl_hwcap);

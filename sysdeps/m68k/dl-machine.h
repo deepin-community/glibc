@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  m68k version.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -142,17 +142,8 @@ _start:\n\
 _dl_start_user:\n\
 	| Save the user entry point address in %a4.\n\
 	move.l %d0, %a4\n\
-	| See if we were run as a command with the executable file\n\
-	| name as an extra leading argument.\n\
-	" PCREL_OP ("move.l", "_dl_skip_args", "%d0", "%d0", "%pc") "\n\
-	| Pop the original argument count\n\
-	move.l (%sp)+, %d1\n\
-	| Subtract _dl_skip_args from it.\n\
-	sub.l %d0, %d1\n\
-	| Adjust the stack pointer to skip _dl_skip_args words.\n\
-	lea (%sp, %d0*4), %sp\n\
-	| Push back the modified argument count.\n\
-	move.l %d1, -(%sp)\n\
+	| Load the adjusted argument count.\n\
+	move.l (%sp), %d1\n\
 	# Call _dl_init (struct link_map *main_map, int argc, char **argv, char **env)\n\
 	pea 8(%sp, %d1*4)\n\
 	pea 8(%sp)\n\
@@ -234,6 +225,11 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 
       switch (r_type)
 	{
+	case R_68K_GLOB_DAT:
+	case R_68K_JMP_SLOT:
+	  *reloc_addr = value;
+	  break;
+#ifndef RTLD_BOOTSTRAP
 	case R_68K_COPY:
 	  if (sym == NULL)
 	    /* This can happen in trace mode if an object could not be
@@ -251,10 +247,6 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 	    }
 	  memcpy (reloc_addr_arg, (void *) value,
 		  MIN (sym->st_size, refsym->st_size));
-	  break;
-	case R_68K_GLOB_DAT:
-	case R_68K_JMP_SLOT:
-	  *reloc_addr = value;
 	  break;
 	case R_68K_8:
 	  *(char *) reloc_addr = value + reloc->r_addend;
@@ -276,7 +268,6 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 	case R_68K_PC32:
 	  *reloc_addr = value + reloc->r_addend - (Elf32_Addr) reloc_addr;
 	  break;
-#ifndef RTLD_BOOTSTRAP
 	case R_68K_TLS_DTPMOD32:
 	  /* Get the information from the link map returned by the
 	     resolv function.  */
@@ -294,9 +285,9 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 	      *reloc_addr = TLS_TPREL_VALUE (sym_map, sym, reloc);
 	    }
 	  break;
-#endif /* !RTLD_BOOTSTRAP */
 	case R_68K_NONE:		/* Alright, Wilbur.  */
 	  break;
+#endif /* !RTLD_BOOTSTRAP */
 	default:
 	  _dl_reloc_bad_type (map, r_type, 0);
 	  break;

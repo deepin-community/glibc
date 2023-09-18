@@ -1,5 +1,5 @@
 /* Linux/s390 version of processor capability information handling macros.
-   Copyright (C) 2006-2022 Free Software Foundation, Inc.
+   Copyright (C) 2006-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@ _dl_procinfo (unsigned int type, unsigned long int word)
 
   for (i = 0; i < _DL_HWCAP_COUNT; ++i)
     if (word & (1UL << i))
-      _dl_printf (" %s", GLRO(dl_s390_cap_flags)[i]);
+      _dl_printf (" %s", _dl_s390_cap_flags[i]);
 
   _dl_printf ("\n");
 

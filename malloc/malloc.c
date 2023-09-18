@@ -1,5 +1,5 @@
 /* Malloc implementation for multiple threads without lock contention.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    Copyright The GNU Toolchain Authors.
    This file is part of the GNU C Library.
 
@@ -254,6 +254,7 @@
 /* For tcache double-free check.  */
 #include <random-bits.h>
 #include <sys/random.h>
+#include <not-cancel.h>
 
 /*
   Debugging:
@@ -285,28 +286,6 @@
 
 #ifndef MALLOC_DEBUG
 #define MALLOC_DEBUG 0
-#endif
-
-#if IS_IN (libc)
-#ifndef NDEBUG
-# define __assert_fail(assertion, file, line, function)			\
-	 __malloc_assert(assertion, file, line, function)
-
-extern const char *__progname;
-
-static void
-__malloc_assert (const char *assertion, const char *file, unsigned int line,
-		 const char *function)
-{
-  (void) __fxprintf (NULL, "%s%s%s:%u: %s%sAssertion `%s' failed.\n",
-		     __progname, __progname[0] ? ": " : "",
-		     file, line,
-		     function ? function : "", function ? ": " : "",
-		     assertion);
-  fflush (stderr);
-  abort ();
-}
-#endif
 #endif
 
 #if USE_TCACHE
@@ -1121,6 +1100,8 @@ static void munmap_chunk(mchunkptr p);
 static mchunkptr mremap_chunk(mchunkptr p, size_t new_size);
 #endif
 
+static size_t musable (void *mem);
+
 /* ------------------ MMAP support ------------------  */
 
 
@@ -1129,10 +1110,6 @@ static mchunkptr mremap_chunk(mchunkptr p, size_t new_size);
 
 #if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
 # define MAP_ANONYMOUS MAP_ANON
-#endif
-
-#ifndef MAP_NORESERVE
-# define MAP_NORESERVE 0
 #endif
 
 #define MMAP(addr, size, prot, flags) \
@@ -1333,15 +1310,15 @@ nextchunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    MINSIZE :                                                      \
    ((req) + SIZE_SZ + MALLOC_ALIGN_MASK) & ~MALLOC_ALIGN_MASK)
 
-/* Check if REQ overflows when padded and aligned and if the resulting value
-   is less than PTRDIFF_T.  Returns TRUE and the requested size or MINSIZE in
-   case the value is less than MINSIZE on SZ or false if any of the previous
-   check fail.  */
-static inline bool
-checked_request2size (size_t req, size_t *sz) __nonnull (1)
+/* Check if REQ overflows when padded and aligned and if the resulting
+   value is less than PTRDIFF_T.  Returns the requested size or
+   MINSIZE in case the value is less than MINSIZE, or 0 if any of the
+   previous checks fail.  */
+static inline size_t
+checked_request2size (size_t req) __nonnull (1)
 {
   if (__glibc_unlikely (req > PTRDIFF_MAX))
-    return false;
+    return 0;
 
   /* When using tagged memory, we cannot share the end of the user
      block with the header for the next chunk, so ensure that we
@@ -1359,8 +1336,7 @@ checked_request2size (size_t req, size_t *sz) __nonnull (1)
 	    ~(size_t)(__MTAG_GRANULE_SIZE - 1);
     }
 
-  *sz = request2size (req);
-  return true;
+  return request2size (req);
 }
 
 /*
@@ -1783,7 +1759,7 @@ typedef struct malloc_chunk *mfastbinptr;
 #define set_contiguous(M)      ((M)->flags &= ~NONCONTIGUOUS_BIT)
 
 /* Maximum size of memory handled in fastbins.  */
-static INTERNAL_SIZE_T global_max_fast;
+static uint8_t global_max_fast;
 
 /*
    Set value of max_fast.
@@ -2486,11 +2462,11 @@ sysmalloc_mmap (INTERNAL_SIZE_T nb, size_t pagesize, int extra_flags, mstate av)
     }
 
   /* update statistics */
-  int new = atomic_exchange_and_add (&mp_.n_mmaps, 1) + 1;
+  int new = atomic_fetch_add_relaxed (&mp_.n_mmaps, 1) + 1;
   atomic_max (&mp_.max_n_mmaps, new);
 
   unsigned long sum;
-  sum = atomic_exchange_and_add (&mp_.mmapped_mem, size) + size;
+  sum = atomic_fetch_add_relaxed (&mp_.mmapped_mem, size) + size;
   atomic_max (&mp_.max_mmapped_mem, sum);
 
   check_chunk (av, p);
@@ -3059,8 +3035,8 @@ munmap_chunk (mchunkptr p)
       || __glibc_unlikely (!powerof2 (mem & (pagesize - 1))))
     malloc_printerr ("munmap_chunk(): invalid pointer");
 
-  atomic_decrement (&mp_.n_mmaps);
-  atomic_add (&mp_.mmapped_mem, -total_size);
+  atomic_fetch_add_relaxed (&mp_.n_mmaps, -1);
+  atomic_fetch_add_relaxed (&mp_.mmapped_mem, -total_size);
 
   /* If munmap failed the process virtual memory address space is in a
      bad shape.  Just leave the block hanging around, the process will
@@ -3110,7 +3086,7 @@ mremap_chunk (mchunkptr p, size_t new_size)
   set_head (p, (new_size - offset) | IS_MMAPPED);
 
   INTERNAL_SIZE_T new;
-  new = atomic_exchange_and_add (&mp_.mmapped_mem, new_size - size - offset)
+  new = atomic_fetch_add_relaxed (&mp_.mmapped_mem, new_size - size - offset)
         + new_size - size - offset;
   atomic_max (&mp_.max_mmapped_mem, new);
   return p;
@@ -3159,7 +3135,7 @@ static uintptr_t tcache_key;
 static void
 tcache_key_initialize (void)
 {
-  if (__getrandom (&tcache_key, sizeof(tcache_key), GRND_NONBLOCK)
+  if (__getrandom_nocancel (&tcache_key, sizeof(tcache_key), GRND_NONBLOCK)
       != sizeof (tcache_key))
     {
       tcache_key = random_bits ();
@@ -3295,8 +3271,8 @@ __libc_malloc (size_t bytes)
     ptmalloc_init ();
 #if USE_TCACHE
   /* int_free also calls request2size, be careful to not pad twice.  */
-  size_t tbytes;
-  if (!checked_request2size (bytes, &tbytes))
+  size_t tbytes = checked_request2size (bytes);
+  if (tbytes == 0)
     {
       __set_errno (ENOMEM);
       return NULL;
@@ -3422,6 +3398,14 @@ __libc_realloc (void *oldmem, size_t bytes)
   if (__glibc_unlikely (mtag_enabled))
     *(volatile char*) oldmem;
 
+  /* Return the chunk as is whenever possible, i.e. there's enough usable space
+     but not so much that we end up fragmenting the block.  We use the trim
+     threshold as the heuristic to decide the latter.  */
+  size_t usable = musable (oldmem);
+  if (bytes <= usable
+      && (unsigned long) (usable - bytes) <= mp_.trim_threshold)
+    return oldmem;
+
   /* chunk corresponding to oldmem */
   const mchunkptr oldp = mem2chunk (oldmem);
   /* its size */
@@ -3443,7 +3427,8 @@ __libc_realloc (void *oldmem, size_t bytes)
        || __builtin_expect (misaligned_chunk (oldp), 0)))
       malloc_printerr ("realloc(): invalid pointer");
 
-  if (!checked_request2size (bytes, &nb))
+  nb = checked_request2size (bytes);
+  if (nb == 0)
     {
       __set_errno (ENOMEM);
       return NULL;
@@ -3800,7 +3785,8 @@ _int_malloc (mstate av, size_t bytes)
      aligned.
    */
 
-  if (!checked_request2size (bytes, &nb))
+  nb = checked_request2size (bytes);
+  if (nb == 0)
     {
       __set_errno (ENOMEM);
       return NULL;
@@ -4742,7 +4728,7 @@ static void malloc_consolidate(mstate av)
   maxfb = &fastbin (av, NFASTBINS - 1);
   fb = &fastbin (av, 0);
   do {
-    p = atomic_exchange_acq (fb, NULL);
+    p = atomic_exchange_acquire (fb, NULL);
     if (p != 0) {
       do {
 	{
@@ -4827,7 +4813,8 @@ _int_realloc (mstate av, mchunkptr oldp, INTERNAL_SIZE_T oldsize,
 
   /* oldmem size */
   if (__builtin_expect (chunksize_nomask (oldp) <= CHUNK_HDR_SZ, 0)
-      || __builtin_expect (oldsize >= av->system_mem, 0))
+      || __builtin_expect (oldsize >= av->system_mem, 0)
+      || __builtin_expect (oldsize != chunksize (oldp), 0))
     malloc_printerr ("realloc(): invalid old size");
 
   check_inuse_chunk (av, oldp);
@@ -4952,7 +4939,8 @@ _int_memalign (mstate av, size_t alignment, size_t bytes)
 
 
 
-  if (!checked_request2size (bytes, &nb))
+  nb = checked_request2size (bytes);
+  if (nb == 0)
     {
       __set_errno (ENOMEM);
       return NULL;
@@ -5412,8 +5400,7 @@ do_set_tcache_unsorted_limit (size_t value)
 }
 #endif
 
-static inline int
-__always_inline
+static __always_inline int
 do_set_mxfast (size_t value)
 {
   if (value <= MAX_FAST_SIZE)
@@ -5661,7 +5648,7 @@ static void
 malloc_printerr (const char *str)
 {
 #if IS_IN (libc)
-  __libc_message (do_abort, "%s\n", str);
+  __libc_message ("%s\n", str);
 #else
   __libc_fatal (str);
 #endif

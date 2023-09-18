@@ -1,5 +1,5 @@
 /* Mapping tables for JIS0212 handling.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@
    char in a table resulting in an index to a table with the UCS.  The
    following command can be used to generate the table:
 
-   egrep '^0x[[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]' \
+   grep -E '^0x[[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]' \
      .../eastasia/jis/jis0212.txt | perl tab.pl
 
    where tab.pl is
@@ -71,7 +71,7 @@ const struct jisx0212_idx __jisx0212_to_ucs_idx[] =
 /* The table which the UCS values indexed by the table above can be
    generated using the following code:
 
-   egrep '^0x[[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]' \
+   grep -E '^0x[[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]' \
      .../eastasia/jis/jis0212.txt | perl tab.pl
 
    where tab.pl is:
@@ -876,7 +876,7 @@ const uint16_t __jisx0212_to_ucs[] =
    use again a two-step mapping table.  The index table can be computed
    using
 
-   egrep '^0x[[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]' \
+   grep -E '^0x[[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]' \
      ../eastasia/jis/jis0212.txt | awk '{ print $2, $1 }' | sort -u |
    perl tab.pl
 
@@ -1657,7 +1657,7 @@ const struct jisx0212_idx __jisx0212_from_ucs_idx[] =
 
 /* The values corresponding to the table can be computed using
 
-    egrep '^0x[[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]' \
+    grep -E '^0x[[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]' \
       .../eastasia/jis/jis0212.txt | awk '{ print $2, $1 }' |
     sort -u | perl tab.pl
 

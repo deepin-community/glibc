@@ -1,5 +1,5 @@
 /* Benchmark utility functions.
-   Copyright (C) 2015-2022 Free Software Foundation, Inc.
+   Copyright (C) 2015-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,13 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+/* Prevent compiler to optimize away call.  */
+#define DO_NOT_OPTIMIZE_OUT(value)		  \
+  ({						  \
+    __typeof (value) __v = (value);		  \
+    asm volatile ("" : : "r,m" (__v) : "memory"); \
+    __v;					  \
+  })
 
 #ifndef START_ITER
 # define START_ITER (100000000)

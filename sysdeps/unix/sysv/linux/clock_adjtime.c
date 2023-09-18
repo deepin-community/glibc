@@ -1,5 +1,5 @@
 /* clock_adjtime -- tune kernel clock.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ __clock_adjtime64 (const clockid_t clock_id, struct __timex64 *tx64)
     return r;
 
   if (tx64->modes & ADJ_SETOFFSET
-      && ! in_time_t_range (tx64->time.tv_sec))
+      && ! in_int32_t_range (tx64->time.tv_sec))
     {
       __set_errno (EOVERFLOW);
       return -1;

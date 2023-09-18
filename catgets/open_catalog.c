@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@ __open_catalog (const char *cat_name, const char *nlspath, const char *env_var,
 		__nl_catd catalog)
 {
   int fd = -1;
-  struct stat64 st;
+  struct __stat64_t64 st;
   int swapping;
   size_t cnt;
   size_t max_offset;
@@ -193,7 +193,7 @@ __open_catalog (const char *cat_name, const char *nlspath, const char *env_var,
       return -1;
     }
 
-  if (__builtin_expect (__fstat64 (fd, &st), 0) < 0)
+  if (__glibc_unlikely (__fstat64_time64 (fd, &st) < 0))
     goto close_unlock_return;
 
   if (__builtin_expect (!S_ISREG (st.st_mode), 0)

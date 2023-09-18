@@ -1,5 +1,5 @@
 /* Array allocation from a fixed-size buffer.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,12 +23,12 @@ void *
 __libc_alloc_buffer_alloc_array (struct alloc_buffer *buf, size_t element_size,
                                  size_t align, size_t count)
 {
-  size_t current = buf->__alloc_buffer_current;
+  uintptr_t current = buf->__alloc_buffer_current;
   /* The caller asserts that align is a power of two.  */
-  size_t aligned = ALIGN_UP (current, align);
+  uintptr_t aligned = ALIGN_UP (current, align);
   size_t size;
   bool overflow = __builtin_mul_overflow (element_size, count, &size);
-  size_t new_current = aligned + size;
+  uintptr_t new_current = aligned + size;
   if (!overflow                /* Multiplication did not overflow.  */
       && aligned >= current    /* No overflow in align step.  */
       && new_current >= size   /* No overflow in size computation.  */

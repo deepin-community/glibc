@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2022 Free Software Foundation, Inc.
+# Copyright (C) 1991-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -143,7 +143,8 @@ Usage: $$0 [OPTIONS] <program> [ARGUMENTS...]
 
   --tool=TOOL  Run with the specified TOOL. It can be strace, rpctrace,
                valgrind or container. The container will run within
-               support/test-container.
+               support/test-container.  For strace and valgrind,
+               additional arguments can be passed after the tool name.
 EOF
 
   exit 1
@@ -174,16 +175,16 @@ case "$$toolname" in
     exec $(subst $(common-objdir),"$${builddir}", $(test-program-prefix)) \
       $${1+"$$@"}
     ;;
-  strace)
-    exec strace $(patsubst %, -E%, $(run-program-env)) \
+  strace*)
+    exec $$toolname $(patsubst %, -E%, $(run-program-env)) \
       $(test-via-rtld-prefix) $${1+"$$@"}
     ;;
   rpctrace)
     exec rpctrace $(patsubst %, -E%, $(run-program-env)) \
       $(test-via-rtld-prefix) $${1+"$$@"}
     ;;
-  valgrind)
-    exec env $(run-program-env) valgrind $(test-via-rtld-prefix) $${1+"$$@"}
+  valgrind*)
+    exec env $(run-program-env) $$toolname $(test-via-rtld-prefix) $${1+"$$@"}
     ;;
   container)
     exec env $(run-program-env) $(test-via-rtld-prefix) \
@@ -564,10 +565,10 @@ $(objpfx)check-wrapper-headers.out: scripts/check-wrapper-headers.py $(headers)
 endif # $(headers)
 
 define summarize-tests
-@egrep -v '^(PASS|XFAIL):' $(objpfx)$1 || true
+@grep -E -v '^(PASS|XFAIL):' $(objpfx)$1 || true
 @echo "Summary of test results$2:"
 @sed 's/:.*//' < $(objpfx)$1 | sort | uniq -c
-@! egrep -q -v '^(X?PASS|XFAIL|UNSUPPORTED):' $(objpfx)$1
+@! grep -E -q -v '^(X?PASS|XFAIL|UNSUPPORTED):' $(objpfx)$1
 endef
 
 # The intention here is to do ONE install of our build into the

@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,11 +40,10 @@ do								\
 /* Returns 0 if everything is ok, != 0 in case of error.  */
 int
 process_elf_file (const char *file_name, const char *lib, int *flag,
-		  unsigned int *osversion, unsigned int *isa_level,
-		  char **soname, void *file_contents, size_t file_length)
+		  unsigned int *isa_level, char **soname, void *file_contents,
+		  size_t file_length)
 {
   int i;
-  unsigned int j;
   unsigned int dynamic_addr;
   size_t dynamic_size;
   char *program_interpreter;
@@ -55,7 +54,6 @@ process_elf_file (const char *file_name, const char *lib, int *flag,
   char *dynamic_strings;
 
   elf_header = (ElfW(Ehdr) *) file_contents;
-  *osversion = 0;
 
   if (elf_header->e_ident [EI_CLASS] != ElfW (CLASS))
     {
@@ -82,9 +80,8 @@ process_elf_file (const char *file_name, const char *lib, int *flag,
   elf_pheader = (ElfW(Phdr) *) (elf_header->e_phoff + file_contents);
   check_ptr (elf_pheader);
 
-  /* The library is an elf library, now search for soname and
-     libc5/libc6.  */
-  *flag = FLAG_ELF;
+  /* The library is an elf library.  */
+  *flag = FLAG_ELF_LIBC6;
 
   /* The default ISA level is 0.  */
   *isa_level = 0;
@@ -110,62 +107,6 @@ process_elf_file (const char *file_name, const char *lib, int *flag,
 	case PT_INTERP:
 	  program_interpreter = (char *) (file_contents + segment->p_offset);
 	  check_ptr (program_interpreter);
-
-	  /* Check if this is enough to classify the binary.  */
-	  for (j = 0; j < sizeof (interpreters) / sizeof (interpreters [0]);
-	       ++j)
-	    if (strcmp (program_interpreter, interpreters[j].soname) == 0)
-	      {
-		*flag = interpreters[j].flag;
-		break;
-	      }
-	  break;
-
-	case PT_NOTE:
-	  if (!*osversion && segment->p_filesz >= 32 && segment->p_align >= 4)
-	    {
-	      ElfW(Word) *abi_note = (ElfW(Word) *) (file_contents
-						     + segment->p_offset);
-	      ElfW(Addr) size = segment->p_filesz;
-	      /* NB: Some PT_NOTE segment may have alignment value of 0
-		 or 1.  gABI specifies that PT_NOTE segments should be
-		 aligned to 4 bytes in 32-bit objects and to 8 bytes in
-		 64-bit objects.  As a Linux extension, we also support
-		 4 byte alignment in 64-bit objects.  If p_align is less
-		 than 4, we treate alignment as 4 bytes since some note
-		 segments have 0 or 1 byte alignment.   */
-	      ElfW(Addr) align = segment->p_align;
-	      if (align < 4)
-		align = 4;
-	      else if (align != 4 && align != 8)
-		continue;
-
-	      while (abi_note [0] != 4 || abi_note [1] != 16
-		     || abi_note [2] != 1
-		     || memcmp (abi_note + 3, "GNU", 4) != 0)
-		{
-		  ElfW(Addr) note_size
-		    = ELF_NOTE_NEXT_OFFSET (abi_note[0], abi_note[1],
-					    align);
-
-		  if (size - 32 < note_size || note_size == 0)
-		    {
-		      size = 0;
-		      break;
-		    }
-		  size -= note_size;
-		  abi_note = (void *) abi_note + note_size;
-		}
-
-	      if (size == 0)
-		break;
-
-	      *osversion = ((abi_note [4] << 24)
-			    | ((abi_note [5] & 0xff) << 16)
-			    | ((abi_note [6] & 0xff) << 8)
-			    | (abi_note [7] & 0xff));
-	    }
-	  break;
 
 	case PT_GNU_PROPERTY:
 	  /* The NT_GNU_PROPERTY_TYPE_0 note must be aligned to 4 bytes
@@ -291,38 +232,16 @@ done:
   if (dynamic_strings == NULL)
     return 1;
 
-  /* Now read the DT_NEEDED and DT_SONAME entries.  */
+  /* Now read the DT_SONAME entries.  */
   for (dyn_entry = dynamic_segment; dyn_entry->d_tag != DT_NULL;
        ++dyn_entry)
     {
-      if (dyn_entry->d_tag == DT_NEEDED || dyn_entry->d_tag == DT_SONAME)
+      if (dyn_entry->d_tag == DT_SONAME)
 	{
 	  char *name = dynamic_strings + dyn_entry->d_un.d_val;
 	  check_ptr (name);
-
-	  if (dyn_entry->d_tag == DT_NEEDED)
-	    {
-
-	      if (*flag == FLAG_ELF)
-		{
-		  /* Check if this is enough to classify the binary.  */
-		  for (j = 0;
-		       j < sizeof (known_libs) / sizeof (known_libs [0]);
-		       ++j)
-		    if (strcmp (name, known_libs [j].soname) == 0)
-		      {
-			*flag = known_libs [j].flag;
-			break;
-		      }
-		}
-	    }
-
-	  else if (dyn_entry->d_tag == DT_SONAME)
-	    *soname = xstrdup (name);
-
-	  /* Do we have everything we need?  */
-	  if (*soname && *flag != FLAG_ELF)
-	    return 0;
+          *soname = xstrdup (name);
+          return 0;
 	}
     }
 

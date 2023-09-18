@@ -1,5 +1,5 @@
 /* Hurd helpers for lowlevellocks.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -89,7 +89,7 @@ __lll_abstimed_lock (void *ptr,
 
   while (1)
     {
-      if (atomic_exchange_acq ((int *)ptr, 2) == 0)
+      if (atomic_exchange_acquire ((int *)ptr, 2) == 0)
         return 0;
       else if (! valid_nanoseconds (tsp->tv_nsec))
         return EINVAL;

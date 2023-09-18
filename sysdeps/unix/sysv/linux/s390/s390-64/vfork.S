@@ -1,4 +1,4 @@
-/* Copyright (C) 2004-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2004-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,7 +28,8 @@
 
 ENTRY (__libc_vfork)
 	/* Do vfork system call.  */
-	svc	SYS_ify (vfork)
+	lghi	%r1,SYS_ify (vfork)
+	svc	0
 
 	/* Check for error.  */
 	lghi	%r4,-4095

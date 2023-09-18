@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -36,7 +36,7 @@
 #include <wcsmbs/wcsmbsload.h>
 #include <iconv/gconv_int.h>
 #include <shlib-compat.h>
-#include <sysdep.h>
+#include <pointer_guard.h>
 
 
 /* Return orientation of stream.  If mode is nonzero try to change
@@ -124,10 +124,8 @@ __libio_codecvt_out (struct _IO_codecvt *codecvt, __mbstate_t *statep,
   codecvt->__cd_out.step_data.__statep = statep;
 
   __gconv_fct fct = gs->__fct;
-#ifdef PTR_DEMANGLE
   if (gs->__shlib_handle != NULL)
     PTR_DEMANGLE (fct);
-#endif
 
   status = DL_CALL_FCT (fct,
 			(gs, &codecvt->__cd_out.step_data, &from_start_copy,
@@ -176,10 +174,8 @@ __libio_codecvt_in (struct _IO_codecvt *codecvt, __mbstate_t *statep,
   codecvt->__cd_in.step_data.__statep = statep;
 
   __gconv_fct fct = gs->__fct;
-#ifdef PTR_DEMANGLE
   if (gs->__shlib_handle != NULL)
     PTR_DEMANGLE (fct);
-#endif
 
   status = DL_CALL_FCT (fct,
 			(gs, &codecvt->__cd_in.step_data, &from_start_copy,
@@ -243,10 +239,8 @@ __libio_codecvt_length (struct _IO_codecvt *codecvt, __mbstate_t *statep,
   codecvt->__cd_in.step_data.__statep = statep;
 
   __gconv_fct fct = gs->__fct;
-#ifdef PTR_DEMANGLE
   if (gs->__shlib_handle != NULL)
     PTR_DEMANGLE (fct);
-#endif
 
   DL_CALL_FCT (fct,
 	       (gs, &codecvt->__cd_in.step_data, &cp,

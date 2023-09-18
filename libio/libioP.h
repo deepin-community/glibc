@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -47,6 +47,7 @@
 #include "iolibio.h"
 
 #include <shlib-compat.h>
+#include <pointer_guard.h>
 
 /* For historical reasons this is the name of the sysdeps header that
    adjusts the libio configuration.  */
@@ -910,9 +911,7 @@ extern void (*IO_accept_foreign_vtables) (void) attribute_hidden;
 static inline void
 IO_set_accept_foreign_vtables (void (*flag) (void))
 {
-#ifdef PTR_MANGLE
   PTR_MANGLE (flag);
-#endif
   atomic_store_relaxed (&IO_accept_foreign_vtables, flag);
 }
 

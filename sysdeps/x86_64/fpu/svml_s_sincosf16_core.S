@@ -1,5 +1,5 @@
 /* Function sincosf vectorized with AVX-512. Wrapper to AVX2 version.
-   Copyright (C) 2014-2022 Free Software Foundation, Inc.
+   Copyright (C) 2014-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 #include <sysdep.h>
 #include "svml_s_wrapper_impl.h"
 
-	.text
+	.section .text.evex512, "ax", @progbits
 ENTRY (_ZGVeN16vl4l4_sincosf)
 WRAPPER_IMPL_AVX512_fFF _ZGVdN8vl4l4_sincosf
 END (_ZGVeN16vl4l4_sincosf)

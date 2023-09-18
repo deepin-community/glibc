@@ -1,5 +1,5 @@
 /* wcsrchr optimized with SSE2.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,8 +16,12 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#if IS_IN (libc)
-# define wcsrchr __wcsrchr_sse2
+#ifndef WCSRCHR
+# define WCSRCHR	__wcsrchr_sse2
 #endif
 
-#include "../wcsrchr.S"
+#define STRRCHR	WCSRCHR
+#define USE_AS_WCSRCHR	1
+#define NO_PMINU	1
+
+#include "strrchr-sse2.S"

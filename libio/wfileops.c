@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -412,7 +412,8 @@ _IO_wfile_overflow (FILE *f, wint_t wch)
       return WEOF;
     }
   /* If currently reading or no buffer allocated. */
-  if ((f->_flags & _IO_CURRENTLY_PUTTING) == 0)
+  if ((f->_flags & _IO_CURRENTLY_PUTTING) == 0
+      || f->_wide_data->_IO_write_base == NULL)
     {
       /* Allocate a buffer if needed. */
       if (f->_wide_data->_IO_write_base == 0)

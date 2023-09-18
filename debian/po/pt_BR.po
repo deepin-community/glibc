@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the glibc package.
 # Felipe Augusto van de Wiel (faw) <faw@debian.org>, 2007-2008.
 # Fernando Ike de Oliveira (fike) <fike@midstorm.org>, 2013.
-# Adriano Rafael Gomes <adrianorg@debian.org>, 2014-2020.
+# Adriano Rafael Gomes <adrianorg@debian.org>, 2014-2023.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glibc\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2017-08-26 13:35+0200\n"
-"PO-Revision-Date: 2020-07-11 18:48-0300\n"
+"POT-Creation-Date: 2023-01-03 21:34+0100\n"
+"PO-Revision-Date: 2023-01-08 13:21-0300\n"
 "Last-Translator: Adriano Rafael Gomes <adrianorg@debian.org>\n"
 "Language-Team: Brazilian Portuguese <debian-l10n-portuguese@lists.debian."
 "org>\n"
@@ -191,8 +191,8 @@ msgid ""
 "You will need to start these manually by running 'invoke-rc.d <service> "
 "start'."
 msgstr ""
-"Você deverá iniciá-los manualmente executando \"invoke-rc.d <serviço> start"
-"\"."
+"Você deverá iniciá-los manualmente executando \"invoke-rc.d <serviço> "
+"start\"."
 
 #. Type: error
 #. Description
@@ -256,10 +256,13 @@ msgstr "O kernel deve ser atualizado"
 #: ../debhelper.in/libc.templates:6001
 msgid ""
 "This version of the GNU libc requires kernel version ${kernel_ver} or "
-"later.  Please upgrade your kernel before installing glibc."
+"later.  Please upgrade your kernel and reboot before installing glibc. You "
+"may need to use \"apt -f install\" after reboot to solve dependencies."
 msgstr ""
 "Essa versão da GNU libc requer um kernel versão ${kernel_ver} ou mais "
-"recente. Por favor, atualize o seu kernel antes de instalar a glibc."
+"recente. Por favor, atualize o seu kernel e reinicialize o computador antes "
+"de instalar a glibc. Você talvez precise usar \"apt -f install\" depois de "
+"reinicializar para resolver dependências."
 
 #. Type: note
 #. Description

@@ -1,7 +1,7 @@
 /* Make sure that the stackaddr returned by pthread_getattr_np is
    reachable.
 
-   Copyright (C) 2012-2022 Free Software Foundation, Inc.
+   Copyright (C) 2012-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,6 +27,8 @@
 #include <assert.h>
 #include <unistd.h>
 #include <inttypes.h>
+
+#include <support/support.h>
 
 /* There is an obscure bug in the kernel due to which RLIMIT_STACK is sometimes
    returned as unlimited when it is not, which may cause this test to fail.
@@ -153,6 +155,8 @@ check_stack_top (void)
 static int
 do_test (void)
 {
+  support_need_proc ("Reads /proc/self/maps to get stack size.");
+
   pagesize = sysconf (_SC_PAGESIZE);
   return check_stack_top ();
 }

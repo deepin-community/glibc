@@ -1,5 +1,5 @@
 /* Simple transformations functions.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -959,8 +959,8 @@ ucs4le_internal_loop_single (struct __gconv_step *step,
       }									      \
     else								      \
       {									      \
-	uint_fast32_t cnt;						      \
-	uint_fast32_t i;						      \
+	unsigned int cnt;						      \
+	unsigned int i;						      \
 									      \
 	if (ch >= 0xc2 && ch < 0xe0)					      \
 	  {								      \

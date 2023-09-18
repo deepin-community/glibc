@@ -1,5 +1,5 @@
 /* ioctl commands which must be done in the C library.
-   Copyright (C) 1994-2022 Free Software Foundation, Inc.
+   Copyright (C) 1994-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -70,7 +70,7 @@ fioctl (int fd,
 
     case FIONREAD:
       {
-	mach_msg_type_number_t navail;
+	vm_size_t navail;
 	err = HURD_DPORT_USE (fd, __io_readable (port, &navail));
 	if (!err)
 	  *arg = (int) navail;

@@ -1,5 +1,5 @@
 /* Linux/sparc version of processor capability information handling macros.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -50,19 +50,6 @@ __attribute__ ((unused))
 _dl_hwcap_string (int idx)
 {
   return GLRO(dl_sparc_cap_flags)[idx];
-};
-
-static inline int
-__attribute__ ((unused, always_inline))
-_dl_string_hwcap (const char *str)
-{
-  int i;
-  for (i = 0; i < _DL_HWCAP_COUNT; i++)
-    {
-      if (strcmp (str, GLRO(dl_sparc_cap_flags) [i]) == 0)
-	return i;
-    }
-  return -1;
 };
 
 #include <bits/wordsize.h>

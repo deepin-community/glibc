@@ -1,5 +1,5 @@
 /* Cache handling for host lookup.
-   Copyright (C) 2004-2022 Free Software Foundation, Inc.
+   Copyright (C) 2004-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -110,11 +110,10 @@ addhstaiX (struct database_dyn *db, int fd, request_header *req,
 							  "gethostbyname4_r");
       if (fct4 != NULL)
 	{
-	  struct gaih_addrtuple atmem;
 	  struct gaih_addrtuple *at;
 	  while (1)
 	    {
-	      at = &atmem;
+	      at = NULL;
 	      rc6 = 0;
 	      herrno = 0;
 	      status[1] = DL_CALL_FCT (fct4, (key, &at,
@@ -137,7 +136,7 @@ addhstaiX (struct database_dyn *db, int fd, request_header *req,
 	    goto next_nip;
 
 	  /* We found the data.  Count the addresses and the size.  */
-	  for (const struct gaih_addrtuple *at2 = at = &atmem; at2 != NULL;
+	  for (const struct gaih_addrtuple *at2 = at; at2 != NULL;
 	       at2 = at2->next)
 	    {
 	      ++naddrs;

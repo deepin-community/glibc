@@ -1,5 +1,5 @@
 /* Handle loading and unloading shared objects for internal libc purposes.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -156,7 +156,7 @@ __libc_dlopen_mode (const char *name, int mode)
   args.caller_dlopen = RETURN_ADDRESS (0);
 
 #ifdef SHARED
-  if (!rtld_active ())
+  if (GLRO (dl_dlfcn_hook) != NULL)
     return GLRO (dl_dlfcn_hook)->libc_dlopen_mode (name, mode);
 #endif
   return dlerror_run (do_dlopen, &args) ? NULL : (void *) args.map;
@@ -184,7 +184,7 @@ __libc_dlsym (void *map, const char *name)
   args.name = name;
 
 #ifdef SHARED
-  if (!rtld_active ())
+  if (GLRO (dl_dlfcn_hook) != NULL)
     return GLRO (dl_dlfcn_hook)->libc_dlsym (map, name);
 #endif
   return (dlerror_run (do_dlsym, &args) ? NULL
@@ -198,7 +198,7 @@ void *
 __libc_dlvsym (void *map, const char *name, const char *version)
 {
 #ifdef SHARED
-  if (!rtld_active ())
+  if (GLRO (dl_dlfcn_hook) != NULL)
     return GLRO (dl_dlfcn_hook)->libc_dlvsym (map, name, version);
 #endif
 
@@ -221,7 +221,7 @@ int
 __libc_dlclose (void *map)
 {
 #ifdef SHARED
-  if (!rtld_active ())
+  if (GLRO (dl_dlfcn_hook) != NULL)
     return GLRO (dl_dlfcn_hook)->libc_dlclose (map);
 #endif
   return dlerror_run (do_dlclose, map);

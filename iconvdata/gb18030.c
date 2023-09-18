@@ -1,5 +1,5 @@
 /* Mapping tables for GBK handling.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@
 /* The tables in this file are generated from the charmap.
    In a first step, the charmap is converted to a simple table format:
 
-      ./tst-table-charmap.sh GB18030 < ../localedata/charmaps/GB18030 \
+      ./tst-table-charmap.sh < ../localedata/charmaps/GB18030 \
       > GB18030.table
 */
 

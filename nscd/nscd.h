@@ -1,4 +1,4 @@
-/* Copyright (c) 1998-2022 Free Software Foundation, Inc.
+/* Copyright (c) 1998-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -65,7 +65,7 @@ typedef enum
 struct traced_file
 {
   /* Tracks the last modified time of the traced file.  */
-  time_t mtime;
+  __time64_t mtime;
   /* Support multiple registered files per database.  */
   struct traced_file *next;
   int call_res_init;

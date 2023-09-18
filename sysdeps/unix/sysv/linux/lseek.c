@@ -1,5 +1,5 @@
 /* Linux lseek implementation, 32 bits off_t.
-   Copyright (C) 2016-2022 Free Software Foundation, Inc.
+   Copyright (C) 2016-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -41,6 +41,10 @@ static inline off_t lseek_overflow (loff_t res)
 off_t
 __lseek (int fd, off_t offset, int whence)
 {
+#ifdef __NR_llseek
+# define __NR__llseek __NR_llseek
+#endif
+
 # ifdef __NR__llseek
   loff_t res;
   int rc = INLINE_SYSCALL_CALL (_llseek, fd,

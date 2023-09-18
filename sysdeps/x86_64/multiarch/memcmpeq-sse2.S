@@ -1,5 +1,5 @@
 /* __memcmpeq optimized with SSE2.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,8 +16,10 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#ifndef memcmp
-# define memcmp	__memcmpeq_sse2
+#ifndef MEMCMPEQ
+# define MEMCMPEQ	__memcmpeq_sse2
 #endif
+
+#define MEMCMP	MEMCMPEQ
 #define USE_AS_MEMCMPEQ	1
 #include "memcmp-sse2.S"

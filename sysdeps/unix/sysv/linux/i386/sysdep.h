@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,6 +40,15 @@
 # else
 #  define I386_USE_SYSENTER	0
 # endif
+#endif
+
+#if !I386_USE_SYSENTER && IS_IN (libc) && !defined SHARED
+/* Inside static libc, we have two versions.  For compilation units
+   with !I386_USE_SYSENTER, the vDSO entry mechanism cannot be
+   used. */
+# define I386_DO_SYSCALL_STRING "__libc_do_syscall_int80"
+#else
+# define I386_DO_SYSCALL_STRING "__libc_do_syscall"
 #endif
 
 #ifdef __ASSEMBLER__
@@ -301,7 +310,7 @@ struct libc_do_syscall_args
     };									\
     asm volatile (							\
     "movl %1, %%eax\n\t"						\
-    "call __libc_do_syscall"						\
+    "call " I386_DO_SYSCALL_STRING					\
     : "=a" (resultvar)							\
     : "i" (__NR_##name), "c" (arg2), "d" (arg3), "S" (arg4), "D" (&_xv) \
     : "memory", "cc")
@@ -315,7 +324,7 @@ struct libc_do_syscall_args
     };									\
     asm volatile (							\
     "movl %1, %%eax\n\t"						\
-    "call __libc_do_syscall"						\
+    "call " I386_DO_SYSCALL_STRING					\
     : "=a" (resultvar)							\
     : "a" (name), "c" (arg2), "d" (arg3), "S" (arg4), "D" (&_xv)	\
     : "memory", "cc")
@@ -436,34 +445,6 @@ struct libc_do_syscall_args
 #endif
 
 #endif	/* __ASSEMBLER__ */
-
-
-/* Pointer mangling support.  */
-#if IS_IN (rtld)
-/* We cannot use the thread descriptor because in ld.so we use setjmp
-   earlier than the descriptor is initialized.  Using a global variable
-   is too complicated here since we have no PC-relative addressing mode.  */
-#else
-# ifdef __ASSEMBLER__
-#  define PTR_MANGLE(reg)	xorl %gs:POINTER_GUARD, reg;		      \
-				roll $9, reg
-#  define PTR_DEMANGLE(reg)	rorl $9, reg;				      \
-				xorl %gs:POINTER_GUARD, reg
-# else
-#  define PTR_MANGLE(var)	asm ("xorl %%gs:%c2, %0\n"		      \
-				     "roll $9, %0"			      \
-				     : "=r" (var)			      \
-				     : "0" (var),			      \
-				       "i" (offsetof (tcbhead_t,	      \
-						      pointer_guard)))
-#  define PTR_DEMANGLE(var)	asm ("rorl $9, %0\n"			      \
-				     "xorl %%gs:%c2, %0"		      \
-				     : "=r" (var)			      \
-				     : "0" (var),			      \
-				       "i" (offsetof (tcbhead_t,	      \
-						      pointer_guard)))
-# endif
-#endif
 
 /* Each shadow stack slot takes 4 bytes.  Assuming that each stack
    frame takes 128 bytes, this is used to compute shadow stack size

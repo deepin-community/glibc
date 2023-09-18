@@ -1,5 +1,5 @@
 /* Default SPARC64 memset implementation.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,6 +25,5 @@
 # define weak_alias(x, y)
 
 # define memset  __memset_ultra1
-# define __bzero __bzero_ultra1
 # include <sysdeps/sparc/sparc64/memset.S>
 #endif

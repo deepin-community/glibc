@@ -1,5 +1,5 @@
 /* BSD-like signal function.
-   Copyright (C) 1991-2022 Free Software Foundation, Inc.
+   Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ __bsd_signal (int sig, __sighandler_t handler)
 
   /* Check signal extents to protect __sigismember.  */
   if (handler == SIG_ERR || sig < 1 || sig >= NSIG
-      || __is_internal_signal (sig))
+      || is_internal_signal (sig))
     {
       __set_errno (EINVAL);
       return SIG_ERR;

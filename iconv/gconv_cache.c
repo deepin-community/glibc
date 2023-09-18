@@ -1,5 +1,5 @@
 /* Cache handling for iconv modules.
-   Copyright (C) 2001-2022 Free Software Foundation, Inc.
+   Copyright (C) 2001-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@
 #include <gconv_int.h>
 #include <iconvconfig.h>
 #include <not-cancel.h>
+#include <pointer_guard.h>
 
 #include "../intl/hash-string.h"
 
@@ -204,16 +205,11 @@ find_module (const char *directory, const char *filename,
 
       /* Call the init function.  */
       __gconv_init_fct init_fct = result->__init_fct;
-#ifdef PTR_DEMANGLE
       PTR_DEMANGLE (init_fct);
-#endif
       if (init_fct != NULL)
 	{
 	  status = DL_CALL_FCT (init_fct, (result));
-
-#ifdef PTR_MANGLE
 	  PTR_MANGLE (result->__btowc_fct);
-#endif
 	}
     }
 

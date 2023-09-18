@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  x86-64 version.
-   Copyright (C) 2001-2022 Free Software Foundation, Inc.
+   Copyright (C) 2001-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@
 #include <dl-tlsdesc.h>
 #include <dl-static-tls.h>
 #include <dl-machine-rel.h>
+#include <isa-level.h>
 
 /* Return nonzero iff ELF header is compatible with the running host.  */
 static inline int __attribute__ ((unused))
@@ -86,6 +87,8 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
       /* Identify this shared object.  */
       *(ElfW(Addr) *) (got + 1) = (ElfW(Addr)) l;
 
+      const struct cpu_features* cpu_features = __get_cpu_features ();
+
       /* The got[2] entry contains the address of a function which gets
 	 called to get the address of a so far unresolved function and
 	 jump to it.  The profiling extension of the dynamic linker allows
@@ -94,9 +97,9 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	 end in this function.  */
       if (__glibc_unlikely (profile))
 	{
-	  if (CPU_FEATURE_USABLE (AVX512F))
+	  if (X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, AVX512F))
 	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_profile_avx512;
-	  else if (CPU_FEATURE_USABLE (AVX))
+	  else if (X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, AVX))
 	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_profile_avx;
 	  else
 	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_profile_sse;
@@ -112,9 +115,10 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	  /* This function will get called to fix up the GOT entry
 	     indicated by the offset on the stack, and then jump to
 	     the resolved address.  */
-	  if (GLRO(dl_x86_cpu_features).xsave_state_size != 0)
+	  if (MINIMUM_X86_ISA_LEVEL >= AVX_X86_ISA_LEVEL
+	      || GLRO(dl_x86_cpu_features).xsave_state_size != 0)
 	    *(ElfW(Addr) *) (got + 2)
-	      = (CPU_FEATURE_USABLE (XSAVEC)
+	      = (CPU_FEATURE_USABLE_P (cpu_features, XSAVEC)
 		 ? (ElfW(Addr)) &_dl_runtime_resolve_xsavec
 		 : (ElfW(Addr)) &_dl_runtime_resolve_xsave);
 	  else
@@ -140,17 +144,8 @@ _start:\n\
 _dl_start_user:\n\
 	# Save the user entry point address in %r12.\n\
 	movq %rax, %r12\n\
-	# See if we were run as a command with the executable file\n\
-	# name as an extra leading argument.\n\
-	movl _dl_skip_args(%rip), %eax\n\
-	# Pop the original argument count.\n\
-	popq %rdx\n\
-	# Adjust the stack pointer to skip _dl_skip_args words.\n\
-	leaq (%rsp,%rax,8), %rsp\n\
-	# Subtract _dl_skip_args from argc.\n\
-	subl %eax, %edx\n\
-	# Push argc back on the stack.\n\
-	pushq %rdx\n\
+	# Read the original argument count.\n\
+	movq (%rsp), %rdx\n\
 	# Call _dl_init (struct link_map *main_map, int argc, char **argv, char **env)\n\
 	# argc -> rsi\n\
 	movq %rdx, %rsi\n\
@@ -181,10 +176,7 @@ _dl_start_user:\n\
    TLS variable, so undefined references should not be allowed to
    define the value.
    ELF_RTYPE_CLASS_COPY iff TYPE should not be allowed to resolve to one
-   of the main executable's symbols, as for a COPY reloc.
-   ELF_RTYPE_CLASS_EXTERN_PROTECTED_DATA iff TYPE describes relocation may
-   against protected data whose address be external due to copy relocation.
- */
+   of the main executable's symbols, as for a COPY reloc.  */
 #define elf_machine_type_class(type)					      \
   ((((type) == R_X86_64_JUMP_SLOT					      \
      || (type) == R_X86_64_DTPMOD64					      \
@@ -192,8 +184,7 @@ _dl_start_user:\n\
      || (type) == R_X86_64_TPOFF64					      \
      || (type) == R_X86_64_TLSDESC)					      \
     * ELF_RTYPE_CLASS_PLT)						      \
-   | (((type) == R_X86_64_COPY) * ELF_RTYPE_CLASS_COPY)			      \
-   | (((type) == R_X86_64_GLOB_DAT) * ELF_RTYPE_CLASS_EXTERN_PROTECTED_DATA))
+   | (((type) == R_X86_64_COPY) * ELF_RTYPE_CLASS_COPY))
 
 /* A reloc type used for ld.so cmdline arg lookups to reject PLT entries.  */
 #define ELF_MACHINE_JMP_SLOT	R_X86_64_JUMP_SLOT
@@ -258,23 +249,9 @@ elf_machine_rela(struct link_map *map, struct r_scope_elem *scope[],
   ElfW(Addr) *const reloc_addr = reloc_addr_arg;
   const unsigned long int r_type = ELFW(R_TYPE) (reloc->r_info);
 
-# if !defined RTLD_BOOTSTRAP || !defined HAVE_Z_COMBRELOC
+# if !defined RTLD_BOOTSTRAP
   if (__glibc_unlikely (r_type == R_X86_64_RELATIVE))
-    {
-#  if !defined RTLD_BOOTSTRAP && !defined HAVE_Z_COMBRELOC
-      /* This is defined in rtld.c, but nowhere in the static libc.a;
-	 make the reference weak so static programs can still link.
-	 This declaration cannot be done when compiling rtld.c
-	 (i.e. #ifdef RTLD_BOOTSTRAP) because rtld.c contains the
-	 common defn for _dl_rtld_map, which is incompatible with a
-	 weak decl in the same file.  */
-#   ifndef SHARED
-      weak_extern (GL(dl_rtld_map));
-#   endif
-      if (map != &GL(dl_rtld_map)) /* Already done in rtld itself.  */
-#  endif
-	*reloc_addr = map->l_addr + reloc->r_addend;
-    }
+    *reloc_addr = map->l_addr + reloc->r_addend;
   else
 # endif
 # if !defined RTLD_BOOTSTRAP
@@ -325,6 +302,11 @@ and creates an unsatisfiable circular dependency.\n",
 
       switch (r_type)
 	{
+	case R_X86_64_GLOB_DAT:
+	case R_X86_64_JUMP_SLOT:
+	  *reloc_addr = value;
+	  break;
+
 # ifndef RTLD_BOOTSTRAP
 #  ifdef __ILP32__
 	case R_X86_64_SIZE64:
@@ -339,66 +321,48 @@ and creates an unsatisfiable circular dependency.\n",
 #  endif
 	  /* Set to symbol size plus addend.  */
 	  value = sym->st_size;
-# endif
-	  /* Fall through.  */
-	case R_X86_64_GLOB_DAT:
-	case R_X86_64_JUMP_SLOT:
 	  *reloc_addr = value + reloc->r_addend;
 	  break;
 
-# ifndef RESOLVE_CONFLICT_FIND_MAP
 	case R_X86_64_DTPMOD64:
-#  ifdef RTLD_BOOTSTRAP
-	  /* During startup the dynamic linker is always the module
-	     with index 1.
-	     XXX If this relocation is necessary move before RESOLVE
-	     call.  */
-	  *reloc_addr = 1;
-#  else
 	  /* Get the information from the link map returned by the
 	     resolve function.  */
 	  if (sym_map != NULL)
 	    *reloc_addr = sym_map->l_tls_modid;
-#  endif
 	  break;
 	case R_X86_64_DTPOFF64:
-#  ifndef RTLD_BOOTSTRAP
 	  /* During relocation all TLS symbols are defined and used.
 	     Therefore the offset is already correct.  */
 	  if (sym != NULL)
 	    {
 	      value = sym->st_value + reloc->r_addend;
-#   ifdef __ILP32__
+#  ifdef __ILP32__
 	      /* This relocation type computes a signed offset that is
 		 usually negative.  The symbol and addend values are 32
 		 bits but the GOT entry is 64 bits wide and the whole
 		 64-bit entry is used as a signed quantity, so we need
 		 to sign-extend the computed value to 64 bits.  */
 	      *(Elf64_Sxword *) reloc_addr = (Elf64_Sxword) (Elf32_Sword) value;
-#   else
+#  else
 	      *reloc_addr = value;
-#   endif
-	    }
 #  endif
+	    }
 	  break;
 	case R_X86_64_TLSDESC:
 	  {
 	    struct tlsdesc volatile *td =
 	      (struct tlsdesc volatile *)reloc_addr;
 
-#  ifndef RTLD_BOOTSTRAP
 	    if (! sym)
 	      {
 		td->arg = (void*)reloc->r_addend;
 		td->entry = _dl_tlsdesc_undefweak;
 	      }
 	    else
-#  endif
 	      {
-#  ifndef RTLD_BOOTSTRAP
-#   ifndef SHARED
+#  ifndef SHARED
 		CHECK_STATIC_TLS (map, sym_map);
-#   else
+#  else
 		if (!TRY_STATIC_TLS (map, sym_map))
 		  {
 		    td->arg = _dl_make_tlsdesc_dynamic
@@ -406,7 +370,6 @@ and creates an unsatisfiable circular dependency.\n",
 		    td->entry = _dl_tlsdesc_dynamic;
 		  }
 		else
-#   endif
 #  endif
 		  {
 		    td->arg = (void*)(sym->st_value - sym_map->l_tls_offset
@@ -418,32 +381,26 @@ and creates an unsatisfiable circular dependency.\n",
 	  }
 	case R_X86_64_TPOFF64:
 	  /* The offset is negative, forward from the thread pointer.  */
-#  ifndef RTLD_BOOTSTRAP
 	  if (sym != NULL)
-#  endif
 	    {
-#  ifndef RTLD_BOOTSTRAP
 	      CHECK_STATIC_TLS (map, sym_map);
-#  endif
 	      /* We know the offset of the object the symbol is contained in.
 		 It is a negative value which will be added to the
 		 thread pointer.  */
 	      value = (sym->st_value + reloc->r_addend
 		       - sym_map->l_tls_offset);
-#  ifdef __ILP32__
+# ifdef __ILP32__
 	      /* The symbol and addend values are 32 bits but the GOT
 		 entry is 64 bits wide and the whole 64-bit entry is used
 		 as a signed quantity, so we need to sign-extend the
 		 computed value to 64 bits.  */
 	      *(Elf64_Sxword *) reloc_addr = (Elf64_Sxword) (Elf32_Sword) value;
-#  else
+# else
 	      *reloc_addr = value;
-#  endif
+# endif
 	    }
 	  break;
-# endif
 
-# ifndef RTLD_BOOTSTRAP
 	case R_X86_64_64:
 	  /* value + r_addend may be > 0xffffffff and R_X86_64_64
 	     relocation updates the whole 64-bit entry.  */
@@ -466,15 +423,12 @@ and creates an unsatisfiable circular dependency.\n",
 
 	      fmt = "\
 %s: Symbol `%s' causes overflow in R_X86_64_32 relocation\n";
-#  ifndef RESOLVE_CONFLICT_FIND_MAP
 	    print_err:
-#  endif
 	      strtab = (const char *) D_PTR (map, l_info[DT_STRTAB]);
 
 	      _dl_error_printf (fmt, RTLD_PROGNAME, strtab + refsym->st_name);
 	    }
 	  break;
-#  ifndef RESOLVE_CONFLICT_FIND_MAP
 	  /* Not needed for dl-conflict.c.  */
 	case R_X86_64_PC32:
 	  value += reloc->r_addend - (ElfW(Addr)) reloc_addr;
@@ -502,7 +456,6 @@ and creates an unsatisfiable circular dependency.\n",
 	      goto print_err;
 	    }
 	  break;
-#  endif
 	case R_X86_64_IRELATIVE:
 	  value = map->l_addr + reloc->r_addend;
 	  if (__glibc_likely (!skip_ifunc))
@@ -512,7 +465,7 @@ and creates an unsatisfiable circular dependency.\n",
 	default:
 	  _dl_reloc_bad_type (map, r_type, 0);
 	  break;
-# endif
+# endif /* !RTLD_BOOTSTRAP */
 	}
     }
 }

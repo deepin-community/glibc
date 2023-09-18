@@ -1,4 +1,5 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Internal errno names mapping definition.
+   Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,64 +16,17 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stdio.h>
+#include <array_length.h>
+#include <err_map.h>
 #include <errno.h>
 #include <libintl.h>
-#include <array_length.h>
-
-#ifndef ERR_MAP
-# define ERR_MAP(n) n
-#endif
-
-const char *const _sys_errlist_internal[] =
-  {
-#define _S(n, str)         [ERR_MAP(n)] = str,
-#include <errlist.h>
-#undef _S
-  };
+#include <stdio.h>
 
 const char *
 __get_errlist (int errnum)
 {
   int mapped = ERR_MAP (errnum);
-  if (mapped >= 0 && mapped < array_length (_sys_errlist_internal))
+  if (mapped >= 0 && mapped < _sys_errlist_internal_len)
     return _sys_errlist_internal[mapped];
   return NULL;
 }
-
-static const union sys_errname_t
-{
-  struct
-  {
-#define MSGSTRFIELD1(line) str##line
-#define MSGSTRFIELD(line)  MSGSTRFIELD1(line)
-#define _S(n, str)         char MSGSTRFIELD(__LINE__)[sizeof(#n)];
-#include <errlist.h>
-#undef _S
-  };
-  char str[0];
-} _sys_errname = { {
-#define _S(n, s) #n,
-#include <errlist.h>
-#undef _S
-} };
-
-static const unsigned short _sys_errnameidx[] =
-{
-#define _S(n, s) \
-  [ERR_MAP(n)] = offsetof(union sys_errname_t, MSGSTRFIELD(__LINE__)),
-#include <errlist.h>
-#undef _S
-};
-
-const char *
-__get_errname (int errnum)
-{
-  int mapped = ERR_MAP (errnum);
-  if (mapped < 0 || mapped >= array_length (_sys_errnameidx)
-      || (mapped > 0 && _sys_errnameidx[mapped] == 0))
-    return NULL;
-  return _sys_errname.str + _sys_errnameidx[mapped];
-}
-
-#include <errlist-compat.c>

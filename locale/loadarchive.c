@@ -1,5 +1,5 @@
 /* Code to load locale data from the locale archive file.
-   Copyright (C) 2002-2022 Free Software Foundation, Inc.
+   Copyright (C) 2002-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -515,13 +515,7 @@ _nl_archive_subfreeres (void)
       free (dead->name);
       for (category = 0; category < __LC_LAST; ++category)
 	if (category != LC_ALL && dead->data[category] != NULL)
-	  {
-	    /* _nl_unload_locale just does this free for the archive case.  */
-	    if (dead->data[category]->private.cleanup)
-	      (*dead->data[category]->private.cleanup) (dead->data[category]);
-
-	    free (dead->data[category]);
-	  }
+	  _nl_unload_locale (category, dead->data[category]);
       free (dead);
     }
   archloaded = NULL;

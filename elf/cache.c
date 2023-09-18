@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -144,12 +144,9 @@ struct cache_entry
   struct stringtable_entry *lib; /* Library name.  */
   struct stringtable_entry *path; /* Path to find library.  */
   int flags;			/* Flags to indicate kind of library.  */
-  unsigned int osversion;	/* Required OS version.  */
   unsigned int isa_level;	/* Required ISA level.  */
-  uint64_t hwcap;		/* Important hardware capabilities.  */
-  int bits_hwcap;		/* Number of bits set in hwcap.  */
 
-  /* glibc-hwcaps subdirectory.  If not NULL, hwcap must be zero.  */
+  /* glibc-hwcaps subdirectory.  */
   struct glibc_hwcaps_subdirectory *hwcaps;
 
   struct cache_entry *next;	/* Next entry in list.  */
@@ -158,25 +155,23 @@ struct cache_entry
 /* List of all cache entries.  */
 static struct cache_entry *entries;
 
+/* libc4, ELF and libc5 are unsupported.  */
 static const char *flag_descr[] =
 { "libc4", "ELF", "libc5", "libc6"};
 
 /* Print a single entry.  */
 static void
-print_entry (const char *lib, int flag, unsigned int osversion,
-	     uint64_t hwcap, const char *hwcap_string, const char *key)
+print_entry (const char *lib, int flag, uint64_t hwcap,
+	     const char *hwcap_string, const char *key)
 {
   printf ("\t%s (", lib);
   switch (flag & FLAG_TYPE_MASK)
     {
-    case FLAG_LIBC4:
-    case FLAG_ELF:
-    case FLAG_ELF_LIBC5:
     case FLAG_ELF_LIBC6:
       fputs (flag_descr[flag & FLAG_TYPE_MASK], stdout);
       break;
     default:
-      fputs (_("unknown"), stdout);
+      fputs (_("unknown or unsupported flag"), stdout);
       break;
     }
   switch (flag & FLAG_REQUIRED_MASK)
@@ -240,27 +235,6 @@ print_entry (const char *lib, int flag, unsigned int osversion,
     printf (", hwcap: \"%s\"", hwcap_string);
   else if (hwcap != 0)
     printf (", hwcap: %#.16" PRIx64, hwcap);
-  if (osversion != 0)
-    {
-      static const char *const abi_tag_os[] =
-      {
-	[0] = "Linux",
-	[1] = "Hurd",
-	[2] = "Solaris",
-	[3] = "FreeBSD",
-	[4] = "kNetBSD",
-	[5] = "Syllable",
-	[6] = N_("Unknown OS")
-      };
-#define MAXTAG (sizeof abi_tag_os / sizeof abi_tag_os[0] - 1)
-      unsigned int os = osversion >> 24;
-
-      printf (_(", OS ABI: %s %d.%d.%d"),
-	      _(abi_tag_os[os > MAXTAG ? MAXTAG : os]),
-	      (osversion >> 16) & 0xff,
-	      (osversion >> 8) & 0xff,
-	      osversion & 0xff);
-    }
   printf (") => %s\n", key);
 }
 
@@ -393,7 +367,7 @@ print_cache (const char *cache_name)
       /* Print everything.  */
       for (unsigned int i = 0; i < cache->nlibs; i++)
 	print_entry (cache_data + cache->libs[i].key,
-		     cache->libs[i].flags, 0, 0, NULL,
+		     cache->libs[i].flags, 0, NULL,
 		     cache_data + cache->libs[i].value);
     }
   else if (format == 1)
@@ -414,7 +388,6 @@ print_cache (const char *cache_name)
 				   &cache_new->libs[i]);
 	  print_entry (cache_data + cache_new->libs[i].key,
 		       cache_new->libs[i].flags,
-		       cache_new->libs[i].osversion,
 		       cache_new->libs[i].hwcap, hwcaps_string,
 		       cache_data + cache_new->libs[i].value);
 	}
@@ -458,19 +431,6 @@ compare (const struct cache_entry *e1, const struct cache_entry *e2)
 	  if (res != 0)
 	    return res;
 	}
-      /* Sort by most specific hwcap.  */
-      if (e2->bits_hwcap > e1->bits_hwcap)
-	return 1;
-      else if (e2->bits_hwcap < e1->bits_hwcap)
-	return -1;
-      else if (e2->hwcap > e1->hwcap)
-	return 1;
-      else if (e2->hwcap < e1->hwcap)
-	return -1;
-      if (e2->osversion > e1->osversion)
-	return 1;
-      if (e2->osversion < e1->osversion)
-	return -1;
     }
   return res;
 }
@@ -576,14 +536,13 @@ save_cache (const char *cache_name)
   int cache_entry_count = 0;
   /* The old format doesn't contain hwcap entries and doesn't contain
      libraries in subdirectories with hwcaps entries.  Count therefore
-     also all entries with hwcap == 0.  */
+     all entries.  */
   int cache_entry_old_count = 0;
 
   for (entry = entries; entry != NULL; entry = entry->next)
     {
       ++cache_entry_count;
-      if (entry->hwcap == 0)
-	++cache_entry_old_count;
+      ++cache_entry_old_count;
     }
 
   struct stringtable_finalized strings_finalized;
@@ -655,7 +614,7 @@ save_cache (const char *cache_name)
   for (idx_old = 0, idx_new = 0, entry = entries; entry != NULL;
        entry = entry->next, ++idx_new)
     {
-      if (opt_format != opt_format_new && entry->hwcap == 0)
+      if (opt_format != opt_format_new)
 	{
 	  file_entries->libs[idx_old].flags = entry->flags;
 	  /* XXX: Actually we can optimize here and remove duplicates.  */
@@ -671,9 +630,9 @@ save_cache (const char *cache_name)
 	     always begins at the beginning of the new cache
 	     struct.  */
 	  file_entries_new->libs[idx_new].flags = entry->flags;
-	  file_entries_new->libs[idx_new].osversion = entry->osversion;
+	  file_entries_new->libs[idx_new].osversion_unused = 0;
 	  if (entry->hwcaps == NULL)
-	    file_entries_new->libs[idx_new].hwcap = entry->hwcap;
+	    file_entries_new->libs[idx_new].hwcap = 0;
 	  else
 	    file_entries_new->libs[idx_new].hwcap
 	      = compute_hwcap_value (entry);
@@ -683,9 +642,7 @@ save_cache (const char *cache_name)
 	    = str_offset + entry->path->offset;
 	}
 
-      /* Ignore entries with hwcap for old format.  */
-      if (entry->hwcap == 0)
-	++idx_old;
+      ++idx_old;
     }
 
   /* Duplicate last old cache entry if needed.  */
@@ -754,7 +711,8 @@ save_cache (const char *cache_name)
   if (opt_format != opt_format_old)
     {
       /* Align file position to 4.  */
-      off64_t old_offset = lseek64 (fd, extension_offset, SEEK_SET);
+      __attribute__ ((unused)) off64_t old_offset
+        = lseek64 (fd, extension_offset, SEEK_SET);
       assert ((unsigned long long int) (extension_offset - old_offset) < 4);
       write_extensions (fd, str_offset, extension_offset);
     }
@@ -792,8 +750,7 @@ save_cache (const char *cache_name)
 /* Add one library to the cache.  */
 void
 add_to_cache (const char *path, const char *filename, const char *soname,
-	      int flags, unsigned int osversion,
-	      unsigned int isa_level, uint64_t hwcap,
+	      int flags, unsigned int isa_level,
 	      struct glibc_hwcaps_subdirectory *hwcaps)
 {
   struct cache_entry *new_entry = xmalloc (sizeof (*new_entry));
@@ -810,24 +767,11 @@ add_to_cache (const char *path, const char *filename, const char *soname,
   new_entry->lib = stringtable_add (&strings, soname);
   new_entry->path = path_interned;
   new_entry->flags = flags;
-  new_entry->osversion = osversion;
   new_entry->isa_level = isa_level;
-  new_entry->hwcap = hwcap;
   new_entry->hwcaps = hwcaps;
-  new_entry->bits_hwcap = 0;
 
   if (hwcaps != NULL)
-    {
-      assert (hwcap == 0);
-      hwcaps->used = true;
-    }
-
-  /* Count the number of bits set in the masked value.  */
-  for (size_t i = 0;
-       (~((1ULL << i) - 1) & hwcap) != 0 && i < 8 * sizeof (hwcap); ++i)
-    if ((hwcap & (1ULL << i)) != 0)
-      ++new_entry->bits_hwcap;
-
+    hwcaps->used = true;
 
   /* Keep the list sorted - search for right place to insert.  */
   struct cache_entry *ptr = entries;
@@ -867,7 +811,6 @@ struct aux_cache_entry
 {
   struct aux_cache_entry_id id;
   int flags;
-  unsigned int osversion;
   unsigned int isa_level;
   int used;
   char *soname;
@@ -881,7 +824,6 @@ struct aux_cache_file_entry
   struct aux_cache_entry_id id;	/* Unique id of entry.  */
   int32_t flags;		/* This is 1 for an ELF library.  */
   uint32_t soname;		/* String table indice.  */
-  uint32_t osversion;		/* Required OS version.	 */
   uint32_t isa_level;		/* Required ISA level.	 */
 };
 
@@ -932,8 +874,7 @@ init_aux_cache (void)
 }
 
 int
-search_aux_cache (struct stat *stat_buf, int *flags,
-		  unsigned int *osversion, unsigned int *isa_level,
+search_aux_cache (struct stat *stat_buf, int *flags, unsigned int *isa_level,
 		  char **soname)
 {
   struct aux_cache_entry_id id;
@@ -951,7 +892,6 @@ search_aux_cache (struct stat *stat_buf, int *flags,
 	&& id.dev == entry->id.dev)
       {
 	*flags = entry->flags;
-	*osversion = entry->osversion;
 	*isa_level = entry->isa_level;
 	if (entry->soname != NULL)
 	  *soname = xstrdup (entry->soname);
@@ -966,8 +906,7 @@ search_aux_cache (struct stat *stat_buf, int *flags,
 
 static void
 insert_to_aux_cache (struct aux_cache_entry_id *id, int flags,
-		     unsigned int osversion, unsigned int isa_level,
-		     const char *soname, int used)
+		     unsigned int isa_level, const char *soname, int used)
 {
   size_t hash = aux_cache_entry_id_hash (id) % aux_hash_size;
   struct aux_cache_entry *entry;
@@ -982,7 +921,6 @@ insert_to_aux_cache (struct aux_cache_entry_id *id, int flags,
   entry = xmalloc (sizeof (struct aux_cache_entry) + len);
   entry->id = *id;
   entry->flags = flags;
-  entry->osversion = osversion;
   entry->isa_level = isa_level;
   entry->used = used;
   if (soname != NULL)
@@ -994,8 +932,7 @@ insert_to_aux_cache (struct aux_cache_entry_id *id, int flags,
 }
 
 void
-add_to_aux_cache (struct stat *stat_buf, int flags,
-		  unsigned int osversion, unsigned int isa_level,
+add_to_aux_cache (struct stat *stat_buf, int flags, unsigned int isa_level,
 		  const char *soname)
 {
   struct aux_cache_entry_id id;
@@ -1003,7 +940,7 @@ add_to_aux_cache (struct stat *stat_buf, int flags,
   id.ctime = (uint64_t) stat_buf->st_ctime;
   id.size = (uint64_t) stat_buf->st_size;
   id.dev = (uint64_t) stat_buf->st_dev;
-  insert_to_aux_cache (&id, flags, osversion, isa_level, soname, 1);
+  insert_to_aux_cache (&id, flags, isa_level, soname, 1);
 }
 
 /* Load auxiliary cache to search for unchanged entries.   */
@@ -1051,7 +988,6 @@ load_aux_cache (const char *aux_cache_name)
   for (unsigned int i = 0; i < aux_cache->nlibs; ++i)
     insert_to_aux_cache (&aux_cache->libs[i].id,
 			 aux_cache->libs[i].flags,
-			 aux_cache->libs[i].osversion,
 			 aux_cache->libs[i].isa_level,
 			 aux_cache->libs[i].soname == 0
 			 ? NULL : aux_cache_data + aux_cache->libs[i].soname,
@@ -1120,7 +1056,6 @@ save_aux_cache (const char *aux_cache_name)
 	      str = mempcpy (str, entry->soname, len);
 	      str_offset += len;
 	    }
-	  file_entries->libs[idx].osversion = entry->osversion;
 	  file_entries->libs[idx++].isa_level = entry->isa_level;
 	}
 

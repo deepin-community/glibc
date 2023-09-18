@@ -1,5 +1,5 @@
 /* Provide access to the collection of available transformation modules.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@
 
 #include <dlfcn.h>
 #include <gconv_int.h>
-#include <sysdep.h>
+#include <pointer_guard.h>
 
 
 /* Simple data structure for alias mapping.  We have two names, `from'
@@ -180,9 +180,7 @@ free_derivation (void *p)
 	&& deriv->steps[cnt].__shlib_handle != NULL)
       {
 	__gconv_end_fct end_fct = deriv->steps[cnt].__end_fct;
-#ifdef PTR_DEMANGLE
 	PTR_DEMANGLE (end_fct);
-#endif
 	if (end_fct != NULL)
 	  DL_CALL_FCT (end_fct, (&deriv->steps[cnt]));
       }
@@ -208,9 +206,7 @@ __gconv_release_step (struct __gconv_step *step)
     {
       /* Call the destructor.  */
 	__gconv_end_fct end_fct = step->__end_fct;
-#ifdef PTR_DEMANGLE
 	PTR_DEMANGLE (end_fct);
-#endif
       if (end_fct != NULL)
 	DL_CALL_FCT (end_fct, (step));
 
@@ -303,9 +299,7 @@ gen_steps (struct derivation_step *best, const char *toset,
 
 	      /* Call the init function.  */
 	      __gconv_init_fct init_fct = result[step_cnt].__init_fct;
-# ifdef PTR_DEMANGLE
 	      PTR_DEMANGLE (init_fct);
-# endif
 	      if (init_fct != NULL)
 		{
 		  status = DL_CALL_FCT (init_fct, (&result[step_cnt]));
@@ -316,17 +310,13 @@ gen_steps (struct derivation_step *best, const char *toset,
 		      /* Do not call the end function because the init
 			 function has failed.  */
 		      result[step_cnt].__end_fct = NULL;
-# ifdef PTR_MANGLE
 		      PTR_MANGLE (result[step_cnt].__end_fct);
-# endif
 		      /* Make sure we unload this module.  */
 		      --step_cnt;
 		      break;
 		    }
 		}
-# ifdef PTR_MANGLE
 	      PTR_MANGLE (result[step_cnt].__btowc_fct);
-# endif
 	    }
 	  else
 #endif
@@ -404,15 +394,10 @@ increment_counter (struct __gconv_step *steps, size_t nsteps)
 
 	      /* Call the init function.  */
 	      __gconv_init_fct init_fct = step->__init_fct;
-#ifdef PTR_DEMANGLE
 	      PTR_DEMANGLE (init_fct);
-#endif
 	      if (init_fct != NULL)
 		DL_CALL_FCT (init_fct, (step));
-
-#ifdef PTR_MANGLE
 	      PTR_MANGLE (step->__btowc_fct);
-#endif
 	    }
 	}
     }

@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,35 +27,6 @@
 ssize_t
 __readlink (const char *file_name, char *buf, size_t len)
 {
-  error_t err;
-  file_t file;
-  struct stat64 st;
-
-  file = __file_name_lookup (file_name, O_READ | O_NOLINK, 0);
-  if (file == MACH_PORT_NULL)
-    return -1;
-
-  err = __io_stat (file, &st);
-  if (! err)
-    if (S_ISLNK (st.st_mode))
-      {
-	char *rbuf = buf;
-
-	err = __io_read (file, &rbuf, &len, 0, len);
-	if (!err && rbuf != buf)
-	  {
-	    memcpy (buf, rbuf, len);
-	    __vm_deallocate (__mach_task_self (), (vm_address_t)rbuf, len);
-	  }
-      }
-    else
-      err = EINVAL;
-
-  __mach_port_deallocate (__mach_task_self (), file);
-
-  if (err)
-    return __hurd_fail (err);
-  else
-    return len;
+  return __readlinkat (AT_FDCWD, file_name, buf, len);
 }
 weak_alias (__readlink, readlink)

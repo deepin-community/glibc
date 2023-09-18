@@ -1,4 +1,4 @@
-/* Copyright (C) 2010-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2010-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ recvmmsg_syscall (int fd, struct mmsghdr *vmessages, unsigned int vlen,
   struct timespec ts32, *pts32 = NULL;
   if (timeout != NULL)
     {
-      if (! in_time_t_range (timeout->tv_sec))
+      if (! in_int32_t_range (timeout->tv_sec))
 	{
 	  __set_errno (EINVAL);
 	  return -1;

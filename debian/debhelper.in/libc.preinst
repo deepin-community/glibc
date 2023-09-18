@@ -78,8 +78,8 @@ then
                 db_stop
             else
                 echo "ERROR: This version of the GNU libc requires kernel version"
-                echo "$kernel_ver_rec or later.  Please upgrade your kernel before installing"
-                echo "glibc."
+                echo "$kernel_ver_rec or later.  Please upgrade your kernel and reboot before installing"
+                echo 'glibc. You may need to use "apt -f install" after reboot to solve dependencies.'
                 echo
             fi
             exit 1
@@ -122,8 +122,8 @@ then
                 db_stop
             else
                 echo "ERROR: This version of the GNU libc requires kernel version"
-                echo "$kernel_ver_min or later.  Please upgrade your kernel before installing"
-                echo "glibc."
+                echo "$kernel_ver_min or later.  Please upgrade your kernel and reboot before installing"
+                echo 'glibc. You may need to use "apt -f install" after reboot to solve dependencies.'
                 echo
             fi
             exit 1
@@ -154,6 +154,7 @@ then
                 echo "ERROR: This version of the GNU libc requires kernel version"
                 echo "$kernel_ver_min+git$kernel_ver_git_min or later."
                 echo "Please upgrade your kernel and reboot before installing glibc."
+                echo 'You may need to use "apt -f install" after reboot to solve dependencies.'
                 echo
             fi
             exit 1
@@ -273,10 +274,6 @@ then
 
 	fi # end upgrading and $preversion lt DEB_VERSION_UPSTREAM
     fi # Upgrading
-
-    # This will keep us from using hwcap libs (optimized) during an
-    # upgrade.
-    touch "$DPKG_ROOT/etc/ld.so.nohwcap"
 fi
 
 # We create the top-level lib symlink on merged-usr systems, so that we can

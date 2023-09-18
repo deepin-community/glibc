@@ -1,4 +1,4 @@
-# Copyright (C) 1995-2022 Free Software Foundation, Inc.
+# Copyright (C) 1995-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@ subdir	:= libio
 include ../Makeconfig
 
 headers	:= stdio.h \
-	   bits/stdio.h bits/stdio2.h bits/stdio-ldbl.h \
+	   bits/stdio.h bits/stdio2.h bits/stdio2-decl.h bits/stdio-ldbl.h \
 	   bits/types/FILE.h bits/types/__FILE.h bits/types/struct_FILE.h \
 	   bits/types/__fpos_t.h bits/types/__fpos64_t.h \
 	   bits/types/cookie_io_functions_t.h
@@ -66,7 +66,7 @@ tests = tst_swprintf tst_wprintf tst_swscanf tst_wscanf tst_getwc tst_putwc   \
 	tst-fwrite-error tst-ftell-partial-wide tst-ftell-active-handler \
 	tst-ftell-append tst-fputws tst-bz22415 tst-fgetc-after-eof \
 	tst-sprintf-ub tst-sprintf-chk-ub tst-bz24051 tst-bz24153 \
-	tst-wfile-sync
+	tst-wfile-sync tst-bz28828 tst-getdelim
 
 tests-internal = tst-vtables tst-vtables-interposed
 
@@ -112,18 +112,18 @@ CFLAGS-getchar.c += -fexceptions
 CFLAGS-getwc.c += -fexceptions
 CFLAGS-getwchar.c += -fexceptions
 CFLAGS-iofclose.c += -fexceptions
-CFLAGS-iofflush.c += -fexceptions
+CFLAGS-iofflush.c += -fexceptions $(config-cflags-wno-ignored-attributes)
 CFLAGS-iofgetpos64.c += -fexceptions
 CFLAGS-iofgetpos.c += -fexceptions
 CFLAGS-iofgets.c += -fexceptions
 CFLAGS-iofgetws.c += -fexceptions
-CFLAGS-iofputs.c += -fexceptions
+CFLAGS-iofputs.c += -fexceptions $(config-cflags-wno-ignored-attributes)
 CFLAGS-iofputws.c += -fexceptions
 CFLAGS-iofread.c += -fexceptions
 CFLAGS-iofsetpos64.c += -fexceptions
 CFLAGS-iofsetpos.c += -fexceptions
 CFLAGS-ioftell.c += -fexceptions
-CFLAGS-iofwrite.c += -fexceptions
+CFLAGS-iofwrite.c += -fexceptions $(config-cflags-wno-ignored-attributes)
 CFLAGS-iogetdelim.c += -fexceptions
 CFLAGS-iogetline.c += -fexceptions
 CFLAGS-iogets.c += -fexceptions
@@ -153,6 +153,14 @@ CFLAGS-oldiofopen.c += -fexceptions
 CFLAGS-iofopen.c += -fexceptions
 CFLAGS-iofopen64.c += -fexceptions
 CFLAGS-oldtmpfile.c += -fexceptions
+CFLAGS-fileno.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-feof_u.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-ferror_u.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-getc_u.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-iofflush_u.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-putc_u.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-iofgets_u.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-iofputs_u.c += $(config-cflags-wno-ignored-attributes)
 # XXX Do we need filedoalloc and wfiledoalloc?  Others?
 
 CFLAGS-tst_putwc.c += -DOBJPFX=\"$(objpfx)\"

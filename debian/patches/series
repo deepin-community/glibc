@@ -16,33 +16,28 @@ localedata/submitted-es_MX-decimal_point.diff
 
 alpha/local-gcc4.1.diff
 alpha/submitted-dl-support.diff
-alpha/local-string-functions.diff
 alpha/submitted-fts64.diff
 alpha/submitted-makecontext.diff
 
 arm/local-sigaction.diff
 arm/unsubmitted-ldso-multilib.diff
 arm/local-arm-futex.diff
-arm/git-atomic-compiler-builtins.diff
 
 hppa/local-inlining.diff
 
-# 2.36
-hurd-i386/pthread_key.diff
-hurd-i386/git-spawni-reauth.diff
+# 2.38
+hurd-i386/git-intr-msg-cfa.diff
+hurd-i386/git-intr-msg-stack.diff
+hurd-i386/git-ctty.diff
+hurd-i386/git-tst-system.diff
+hurd-i386/git-task_info_count.diff
 
-# 2.37
-hurd-i386/git-htl-pthread-self-early.diff
-hurd-i386/git-static-pie.diff
-hurd-i386/git-ipv6.diff
-hurd-i386/git-ip_mreqn.diff
-hurd-i386/git-bootstrap-enable_secure.diff
-hurd-i386/git-cond-destroy.diff
-hurd-i386/git-strerror_X.diff
-hurd-i386/git-xpg_strerror.diff
-hurd-i386/git-readlink-fifo.diff
-hurd-i386/git-net-route.h.diff
-hurd-i386/git-SOMAXCONN.diff
+# 2.39
+hurd-i386/git-jemalloc.diff
+hurd-i386/git-jemalloc2.diff
+hurd-i386/git-error_t.diff
+hurd-i386/git-tls_dtors.diff
+hurd-i386/git-main_stack.diff
 
 hurd-i386/local-enable-ldconfig.diff
 hurd-i386/tg-sysvshm.diff
@@ -69,17 +64,6 @@ i386/local-biarch.diff
 i386/unsubmitted-quiet-ldconfig.diff
 i386/local-setcontext-revert-eax-ecx-edx.patch
 
-kfreebsd/submitted-waitid.diff
-kfreebsd/submitted-auxv.diff
-kfreebsd/local-config_h_in.patch
-kfreebsd/local-grantpt.diff
-kfreebsd/local-sysdeps.diff
-kfreebsd/local-fbtl.diff
-kfreebsd/local-fbtl-depends.diff
-kfreebsd/local-scripts.diff
-kfreebsd/local-getaddrinfo-freebsd-kernel.diff
-kfreebsd/local-no-execfn.diff
-
 m68k/local-dwarf2-buildfix.diff
 m68k/local-reloc.diff
 m68k/submitted-gcc34-seccomment.diff
@@ -99,12 +83,10 @@ any/local-asserth-decls.diff
 any/local-fhs-linux-paths.diff
 any/local-fhs-nscd.diff
 any/local-ld-multiarch.diff
-any/local-ldso-disable-hwcap.diff
 any/local-stubs_h.diff
 any/local-tcsetaddr.diff
 any/local-nss-overflow.diff
 any/submitted-missing-etc-hosts.diff
-any/submitted-bits-fcntl_h-at.diff
 any/submitted-nptl-invalid-td.patch
 any/local-ldconfig-multiarch.diff
 any/local-disable-libnss-db.diff
@@ -112,7 +94,7 @@ any/local-revert-bz13979.diff
 any/unsubmitted-ldso-machine-mismatch.diff
 any/local-ldconfig-ignore-ld.so.diff
 any/local-bootstrap-headers.diff
-any/submitted-resolv-unaligned.diff
 any/local-cudacc-float128.diff
 any/local-test-install.diff
 any/local-cross.patch
+any/git-c-utf-8-language.diff

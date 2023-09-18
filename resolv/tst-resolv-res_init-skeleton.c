@@ -1,5 +1,5 @@
 /* Test parsing of /etc/resolv.conf.  Genric version.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -128,6 +128,7 @@ print_resp (FILE *fp, res_state resp)
         print_option_flag (fp, &options, RES_NOTLDQUERY, "no-tld-query");
         print_option_flag (fp, &options, RES_NORELOAD, "no-reload");
         print_option_flag (fp, &options, RES_TRUSTAD, "trust-ad");
+        print_option_flag (fp, &options, RES_NOAAAA, "no-aaaa");
         fputc ('\n', fp);
         if (options != 0)
           fprintf (fp, "; error: unresolved option bits: 0x%x\n", options);
@@ -716,6 +717,15 @@ struct test_case test_cases[] =
      .conf = "options trust-ad\n"
      "nameserver 192.0.2.1\n",
      .expected = "options trust-ad\n"
+     "search example.com\n"
+     "; search[0]: example.com\n"
+     "nameserver 192.0.2.1\n"
+     "; nameserver[0]: [192.0.2.1]:53\n"
+    },
+    {.name = "no-aaaa flag",
+     .conf = "options no-aaaa\n"
+     "nameserver 192.0.2.1\n",
+     .expected = "options no-aaaa\n"
      "search example.com\n"
      "; search[0]: example.com\n"
      "nameserver 192.0.2.1\n"

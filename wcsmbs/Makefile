@@ -1,4 +1,4 @@
-# Copyright (C) 1995-2022 Free Software Foundation, Inc.
+# Copyright (C) 1995-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -22,8 +22,9 @@ subdir	:= wcsmbs
 
 include ../Makeconfig
 
-headers	:= wchar.h bits/wchar.h bits/wchar2.h bits/wchar-ldbl.h uchar.h \
-	   bits/types/__mbstate_t.h bits/types/mbstate_t.h bits/types/wint_t.h
+headers	:= wchar.h bits/wchar.h bits/wchar2.h bits/wchar2-decl.h \
+	   bits/wchar-ldbl.h uchar.h bits/types/__mbstate_t.h \
+	   bits/types/mbstate_t.h bits/types/wint_t.h
 
 routines := wcscat wcschr wcscmp wcscpy wcscspn wcsdup wcslen wcsncat \
 	    wcsncmp wcsncpy wcspbrk wcsrchr wcsspn wcstok wcsstr wmemchr \
@@ -42,7 +43,7 @@ routines := wcscat wcschr wcscmp wcscpy wcscspn wcsdup wcslen wcsncat \
 	    wcsmbsload mbsrtowcs_l \
 	    isoc99_wscanf isoc99_vwscanf isoc99_fwscanf isoc99_vfwscanf \
 	    isoc99_swscanf isoc99_vswscanf \
-	    mbrtoc16 c16rtomb mbrtoc32 c32rtomb
+	    mbrtoc8 c8rtomb mbrtoc16 c16rtomb mbrtoc32 c32rtomb
 
 strop-tests :=  wcscmp wcsncmp wmemcmp wcslen wcschr wcsrchr wcscpy wcsnlen \
 		wcpcpy wcsncpy wcpncpy wcscat wcsncat wcschrnul wcsspn wcspbrk \
@@ -52,6 +53,7 @@ tests := tst-wcstof wcsmbs-tst1 tst-wcsnlen tst-btowc tst-mbrtowc \
 	 tst-c16c32-1 wcsatcliff tst-wcstol-locale tst-wcstod-nan-locale \
 	 tst-wcstod-round test-char-types tst-fgetwc-after-eof \
 	 tst-wcstod-nan-sign tst-c16-surrogate tst-c32-state \
+	 test-mbrtoc8 test-c8rtomb \
 	 $(addprefix test-,$(strop-tests)) tst-mbstowcs \
 	 tst-wprintf-binary
 
@@ -59,7 +61,7 @@ include ../Rules
 
 ifeq ($(run-built-tests),yes)
 LOCALES := de_DE.ISO-8859-1 de_DE.UTF-8 en_US.ANSI_X3.4-1968 hr_HR.ISO-8859-2 \
-	   ja_JP.EUC-JP zh_TW.EUC-TW tr_TR.UTF-8 tr_TR.ISO-8859-9
+	   ja_JP.EUC-JP zh_TW.EUC-TW tr_TR.UTF-8 tr_TR.ISO-8859-9 zh_HK.BIG5-HKSCS
 include ../gen-locales.mk
 
 $(objpfx)tst-btowc.out: $(gen-locales)
@@ -72,6 +74,8 @@ $(objpfx)tst-wcstol-locale.out: $(gen-locales)
 $(objpfx)tst-wcstod-nan-locale.out: $(gen-locales)
 $(objpfx)tst-c16-surrogate.out: $(gen-locales)
 $(objpfx)tst-c32-state.out: $(gen-locales)
+$(objpfx)test-c8rtomb.out: $(gen-locales)
+$(objpfx)test-mbrtoc8.out: $(gen-locales)
 endif
 
 $(objpfx)tst-wcstod-round: $(libm)
@@ -80,23 +84,31 @@ CFLAGS-wcwidth.c += -I../wctype
 CFLAGS-wcswidth.c += -I../wctype
 
 strtox-CFLAGS = -I../include
-CFLAGS-wcstol.c += $(strtox-CFLAGS)
-CFLAGS-wcstoul.c += $(strtox-CFLAGS)
+CFLAGS-wcstol.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
+CFLAGS-wcstoul.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
 CFLAGS-wcstoll.c += $(strtox-CFLAGS)
 CFLAGS-wcstoull.c += $(strtox-CFLAGS)
-CFLAGS-wcstod.c += $(strtox-CFLAGS)
-CFLAGS-wcstold.c += $(strtox-CFLAGS)
+CFLAGS-wcstod.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
+CFLAGS-wcstold.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
 CFLAGS-wcstof128.c += $(strtox-CFLAGS)
-CFLAGS-wcstof.c += $(strtox-CFLAGS)
+CFLAGS-wcstof.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
 CFLAGS-wcstol_l.c += $(strtox-CFLAGS)
 CFLAGS-wcstoul_l.c += $(strtox-CFLAGS)
 CFLAGS-wcstoll_l.c += $(strtox-CFLAGS)
 CFLAGS-wcstoull_l.c += $(strtox-CFLAGS)
-CFLAGS-wcstod_l.c += $(strtox-CFLAGS)
-CFLAGS-wcstold_l.c += $(strtox-CFLAGS)
+CFLAGS-wcstod_l.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
+CFLAGS-wcstold_l.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
 CFLAGS-wcstof128_l.c += $(strtox-CFLAGS)
-CFLAGS-wcstof_l.c += $(strtox-CFLAGS)
+CFLAGS-wcstof_l.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
 CPPFLAGS-tst-wchar-h.c += -D_FORTIFY_SOURCE=2
+
+CFLAGS-wcschr.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-wmemchr.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-wmemset.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-mbrtowc.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-wcrtomb.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-wcstoll.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-wcstoull.c += $(config-cflags-wno-ignored-attributes)
 
 CFLAGS-isoc99_wscanf.c += -fexceptions
 CFLAGS-isoc99_fwscanf.c += -fexceptions

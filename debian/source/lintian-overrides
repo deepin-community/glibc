@@ -1,4 +1,3 @@
-glibc source: debhelper-but-no-misc-depends libc0.1
 glibc source: debhelper-but-no-misc-depends libc6
 glibc source: debhelper-but-no-misc-depends libc6.1
 glibc source: debhelper-but-no-misc-depends libc0.3

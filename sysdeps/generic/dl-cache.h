@@ -1,5 +1,5 @@
 /* Support for reading /etc/ld.so.cache files written by Linux ldconfig.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -95,7 +95,7 @@ struct file_entry_new
       uint32_t key, value;	/* String table indices.  */
     };
   };
-  uint32_t osversion;		/* Required OS version.	 */
+  uint32_t osversion_unused;	/* Required OS version (unused).  */
   uint64_t hwcap;		/* Hwcap entry.	 */
 };
 

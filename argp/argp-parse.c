@@ -1,5 +1,5 @@
 /* Hierarchial argument parsing, layered over getopt
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Written by Miles Bader <miles@gnu.ai.mit.edu>.
 
@@ -147,7 +147,7 @@ argp_default_parser (int key, char *arg, struct argp_state *state)
       break;
 
     case OPT_HANG:
-      _argp_hang = atoi (arg ? arg : "3600");
+      _argp_hang = arg ? strtol (arg, NULL, 10) : 3600;
       while (_argp_hang-- > 0)
 	__sleep (1);
       break;

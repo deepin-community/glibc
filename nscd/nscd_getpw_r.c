@@ -1,4 +1,4 @@
-/* Copyright (C) 1998-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -225,7 +225,7 @@ nscd_getpw_r (const char *key, size_t keylen, request_type type,
       if ((gc_cycle & 1) != 0 || ++nretries == 5 || retval == -1)
 	{
 	  /* nscd is just running gc now.  Disable using the mapping.  */
-	  if (atomic_decrement_val (&mapped->counter) == 0)
+	  if (atomic_fetch_add_relaxed (&mapped->counter, -1) == 1)
 	    __nscd_unmap (mapped);
 	  mapped = NO_MAPPING;
 	}

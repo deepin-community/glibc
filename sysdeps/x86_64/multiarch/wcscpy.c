@@ -1,6 +1,6 @@
 /* Multiple versions of wcscpy.
    All versions must be listed in ifunc-impl-list.c.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,18 +26,35 @@
 # define SYMBOL_NAME wcscpy
 # include <init-arch.h>
 
-extern __typeof (REDIRECT_NAME) OPTIMIZE (sse2) attribute_hidden;
+extern __typeof (REDIRECT_NAME) OPTIMIZE (evex) attribute_hidden;
+
+extern __typeof (REDIRECT_NAME) OPTIMIZE (avx2) attribute_hidden;
+
 extern __typeof (REDIRECT_NAME) OPTIMIZE (ssse3) attribute_hidden;
+
+extern __typeof (REDIRECT_NAME) OPTIMIZE (generic) attribute_hidden;
 
 static inline void *
 IFUNC_SELECTOR (void)
 {
   const struct cpu_features* cpu_features = __get_cpu_features ();
 
-  if (CPU_FEATURE_USABLE_P (cpu_features, SSSE3))
+  if (X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, AVX2)
+      && X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, BMI2)
+      && X86_ISA_CPU_FEATURES_ARCH_P (cpu_features, AVX_Fast_Unaligned_Load, ))
+    {
+      if (X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, AVX512VL)
+	  && X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, AVX512BW))
+	return OPTIMIZE (evex);
+
+      if (X86_ISA_CPU_FEATURES_ARCH_P (cpu_features, Prefer_No_VZEROUPPER, !))
+	return OPTIMIZE (avx2);
+    }
+
+  if (X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, SSSE3))
     return OPTIMIZE (ssse3);
 
-  return OPTIMIZE (sse2);
+  return OPTIMIZE (generic);
 }
 
 libc_ifunc_redirected (__redirect_wcscpy, __wcscpy, IFUNC_SELECTOR ());

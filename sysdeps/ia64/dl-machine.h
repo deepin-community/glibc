@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  IA-64 version.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -201,81 +201,39 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 "	 .save ar.pfs, r32\n"						      \
 "	 .body\n"							      \
 "	{ .mii\n"							      \
-"	  addl r3 = @gprel(_dl_skip_args), gp\n"			      \
-"	  adds r11 = 24, sp	/* Load the address of argv. */\n"	      \
 "	  /* Save the pointer to the user entry point fptr in loc2.  */\n"    \
 "	  mov loc2 = ret0\n"						      \
+"	  addl r2 = @ltoff(_dl_argc), gp\n"				      \
 "	  ;;\n"								      \
 "	}\n"								      \
 "	{ .mii\n"							      \
-"	  ld4 r3 = [r3]\n"						      \
-"	  adds r10 = 16, sp	/* Load the address of argc. */\n"	      \
-"	  mov out2 = r11\n"						      \
-"	  ;;\n"								      \
-"	  /* See if we were run as a command with the executable file\n"      \
-"	     name as an extra leading argument.  If so, adjust the argv\n"    \
-"	     pointer to skip _dl_skip_args words.\n"			      \
-"	     Note that _dl_skip_args is an integer, not a long - Jes\n"	      \
-"\n"									      \
-"	     The stack pointer has to be 16 byte aligned. We cannot simply\n" \
-"	     addjust the stack pointer. We have to move the whole argv and\n" \
-"	     envp and adjust _dl_argv by _dl_skip_args.  H.J.  */\n"	      \
-"	}\n"								      \
-"	{ .mib\n"							      \
-"	  ld8 out1 = [r10]	/* is argc actually stored as a long\n"	      \
-"				   or as an int? */\n"			      \
-"	  addl r2 = @ltoff(_dl_argv), gp\n"				      \
+"	  ld8 out1 = [r2]	/* Get the _dl_argc address.  */\n"	      \
+"	  addl r3 = @ltoff(_dl_argv), gp\n"				      \
 "	  ;;\n"								      \
 "	}\n"								      \
 "	{ .mmi\n"							      \
-"	  ld8 r2 = [r2]		/* Get the address of _dl_argv. */\n"	      \
-"	  sub out1 = out1, r3	/* Get the new argc. */\n"		      \
-"	  shladd r3 = r3, 3, r0\n"					      \
-"	  ;;\n"								      \
-"	}\n"								      \
-"	{\n"								      \
-"	  .mib\n"							      \
-"	  ld8 r17 = [r2]	/* Get _dl_argv. */\n"			      \
-"	  add r15 = r11, r3	/* The address of the argv we move */\n"      \
-"	  ;;\n"								      \
-"	}\n"								      \
-"	/* ??? Could probably merge these two loops into 3 bundles.\n"	      \
-"	   using predication to control which set of copies we're on.  */\n"  \
-"1:	/* Copy argv. */\n"						      \
-"	{ .mfi\n"							      \
-"	  ld8 r16 = [r15], 8	/* Load the value in the old argv. */\n"      \
-"	  ;;\n"								      \
-"	}\n"								      \
-"	{ .mib\n"							      \
-"	  st8 [r11] = r16, 8	/* Store it in the new argv. */\n"	      \
-"	  cmp.ne p6, p7 = 0, r16\n"					      \
-"(p6)	  br.cond.dptk.few 1b\n"					      \
+"	  ld8 out2 = [r3]	/* Get the _dl_argv address.  */\n"	      \
+"	  ld8 out1 = [out1]	/* Get the adjusted _dl_argc.  */\n"	      \
+"	  addl r2 = @gprel(_rtld_local), gp\n"				      \
 "	  ;;\n"								      \
 "	}\n"								      \
 "	{ .mmi\n"							      \
-"	  mov out3 = r11\n"						      \
-"	  sub r17 = r17, r3	/* Substract _dl_skip_args. */\n"	      \
-"	  addl out0 = @gprel(_rtld_local), gp\n"			      \
-"	}\n"								      \
-"1:	/* Copy env. */\n"						      \
-"	{ .mfi\n"							      \
-"	  ld8 r16 = [r15], 8	/* Load the value in the old env. */\n"	      \
+"	  sxt4 out3 = out1	/* envp = argv + argc + 1  */\n" 	      \
 "	  ;;\n"								      \
 "	}\n"								      \
-"	{ .mib\n"							      \
-"	  st8 [r11] = r16, 8	/* Store it in the new env. */\n"	      \
-"	  cmp.ne p6, p7 = 0, r16\n"					      \
-"(p6)	  br.cond.dptk.few 1b\n"					      \
+"	{ .mmi\n"							      \
+"	  adds out3 = 1, out3\n"					      \
+"	  ;;\n"								      \
+"	}\n"								      \
+"	{ .mmi\n"							      \
+"	  ld8 out2 = [out2]	/* Get the adjusted _dl_argv.  */\n"	      \
+"	  shladd out3 = out3, 3, r0\n"					      \
 "	  ;;\n"								      \
 "	}\n"								      \
 "	{ .mmb\n"							      \
-"	  st8 [r10] = out1		/* Record the new argc. */\n"	      \
-"	  ld8 out0 = [out0]		/* get the linkmap */\n"	      \
-"	}\n"								      \
-"	{ .mmb\n"							      \
-"	  st8 [r2] = r17		/* Load the new _dl_argv. */\n"	      \
+"	  add out3 = out3, out2\n"					      \
+"	  ld8 out0 = [r2]	/* Get the linkmap. */\n"		      \
 "	  br.call.sptk.many b0 = _dl_init#\n"				      \
-"	  ;;\n"								      \
 "	}\n"								      \
 "	/* Pass our finalizer function to the user,\n"			      \
 "	   and jump to the user's entry point.  */\n"			      \
@@ -383,29 +341,15 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
   const unsigned long int r_type = ELF64_R_TYPE (reloc->r_info);
   Elf64_Addr value;
 
-#if !defined RTLD_BOOTSTRAP && !defined HAVE_Z_COMBRELOC && !defined SHARED
-  /* This is defined in rtld.c, but nowhere in the static libc.a; make the
-     reference weak so static programs can still link.  This declaration
-     cannot be done when compiling rtld.c (i.e.  #ifdef RTLD_BOOTSTRAP)
-     because rtld.c contains the common defn for _dl_rtld_map, which is
-     incompatible with a weak decl in the same file.  */
-  weak_extern (_dl_rtld_map);
-#endif
-
   /* We cannot use a switch here because we cannot locate the switch
      jump table until we've self-relocated.  */
 
-#if !defined RTLD_BOOTSTRAP || !defined HAVE_Z_COMBRELOC
+#if !defined RTLD_BOOTSTRAP
   if (__builtin_expect (R_IA64_TYPE (r_type) == R_IA64_TYPE (R_IA64_REL64LSB),
 			0))
     {
       assert (ELF64_R_TYPE (reloc->r_info) == R_IA64_REL64LSB);
-      value = *reloc_addr;
-# if !defined RTLD_BOOTSTRAP && !defined HAVE_Z_COMBRELOC
-      /* Already done in dynamic linker.  */
-      if (map != &GL(dl_rtld_map))
-# endif
-	value += map->l_addr;
+      value = *reloc_addr + map->l_addr;
     }
   else
 #endif

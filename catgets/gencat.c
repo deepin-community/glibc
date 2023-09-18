@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -245,7 +245,7 @@ print_version (FILE *stream, struct argp_state *state)
 Copyright (C) %s Free Software Foundation, Inc.\n\
 This is free software; see the source for copying conditions.  There is NO\n\
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
-"), "2022");
+"), "2023");
   fprintf (stream, gettext ("Written by %s.\n"), "Ulrich Drepper");
 }
 
@@ -1033,7 +1033,7 @@ write_out (struct catalog *catalog, const char *output_name,
 	  /* If the current message set has a symbolic name write this
 	     out first.  */
 	  if (set_run->symbol != NULL)
-	    fprintf (fp, "%s#define %sSet %#x\t/* %s:%Zu */\n",
+	    fprintf (fp, "%s#define %sSet %#x\t/* %s:%zu */\n",
 		     first ? "" : "\n", set_run->symbol, set_run->number - 1,
 		     set_run->fname, set_run->line);
 	  first = 0;
@@ -1047,12 +1047,12 @@ write_out (struct catalog *catalog, const char *output_name,
 	      if (message_run->symbol != NULL)
 		{
 		  if (set_run->symbol == NULL)
-		    fprintf (fp, "#define AutomaticSet%d%s %#x\t/* %s:%Zu */\n",
+		    fprintf (fp, "#define AutomaticSet%d%s %#x\t/* %s:%zu */\n",
 			     set_run->number, message_run->symbol,
 			     message_run->number, message_run->fname,
 			     message_run->line);
 		  else
-		    fprintf (fp, "#define %s%s %#x\t/* %s:%Zu */\n",
+		    fprintf (fp, "#define %s%s %#x\t/* %s:%zu */\n",
 			     set_run->symbol, message_run->symbol,
 			     message_run->number, message_run->fname,
 			     message_run->line);

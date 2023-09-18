@@ -1,5 +1,5 @@
 /* Allocate a new stack.  Mach version.
-   Copyright (C) 2000-2022 Free Software Foundation, Inc.
+   Copyright (C) 2000-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -56,9 +56,6 @@ get_stack:
       else
 	return EAGAIN;
     }
-
-  if (base >= VM_MAX_ADDRESS)
-    return EAGAIN;
 
   next_stack_base = base + stacksize;
 

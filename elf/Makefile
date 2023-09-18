@@ -1,4 +1,4 @@
-# Copyright (C) 1995-2022 Free Software Foundation, Inc.
+# Copyright (C) 1995-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ routines = \
   $(all-dl-routines) \
   dl-addr \
   dl-addr-obj \
-  dl-error \
+  dl-early_allocate \
   dl-iteratephdr \
   dl-libc \
   dl-origin \
@@ -52,6 +52,8 @@ routines = \
 # profiled libraries.
 dl-routines = \
   dl-call-libc-early-init \
+  dl-call_fini \
+  dl-catch \
   dl-close \
   dl-debug \
   dl-debug-symbols \
@@ -108,6 +110,7 @@ all-dl-routines = $(dl-routines) $(sysdep-dl-routines)
 # But they are absent from the shared libc, because that code is in ld.so.
 elide-routines.os = \
   $(all-dl-routines) \
+  dl-early_allocate \
   dl-exception \
   dl-origin \
   dl-reloc-static-pie \
@@ -127,12 +130,10 @@ rtld-routines = \
   $(all-dl-routines) \
   dl-audit \
   dl-compat \
-  dl-conflict \
   dl-diagnostics \
   dl-diagnostics-cpu \
   dl-diagnostics-kernel \
   dl-environ \
-  dl-error-minimal \
   dl-hwcaps \
   dl-hwcaps-subdirs \
   dl-hwcaps_split \
@@ -272,6 +273,7 @@ tests-static-normal := \
   tst-linkall-static \
   tst-single_threaded-pthread-static \
   tst-single_threaded-static \
+  tst-tls-allocation-failure-static \
   tst-tlsalign-extern-static \
   tst-tlsalign-static \
   # tests-static-normal
@@ -305,6 +307,7 @@ tests := \
   tst-array4 \
   tst-array5 \
   tst-auxv \
+  tst-dl-hash \
   tst-leaks1 \
   tst-stringtable \
   tst-tls9 \
@@ -366,6 +369,8 @@ tests += \
   tst-align \
   tst-align2 \
   tst-align3 \
+  tst-audit-tlsdesc \
+  tst-audit-tlsdesc-dlopen \
   tst-audit1 \
   tst-audit2 \
   tst-audit8 \
@@ -386,6 +391,7 @@ tests += \
   tst-audit24d \
   tst-audit25a \
   tst-audit25b \
+  tst-audit28 \
   tst-auditmany \
   tst-auxobj \
   tst-auxobj-dlopen \
@@ -399,6 +405,7 @@ tests += \
   tst-dlmopen4 \
   tst-dlmopen-dlerror \
   tst-dlmopen-gethostbyname \
+  tst-dlmopen-twice \
   tst-dlopenfail \
   tst-dlopenfail-2 \
   tst-dlopenrpath \
@@ -417,6 +424,7 @@ tests += \
   tst-initorder2 \
   tst-latepthread \
   tst-main1 \
+  tst-next-ver \
   tst-nodelete2 \
   tst-nodelete-dlclose \
   tst-nodelete-opened \
@@ -537,7 +545,74 @@ tests-special += \
   # tests-special
 endif
 endif
+ifeq ($(have-dt-relr),yes)
+tests += \
+  tst-relr \
+  tst-relr2 \
+  tst-relr3 \
+  tst-relr4 \
+# tests
+modules-names-dt-relr = \
+  tst-relr-mod2 \
+  tst-relr-mod3a \
+  tst-relr-mod3b \
+  tst-relr-mod4a \
+  tst-relr-mod4b \
+# modules-names-dt-relr
+modules-names += $(modules-names-dt-relr)
+# These shared libraries have special build rules.
+modules-names-nobuild += $(modules-names-dt-relr)
+ifeq ($(have-fpie),yes)
+tests += \
+  tst-relr-pie \
+# tests
+tests-pie += \
+  tst-relr-pie \
+# tests-pie
+tests-special += \
+  $(objpfx)check-tst-relr-pie.out \
+# tests-special
 endif
+CFLAGS-tst-relr-pie.c += $(pie-ccflag)
+LDFLAGS-tst-relr += -Wl,-z,pack-relative-relocs
+LDFLAGS-tst-relr-pie += -Wl,-z,pack-relative-relocs
+CFLAGS-tst-relr-mod2.c += $(no-stack-protector)
+CFLAGS-tst-relr-mod3a.c += $(no-stack-protector)
+CFLAGS-tst-relr-mod3b.c += $(no-stack-protector)
+CFLAGS-tst-relr-mod4a.c += $(no-stack-protector)
+CFLAGS-tst-relr-mod4b.c += $(no-stack-protector)
+endif
+endif
+
+tests-special += $(objpfx)tst-relro-ldso.out $(objpfx)tst-relro-libc.out
+$(objpfx)tst-relro-ldso.out: tst-relro-symbols.py $(..)/scripts/glibcelf.py \
+  $(objpfx)ld.so
+	$(PYTHON) tst-relro-symbols.py $(objpfx)ld.so \
+	  --required=_rtld_global_ro \
+	  > $@ 2>&1; $(evaluate-test)
+# The optional symbols are present in libc only if the architecture has
+# the GLIBC_2.0 symbol set in libc.
+$(objpfx)tst-relro-libc.out: tst-relro-symbols.py $(..)/scripts/glibcelf.py \
+  $(common-objpfx)libc.so
+	$(PYTHON) tst-relro-symbols.py $(common-objpfx)libc.so \
+	    --required=_IO_cookie_jumps \
+	    --required=_IO_file_jumps \
+	    --required=_IO_file_jumps_maybe_mmap \
+	    --required=_IO_file_jumps_mmap \
+	    --required=_IO_mem_jumps \
+	    --required=_IO_printf_buffer_as_file_jumps \
+	    --required=_IO_proc_jumps \
+	    --required=_IO_str_jumps \
+	    --required=_IO_wfile_jumps \
+	    --required=_IO_wfile_jumps_maybe_mmap \
+	    --required=_IO_wfile_jumps_mmap \
+	    --required=_IO_wmem_jumps \
+	    --required=_IO_wprintf_buffer_as_file_jumps \
+	    --required=_IO_wstr_jumps \
+	    --optional=_IO_old_cookie_jumps \
+	    --optional=_IO_old_file_jumps \
+	    --optional=_IO_old_proc_jumps \
+	  > $@ 2>&1; $(evaluate-test)
 
 ifeq ($(run-built-tests),yes)
 tests-special += $(objpfx)tst-valgrind-smoke.out
@@ -580,7 +655,7 @@ test-extras += \
   tst-tlsmod17a \
   tst-tlsmod18a \
   # test-extras
-modules-names = \
+modules-names += \
   circlemod1 \
   circlemod1a \
   circlemod2 \
@@ -613,6 +688,16 @@ modules-names = \
   libmarkermod4-2 \
   libmarkermod4-3 \
   libmarkermod4-4 \
+  libmarkermod5-1 \
+  libmarkermod5-2 \
+  libmarkermod5-3 \
+  libmarkermod5-4 \
+  libmarkermod5-5 \
+  libtracemod1-1 \
+  libtracemod2-1 \
+  libtracemod3-1 \
+  libtracemod4-1 \
+  libtracemod5-1 \
   ltglobmod1 \
   ltglobmod2 \
   neededobj1 \
@@ -623,6 +708,7 @@ modules-names = \
   neededobj6 \
   nextmod1 \
   nextmod2 \
+  nextmod3 \
   nodel2mod1 \
   nodel2mod2 \
   nodel2mod3 \
@@ -674,6 +760,8 @@ modules-names = \
   tst-alignmod3 \
   tst-array2dep \
   tst-array5dep \
+  tst-audit-tlsdesc-mod1 \
+  tst-audit-tlsdesc-mod2 \
   tst-audit11mod1 \
   tst-audit11mod2 \
   tst-audit12mod1 \
@@ -707,6 +795,7 @@ modules-names = \
   tst-auditmanymod7 \
   tst-auditmanymod8 \
   tst-auditmanymod9 \
+  tst-auditmod-tlsdesc  \
   tst-auditmod1 \
   tst-auditmod9a \
   tst-auditmod9b \
@@ -725,6 +814,7 @@ modules-names = \
   tst-auditmod24c \
   tst-auditmod24d \
   tst-auditmod25 \
+  tst-auditmod28 \
   tst-auxvalmod \
   tst-big-note-lib \
   tst-deep1mod1 \
@@ -742,6 +832,8 @@ modules-names = \
   tst-dlmopen1mod \
   tst-dlmopen-dlerror-mod \
   tst-dlmopen-gethostbyname-mod \
+  tst-dlmopen-twice-mod1 \
+  tst-dlmopen-twice-mod2 \
   tst-dlopenfaillinkmod \
   tst-dlopenfailmod1 \
   tst-dlopenfailmod2 \
@@ -889,29 +981,17 @@ modules-names += \
 modules-names-tests = $(filter-out ifuncmod% tst-tlsmod%,\
 				   $(modules-names))
 
+# For +depfiles in Makerules.
+extra-test-objs += tst-auditmod17.os
+
 ifeq (yes,$(have-mtls-dialect-gnu2))
 tests += tst-gnu2-tls1
 modules-names += tst-gnu2-tls1mod
 $(objpfx)tst-gnu2-tls1: $(objpfx)tst-gnu2-tls1mod.so
 tst-gnu2-tls1mod.so-no-z-defs = yes
 CFLAGS-tst-gnu2-tls1mod.c += -mtls-dialect=gnu2
+endif # $(have-mtls-dialect-gnu2)
 
-tests += tst-audit-tlsdesc tst-audit-tlsdesc-dlopen
-modules-names += tst-audit-tlsdesc-mod1 tst-audit-tlsdesc-mod2 tst-auditmod-tlsdesc
-$(objpfx)tst-audit-tlsdesc: $(objpfx)tst-audit-tlsdesc-mod1.so \
-			    $(objpfx)tst-audit-tlsdesc-mod2.so \
-			    $(shared-thread-library)
-CFLAGS-tst-audit-tlsdesc-mod1.c += -mtls-dialect=gnu2
-CFLAGS-tst-audit-tlsdesc-mod2.c += -mtls-dialect=gnu2
-$(objpfx)tst-audit-tlsdesc-dlopen: $(shared-thread-library)
-$(objpfx)tst-audit-tlsdesc-dlopen.out: $(objpfx)tst-audit-tlsdesc-mod1.so \
-				       $(objpfx)tst-audit-tlsdesc-mod2.so
-$(objpfx)tst-audit-tlsdesc-mod1.so: $(objpfx)tst-audit-tlsdesc-mod2.so
-$(objpfx)tst-audit-tlsdesc.out: $(objpfx)tst-auditmod-tlsdesc.so
-tst-audit-tlsdesc-ENV = LD_AUDIT=$(objpfx)tst-auditmod-tlsdesc.so
-$(objpfx)tst-audit-tlsdesc-dlopen.out: $(objpfx)tst-auditmod-tlsdesc.so
-tst-audit-tlsdesc-dlopen-ENV = LD_AUDIT=$(objpfx)tst-auditmod-tlsdesc.so
-endif
 ifeq (yes,$(have-protected-data))
 modules-names += tst-protected1moda tst-protected1modb
 tests += tst-protected1a tst-protected1b
@@ -942,8 +1022,13 @@ extra-test-objs += $(addsuffix .os,$(strip $(modules-names)))
 
 # filtmod1.so, tst-big-note-lib.so, tst-ro-dynamic-mod.so have special
 # rules.
-modules-names-nobuild := filtmod1 tst-big-note-lib tst-ro-dynamic-mod \
-			 tst-audit24bmod1 tst-audit24bmod2.so
+modules-names-nobuild += \
+  filtmod1 \
+  tst-audit24bmod1 \
+  tst-audit24bmod2 \
+  tst-big-note-lib \
+  tst-ro-dynamic-mod \
+# modules-names-nobuild
 
 tests += $(tests-static)
 
@@ -1072,6 +1157,11 @@ tests-special += \
   $(objpfx)tst-initorder2-cmp.out \
   $(objpfx)tst-unused-dep-cmp.out \
   $(objpfx)tst-unused-dep.out \
+  $(objpfx)tst-trace1.out \
+  $(objpfx)tst-trace2.out \
+  $(objpfx)tst-trace3.out \
+  $(objpfx)tst-trace4.out \
+  $(objpfx)tst-trace5.out \
   # tests-special
 endif
 
@@ -1098,17 +1188,24 @@ $(eval $(call include_dsosort_tests,dso-sort-tests-1.def))
 $(eval $(call include_dsosort_tests,dso-sort-tests-2.def))
 endif
 
-check-abi: $(objpfx)check-abi-ld.out
-tests-special += $(objpfx)check-abi-ld.out
+check-abi: $(objpfx)check-abi-ld.out \
+	   $(objpfx)check-abi-version-libc.out
+tests-special += \
+  $(objpfx)check-abi-ld.out \
+  $(objpfx)check-abi-version-libc.out \
+# tests-special
 update-abi: update-abi-ld
 update-all-abi: update-all-abi-ld
 
-ifeq ($(have-glob-dat-reloc),yes)
-tests += tst-prelink
-tests-internal += tst-prelink-cmp
-# Don't compile tst-prelink.c with PIE for GLOB_DAT relocation.
-CFLAGS-tst-prelink.c += -fno-pie
-tst-prelink-no-pie = yes
+tests-special += $(objpfx)tst-glibcelf.out
+$(objpfx)tst-glibcelf.out: tst-glibcelf.py elf.h $(..)/scripts/glibcelf.py \
+  $(..)/scripts/glibcextract.py
+	PYTHONPATH=$(..)scripts $(PYTHON) tst-glibcelf.py \
+          --cc="$(CC) $(patsubst -DMODULE_NAME=%,-DMODULE_NAME=testsuite,$(CPPFLAGS))" \
+	  < /dev/null > $@ 2>&1; $(evaluate-test)
+
+ifeq ($(run-built-tests),yes)
+tests-special += $(objpfx)tst-tls-allocation-failure-static-patched.out
 endif
 
 # The test requires shared _and_ PIE because the executable
@@ -1171,6 +1268,7 @@ $(objpfx)dl-allobjs.os: $(all-rtld-routines:%=$(objpfx)%.os)
 rtld-stubbed-symbols = \
   __GI___pthread_disable_asynccancel \
   __GI___pthread_enable_asynccancel \
+  __libc_assert_fail \
   __pthread_disable_asynccancel \
   __pthread_enable_asynccancel \
   calloc \
@@ -1203,7 +1301,7 @@ $(objpfx)librtld.mk: $(objpfx)librtld.map Makefile
 	while read lib file; do \
 	  case $$lib in \
 	  libc_pic.a) \
-	    LC_ALL=C fgrep -l /$$file \
+	    LC_ALL=C grep -F -l /$$file \
 		  $(common-objpfx)stamp.os $(common-objpfx)*/stamp.os | \
 	    LC_ALL=C \
 	    sed 's@^$(common-objpfx)\([^/]*\)/stamp\.os$$@rtld-\1'" +=$$file@"\
@@ -1233,9 +1331,9 @@ $(objpfx)ld.so: $(objpfx)librtld.os $(ld-map)
 # if the sanity check below fails.
 	$(LINK.o) -nostdlib -nostartfiles -shared -o $@.new		\
 		  $(LDFLAGS-rtld) -Wl,-z,defs $(z-now-$(bind-now))	\
+		  $(dt-relr-ldflag) \
 		  $(filter-out $(map-file),$^) $(load-map-file)		\
-		  -Wl,-soname=$(rtld-installed-name)			\
-		  -Wl,-defsym=_begin=0
+		  -Wl,-soname=$(rtld-installed-name)
 	$(call after-link,$@.new)
 	$(READELF) -s $@.new \
 	  | $(AWK) '($$7 ~ /^UND(|EF)$$/ && $$1 != "0:" && $$4 != "REGISTER") { print; p=1 } END { exit p != 0 }'
@@ -1558,6 +1656,7 @@ $(objpfx)nodlopen2.out: $(objpfx)nodlopenmod2.so
 
 $(objpfx)filtmod1.so: $(objpfx)filtmod1.os $(objpfx)filtmod2.so
 	$(LINK.o) -shared -o $@ -B$(csu-objpfx) $(LDFLAGS.so) \
+		  $(dt-relr-ldflag) \
 		  -L$(subst :, -L,$(rpath-link)) \
 		  -Wl,-rpath-link=$(rpath-link) \
 		  $< -Wl,-F,$(objpfx)filtmod2.so
@@ -1578,6 +1677,9 @@ $(objpfx)reldep4.out: $(objpfx)reldep4mod1.so $(objpfx)reldep4mod2.so
 
 $(objpfx)next: $(objpfx)nextmod1.so $(objpfx)nextmod2.so
 LDFLAGS-next = -Wl,--no-as-needed
+
+$(objpfx)tst-next-ver: $(objpfx)nextmod3.so
+LDFLAGS-tst-next-ver = -Wl,--no-as-needed
 
 $(objpfx)unload2.out: $(objpfx)unload2mod.so $(objpfx)unload2dep.so
 
@@ -2210,7 +2312,7 @@ $(objpfx)tst-audit24c.out: $(objpfx)tst-auditmod24c.so
 $(objpfx)tst-audit24c: $(objpfx)tst-audit24amod1.so \
 		       $(objpfx)tst-audit24amod2.so
 tst-audit24c-ENV = LD_BIND_NOW=1 LD_AUDIT=$(objpfx)tst-auditmod24c.so
-LDFLAGS-tst-audit24b = -Wl,-z,lazy
+LDFLAGS-tst-audit24c = -Wl,-z,lazy
 
 $(objpfx)tst-audit24d.out: $(objpfx)tst-auditmod24d.so
 $(objpfx)tst-audit24d: $(objpfx)tst-audit24dmod1.so \
@@ -2241,6 +2343,10 @@ $(objpfx)tst-audit25b: $(objpfx)tst-audit25mod1.so \
 		       $(objpfx)tst-audit25mod4.so
 LDFLAGS-tst-audit25b = -Wl,-z,now
 tst-audit25b-ARGS = -- $(host-test-program-cmd)
+
+$(objpfx)tst-audit28.out: $(objpfx)tst-auditmod28.so
+$(objpfx)tst-auditmod28.so: $(libsupport)
+tst-audit28-ENV = LD_AUDIT=$(objpfx)tst-auditmod28.so
 
 # tst-sonamemove links against an older implementation of the library.
 LDFLAGS-tst-sonamemove-linkmod1.so = \
@@ -2285,13 +2391,6 @@ $(objpfx)tst-tls-manydynamic: $(shared-thread-library)
 $(objpfx)tst-tls-manydynamic.out: \
   $(patsubst %,$(objpfx)%.so,$(tst-tls-many-dynamic-modules))
 
-tst-prelink-ENV = LD_TRACE_PRELINKING=1
-
-$(objpfx)tst-prelink-conflict.out: $(objpfx)tst-prelink.out
-	grep stdout $< | grep conflict | $(AWK) '{ print $$10, $$11 }' > $@
-
-$(objpfx)tst-prelink-cmp.out: $(objpfx)tst-prelink-conflict.out
-
 $(objpfx)tst-ldconfig-X.out : tst-ldconfig-X.sh $(objpfx)ldconfig
 	$(SHELL) $< '$(common-objpfx)' '$(test-wrapper-env)' \
 		 '$(run-program-env)' > $@; \
@@ -2329,6 +2428,8 @@ $(objpfx)tst-linkall-static: \
 endif
 endif
 
+LDFLAGS-nextmod3.so = -Wl,--version-script=nextmod3.map
+
 # The application depends on the DSO, and the DSO loads the plugin.
 # The plugin also depends on the DSO. This creates the circular
 # dependency via dlopen that we're testing to make sure works.
@@ -2364,7 +2465,7 @@ $(objpfx)tst-big-note: $(objpfx)tst-big-note-lib.so
 # artificial, large note in tst-big-note-lib.o and invalidate the
 # test.
 $(objpfx)tst-big-note-lib.so: $(objpfx)tst-big-note-lib.o
-	$(LINK.o) -shared -o $@ $(LDFLAGS.so) $<
+	$(LINK.o) -shared -o $@ $(LDFLAGS.so) $(dt-relr-ldflag) $<
 
 $(objpfx)tst-unwind-ctor: $(objpfx)tst-unwind-ctor-lib.so
 
@@ -2509,6 +2610,7 @@ LDFLAGS-libmarkermod1-1.so += -Wl,-soname,libmarkermod1.so
 LDFLAGS-libmarkermod2-1.so += -Wl,-soname,libmarkermod2.so
 LDFLAGS-libmarkermod3-1.so += -Wl,-soname,libmarkermod3.so
 LDFLAGS-libmarkermod4-1.so += -Wl,-soname,libmarkermod4.so
+LDFLAGS-libmarkermod5-1.so += -Wl,-soname,libmarkermod5.so
 $(objpfx)libmarkermod%.os : markermodMARKER-VALUE.c
 	$(compile-command.c) \
 	  -DMARKER=marker$(firstword $(subst -, ,$*)) \
@@ -2520,6 +2622,8 @@ $(objpfx)libmarkermod2.so: $(objpfx)libmarkermod2-1.so
 $(objpfx)libmarkermod3.so: $(objpfx)libmarkermod3-1.so
 	cp $< $@
 $(objpfx)libmarkermod4.so: $(objpfx)libmarkermod4-1.so
+	cp $< $@
+$(objpfx)libmarkermod5.so: $(objpfx)libmarkermod5-1.so
 	cp $< $@
 
 # tst-glibc-hwcaps-prepend checks that --glibc-hwcaps-prepend is
@@ -2577,12 +2681,6 @@ $(objpfx)tst-rtld-help.out: $(objpfx)ld.so
 	$(test-wrapper) $(rtld-prefix) --help > $@; \
 	status=$$?; \
 	echo "info: ld.so exit status: $$status" >> $@; \
-	if ! grep -q 'Legacy HWCAP subdirectories under library search path directories' $@; then \
-	  echo "error: missing subdirectory pattern" >> $@; \
-	  if test $$status -eq 0; then \
-	    status=1; \
-	  fi; \
-	fi; \
 	(exit $$status); \
 	$(evaluate-test)
 
@@ -2670,6 +2768,7 @@ $(objpfx)tst-ro-dynamic: $(objpfx)tst-ro-dynamic-mod.so
 $(objpfx)tst-ro-dynamic-mod.so: $(objpfx)tst-ro-dynamic-mod.os \
   tst-ro-dynamic-mod.map
 	$(LINK.o) -nostdlib -nostartfiles -shared -o $@ \
+		$(dt-relr-ldflag) \
 		-Wl,--script=tst-ro-dynamic-mod.map \
 		$(objpfx)tst-ro-dynamic-mod.os
 
@@ -2733,3 +2832,140 @@ $(objpfx)tst-p_align3: $(objpfx)tst-p_alignmod3.so
 $(objpfx)tst-p_align3.out: tst-p_align3.sh $(objpfx)tst-p_align3
 	$(SHELL) $< $(common-objpfx) '$(test-program-prefix)'; \
 	$(evaluate-test)
+
+$(objpfx)check-abi-version-libc.out: $(common-objpfx)libc.so
+	LC_ALL=C $(READELF) -V -W $< \
+		| sed -ne '/.gnu.version_d/, /.gnu.version_r/ p' \
+		| grep GLIBC_ABI_DT_RELR > $@; \
+	$(evaluate-test)
+
+$(objpfx)check-tst-relr-pie.out: $(objpfx)tst-relr-pie
+	LC_ALL=C $(OBJDUMP) -p $< \
+		| sed -ne '/required from libc.so/,$$ p' \
+		| grep GLIBC_ABI_DT_RELR > $@; \
+	$(evaluate-test)
+
+# The test checks if a DT_RELR shared library without DT_NEEDED works as
+# intended, so it uses an explicit link rule.
+$(objpfx)tst-relr2: $(objpfx)tst-relr-mod2.so
+$(objpfx)tst-relr-mod2.so: $(objpfx)tst-relr-mod2.os
+	$(LINK.o) -nostdlib -nostartfiles -Wl,-z,pack-relative-relocs \
+	$(LDFLAGS-soname-fname) \
+	-shared -o $@.new $(filter-out $(map-file),$^)
+	$(call after-link,$@.new)
+	mv -f $@.new $@
+
+# The test checks if a DT_RELR shared library without DT_VERNEED works as
+# intended, so it uses an explicit link rule.
+$(objpfx)tst-relr3: $(objpfx)tst-relr-mod3a.so
+$(objpfx)tst-relr-mod3b.so: $(objpfx)tst-relr-mod3b.os
+	$(LINK.o) -nostdlib -nostartfiles -Wl,-z,pack-relative-relocs \
+	$(LDFLAGS-soname-fname) \
+	-shared -o $@.new $(filter-out $(map-file),$^)
+	$(call after-link,$@.new)
+	mv -f $@.new $@
+
+$(objpfx)tst-relr-mod3a.so: $(objpfx)tst-relr-mod3a.os \
+  $(objpfx)tst-relr-mod3b.so
+	$(LINK.o) -nostdlib -nostartfiles -Wl,-z,pack-relative-relocs \
+	$(LDFLAGS-soname-fname) $(LDFLAGS-rpath-ORIGIN) \
+	-shared -o $@.new $(filter-out $(map-file),$^)
+	$(call after-link,$@.new)
+	mv -f $@.new $@
+
+# The test checks if a DT_RELR shared library without libc.so on DT_NEEDED
+# works as intended, so it uses an explicit link rule.
+$(objpfx)tst-relr4: $(objpfx)tst-relr-mod4a.so
+$(objpfx)tst-relr-mod4b.so: $(objpfx)tst-relr-mod4b.os
+	$(LINK.o) -nostdlib -nostartfiles -Wl,-z,pack-relative-relocs \
+	$(LDFLAGS-soname-fname) \
+	-Wl,--version-script=tst-relr-mod4b.map \
+	-shared -o $@.new $(filter-out $(map-file),$^)
+	$(call after-link,$@.new)
+	mv -f $@.new $@
+
+$(objpfx)tst-relr-mod4a.so: $(objpfx)tst-relr-mod4a.os \
+  $(objpfx)tst-relr-mod4b.so
+	$(LINK.o) -nostdlib -nostartfiles -Wl,-z,pack-relative-relocs \
+	$(LDFLAGS-soname-fname) $(LDFLAGS-rpath-ORIGIN) \
+	-shared -o $@.new $(filter-out $(map-file),$^)
+	$(call after-link,$@.new)
+	mv -f $@.new $@
+
+LDFLAGS-libtracemod1-1.so += -Wl,-soname,libtracemod1.so
+LDFLAGS-libtracemod2-1.so += -Wl,-soname,libtracemod2.so
+LDFLAGS-libtracemod3-1.so += -Wl,-soname,libtracemod3.so
+LDFLAGS-libtracemod4-1.so += -Wl,-soname,libtracemod4.so
+LDFLAGS-libtracemod5-1.so += -Wl,-soname,libtracemod5.so
+
+$(objpfx)libtracemod1-1.so: $(objpfx)libtracemod2-1.so \
+			    $(objpfx)libtracemod3-1.so
+$(objpfx)libtracemod2-1.so: $(objpfx)libtracemod4-1.so \
+			    $(objpfx)libtracemod5-1.so
+
+define libtracemod-x
+$(objpfx)libtracemod$(1)/libtracemod$(1).so: $(objpfx)libtracemod$(1)-1.so
+	$$(make-target-directory)
+	cp $$< $$@
+endef
+libtracemod-suffixes = 1 2 3 4 5
+$(foreach i,$(libtracemod-suffixes), $(eval $(call libtracemod-x,$(i))))
+
+define tst-trace-skeleton
+$(objpfx)tst-trace$(1).out: $(objpfx)libtracemod1/libtracemod1.so \
+			    $(objpfx)libtracemod2/libtracemod2.so \
+			    $(objpfx)libtracemod3/libtracemod3.so \
+			    $(objpfx)libtracemod4/libtracemod4.so \
+			    $(objpfx)libtracemod5/libtracemod5.so \
+			    $(..)scripts/tst-ld-trace.py \
+			    tst-trace$(1).exp
+	${ $(PYTHON) $(..)scripts/tst-ld-trace.py \
+	    "$(test-wrapper-env) $(elf-objpfx)$(rtld-installed-name) \
+	    --library-path $(common-objpfx):$(strip $(2)) \
+	    $(objpfx)libtracemod1/libtracemod1.so" tst-trace$(1).exp \
+	} > $$@; $$(evaluate-test)
+endef
+
+$(eval $(call tst-trace-skeleton,1,))
+$(eval $(call tst-trace-skeleton,2,\
+	$(objpfx)libtracemod2))
+$(eval $(call tst-trace-skeleton,3,\
+	$(objpfx)libtracemod2:$(objpfx)libtracemod3))
+$(eval $(call tst-trace-skeleton,4,\
+	$(objpfx)libtracemod2:$(objpfx)libtracemod3:$(objpfx)libtracemod4))
+$(eval $(call tst-trace-skeleton,5,\
+	$(objpfx)libtracemod2:$(objpfx)libtracemod3:$(objpfx)libtracemod4:$(objpfx)libtracemod5))
+
+$(objpfx)tst-tls-allocation-failure-static-patched: \
+  $(objpfx)tst-tls-allocation-failure-static $(..)scripts/tst-elf-edit.py
+	cp $< $@
+	$(PYTHON) $(..)scripts/tst-elf-edit.py --maximize-tls-size $@
+
+$(objpfx)tst-tls-allocation-failure-static-patched.out: \
+  $(objpfx)tst-tls-allocation-failure-static-patched
+	$< > $@ 2>&1; echo "status: $$?" >> $@
+	grep -q '^Fatal glibc error: Cannot allocate TLS block$$' $@ \
+	  && grep -q '^status: 127$$' $@; \
+	  $(evaluate-test)
+
+$(objpfx)tst-audit-tlsdesc: $(objpfx)tst-audit-tlsdesc-mod1.so \
+			    $(objpfx)tst-audit-tlsdesc-mod2.so \
+			    $(shared-thread-library)
+ifeq (yes,$(have-mtls-dialect-gnu2))
+# The test is valid for all TLS types, but we want to exercise GNU2
+# TLS if possible.
+CFLAGS-tst-audit-tlsdesc-mod1.c += -mtls-dialect=gnu2
+CFLAGS-tst-audit-tlsdesc-mod2.c += -mtls-dialect=gnu2
+endif
+$(objpfx)tst-audit-tlsdesc-dlopen: $(shared-thread-library)
+$(objpfx)tst-audit-tlsdesc-dlopen.out: $(objpfx)tst-audit-tlsdesc-mod1.so \
+				       $(objpfx)tst-audit-tlsdesc-mod2.so
+$(objpfx)tst-audit-tlsdesc-mod1.so: $(objpfx)tst-audit-tlsdesc-mod2.so
+$(objpfx)tst-audit-tlsdesc.out: $(objpfx)tst-auditmod-tlsdesc.so
+tst-audit-tlsdesc-ENV = LD_AUDIT=$(objpfx)tst-auditmod-tlsdesc.so
+$(objpfx)tst-audit-tlsdesc-dlopen.out: $(objpfx)tst-auditmod-tlsdesc.so
+tst-audit-tlsdesc-dlopen-ENV = LD_AUDIT=$(objpfx)tst-auditmod-tlsdesc.so
+
+$(objpfx)tst-dlmopen-twice.out: \
+  $(objpfx)tst-dlmopen-twice-mod1.so \
+  $(objpfx)tst-dlmopen-twice-mod2.so

@@ -6,12 +6,15 @@ capget		EXTRA	capget		i:pp	capget
 capset		EXTRA	capset		i:pp	capset
 create_module	EXTRA	create_module	3	__compat_create_module	create_module@GLIBC_2.0:GLIBC_2.23
 delete_module	EXTRA	delete_module	3	delete_module
-epoll_create	EXTRA	epoll_create	i:i	epoll_create
 epoll_create1	EXTRA	epoll_create1	i:i	epoll_create1
 epoll_ctl	EXTRA	epoll_ctl	i:iiip	epoll_ctl
 eventfd		EXTRA	eventfd2	i:ii	eventfd
 execve		-	execve		i:spp	__execve	execve
 flock		-	flock		i:ii	__flock		flock
+fsconfig	EXTRA	fsconfig	i:iUsNi	fsconfig
+fsmount		EXTRA	fsmount		i:iUU	fsmount
+fsopen		EXTRA	fsopen		i:sU	fsopen
+fspick		EXTRA	fspick		i:isU	fspick
 get_kernel_syms	EXTRA	get_kernel_syms	i:p	__compat_get_kernel_syms	get_kernel_syms@GLIBC_2.0:GLIBC_2.23
 getpid          -       getpid          Ei:     __getpid        getpid
 getegid		-	getegid		Ei:	__getegid	getegid
@@ -24,7 +27,6 @@ getresgid	-	getresgid	i:ppp	getresgid
 getsid		-	getsid		i:i	getsid
 init_module	EXTRA	init_module	5	init_module
 inotify_add_watch	EXTRA	inotify_add_watch	i:isi	inotify_add_watch
-inotify_init	EXTRA	inotify_init	i:	inotify_init
 inotify_init1	EXTRA	inotify_init1	i:I	inotify_init1
 inotify_rm_watch	EXTRA	inotify_rm_watch	i:ii	inotify_rm_watch
 ioperm		-	ioperm		i:UUi	ioperm
@@ -35,11 +37,19 @@ mincore		-	mincore		i:aUV	mincore
 mlock		-	mlock		i:bU	mlock
 mlockall	-	mlockall	i:i	mlockall
 mount		EXTRA	mount		i:sssUp	__mount	mount
+mount_setattr	EXTRA	mount_setattr	i:isUpU	mount_setattr
+move_mount	EXTRA	move_mount	i:isisU	move_mount
 munlock		-	munlock		i:aU	munlock
 munlockall	-	munlockall	i:	munlockall
 nfsservctl	EXTRA	nfsservctl	i:ipp	__compat_nfsservctl	nfsservctl@GLIBC_2.0:GLIBC_2.28
+open_tree	EXTRA	open_tree	i:isU	open_tree
 pipe2		-	pipe2		i:fi	__pipe2		pipe2
+pidfd_open	EXTRA	pidfd_open	i:iU	pidfd_open
+pidfd_getfd	EXTRA	pidfd_getfd	i:iiU	pidfd_getfd
 pivot_root	EXTRA	pivot_root	i:ss	pivot_root
+pidfd_send_signal	EXTRA	pidfd_send_signal	i:iiPU	pidfd_send_signal
+process_madvise EXTRA   process_madvise i:iPniU process_madvise
+process_mrelease EXTRA  process_mrelease i:iU   process_mrelease
 query_module	EXTRA	query_module	i:sipip	__compat_query_module	query_module@GLIBC_2.0:GLIBC_2.23
 quotactl	EXTRA	quotactl	i:isip	quotactl
 remap_file_pages -	remap_file_pages i:pUiUi	__remap_file_pages remap_file_pages
@@ -50,8 +60,6 @@ sched_primin	-	sched_get_priority_min	i:i	__sched_get_priority_min	sched_get_pri
 sched_setp	-	sched_setparam	i:ip	__sched_setparam	sched_setparam
 sched_sets	-	sched_setscheduler	i:iip	__sched_setscheduler	sched_setscheduler
 sched_yield	-	sched_yield	i:	__sched_yield	sched_yield
-sendfile	-	sendfile	i:iipU	sendfile
-sendfile64	-	sendfile64	i:iipU	sendfile64
 setfsgid	EXTRA	setfsgid	i:i	setfsgid
 setfsuid	EXTRA	setfsuid	i:i	setfsuid
 setpgid		-	setpgid		i:ii	__setpgid	setpgid

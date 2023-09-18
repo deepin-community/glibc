@@ -1,5 +1,5 @@
 /* Thread creation.
-   Copyright (C) 2000-2022 Free Software Foundation, Inc.
+   Copyright (C) 2000-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -136,8 +136,8 @@ __pthread_create_internal (struct __pthread **thread,
   if (stacksize == 0)
     {
       struct rlimit rlim;
-      __getrlimit (RLIMIT_STACK, &rlim);
-      if (rlim.rlim_cur != RLIM_INFINITY)
+      err = __getrlimit (RLIMIT_STACK, &rlim);
+      if (err == 0 && rlim.rlim_cur != RLIM_INFINITY)
 	stacksize = rlim.rlim_cur;
       if (stacksize == 0)
 	stacksize = PTHREAD_STACK_DEFAULT;
@@ -228,7 +228,7 @@ __pthread_create_internal (struct __pthread **thread,
      the number of threads from within the new thread isn't an option
      since this thread might return and call `pthread_exit' before the
      new thread runs.  */
-  atomic_increment (&__pthread_total);
+  atomic_fetch_add_relaxed (&__pthread_total, 1);
 
   /* Store a pointer to this thread in the thread ID lookup table.  We
      could use __thread_setid, however, we only lock for reading as no
@@ -262,7 +262,7 @@ failed_starting:
     }
 
   __pthread_setid (pthread->thread, NULL);
-  atomic_decrement (&__pthread_total);
+  atomic_fetch_add_relaxed (&__pthread_total, -1);
 failed_sigstate:
   __pthread_sigstate_destroy (pthread);
 failed_setup:

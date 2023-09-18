@@ -1,6 +1,6 @@
 /* Test some mathematical operator transliterations (BZ #23132)
 
-   Copyright (C) 2019-2022 Free Software Foundation, Inc.
+   Copyright (C) 2019-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -70,7 +70,7 @@ do_test (void)
       if (n == (size_t) -1)
         printf ("iconv() returned error: %m\n");
       else
-        printf ("iconv() returned %Zd, expected 24\n", n);
+        printf ("iconv() returned %zd, expected 24\n", n);
       result = 1;
     }
   if (inlen != 0)
@@ -91,7 +91,7 @@ do_test (void)
     }
   else if (outlen != sizeof (outbuf) - sizeof (expected))
     {
-      printf ("outlen wrong: %Zd, expected %Zd\n", outlen,
+      printf ("outlen wrong: %zd, expected %zd\n", outlen,
               sizeof (outbuf) - 15);
       result = 1;
     }

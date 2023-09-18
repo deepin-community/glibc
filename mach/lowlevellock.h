@@ -1,5 +1,5 @@
 /* Low-level lock implementation.  Mach gsync-based version.
-   Copyright (C) 1994-2022 Free Software Foundation, Inc.
+   Copyright (C) 1994-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@
 #define LLL_LOCK_INITIALIZER   0
 
 #define LLL_PRIVATE        0
-#define LLL_SHARED         SYNC_SHARED
+#define LLL_SHARED         GSYNC_SHARED
 
 /* Interruptible version of __gsync_wait.  */
 extern kern_return_t __gsync_wait_intr
@@ -78,7 +78,7 @@ extern kern_return_t __gsync_wait_intr
          || atomic_compare_and_exchange_bool_acq (__iptr, 1, 0) != 0)   \
        while (1)   \
          {   \
-           if (atomic_exchange_acq (__iptr, 2) == 0)   \
+           if (atomic_exchange_acquire (__iptr, 2) == 0)   \
              break;   \
            __lll_wait (__iptr, 2, __flags);   \
          }   \
@@ -102,7 +102,7 @@ extern kern_return_t __gsync_wait_intr
 #define __lll_unlock(ptr, flags)   \
   ({   \
      int *__iptr = (int *)(ptr);   \
-     if (atomic_exchange_rel (__iptr, 0) == 2)   \
+     if (atomic_exchange_release (__iptr, 0) == 2)   \
        __lll_wake (__iptr, (flags));   \
      (void)0;   \
    })

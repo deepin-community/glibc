@@ -1,5 +1,5 @@
 /* Support for testing and measuring memcpy functions.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,12 +29,9 @@
 #define TIMEOUT (8 * 60)
 #include "test-string.h"
 
-char *simple_memcpy (char *, const char *, size_t);
-char *builtin_memcpy (char *, const char *, size_t);
-
-IMPL (simple_memcpy, 0)
-IMPL (builtin_memcpy, 0)
 IMPL (memcpy, 1)
+
+/* Naive implementation to verify results.  */
 char *
 simple_memcpy (char *dst, const char *src, size_t n)
 {
@@ -44,11 +41,6 @@ simple_memcpy (char *dst, const char *src, size_t n)
   return ret;
 }
 
-char *
-builtin_memcpy (char *dst, const char *src, size_t n)
-{
-  return __builtin_memcpy (dst, src, n);
-}
 #endif
 typedef char *(*proto_t) (char *, const char *, size_t);
 typedef uint32_t __attribute__ ((may_alias, aligned (1))) unaligned_uint32_t;
@@ -84,7 +76,7 @@ do_one_test (impl_t *impl, char *dst, const char *src, size_t len)
 static void
 do_test (size_t align1, size_t align2, size_t len)
 {
-  size_t i, j, repeats;
+  size_t i, j;
   char *s1, *s2;
 
   align1 &= 4095;
@@ -97,13 +89,16 @@ do_test (size_t align1, size_t align2, size_t len)
 
   s1 = (char *)(buf1 + align1);
   s2 = (char *)(buf2 + align2);
-  for (repeats = 0; repeats < 2; ++repeats)
+  for (size_t repeats = 0; repeats < 2; ++repeats)
     {
       for (i = 0, j = 1; i < len; i++, j += 23)
         s1[i] = j;
 
       FOR_EACH_IMPL (impl, 0)
       do_one_test (impl, s2, s1, len);
+
+      s1 = (char *) (buf2 + align1);
+      s2 = (char *) (buf1 + align2);
     }
 }
 
@@ -138,30 +133,29 @@ do_test1 (size_t align1, size_t align2, size_t size)
   unaligned_uint32_t *dest = large_buf + align1;
   unaligned_uint32_t *src = large_buf + region_size + 2 * page_size + align2;
   size_t i;
-  size_t repeats;
-  for (repeats = 0; repeats < 2; repeats++)
+  for (size_t repeats = 0; repeats < 2; repeats++)
     {
       for (i = 0; i < array_size; i++)
         src[i] = (uint32_t)i;
       FOR_EACH_IMPL (impl, 0)
-      {
-        memset (dest, -1, size);
-        CALL (impl, (char *)dest, (char *)src, size);
-        if (memcmp (src, dest, size))
-          {
-            for (i = 0; i < array_size; i++)
-              if (dest[i] != src[i])
-                {
-                  error (0, 0,
-                         "Wrong result in function %s dst \"%p\" src \"%p\" "
-                         "offset \"%zd\"",
-                         impl->name, dest, src, i);
-                  ret = 1;
-                  munmap ((void *)large_buf, mmap_size);
-                  return;
-                }
-          }
-      }
+	{
+	  memset (dest, -1, size);
+	  CALL (impl, (char *)dest, (char *)src, size);
+	  if (memcmp (src, dest, size))
+	    {
+	      for (i = 0; i < array_size; i++)
+		if (dest[i] != src[i])
+		  {
+		    error (0, 0,
+			   "Wrong result in function %s dst \"%p\" src \"%p\" "
+			   "offset \"%zd\"",
+			   impl->name, dest, src, i);
+		    ret = 1;
+		    munmap ((void *)large_buf, mmap_size);
+		    return;
+		  }
+	    }
+	}
       dest = large_buf + region_size + 2 * page_size + align1;
       src = large_buf + align2;
     }

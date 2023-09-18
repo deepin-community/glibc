@@ -1,5 +1,5 @@
 /* Function sin vectorized with SSE4.
-   Copyright (C) 2014-2022 Free Software Foundation, Inc.
+   Copyright (C) 2014-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 #include <sysdep.h>
 #include "svml_d_trig_data.h"
 
-	.text
+	.section .text.sse4, "ax", @progbits
 ENTRY (_ZGVbN2v_sin_sse4)
 /* ALGORITHM DESCRIPTION:
 

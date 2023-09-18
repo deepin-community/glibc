@@ -1,5 +1,5 @@
 /* Test strncat functions.
-   Copyright (C) 2011-2022 Free Software Foundation, Inc.
+   Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@
 # define CHAR char
 # define UCHAR unsigned char
 # define SIMPLE_STRNCAT simple_strncat
-# define STUPID_STRNCAT stupid_strncat
+# define STRNLEN strnlen
 # define STRLEN strlen
 # define MEMSET memset
 # define MEMCPY memcpy
@@ -41,7 +41,7 @@
 # define CHAR wchar_t
 # define UCHAR wchar_t
 # define SIMPLE_STRNCAT simple_wcsncat
-# define STUPID_STRNCAT stupid_wcsncat
+# define STRNLEN wcsnlen
 # define STRLEN wcslen
 # define MEMSET wmemset
 # define MEMCPY wmemcpy
@@ -51,14 +51,12 @@
 #endif /* WIDE */
 
 typedef CHAR *(*proto_t) (CHAR *, const CHAR *, size_t);
-CHAR *STUPID_STRNCAT (CHAR *, const CHAR *, size_t);
-CHAR *SIMPLE_STRNCAT (CHAR *, const CHAR *, size_t);
 
-IMPL (STUPID_STRNCAT, 0)
 IMPL (STRNCAT, 2)
 
+/* Naive implementation to verify results.  */
 CHAR *
-STUPID_STRNCAT (CHAR *dst, const CHAR *src, size_t n)
+SIMPLE_STRNCAT (CHAR *dst, const CHAR *src, size_t n)
 {
   CHAR *ret = dst;
   while (*dst++ != '\0');
@@ -82,7 +80,7 @@ do_one_test (impl_t *impl, CHAR *dst, const CHAR *src, size_t n)
       return;
     }
 
-  size_t len = STRLEN (src);
+  size_t len = STRNLEN (src, n);
   if (MEMCMP (dst + k, src, len + 1 > n ? n : len + 1) != 0)
     {
       error (0, 0, "Incorrect concatenation in function %s",
@@ -96,6 +94,26 @@ do_one_test (impl_t *impl, CHAR *dst, const CHAR *src, size_t n)
 	     impl->name);
       ret = 1;
       return;
+    }
+}
+
+static void
+do_test_src_no_nullterm_bz30065 (void)
+{
+  /* NB: "src does not need to be null-terminated if it contains n or more
+   * bytes." */
+  CHAR *s1, *s2;
+  size_t bound = page_size / sizeof (CHAR);
+  s1 = (CHAR *) (buf1 + BUF1PAGES * page_size);
+  s2 = (CHAR *) buf2;
+  MEMSET (s1 - bound, -1, bound);
+  for (size_t n = 0; n < bound; ++n)
+    {
+      FOR_EACH_IMPL (impl, 0)
+	{
+	  s2[0] = '\0';
+	  do_one_test (impl, s2, s1 - n, n);
+	}
     }
 }
 
@@ -376,6 +394,7 @@ test_main (void)
 
   do_random_tests ();
   do_overflow_tests ();
+  do_test_src_no_nullterm_bz30065 ();
   return ret;
 }
 

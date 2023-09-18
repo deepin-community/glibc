@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -1397,7 +1397,7 @@ add_locales_to_archive (size_t nlist, char *list[], bool replace)
 		    {
 		      char fullname[fnamelen + 2 * strlen (d->d_name) + 7];
 
-		      if (d_type == DT_UNKNOWN)
+		      if (d_type == DT_UNKNOWN || d_type == DT_LNK)
 			{
 			  strcpy (stpcpy (stpcpy (fullname, fname), "/"),
 				  d->d_name);

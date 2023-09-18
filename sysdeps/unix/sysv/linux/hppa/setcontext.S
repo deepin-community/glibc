@@ -1,5 +1,5 @@
 /* Install given context.
-   Copyright (C) 2008-2022 Free Software Foundation, Inc.
+   Copyright (C) 2008-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,6 +33,8 @@ ENTRY(__setcontext)
 	stw	%r19, -32(%sp)
 	.cfi_offset 19, 32
 #endif
+	stw	%ret1, -60(%sp)
+	.cfi_offset 29, 4
 
 	/* Save ucp.  */
 	copy	%r26, %r3
@@ -73,7 +75,7 @@ ENTRY(__setcontext)
 	ldw	oR18(%r3), %r18
 	ldw	oR19(%r3), %r19
 	ldw	oR20(%r3), %r20
-	ldw	oR21(%r3), %r21
+	ldw	oR21(%r3), %r21 /* maybe clobbered by dyncall */
 	/* ldw	oR22(%r3), %r22 - dyncall arg.  */
 	ldw	oR23(%r3), %r23
 	ldw	oR24(%r3), %r24
@@ -84,6 +86,10 @@ ENTRY(__setcontext)
 	ldw	oR29(%r3), %r29
 	ldw	oR30(%r3), %sp
 	/* ldw	oR31(%r3), %r31 - dyncall scratch register */
+
+	/* Restore SAR register.  */
+	ldw	oSAR(%r3), %r22
+	mtsar	%r22
 
 	/* Restore floating-point registers.  */
 	ldo	 oFPREGS31(%r3), %r22
@@ -154,6 +160,7 @@ ENTRY(__setcontext)
 #ifdef PIC
 	ldw	-32(%r30), %r19
 #endif
+	ldw	-60(%r30), %ret1
 	bv	%r0(%r2)
 	ldwm	-64(%r30), %r3
 L(pseudo_end):

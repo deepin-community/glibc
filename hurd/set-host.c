@@ -1,5 +1,5 @@
 /* Set a host configuration item kept as the whole contents of a file.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ ssize_t
 _hurd_set_host_config (const char *item, const char *value, size_t valuelen)
 {
   error_t err;
-  mach_msg_type_number_t nwrote;
+  vm_size_t nwrote;
   file_t new, dir;
   char *name;
 

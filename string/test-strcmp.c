@@ -1,5 +1,5 @@
 /* Test and measure strcmp and wcscmp functions.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,6 +15,9 @@
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
+
+#define TEST_LEN (getpagesize () * 3)
+#define MIN_PAGE_SIZE (TEST_LEN + 2 * getpagesize ())
 
 #define TEST_MAIN
 #ifdef WIDE
@@ -34,7 +37,6 @@
 # define STRLEN wcslen
 # define MEMCPY wmemcpy
 # define SIMPLE_STRCMP simple_wcscmp
-# define STUPID_STRCMP stupid_wcscmp
 # define CHAR wchar_t
 # define UCHAR wchar_t
 # define CHARBYTES 4
@@ -64,25 +66,6 @@ simple_wcscmp (const wchar_t *s1, const wchar_t *s2)
   return c1 < c2 ? -1 : 1;
 }
 
-int
-stupid_wcscmp (const wchar_t *s1, const wchar_t *s2)
-{
-  size_t ns1 = wcslen (s1) + 1;
-  size_t ns2 = wcslen (s2) + 1;
-  size_t n = ns1 < ns2 ? ns1 : ns2;
-  int ret = 0;
-
-  wchar_t c1, c2;
-
-  while (n--) {
-    c1 = *s1++;
-    c2 = *s2++;
-    if ((ret = c1 < c2 ? -1 : c1 == c2 ? 0 : 1) != 0)
-      break;
-  }
-  return ret;
-}
-
 #else
 # include <limits.h>
 
@@ -92,7 +75,6 @@ stupid_wcscmp (const wchar_t *s1, const wchar_t *s2)
 # define STRLEN strlen
 # define MEMCPY memcpy
 # define SIMPLE_STRCMP simple_strcmp
-# define STUPID_STRCMP stupid_strcmp
 # define CHAR char
 # define UCHAR unsigned char
 # define CHARBYTES 1
@@ -113,25 +95,10 @@ simple_strcmp (const char *s1, const char *s2)
   return ret;
 }
 
-int
-stupid_strcmp (const char *s1, const char *s2)
-{
-  size_t ns1 = strlen (s1) + 1;
-  size_t ns2 = strlen (s2) + 1;
-  size_t n = ns1 < ns2 ? ns1 : ns2;
-  int ret = 0;
-
-  while (n--)
-    if ((ret = *(unsigned char *) s1++ - *(unsigned char *) s2++) != 0)
-      break;
-  return ret;
-}
 #endif
 
 typedef int (*proto_t) (const CHAR *, const CHAR *);
 
-IMPL (STUPID_STRCMP, 1)
-IMPL (SIMPLE_STRCMP, 1)
 IMPL (STRCMP, 1)
 
 static int
@@ -164,7 +131,7 @@ do_one_test (impl_t *impl,
 
 static void
 do_test (size_t align1, size_t align2, size_t len, int max_char,
-	 int exp_result)
+         int exp_result)
 {
   size_t i;
 
@@ -173,19 +140,22 @@ do_test (size_t align1, size_t align2, size_t len, int max_char,
   if (len == 0)
     return;
 
-  align1 &= 63;
+  align1 &= ~(CHARBYTES - 1);
+  align2 &= ~(CHARBYTES - 1);
+
+  align1 &= getpagesize () - 1;
   if (align1 + (len + 1) * CHARBYTES >= page_size)
     return;
 
-  align2 &= 63;
+  align2 &= getpagesize () - 1;
   if (align2 + (len + 1) * CHARBYTES >= page_size)
     return;
 
   /* Put them close to the end of page.  */
   i = align1 + CHARBYTES * (len + 2);
-  s1 = (CHAR *) (buf1 + ((page_size - i) / 16 * 16) + align1);
+  s1 = (CHAR *)(buf1 + ((page_size - i) / 16 * 16) + align1);
   i = align2 + CHARBYTES * (len + 2);
-  s2 = (CHAR *) (buf2 + ((page_size - i) / 16 * 16)  + align2);
+  s2 = (CHAR *)(buf2 + ((page_size - i) / 16 * 16) + align2);
 
   for (i = 0; i < len; i++)
     s1[i] = s2[i] = 1 + (23 << ((CHARBYTES - 1) * 8)) * i % max_char;
@@ -196,8 +166,9 @@ do_test (size_t align1, size_t align2, size_t len, int max_char,
   s2[len - 1] -= exp_result;
 
   FOR_EACH_IMPL (impl, 0)
-    do_one_test (impl, s1, s2, exp_result);
+  do_one_test (impl, s1, s2, exp_result);
 }
+
 
 static void
 do_random_tests (void)
@@ -420,8 +391,8 @@ check3 (void)
 int
 test_main (void)
 {
-  size_t i;
-
+  size_t i, j, k;
+  const size_t test_len = MIN(TEST_LEN, 3 * 4096);
   test_init ();
   check();
   check2 ();
@@ -459,6 +430,68 @@ test_main (void)
       do_test (2 * CHARBYTES * i, CHARBYTES * i, 8 << i, LARGECHAR, 1);
       do_test (CHARBYTES * i, 2 * CHARBYTES * i, 8 << i, MIDCHAR, -1);
       do_test (2 * CHARBYTES * i, CHARBYTES * i, 8 << i, LARGECHAR, -1);
+    }
+
+  for (j = 0; j < 160; ++j)
+    {
+      for (i = 0; i < test_len;)
+        {
+          do_test (getpagesize () - j - 1, 0, i, 127, 0);
+          do_test (getpagesize () - j - 1, 0, i, 127, 1);
+          do_test (getpagesize () - j - 1, 0, i, 127, -1);
+
+          do_test (getpagesize () - j - 1, j, i, 127, 0);
+          do_test (getpagesize () - j - 1, j, i, 127, 1);
+          do_test (getpagesize () - j - 1, j, i, 127, -1);
+
+          do_test (0, getpagesize () - j - 1, i, 127, 0);
+          do_test (0, getpagesize () - j - 1, i, 127, 1);
+          do_test (0, getpagesize () - j - 1, i, 127, -1);
+
+          do_test (j, getpagesize () - j - 1, i, 127, 0);
+          do_test (j, getpagesize () - j - 1, i, 127, 1);
+          do_test (j, getpagesize () - j - 1, i, 127, -1);
+
+          for (k = 2; k <= 128; k += k)
+            {
+              do_test (getpagesize () - k, getpagesize () - j - 1, i, 127, 0);
+              do_test (getpagesize () - k - 1, getpagesize () - j - 1, i, 127,
+                       0);
+              do_test (getpagesize () - k, getpagesize () - j - 1, i, 127, 1);
+              do_test (getpagesize () - k - 1, getpagesize () - j - 1, i, 127,
+                       1);
+              do_test (getpagesize () - k, getpagesize () - j - 1, i, 127, -1);
+              do_test (getpagesize () - k - 1, getpagesize () - j - 1, i, 127,
+                       -1);
+            }
+
+          if (i < 32)
+            {
+              i += 1;
+            }
+          else if (i < 161)
+            {
+              i += 7;
+            }
+          else if (i + 161 < test_len)
+            {
+              i += 31;
+              i *= 17;
+              i /= 16;
+              if (i + 161 > test_len)
+                {
+                  i = test_len - 160;
+                }
+            }
+          else if (i + 32 < test_len)
+            {
+              i += 7;
+            }
+          else
+            {
+              i += 1;
+            }
+        }
     }
 
   do_random_tests ();

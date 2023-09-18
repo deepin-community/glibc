@@ -1,5 +1,5 @@
 /* Receive a message from a message queue with a timeout.  Linux version.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -36,12 +36,12 @@ ___mq_timedreceive_time64 (mqd_t mqdes, char *__restrict msg_ptr, size_t msg_len
 			 msg_prio, abs_timeout);
 #else
   bool need_time64 = abs_timeout != NULL
-		     && !in_time_t_range (abs_timeout->tv_sec);
+		     && !in_int32_t_range (abs_timeout->tv_sec);
   if (need_time64)
     {
       int r = SYSCALL_CANCEL (mq_timedreceive_time64, mqdes, msg_ptr, msg_len,
 			      msg_prio, abs_timeout);
-      if (r == 0 || errno != ENOSYS)
+      if (r >= 0 || errno != ENOSYS)
 	return r;
       __set_errno (EOVERFLOW);
       return -1;

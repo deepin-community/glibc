@@ -1,5 +1,5 @@
 /* Dynamic loading of the libgcc unwinder.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 #include <gnu/lib-names.h>
 #include <unwind-link.h>
 #include <libc-lock.h>
+#include <pointer_guard.h>
 
 /* Statically allocate the object, so that we do not have to deal with
    malloc failure.  __libc_unwind_link_get must not fail if libgcc_s
@@ -85,19 +86,17 @@ __libc_unwind_link_get (void)
   assert (local.ptr__Unwind_Resume != NULL);
   assert (local.ptr_personality != NULL);
 
-#ifdef PTR_MANGLE
   PTR_MANGLE (local.ptr__Unwind_Backtrace);
   PTR_MANGLE (local.ptr__Unwind_ForcedUnwind);
   PTR_MANGLE (local.ptr__Unwind_GetCFA);
-# if UNWIND_LINK_GETIP
+#if UNWIND_LINK_GETIP
   PTR_MANGLE (local.ptr__Unwind_GetIP);
-# endif
-  PTR_MANGLE (local.ptr__Unwind_Resume);
-# if UNWIND_LINK_FRAME_STATE_FOR
-  PTR_MANGLE (local.ptr___frame_state_for);
-# endif
-  PTR_MANGLE (local.ptr_personality);
 #endif
+  PTR_MANGLE (local.ptr__Unwind_Resume);
+#if UNWIND_LINK_FRAME_STATE_FOR
+  PTR_MANGLE (local.ptr___frame_state_for);
+#endif
+  PTR_MANGLE (local.ptr_personality);
 
   __libc_lock_lock (lock);
   if (atomic_load_relaxed (&global_libgcc_handle) != NULL)

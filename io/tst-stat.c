@@ -1,5 +1,5 @@
 /* Basic tests for stat, lstat, fstat, and fstatat.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -68,6 +68,10 @@ do_test (void)
   int fd = create_temp_file ("tst-fstat.", &path);
   TEST_VERIFY_EXIT (fd >= 0);
   support_write_file_string (path, "abc");
+
+  /* This should help to prevent delayed allocation, which may result
+     in a spurious stx_blocks/st_blocks difference.  */
+  fsync (fd);
 
   bool check_ns = support_stat_nanoseconds (path);
   if (!check_ns)
