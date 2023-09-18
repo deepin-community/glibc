@@ -1,5 +1,5 @@
-/* Helpers for On-demand PLT fixup for shared objects.  HPAA version.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+/* Helpers for On-demand PLT fixup for shared objects.  HPPA version.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,9 @@
    License along with the GNU C Library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
+
+ElfW(Word) _dl_fix_reloc_arg (struct fdesc *, struct link_map *);
+rtld_hidden_proto (_dl_fix_reloc_arg)
 
 /* Clear PA_GP_RELOC bit in relocation offset.  */
 static inline uintptr_t

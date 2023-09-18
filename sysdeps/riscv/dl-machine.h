@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  RISC-V version.
-   Copyright (C) 2011-2022 Free Software Foundation, Inc.
+   Copyright (C) 2011-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -107,18 +107,8 @@ elf_machine_dynamic (void)
 	" _RTLD_PROLOGUE (_dl_start_user) "\
 	# Stash user entry point in s0.\n\
 	mv s0, a0\n\
-	# See if we were run as a command with the executable file\n\
-	# name as an extra leading argument.\n\
-	lw a0, _dl_skip_args\n\
-	# Load the original argument count.\n\
+	# Load the adjusted argument count.\n\
 	" STRINGXP (REG_L) " a1, 0(sp)\n\
-	# Subtract _dl_skip_args from it.\n\
-	sub a1, a1, a0\n\
-	# Adjust the stack pointer to skip _dl_skip_args words.\n\
-	sll a0, a0, " STRINGXP (PTRLOG) "\n\
-	add sp, sp, a0\n\
-	# Save back the modified argument count.\n\
-	" STRINGXP (REG_S) " a1, 0(sp)\n\
 	# Call _dl_init (struct link_map *main_map, int argc, char **argv, char **env) \n\
 	" STRINGXP (REG_L) " a0, _rtld_local\n\
 	add a2, sp, " STRINGXP (SZREG) "\n\
@@ -162,6 +152,17 @@ elf_machine_fixup_plt (struct link_map *map, lookup_t t,
 
 #ifdef RESOLVE_MAP
 
+static inline void
+__attribute__ ((always_inline))
+elf_machine_rela_relative (ElfW(Addr) l_addr, const ElfW(Rela) *reloc,
+			  void *const reloc_addr)
+{
+  /* R_RISCV_RELATIVE might located in debug info section which might not
+     aligned to XLEN bytes.  Also support relocations on unaligned offsets.  */
+  ElfW(Addr) value = l_addr + reloc->r_addend;
+  memcpy (reloc_addr, &value, sizeof value);
+}
+
 /* Perform a relocation described by R_INFO at the location pointed to
    by RELOC_ADDR.  SYM is the relocation symbol specified by R_INFO and
    MAP is the object containing the reloc.  */
@@ -191,7 +192,15 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 
   switch (r_type)
     {
-#ifndef RTLD_BOOTSTRAP
+    case R_RISCV_RELATIVE:
+      elf_machine_rela_relative (map->l_addr, reloc, addr_field);
+      break;
+    case R_RISCV_JUMP_SLOT:
+    case __WORDSIZE == 64 ? R_RISCV_64 : R_RISCV_32:
+      *addr_field = value;
+      break;
+
+# ifndef RTLD_BOOTSTRAP
     case __WORDSIZE == 64 ? R_RISCV_TLS_DTPMOD64 : R_RISCV_TLS_DTPMOD32:
       if (sym_map)
 	*addr_field = sym_map->l_tls_modid;
@@ -242,27 +251,6 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 	memcpy (reloc_addr, (void *)value, size);
 	break;
       }
-#endif
-
-#if !defined RTLD_BOOTSTRAP || !defined HAVE_Z_COMBRELOC
-    case R_RISCV_RELATIVE:
-      {
-# if !defined RTLD_BOOTSTRAP && !defined HAVE_Z_COMBRELOC
-	/* This is defined in rtld.c, but nowhere in the static libc.a;
-	   make the reference weak so static programs can still link.
-	   This declaration cannot be done when compiling rtld.c
-	   (i.e. #ifdef RTLD_BOOTSTRAP) because rtld.c contains the
-	   common defn for _dl_rtld_map, which is incompatible with a
-	   weak decl in the same file.  */
-#  ifndef SHARED
-	weak_extern (GL(dl_rtld_map));
-#  endif
-	if (map != &GL(dl_rtld_map)) /* Already done in rtld itself.  */
-# endif
-	  *addr_field = map->l_addr + reloc->r_addend;
-      break;
-    }
-#endif
 
     case R_RISCV_IRELATIVE:
       value = map->l_addr + reloc->r_addend;
@@ -271,26 +259,14 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
       *addr_field = value;
       break;
 
-    case R_RISCV_JUMP_SLOT:
-    case __WORDSIZE == 64 ? R_RISCV_64 : R_RISCV_32:
-      *addr_field = value;
-      break;
-
     case R_RISCV_NONE:
       break;
+# endif /* !RTLD_BOOTSTRAP */
 
     default:
       _dl_reloc_bad_type (map, r_type, 0);
       break;
     }
-}
-
-static inline void
-__attribute__ ((always_inline))
-elf_machine_rela_relative (ElfW(Addr) l_addr, const ElfW(Rela) *reloc,
-			  void *const reloc_addr)
-{
-  *(ElfW(Addr) *) reloc_addr = l_addr + reloc->r_addend;
 }
 
 static inline void

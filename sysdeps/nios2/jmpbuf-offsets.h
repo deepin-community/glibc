@@ -1,5 +1,5 @@
 /* Private macros for accessing __jmp_buf contents.  Nios II version.
-   Copyright (C) 2006-2022 Free Software Foundation, Inc.
+   Copyright (C) 2006-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,14 +32,13 @@
 #include <setjmp.h>
 #include <stdint.h>
 #include <sysdep.h>
+#include <pointer_guard.h>
 
 static inline uintptr_t __attribute__ ((unused))
 _jmpbuf_sp (__jmp_buf jmpbuf)
 {
   uintptr_t sp = jmpbuf[JB_SP];
-#ifdef PTR_DEMANGLE
   PTR_DEMANGLE (sp);
-#endif
   return sp;
 }
 #endif

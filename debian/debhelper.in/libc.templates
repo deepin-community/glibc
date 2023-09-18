@@ -64,7 +64,8 @@ Template: glibc/kernel-too-old
 Type: error
 _Description: Kernel must be upgraded
  This version of the GNU libc requires kernel version ${kernel_ver} or
- later.  Please upgrade your kernel before installing glibc.
+ later.  Please upgrade your kernel and reboot before installing glibc.
+ You may need to use "apt -f install" after reboot to solve dependencies.
 
 Template: glibc/kernel-not-supported
 Type: note

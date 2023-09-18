@@ -1,4 +1,4 @@
-# Copyright (C) 1995-2022 Free Software Foundation, Inc.
+# Copyright (C) 1995-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -72,6 +72,10 @@ tststatic2-ENV = $(tststatic-ENV)
 tststatic3-ENV = $(tststatic-ENV)
 tststatic4-ENV = $(tststatic-ENV)
 tststatic5-ENV = $(tststatic-ENV)
+
+tests-internal += \
+  tst-dlinfo-phdr \
+  # tests-internal
 
 ifneq (,$(CXX))
 modules-names += bug-atexit3-lib

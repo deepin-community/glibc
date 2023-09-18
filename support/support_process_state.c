@@ -1,5 +1,5 @@
 /* Wait for process state.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include <array_length.h>
+#include <intprops.h>
 
 #include <support/process_state.h>
 #include <support/xstdio.h>
@@ -49,7 +50,7 @@ support_process_state_wait (pid_t pid, enum support_process_state state)
     { support_process_state_parked,       'P' },
   };
 
-  char spath[sizeof ("/proc/" + 3) * sizeof (pid_t) + sizeof ("/status") + 1];
+  char spath[sizeof ("/proc/") + INT_STRLEN_BOUND (pid_t) + sizeof ("/status") + 1];
   snprintf (spath, sizeof (spath), "/proc/%i/status", pid);
 
   FILE *fstatus = xfopen (spath, "r");

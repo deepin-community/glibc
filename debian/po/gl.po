@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: eglibc_2.11.2-2_gl\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2017-08-26 13:35+0200\n"
+"POT-Creation-Date: 2023-01-03 21:34+0100\n"
 "PO-Revision-Date: 2010-08-13 01:43+0200\n"
 "Last-Translator: Jorge Barreiro <yortx.barry@gmail.com>\n"
 "Language-Team: Galician <proxecto@trasno.net>\n"
@@ -189,8 +189,8 @@ msgid ""
 "You will need to start these manually by running 'invoke-rc.d <service> "
 "start'."
 msgstr ""
-"Ha ter que reinicialos manualmente executando \"invoke-rc.d <servizo> start"
-"\"."
+"Ha ter que reinicialos manualmente executando \"invoke-rc.d <servizo> "
+"start\"."
 
 #. Type: error
 #. Description
@@ -245,7 +245,8 @@ msgstr ""
 #: ../debhelper.in/libc.templates:6001
 msgid ""
 "This version of the GNU libc requires kernel version ${kernel_ver} or "
-"later.  Please upgrade your kernel before installing glibc."
+"later.  Please upgrade your kernel and reboot before installing glibc. You "
+"may need to use \"apt -f install\" after reboot to solve dependencies."
 msgstr ""
 
 #. Type: note

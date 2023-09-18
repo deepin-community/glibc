@@ -1,13 +1,13 @@
 # Italian (it) translation of debconf templates for glibc
 # This file is distributed under the same license as the glibc package.
-# Luca Monducci <luca.mo@tiscali.it>, 2005-2020.
+# Luca Monducci <luca.mo@tiscali.it>, 2005-2023.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: glibc 2.31 debconf templates\n"
+"Project-Id-Version: glibc 2.36 debconf templates\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2017-08-26 13:35+0200\n"
-"PO-Revision-Date: 2020-08-29 14:41+0200\n"
+"POT-Creation-Date: 2023-01-03 21:34+0100\n"
+"PO-Revision-Date: 2023-01-07 16:51+0100\n"
 "Last-Translator: Luca Monducci <luca.mo@tiscali.it>\n"
 "Language-Team: Italian <debian-l10n-italian@lists.debian.org>\n"
 "Language: it\n"
@@ -251,11 +251,13 @@ msgstr "È necessario aggiornare il kernel"
 #: ../debhelper.in/libc.templates:6001
 msgid ""
 "This version of the GNU libc requires kernel version ${kernel_ver} or "
-"later.  Please upgrade your kernel before installing glibc."
+"later.  Please upgrade your kernel and reboot before installing glibc. You "
+"may need to use \"apt -f install\" after reboot to solve dependencies."
 msgstr ""
 "Questa versione di GNU libc richiede che la versione del kernel sia "
-"${kernel_ver} o successiva. Aggiornare il kernel prima di installare "
-"glibc."
+"${kernel_ver} o successiva. Aggiornare il kernel e riavviare prima di "
+"installare glibc. Dopo il riavvio potrebbe essere necessario eseguire "
+"«apt -f install» per risolvere le dipendenze."
 
 #. Type: note
 #. Description
@@ -273,5 +275,5 @@ msgid ""
 msgstr ""
 "Questa versione di GNU libc richiede che la versione del kernel sia "
 "${kernel_ver} o successiva. Potrebbe funzionare anche con le versioni "
-"precedenti ma non sono ufficialmente supportate da Debian. Si raccomanda "
-"di aggiornare il kernel."
+"precedenti ma non sono ufficialmente supportate da Debian. Si raccomanda di "
+"aggiornare il kernel."

@@ -1,7 +1,5 @@
-/* strchrnul (str, ch) -- Return pointer to first occurrence of CH in STR
-	or terminating NUL byte.
-   For AMD x86-64.
-   Copyright (C) 2009-2022 Free Software Foundation, Inc.
+/* strchrnul dispatch for RTLD and non-multiarch build
+   Copyright (C) 2009-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,10 +16,12 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <sysdep.h>
+#define STRCHRNUL	__strchrnul
 
-#define strchr __strchrnul
-#define AS_STRCHRNUL
-#include "strchr.S"
+#define DEFAULT_IMPL_V1	"multiarch/strchrnul-sse2.S"
+#define DEFAULT_IMPL_V3	"multiarch/strchrnul-avx2.S"
+#define DEFAULT_IMPL_V4	"multiarch/strchrnul-evex.S"
+
+#include "isa-default-impl.h"
 
 weak_alias (__strchrnul, strchrnul)

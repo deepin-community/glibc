@@ -1,4 +1,4 @@
-/* Copyright (C) 2004-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2004-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@
 #define INLINE_SETXID_SYSCALL(name, nr, args...) \
   ({									\
     int __result;							\
-    if (!__libc_single_threaded)					\
+    if (!SINGLE_THREAD_P)						\
       {									\
 	struct xid_command __cmd;					\
 	__cmd.syscall_no = __NR_##name;					\

@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2015-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,19 +15,14 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
-#include <signal.h>
 #include <sys/socket.h>
-
 #include <socketcall.h>
-#include <kernel-features.h>
-#include <sys/syscall.h>
 
 int
 listen (int fd, int backlog)
 {
 #ifdef __ASSUME_LISTEN_SYSCALL
-  return INLINE_SYSCALL (listen, 2, fd, backlog);
+  return INLINE_SYSCALL_CALL (listen, fd, backlog);
 #else
   return SOCKETCALL (listen, fd, backlog);
 #endif

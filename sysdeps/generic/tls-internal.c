@@ -1,5 +1,5 @@
 /* Per-thread state.  Generic version.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,14 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <string.h>
 #include <tls-internal.h>
 
 __thread struct tls_internal_t __tls_internal;
+
+void
+__glibc_tls_internal_free (void)
+{
+  free (__tls_internal.strsignal_buf);
+  free (__tls_internal.strerror_l_buf);
+}

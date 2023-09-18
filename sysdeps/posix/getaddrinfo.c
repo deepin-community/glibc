@@ -1,5 +1,5 @@
 /* Host and service name lookups using Name Service Switch modules.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -100,13 +100,11 @@ struct gaih_service
 
 struct gaih_servtuple
   {
-    struct gaih_servtuple *next;
     int socktype;
     int protocol;
     int port;
+    bool set;
   };
-
-static const struct gaih_servtuple nullserv;
 
 
 struct gaih_typeproto
@@ -117,6 +115,14 @@ struct gaih_typeproto
     bool defaultflag;
     char name[8];
   };
+
+struct gaih_result
+{
+  struct gaih_addrtuple *at;
+  char *canon;
+  bool free_at;
+  bool got_ipv6;
+};
 
 /* Values for `protoflag'.  */
 #define GAI_PROTO_NOSERVICE	1
@@ -153,6 +159,14 @@ static const struct addrinfo default_hints =
     .ai_next = NULL
   };
 
+static void
+gaih_result_reset (struct gaih_result *res)
+{
+  if (res->free_at)
+    free (res->at);
+  free (res->canon);
+  memset (res, 0, sizeof (*res));
+}
 
 static int
 gaih_inet_serv (const char *servicename, const struct gaih_typeproto *tp,
@@ -180,28 +194,22 @@ gaih_inet_serv (const char *servicename, const struct gaih_typeproto *tp,
     }
   while (r);
 
-  st->next = NULL;
   st->socktype = tp->socktype;
   st->protocol = ((tp->protoflag & GAI_PROTO_PROTOANY)
 		  ? req->ai_protocol : tp->protocol);
   st->port = s->s_port;
+  st->set = true;
 
   return 0;
 }
 
-/* Convert struct hostent to a list of struct gaih_addrtuple objects.
-   h_name is not copied, and the struct hostent object must not be
-   deallocated prematurely.  *RESULT must be NULL or a pointer to a
-   linked-list.  The new addresses are appended at the end.  */
+/* Convert struct hostent to a list of struct gaih_addrtuple objects.  h_name
+   is not copied, and the struct hostent object must not be deallocated
+   prematurely.  The new addresses are appended to the tuple array in RES.  */
 static bool
-convert_hostent_to_gaih_addrtuple (const struct addrinfo *req,
-				   int family,
-				   struct hostent *h,
-				   struct gaih_addrtuple **result)
+convert_hostent_to_gaih_addrtuple (const struct addrinfo *req, int family,
+				   struct hostent *h, struct gaih_result *res)
 {
-  while (*result)
-    result = &(*result)->next;
-
   /* Count the number of addresses in h->h_addr_list.  */
   size_t count = 0;
   for (char **p = h->h_addr_list; *p != NULL; ++p)
@@ -212,9 +220,31 @@ convert_hostent_to_gaih_addrtuple (const struct addrinfo *req,
   if (count == 0 || h->h_length > sizeof (((struct gaih_addrtuple) {}).addr))
     return true;
 
-  struct gaih_addrtuple *array = calloc (count, sizeof (*array));
+  struct gaih_addrtuple *array = res->at;
+  size_t old = 0;
+
+  while (array != NULL)
+    {
+      old++;
+      array = array->next;
+    }
+
+  array = realloc (res->at, (old + count) * sizeof (*array));
+
   if (array == NULL)
     return false;
+
+  res->got_ipv6 = family == AF_INET6;
+  res->at = array;
+  res->free_at = true;
+
+  /* Update the next pointers on reallocation.  */
+  for (size_t i = 0; i < old; i++)
+    array[i].next = array + i + 1;
+
+  array += old;
+
+  memset (array, 0, count * sizeof (*array));
 
   for (size_t i = 0; i < count; ++i)
     {
@@ -235,70 +265,57 @@ convert_hostent_to_gaih_addrtuple (const struct addrinfo *req,
   array[0].name = h->h_name;
   array[count - 1].next = NULL;
 
-  *result = array;
   return true;
 }
 
-#define gethosts(_family) \
- {									      \
-  struct hostent th;							      \
-  char *localcanon = NULL;						      \
-  no_data = 0;								      \
-  while (1)								      \
-    {									      \
-      status = DL_CALL_FCT (fct, (name, _family, &th,			      \
-				  tmpbuf->data, tmpbuf->length,		      \
-				  &errno, &h_errno, NULL, &localcanon));      \
-      if (status != NSS_STATUS_TRYAGAIN || h_errno != NETDB_INTERNAL	      \
-	  || errno != ERANGE)						      \
-	break;								      \
-      if (!scratch_buffer_grow (tmpbuf))				      \
-	{								      \
-	  __resolv_context_put (res_ctx);				      \
-	  result = -EAI_MEMORY;						      \
-	  goto free_and_return;						      \
-	}								      \
-    }									      \
-  if (status == NSS_STATUS_NOTFOUND					      \
-      || status == NSS_STATUS_TRYAGAIN || status == NSS_STATUS_UNAVAIL)	      \
-    {									      \
-      if (h_errno == NETDB_INTERNAL)					      \
-	{								      \
-	  __resolv_context_put (res_ctx);				      \
-	  result = -EAI_SYSTEM;						      \
-	  goto free_and_return;						      \
-	}								      \
-      if (h_errno == TRY_AGAIN)						      \
-	no_data = EAI_AGAIN;						      \
-      else								      \
-	no_data = h_errno == NO_DATA;					      \
-    }									      \
-  else if (status == NSS_STATUS_SUCCESS)				      \
-    {									      \
-      if (!convert_hostent_to_gaih_addrtuple (req, _family, &th, &addrmem))   \
-	{								      \
-	  __resolv_context_put (res_ctx);				      \
-	  result = -EAI_SYSTEM;						      \
-	  goto free_and_return;						      \
-	}								      \
-      *pat = addrmem;							      \
-									      \
-      if (localcanon != NULL && canon == NULL)				      \
-	{								      \
-	  canonbuf = __strdup (localcanon);				      \
-	  if (canonbuf == NULL)						      \
-	    {								      \
-	      __resolv_context_put (res_ctx);				      \
-	      result = -EAI_SYSTEM;					      \
-	      goto free_and_return;					      \
-	    }								      \
-	  canon = canonbuf;						      \
-	}								      \
-      if (_family == AF_INET6 && *pat != NULL)				      \
-	got_ipv6 = true;						      \
-    }									      \
- }
+static int
+gethosts (nss_gethostbyname3_r fct, int family, const char *name,
+	  const struct addrinfo *req, struct scratch_buffer *tmpbuf,
+	  struct gaih_result *res, enum nss_status *statusp, int *no_datap)
+{
+  struct hostent th;
+  char *localcanon = NULL;
+  enum nss_status status;
 
+  *no_datap = 0;
+  while (1)
+    {
+      *statusp = status = DL_CALL_FCT (fct, (name, family, &th,
+					     tmpbuf->data, tmpbuf->length,
+					     &errno, &h_errno, NULL,
+					     &localcanon));
+      if (status != NSS_STATUS_TRYAGAIN || h_errno != NETDB_INTERNAL
+	  || errno != ERANGE)
+	break;
+      if (!scratch_buffer_grow (tmpbuf))
+	return -EAI_MEMORY;
+    }
+  if (status == NSS_STATUS_NOTFOUND
+      || status == NSS_STATUS_TRYAGAIN || status == NSS_STATUS_UNAVAIL)
+    {
+      if (h_errno == NETDB_INTERNAL)
+	return -EAI_SYSTEM;
+      if (h_errno == TRY_AGAIN)
+	*no_datap = EAI_AGAIN;
+      else
+	*no_datap = h_errno == NO_DATA;
+    }
+  else if (status == NSS_STATUS_SUCCESS)
+    {
+      if (!convert_hostent_to_gaih_addrtuple (req, family, &th, res))
+	return -EAI_MEMORY;
+
+      if (localcanon != NULL && res->canon == NULL)
+	{
+	  char *canonbuf = __strdup (localcanon);
+	  if (canonbuf == NULL)
+	    return  -EAI_MEMORY;
+	  res->canon = canonbuf;
+	}
+    }
+
+  return 0;
+}
 
 /* This function is called if a canonical name is requested, but if
    the service function did not provide it.  It tries to obtain the
@@ -323,21 +340,47 @@ getcanonname (nss_action_list nip, struct gaih_addrtuple *at, const char *name)
   return __strdup (name);
 }
 
-static int
-gaih_inet (const char *name, const struct gaih_service *service,
-	   const struct addrinfo *req, struct addrinfo **pai,
-	   unsigned int *naddrs, struct scratch_buffer *tmpbuf)
-{
-  const struct gaih_typeproto *tp = gaih_inet_typeproto;
-  struct gaih_servtuple *st = (struct gaih_servtuple *) &nullserv;
-  struct gaih_addrtuple *at = NULL;
-  bool got_ipv6 = false;
-  const char *canon = NULL;
-  const char *orig_name = name;
+/* Process looked up canonical name and if necessary, decode to IDNA.  Result
+   is a new string written to CANONP and the earlier string is freed.  */
 
-  /* Reserve stack memory for the scratch buffer in the getaddrinfo
-     function.  */
-  size_t alloca_used = sizeof (struct scratch_buffer);
+static int
+process_canonname (const struct addrinfo *req, const char *orig_name,
+		   struct gaih_result *res)
+{
+  char *canon = res->canon;
+
+  if ((req->ai_flags & AI_CANONNAME) != 0)
+    {
+      bool do_idn = req->ai_flags & AI_CANONIDN;
+      if (do_idn)
+	{
+	  char *out;
+	  int rc = __idna_from_dns_encoding (canon ?: orig_name, &out);
+	  if (rc == 0)
+	    {
+	      free (canon);
+	      canon = out;
+	    }
+	  else if (rc == EAI_IDN_ENCODE)
+	    /* Use the punycode name as a fallback.  */
+	    do_idn = false;
+	  else
+	    return -rc;
+	}
+      if (!do_idn && canon == NULL && (canon = __strdup (orig_name)) == NULL)
+	return -EAI_MEMORY;
+    }
+
+  res->canon = canon;
+  return 0;
+}
+
+static int
+get_servtuples (const struct gaih_service *service, const struct addrinfo *req,
+		struct gaih_servtuple *st, struct scratch_buffer *tmpbuf)
+{
+  int i;
+  const struct gaih_typeproto *tp = gaih_inet_typeproto;
 
   if (req->ai_protocol || req->ai_socktype)
     {
@@ -359,747 +402,794 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	}
     }
 
-  int port = 0;
-  if (service != NULL)
+  if (service != NULL && (tp->protoflag & GAI_PROTO_NOSERVICE) != 0)
+    return -EAI_SERVICE;
+
+  if (service == NULL || service->num >= 0)
     {
-      if ((tp->protoflag & GAI_PROTO_NOSERVICE) != 0)
-	return -EAI_SERVICE;
-
-      if (service->num < 0)
-	{
-	  if (tp->name[0])
-	    {
-	      st = (struct gaih_servtuple *)
-		alloca_account (sizeof (struct gaih_servtuple), alloca_used);
-
-	      int rc = gaih_inet_serv (service->name, tp, req, st, tmpbuf);
-	      if (__glibc_unlikely (rc != 0))
-		return rc;
-	    }
-	  else
-	    {
-	      struct gaih_servtuple **pst = &st;
-	      for (tp++; tp->name[0]; tp++)
-		{
-		  struct gaih_servtuple *newp;
-
-		  if ((tp->protoflag & GAI_PROTO_NOSERVICE) != 0)
-		    continue;
-
-		  if (req->ai_socktype != 0
-		      && req->ai_socktype != tp->socktype)
-		    continue;
-		  if (req->ai_protocol != 0
-		      && !(tp->protoflag & GAI_PROTO_PROTOANY)
-		      && req->ai_protocol != tp->protocol)
-		    continue;
-
-		  newp = (struct gaih_servtuple *)
-		    alloca_account (sizeof (struct gaih_servtuple),
-				    alloca_used);
-
-		  if (gaih_inet_serv (service->name,
-				      tp, req, newp, tmpbuf) != 0)
-		    continue;
-
-		  *pst = newp;
-		  pst = &(newp->next);
-		}
-	      if (st == (struct gaih_servtuple *) &nullserv)
-		return -EAI_SERVICE;
-	    }
-	}
-      else
-	{
-	  port = htons (service->num);
-	  goto got_port;
-	}
-    }
-  else
-    {
-    got_port:
+      int port = service != NULL ? htons (service->num) : 0;
 
       if (req->ai_socktype || req->ai_protocol)
 	{
-	  st = alloca_account (sizeof (struct gaih_servtuple), alloca_used);
-	  st->next = NULL;
-	  st->socktype = tp->socktype;
-	  st->protocol = ((tp->protoflag & GAI_PROTO_PROTOANY)
+	  st[0].socktype = tp->socktype;
+	  st[0].protocol = ((tp->protoflag & GAI_PROTO_PROTOANY)
 			  ? req->ai_protocol : tp->protocol);
-	  st->port = port;
+	  st[0].port = port;
+	  st[0].set = true;
+
+	  return 0;
+	}
+
+      /* Neither socket type nor protocol is set.  Return all socket types
+	 we know about.  */
+      for (i = 0, ++tp; tp->name[0]; ++tp)
+	if (tp->defaultflag)
+	  {
+	    st[i].socktype = tp->socktype;
+	    st[i].protocol = tp->protocol;
+	    st[i].port = port;
+	    st[i++].set = true;
+	  }
+
+      return 0;
+    }
+
+  if (tp->name[0])
+    return gaih_inet_serv (service->name, tp, req, st, tmpbuf);
+
+  for (i = 0, tp++; tp->name[0]; tp++)
+    {
+      if ((tp->protoflag & GAI_PROTO_NOSERVICE) != 0)
+	continue;
+
+      if (req->ai_socktype != 0
+	  && req->ai_socktype != tp->socktype)
+	continue;
+      if (req->ai_protocol != 0
+	  && !(tp->protoflag & GAI_PROTO_PROTOANY)
+	  && req->ai_protocol != tp->protocol)
+	continue;
+
+      if (gaih_inet_serv (service->name,
+			  tp, req, &st[i], tmpbuf) != 0)
+	continue;
+
+      i++;
+    }
+
+  if (!st[0].set)
+    return -EAI_SERVICE;
+
+  return 0;
+}
+
+#ifdef USE_NSCD
+/* Query addresses from nscd cache, returning a non-zero value on error.
+   RES members have the lookup result; RES->AT is NULL if there were no errors
+   but also no results.  */
+
+static int
+get_nscd_addresses (const char *name, const struct addrinfo *req,
+		    struct gaih_result *res)
+{
+  if (__nss_not_use_nscd_hosts > 0
+      && ++__nss_not_use_nscd_hosts > NSS_NSCD_RETRY)
+    __nss_not_use_nscd_hosts = 0;
+
+  res->at = NULL;
+
+  if (__nss_not_use_nscd_hosts || __nss_database_custom[NSS_DBSIDX_hosts])
+    return 0;
+
+  /* Try to use nscd.  */
+  struct nscd_ai_result *air = NULL;
+  int err = __nscd_getai (name, &air, &h_errno);
+
+  if (__glibc_unlikely (air == NULL))
+    {
+      /* The database contains a negative entry.  */
+      if (err == 0)
+	return -EAI_NONAME;
+      if (__nss_not_use_nscd_hosts == 0)
+	{
+	  if (h_errno == NETDB_INTERNAL && errno == ENOMEM)
+	    return -EAI_MEMORY;
+	  if (h_errno == TRY_AGAIN)
+	    return -EAI_AGAIN;
+	  return -EAI_SYSTEM;
+	}
+      return 0;
+    }
+
+  /* Transform into gaih_addrtuple list.  */
+  int result = 0;
+  char *addrs = air->addrs;
+
+  struct gaih_addrtuple *addrfree = calloc (air->naddrs, sizeof (*addrfree));
+  struct gaih_addrtuple *at = calloc (air->naddrs, sizeof (*at));
+  if (at == NULL)
+    {
+      result = -EAI_MEMORY;
+      goto out;
+    }
+
+  res->free_at = true;
+
+  int count = 0;
+  for (int i = 0; i < air->naddrs; ++i)
+    {
+      socklen_t size = (air->family[i] == AF_INET
+			? INADDRSZ : IN6ADDRSZ);
+
+      if (!((air->family[i] == AF_INET
+	     && req->ai_family == AF_INET6
+	     && (req->ai_flags & AI_V4MAPPED) != 0)
+	    || req->ai_family == AF_UNSPEC
+	    || air->family[i] == req->ai_family))
+	{
+	  /* Skip over non-matching result.  */
+	  addrs += size;
+	  continue;
+	}
+
+      if (air->family[i] == AF_INET && req->ai_family == AF_INET6
+	  && (req->ai_flags & AI_V4MAPPED))
+	{
+	  at[count].family = AF_INET6;
+	  at[count].addr[3] = *(uint32_t *) addrs;
+	  at[count].addr[2] = htonl (0xffff);
+	}
+      else if (req->ai_family == AF_UNSPEC
+	       || air->family[i] == req->ai_family)
+	{
+	  at[count].family = air->family[i];
+	  memcpy (at[count].addr, addrs, size);
+	  if (air->family[i] == AF_INET6)
+	    res->got_ipv6 = true;
+	}
+      at[count].next = at + count + 1;
+      count++;
+      addrs += size;
+    }
+
+  if ((req->ai_flags & AI_CANONNAME) && air->canon != NULL)
+    {
+      char *canonbuf = __strdup (air->canon);
+      if (canonbuf == NULL)
+	{
+	  result = -EAI_MEMORY;
+	  goto out;
+	}
+      res->canon = canonbuf;
+    }
+
+  if (count == 0)
+    {
+      result = -EAI_NONAME;
+      goto out;
+    }
+
+  at[count - 1].next = NULL;
+
+  res->at = at;
+
+out:
+  free (air);
+  if (result != 0)
+    {
+      free (at);
+      res->free_at = false;
+    }
+
+  return result;
+}
+#endif
+
+static int
+get_nss_addresses (const char *name, const struct addrinfo *req,
+		   struct scratch_buffer *tmpbuf, struct gaih_result *res)
+{
+  int no_data = 0;
+  int no_inet6_data = 0;
+  nss_action_list nip;
+  enum nss_status inet6_status = NSS_STATUS_UNAVAIL;
+  enum nss_status status = NSS_STATUS_UNAVAIL;
+  int no_more;
+  struct resolv_context *res_ctx = NULL;
+  bool do_merge = false;
+  int result = 0;
+
+  no_more = !__nss_database_get (nss_database_hosts, &nip);
+
+  /* If we are looking for both IPv4 and IPv6 address we don't
+     want the lookup functions to automatically promote IPv4
+     addresses to IPv6 addresses, so we use the no_inet6
+     function variant.  */
+  res_ctx = __resolv_context_get ();
+  if (res_ctx == NULL)
+    no_more = 1;
+
+  while (!no_more)
+    {
+      /* Always start afresh; continue should discard previous results
+	 and the hosts database does not support merge.  */
+      gaih_result_reset (res);
+
+      if (do_merge)
+	{
+	  __set_h_errno (NETDB_INTERNAL);
+	  __set_errno (EBUSY);
+	  break;
+	}
+
+      no_data = 0;
+      nss_gethostbyname4_r *fct4 = NULL;
+
+      /* gethostbyname4_r sends out parallel A and AAAA queries and
+	 is thus only suitable for PF_UNSPEC.  */
+      if (req->ai_family == PF_UNSPEC)
+	fct4 = __nss_lookup_function (nip, "gethostbyname4_r");
+
+      if (fct4 != NULL)
+	{
+	  while (1)
+	    {
+	      status = DL_CALL_FCT (fct4, (name, &res->at,
+					   tmpbuf->data, tmpbuf->length,
+					   &errno, &h_errno,
+					   NULL));
+	      if (status == NSS_STATUS_SUCCESS)
+		break;
+	      /* gethostbyname4_r may write into AT, so reset it.  */
+	      res->at = NULL;
+	      if (status != NSS_STATUS_TRYAGAIN
+		  || errno != ERANGE || h_errno != NETDB_INTERNAL)
+		{
+		  if (h_errno == TRY_AGAIN)
+		    no_data = EAI_AGAIN;
+		  else
+		    no_data = h_errno == NO_DATA;
+		  break;
+		}
+
+	      if (!scratch_buffer_grow (tmpbuf))
+		{
+		  __resolv_context_put (res_ctx);
+		  result = -EAI_MEMORY;
+		  goto out;
+		}
+	    }
+
+	  if (status == NSS_STATUS_SUCCESS)
+	    {
+	      assert (!no_data);
+	      no_data = 1;
+
+	      if ((req->ai_flags & AI_CANONNAME) != 0 && res->canon == NULL)
+		{
+		  char *canonbuf = __strdup (res->at->name);
+		  if (canonbuf == NULL)
+		    {
+		      __resolv_context_put (res_ctx);
+		      result = -EAI_MEMORY;
+		      goto out;
+		    }
+		  res->canon = canonbuf;
+		}
+
+	      struct gaih_addrtuple **pat = &res->at;
+
+	      while (*pat != NULL)
+		{
+		  if ((*pat)->family == AF_INET
+		      && req->ai_family == AF_INET6
+		      && (req->ai_flags & AI_V4MAPPED) != 0)
+		    {
+		      uint32_t *pataddr = (*pat)->addr;
+		      (*pat)->family = AF_INET6;
+		      pataddr[3] = pataddr[0];
+		      pataddr[2] = htonl (0xffff);
+		      pataddr[1] = 0;
+		      pataddr[0] = 0;
+		      pat = &((*pat)->next);
+		      no_data = 0;
+		    }
+		  else if (req->ai_family == AF_UNSPEC
+			   || (*pat)->family == req->ai_family)
+		    {
+		      pat = &((*pat)->next);
+
+		      no_data = 0;
+		      if (req->ai_family == AF_INET6)
+			res->got_ipv6 = true;
+		    }
+		  else
+		    *pat = ((*pat)->next);
+		}
+	    }
+
+	  no_inet6_data = no_data;
 	}
       else
 	{
-	  /* Neither socket type nor protocol is set.  Return all socket types
-	     we know about.  */
-	  struct gaih_servtuple **lastp = &st;
-	  for (++tp; tp->name[0]; ++tp)
-	    if (tp->defaultflag)
-	      {
-		struct gaih_servtuple *newp;
-
-		newp = alloca_account (sizeof (struct gaih_servtuple),
-				       alloca_used);
-		newp->next = NULL;
-		newp->socktype = tp->socktype;
-		newp->protocol = tp->protocol;
-		newp->port = port;
-
-		*lastp = newp;
-		lastp = &newp->next;
-	      }
-	}
-    }
-
-  bool malloc_name = false;
-  struct gaih_addrtuple *addrmem = NULL;
-  char *canonbuf = NULL;
-  int result = 0;
-
-  if (name != NULL)
-    {
-      at = alloca_account (sizeof (struct gaih_addrtuple), alloca_used);
-      at->family = AF_UNSPEC;
-      at->scopeid = 0;
-      at->next = NULL;
-
-      if (req->ai_flags & AI_IDN)
-	{
-	  char *out;
-	  result = __idna_to_dns_encoding (name, &out);
-	  if (result != 0)
-	    return -result;
-	  name = out;
-	  malloc_name = true;
-	}
-
-      if (__inet_aton_exact (name, (struct in_addr *) at->addr) != 0)
-	{
-	  if (req->ai_family == AF_UNSPEC || req->ai_family == AF_INET)
-	    at->family = AF_INET;
-	  else if (req->ai_family == AF_INET6 && (req->ai_flags & AI_V4MAPPED))
-	    {
-	      at->addr[3] = at->addr[0];
-	      at->addr[2] = htonl (0xffff);
-	      at->addr[1] = 0;
-	      at->addr[0] = 0;
-	      at->family = AF_INET6;
-	    }
-	  else
-	    {
-	      result = -EAI_ADDRFAMILY;
-	      goto free_and_return;
-	    }
-
+	  nss_gethostbyname3_r *fct = NULL;
 	  if (req->ai_flags & AI_CANONNAME)
-	    canon = name;
-	}
-      else if (at->family == AF_UNSPEC)
-	{
-	  char *scope_delim = strchr (name, SCOPE_DELIMITER);
-	  int e;
-	  if (scope_delim == NULL)
-	    e = inet_pton (AF_INET6, name, at->addr);
-	  else
-	    e = __inet_pton_length (AF_INET6, name, scope_delim - name,
-				    at->addr);
-	  if (e > 0)
+	    /* No need to use this function if we do not look for
+	       the canonical name.  The function does not exist in
+	       all NSS modules and therefore the lookup would
+	       often fail.  */
+	    fct = __nss_lookup_function (nip, "gethostbyname3_r");
+	  if (fct == NULL)
+	    /* We are cheating here.  The gethostbyname2_r
+	       function does not have the same interface as
+	       gethostbyname3_r but the extra arguments the
+	       latter takes are added at the end.  So the
+	       gethostbyname2_r code will just ignore them.  */
+	    fct = __nss_lookup_function (nip, "gethostbyname2_r");
+
+	  if (fct != NULL)
 	    {
-	      if (req->ai_family == AF_UNSPEC || req->ai_family == AF_INET6)
-		at->family = AF_INET6;
-	      else if (req->ai_family == AF_INET
-		       && IN6_IS_ADDR_V4MAPPED (at->addr))
+	      if (req->ai_family == AF_INET6
+		  || req->ai_family == AF_UNSPEC)
 		{
-		  at->addr[0] = at->addr[3];
-		  at->family = AF_INET;
-		}
-	      else
-		{
-		  result = -EAI_ADDRFAMILY;
-		  goto free_and_return;
-		}
-
-	      if (scope_delim != NULL
-		  && __inet6_scopeid_pton ((struct in6_addr *) at->addr,
-					   scope_delim + 1,
-					   &at->scopeid) != 0)
-		{
-		  result = -EAI_NONAME;
-		  goto free_and_return;
-		}
-
-	      if (req->ai_flags & AI_CANONNAME)
-		canon = name;
-	    }
-	}
-
-      if (at->family == AF_UNSPEC && (req->ai_flags & AI_NUMERICHOST) == 0)
-	{
-	  struct gaih_addrtuple **pat = &at;
-	  int no_data = 0;
-	  int no_inet6_data = 0;
-	  nss_action_list nip;
-	  enum nss_status inet6_status = NSS_STATUS_UNAVAIL;
-	  enum nss_status status = NSS_STATUS_UNAVAIL;
-	  int no_more;
-	  struct resolv_context *res_ctx = NULL;
-
-	  /* If we do not have to look for IPv6 addresses or the canonical
-	     name, use the simple, old functions, which do not support
-	     IPv6 scope ids, nor retrieving the canonical name.  */
-	  if (req->ai_family == AF_INET
-	      && (req->ai_flags & AI_CANONNAME) == 0)
-	    {
-	      int rc;
-	      struct hostent th;
-	      struct hostent *h;
-
-	      while (1)
-		{
-		  rc = __gethostbyname2_r (name, AF_INET, &th,
-					   tmpbuf->data, tmpbuf->length,
-					   &h, &h_errno);
-		  if (rc != ERANGE || h_errno != NETDB_INTERNAL)
-		    break;
-		  if (!scratch_buffer_grow (tmpbuf))
+		  if ((result = gethosts (fct, AF_INET6, name, req, tmpbuf,
+					  res, &status, &no_data)) != 0)
 		    {
-		      result = -EAI_MEMORY;
-		      goto free_and_return;
+		      __resolv_context_put (res_ctx);
+		      goto out;
+		    }
+		  no_inet6_data = no_data;
+		  inet6_status = status;
+		}
+	      if (req->ai_family == AF_INET
+		  || req->ai_family == AF_UNSPEC
+		  || (req->ai_family == AF_INET6
+		      && (req->ai_flags & AI_V4MAPPED)
+		      /* Avoid generating the mapped addresses if we
+			 know we are not going to need them.  */
+		      && ((req->ai_flags & AI_ALL) || !res->got_ipv6)))
+		{
+		  if ((result = gethosts (fct, AF_INET, name, req, tmpbuf,
+					  res, &status, &no_data)) != 0)
+		    {
+		      __resolv_context_put (res_ctx);
+		      goto out;
+		    }
+
+		  if (req->ai_family == AF_INET)
+		    {
+		      no_inet6_data = no_data;
+		      inet6_status = status;
 		    }
 		}
 
-	      if (rc == 0)
+	      /* If we found one address for AF_INET or AF_INET6,
+		 don't continue the search.  */
+	      if (inet6_status == NSS_STATUS_SUCCESS
+		  || status == NSS_STATUS_SUCCESS)
 		{
-		  if (h != NULL)
+		  if ((req->ai_flags & AI_CANONNAME) != 0
+		      && res->canon == NULL)
 		    {
-		      /* We found data, convert it.  */
-		      if (!convert_hostent_to_gaih_addrtuple
-			  (req, AF_INET, h, &addrmem))
-			{
-			  result = -EAI_MEMORY;
-			  goto free_and_return;
-			}
-		      *pat = addrmem;
-		    }
-		  else
-		    {
-		      if (h_errno == NO_DATA)
-			result = -EAI_NODATA;
-		      else
-			result = -EAI_NONAME;
-		      goto free_and_return;
-		    }
-		}
-	      else
-		{
-		  if (h_errno == NETDB_INTERNAL)
-		    result = -EAI_SYSTEM;
-		  else if (h_errno == TRY_AGAIN)
-		    result = -EAI_AGAIN;
-		  else
-		    /* We made requests but they turned out no data.
-		       The name is known, though.  */
-		    result = -EAI_NODATA;
-
-		  goto free_and_return;
-		}
-
-	      goto process_list;
-	    }
-
-#ifdef USE_NSCD
-	  if (__nss_not_use_nscd_hosts > 0
-	      && ++__nss_not_use_nscd_hosts > NSS_NSCD_RETRY)
-	    __nss_not_use_nscd_hosts = 0;
-
-	  if (!__nss_not_use_nscd_hosts
-	      && !__nss_database_custom[NSS_DBSIDX_hosts])
-	    {
-	      /* Try to use nscd.  */
-	      struct nscd_ai_result *air = NULL;
-	      int err = __nscd_getai (name, &air, &h_errno);
-	      if (air != NULL)
-		{
-		  /* Transform into gaih_addrtuple list.  */
-		  bool added_canon = (req->ai_flags & AI_CANONNAME) == 0;
-		  char *addrs = air->addrs;
-
-		  addrmem = calloc (air->naddrs, sizeof (*addrmem));
-		  if (addrmem == NULL)
-		    {
-		      result = -EAI_MEMORY;
-		      goto free_and_return;
-		    }
-
-		  struct gaih_addrtuple *addrfree = addrmem;
-		  for (int i = 0; i < air->naddrs; ++i)
-		    {
-		      socklen_t size = (air->family[i] == AF_INET
-					? INADDRSZ : IN6ADDRSZ);
-
-		      if (!((air->family[i] == AF_INET
-			     && req->ai_family == AF_INET6
-			     && (req->ai_flags & AI_V4MAPPED) != 0)
-			    || req->ai_family == AF_UNSPEC
-			    || air->family[i] == req->ai_family))
-			{
-			  /* Skip over non-matching result.  */
-			  addrs += size;
-			  continue;
-			}
-
-		      if (*pat == NULL)
-			{
-			  *pat = addrfree++;
-			  (*pat)->scopeid = 0;
-			}
-		      uint32_t *pataddr = (*pat)->addr;
-		      (*pat)->next = NULL;
-		      if (added_canon || air->canon == NULL)
-			(*pat)->name = NULL;
-		      else if (canonbuf == NULL)
-			{
-			  canonbuf = __strdup (air->canon);
-			  if (canonbuf == NULL)
-			    {
-			      result = -EAI_MEMORY;
-			      goto free_and_return;
-			    }
-			  canon = (*pat)->name = canonbuf;
-			}
-
-		      if (air->family[i] == AF_INET
-			  && req->ai_family == AF_INET6
-			  && (req->ai_flags & AI_V4MAPPED))
-			{
-			  (*pat)->family = AF_INET6;
-			  pataddr[3] = *(uint32_t *) addrs;
-			  pataddr[2] = htonl (0xffff);
-			  pataddr[1] = 0;
-			  pataddr[0] = 0;
-			  pat = &((*pat)->next);
-			  added_canon = true;
-			}
-		      else if (req->ai_family == AF_UNSPEC
-			       || air->family[i] == req->ai_family)
-			{
-			  (*pat)->family = air->family[i];
-			  memcpy (pataddr, addrs, size);
-			  pat = &((*pat)->next);
-			  added_canon = true;
-			  if (air->family[i] == AF_INET6)
-			    got_ipv6 = true;
-			}
-		      addrs += size;
-		    }
-
-		  free (air);
-
-		  if (at->family == AF_UNSPEC)
-		    {
-		      result = -EAI_NONAME;
-		      goto free_and_return;
-		    }
-
-		  goto process_list;
-		}
-	      else if (err == 0)
-		/* The database contains a negative entry.  */
-		goto free_and_return;
-	      else if (__nss_not_use_nscd_hosts == 0)
-		{
-		  if (h_errno == NETDB_INTERNAL && errno == ENOMEM)
-		    result = -EAI_MEMORY;
-		  else if (h_errno == TRY_AGAIN)
-		    result = -EAI_AGAIN;
-		  else
-		    result = -EAI_SYSTEM;
-
-		  goto free_and_return;
-		}
-	    }
-#endif
-
-	  no_more = !__nss_database_get (nss_database_hosts, &nip);
-
-	  /* If we are looking for both IPv4 and IPv6 address we don't
-	     want the lookup functions to automatically promote IPv4
-	     addresses to IPv6 addresses, so we use the no_inet6
-	     function variant.  */
-	  res_ctx = __resolv_context_get ();
-	  if (res_ctx == NULL)
-	    no_more = 1;
-
-	  while (!no_more)
-	    {
-	      no_data = 0;
-	      nss_gethostbyname4_r *fct4 = NULL;
-
-	      /* gethostbyname4_r sends out parallel A and AAAA queries and
-		 is thus only suitable for PF_UNSPEC.  */
-	      if (req->ai_family == PF_UNSPEC)
-		fct4 = __nss_lookup_function (nip, "gethostbyname4_r");
-
-	      if (fct4 != NULL)
-		{
-		  while (1)
-		    {
-		      status = DL_CALL_FCT (fct4, (name, pat,
-						   tmpbuf->data, tmpbuf->length,
-						   &errno, &h_errno,
-						   NULL));
-		      if (status == NSS_STATUS_SUCCESS)
-			break;
-		      if (status != NSS_STATUS_TRYAGAIN
-			  || errno != ERANGE || h_errno != NETDB_INTERNAL)
-			{
-			  if (h_errno == TRY_AGAIN)
-			    no_data = EAI_AGAIN;
-			  else
-			    no_data = h_errno == NO_DATA;
-			  break;
-			}
-
-		      if (!scratch_buffer_grow (tmpbuf))
+		      char *canonbuf = getcanonname (nip, res->at, name);
+		      if (canonbuf == NULL)
 			{
 			  __resolv_context_put (res_ctx);
 			  result = -EAI_MEMORY;
-			  goto free_and_return;
+			  goto out;
 			}
+		      res->canon = canonbuf;
 		    }
-
-		  if (status == NSS_STATUS_SUCCESS)
-		    {
-		      assert (!no_data);
-		      no_data = 1;
-
-		      if ((req->ai_flags & AI_CANONNAME) != 0 && canon == NULL)
-			canon = (*pat)->name;
-
-		      while (*pat != NULL)
-			{
-			  if ((*pat)->family == AF_INET
-			      && req->ai_family == AF_INET6
-			      && (req->ai_flags & AI_V4MAPPED) != 0)
-			    {
-			      uint32_t *pataddr = (*pat)->addr;
-			      (*pat)->family = AF_INET6;
-			      pataddr[3] = pataddr[0];
-			      pataddr[2] = htonl (0xffff);
-			      pataddr[1] = 0;
-			      pataddr[0] = 0;
-			      pat = &((*pat)->next);
-			      no_data = 0;
-			    }
-			  else if (req->ai_family == AF_UNSPEC
-				   || (*pat)->family == req->ai_family)
-			    {
-			      pat = &((*pat)->next);
-
-			      no_data = 0;
-			      if (req->ai_family == AF_INET6)
-				got_ipv6 = true;
-			    }
-			  else
-			    *pat = ((*pat)->next);
-			}
-		    }
-
-		  no_inet6_data = no_data;
+		  status = NSS_STATUS_SUCCESS;
 		}
 	      else
 		{
-		  nss_gethostbyname3_r *fct = NULL;
-		  if (req->ai_flags & AI_CANONNAME)
-		    /* No need to use this function if we do not look for
-		       the canonical name.  The function does not exist in
-		       all NSS modules and therefore the lookup would
-		       often fail.  */
-		    fct = __nss_lookup_function (nip, "gethostbyname3_r");
-		  if (fct == NULL)
-		    /* We are cheating here.  The gethostbyname2_r
-		       function does not have the same interface as
-		       gethostbyname3_r but the extra arguments the
-		       latter takes are added at the end.  So the
-		       gethostbyname2_r code will just ignore them.  */
-		    fct = __nss_lookup_function (nip, "gethostbyname2_r");
-
-		  if (fct != NULL)
-		    {
-		      if (req->ai_family == AF_INET6
-			  || req->ai_family == AF_UNSPEC)
-			{
-			  gethosts (AF_INET6);
-			  no_inet6_data = no_data;
-			  inet6_status = status;
-			}
-		      if (req->ai_family == AF_INET
-			  || req->ai_family == AF_UNSPEC
-			  || (req->ai_family == AF_INET6
-			      && (req->ai_flags & AI_V4MAPPED)
-			      /* Avoid generating the mapped addresses if we
-				 know we are not going to need them.  */
-			      && ((req->ai_flags & AI_ALL) || !got_ipv6)))
-			{
-			  gethosts (AF_INET);
-
-			  if (req->ai_family == AF_INET)
-			    {
-			      no_inet6_data = no_data;
-			      inet6_status = status;
-			    }
-			}
-
-		      /* If we found one address for AF_INET or AF_INET6,
-			 don't continue the search.  */
-		      if (inet6_status == NSS_STATUS_SUCCESS
-			  || status == NSS_STATUS_SUCCESS)
-			{
-			  if ((req->ai_flags & AI_CANONNAME) != 0
-			      && canon == NULL)
-			    {
-			      canonbuf = getcanonname (nip, at, name);
-			      if (canonbuf == NULL)
-				{
-				  __resolv_context_put (res_ctx);
-				  result = -EAI_MEMORY;
-				  goto free_and_return;
-				}
-			      canon = canonbuf;
-			    }
-			  status = NSS_STATUS_SUCCESS;
-			}
-		      else
-			{
-			  /* We can have different states for AF_INET and
-			     AF_INET6.  Try to find a useful one for both.  */
-			  if (inet6_status == NSS_STATUS_TRYAGAIN)
-			    status = NSS_STATUS_TRYAGAIN;
-			  else if (status == NSS_STATUS_UNAVAIL
-				   && inet6_status != NSS_STATUS_UNAVAIL)
-			    status = inet6_status;
-			}
-		    }
-		  else
-		    {
-		      /* Could not locate any of the lookup functions.
-			 The NSS lookup code does not consistently set
-			 errno, so we need to supply our own error
-			 code here.  The root cause could either be a
-			 resource allocation failure, or a missing
-			 service function in the DSO (so it should not
-			 be listed in /etc/nsswitch.conf).  Assume the
-			 former, and return EBUSY.  */
-		      status = NSS_STATUS_UNAVAIL;
-		     __set_h_errno (NETDB_INTERNAL);
-		     __set_errno (EBUSY);
-		    }
+		  /* We can have different states for AF_INET and
+		     AF_INET6.  Try to find a useful one for both.  */
+		  if (inet6_status == NSS_STATUS_TRYAGAIN)
+		    status = NSS_STATUS_TRYAGAIN;
+		  else if (status == NSS_STATUS_UNAVAIL
+			   && inet6_status != NSS_STATUS_UNAVAIL)
+		    status = inet6_status;
 		}
-
-	      if (nss_next_action (nip, status) == NSS_ACTION_RETURN)
-		break;
-
-	      nip++;
-	      if (nip->module == NULL)
-		no_more = -1;
 	    }
-
-	  __resolv_context_put (res_ctx);
-
-	  /* If we have a failure which sets errno, report it using
-	     EAI_SYSTEM.  */
-	  if ((status == NSS_STATUS_TRYAGAIN || status == NSS_STATUS_UNAVAIL)
-	      && h_errno == NETDB_INTERNAL)
+	  else
 	    {
-	      result = -EAI_SYSTEM;
-	      goto free_and_return;
-	    }
-
-	  if (no_data != 0 && no_inet6_data != 0)
-	    {
-	      /* If both requests timed out report this.  */
-	      if (no_data == EAI_AGAIN && no_inet6_data == EAI_AGAIN)
-		result = -EAI_AGAIN;
-	      else
-		/* We made requests but they turned out no data.  The name
-		   is known, though.  */
-		result = -EAI_NODATA;
-
-	      goto free_and_return;
+	      /* Could not locate any of the lookup functions.
+		 The NSS lookup code does not consistently set
+		 errno, so we need to supply our own error
+		 code here.  The root cause could either be a
+		 resource allocation failure, or a missing
+		 service function in the DSO (so it should not
+		 be listed in /etc/nsswitch.conf).  Assume the
+		 former, and return EBUSY.  */
+	      status = NSS_STATUS_UNAVAIL;
+	      __set_h_errno (NETDB_INTERNAL);
+	      __set_errno (EBUSY);
 	    }
 	}
 
-    process_list:
-      if (at->family == AF_UNSPEC)
+      if (nss_next_action (nip, status) == NSS_ACTION_RETURN)
+	break;
+
+      /* The hosts database does not support MERGE.  */
+      if (nss_next_action (nip, status) == NSS_ACTION_MERGE)
+	do_merge = true;
+
+      nip++;
+      if (nip->module == NULL)
+	no_more = -1;
+    }
+
+  __resolv_context_put (res_ctx);
+
+  /* If we have a failure which sets errno, report it using
+     EAI_SYSTEM.  */
+  if ((status == NSS_STATUS_TRYAGAIN || status == NSS_STATUS_UNAVAIL)
+      && h_errno == NETDB_INTERNAL)
+    {
+      result = -EAI_SYSTEM;
+      goto out;
+    }
+
+  if (no_data != 0 && no_inet6_data != 0)
+    {
+      /* If both requests timed out report this.  */
+      if (no_data == EAI_AGAIN && no_inet6_data == EAI_AGAIN)
+	result = -EAI_AGAIN;
+      else
+	/* We made requests but they turned out no data.  The name
+	   is known, though.  */
+	result = -EAI_NODATA;
+    }
+
+out:
+  if (result != 0)
+    gaih_result_reset (res);
+  return result;
+}
+
+/* Convert numeric addresses to binary into RES.  On failure, RES->AT is set to
+   NULL and an error code is returned.  If AI_NUMERIC_HOST is not requested and
+   the function cannot determine a result, RES->AT is set to NULL and 0
+   returned.  */
+
+static int
+text_to_binary_address (const char *name, const struct addrinfo *req,
+			struct gaih_result *res)
+{
+  struct gaih_addrtuple *at = res->at;
+  int result = 0;
+
+  assert (at != NULL);
+
+  memset (at->addr, 0, sizeof (at->addr));
+  if (__inet_aton_exact (name, (struct in_addr *) at->addr) != 0)
+    {
+      if (req->ai_family == AF_UNSPEC || req->ai_family == AF_INET)
+	at->family = AF_INET;
+      else if (req->ai_family == AF_INET6 && (req->ai_flags & AI_V4MAPPED))
+	{
+	  at->addr[3] = at->addr[0];
+	  at->addr[2] = htonl (0xffff);
+	  at->addr[1] = 0;
+	  at->addr[0] = 0;
+	  at->family = AF_INET6;
+	}
+      else
+	{
+	  result = -EAI_ADDRFAMILY;
+	  goto out;
+	}
+
+      if (req->ai_flags & AI_CANONNAME)
+	{
+	  char *canonbuf = __strdup (name);
+	  if (canonbuf == NULL)
+	    {
+	      result = -EAI_MEMORY;
+	      goto out;
+	    }
+	  res->canon = canonbuf;
+	}
+      return 0;
+    }
+
+  char *scope_delim = strchr (name, SCOPE_DELIMITER);
+  int e;
+
+  if (scope_delim == NULL)
+    e = inet_pton (AF_INET6, name, at->addr);
+  else
+    e = __inet_pton_length (AF_INET6, name, scope_delim - name, at->addr);
+
+  if (e > 0)
+    {
+      if (req->ai_family == AF_UNSPEC || req->ai_family == AF_INET6)
+	at->family = AF_INET6;
+      else if (req->ai_family == AF_INET
+	       && IN6_IS_ADDR_V4MAPPED (at->addr))
+	{
+	  at->addr[0] = at->addr[3];
+	  at->family = AF_INET;
+	}
+      else
+	{
+	  result = -EAI_ADDRFAMILY;
+	  goto out;
+	}
+
+      if (scope_delim != NULL
+	  && __inet6_scopeid_pton ((struct in6_addr *) at->addr,
+				   scope_delim + 1, &at->scopeid) != 0)
 	{
 	  result = -EAI_NONAME;
-	  goto free_and_return;
+	  goto out;
 	}
+
+      if (req->ai_flags & AI_CANONNAME)
+	{
+	  char *canonbuf = __strdup (name);
+	  if (canonbuf == NULL)
+	    {
+	      result = -EAI_MEMORY;
+	      goto out;
+	    }
+	  res->canon = canonbuf;
+	}
+      return 0;
     }
-  else
+
+  if ((req->ai_flags & AI_NUMERICHOST))
+    result = -EAI_NONAME;
+
+out:
+  res->at = NULL;
+  return result;
+}
+
+/* If possible, call the simple, old functions, which do not support IPv6 scope
+   ids, nor retrieving the canonical name.  */
+
+static int
+try_simple_gethostbyname (const char *name, const struct addrinfo *req,
+			  struct scratch_buffer *tmpbuf,
+			  struct gaih_result *res)
+{
+  res->at = NULL;
+
+  if (req->ai_family != AF_INET || (req->ai_flags & AI_CANONNAME) != 0)
+    return 0;
+
+  int rc;
+  struct hostent th;
+  struct hostent *h;
+
+  while (1)
     {
-      struct gaih_addrtuple *atr;
-      atr = at = alloca_account (sizeof (struct gaih_addrtuple), alloca_used);
-      memset (at, '\0', sizeof (struct gaih_addrtuple));
-
-      if (req->ai_family == AF_UNSPEC)
-	{
-	  at->next = __alloca (sizeof (struct gaih_addrtuple));
-	  memset (at->next, '\0', sizeof (struct gaih_addrtuple));
-	}
-
-      if (req->ai_family == AF_UNSPEC || req->ai_family == AF_INET6)
-	{
-	  at->family = AF_INET6;
-	  if ((req->ai_flags & AI_PASSIVE) == 0)
-	    memcpy (at->addr, &in6addr_loopback, sizeof (struct in6_addr));
-	  atr = at->next;
-	}
-
-      if (req->ai_family == AF_UNSPEC || req->ai_family == AF_INET)
-	{
-	  atr->family = AF_INET;
-	  if ((req->ai_flags & AI_PASSIVE) == 0)
-	    atr->addr[0] = htonl (INADDR_LOOPBACK);
-	}
+      rc = __gethostbyname2_r (name, AF_INET, &th, tmpbuf->data,
+			       tmpbuf->length, &h, &h_errno);
+      if (rc != ERANGE || h_errno != NETDB_INTERNAL)
+	break;
+      if (!scratch_buffer_grow (tmpbuf))
+	return -EAI_MEMORY;
     }
 
-  {
-    struct gaih_servtuple *st2;
-    struct gaih_addrtuple *at2 = at;
-    size_t socklen;
-    sa_family_t family;
+  if (rc == 0)
+    {
+      if (h != NULL)
+	{
+	  /* We found data, convert it.  RES->AT from the conversion will
+	     either be an allocated block or NULL, both of which are safe to
+	     pass to free ().  */
+	  if (!convert_hostent_to_gaih_addrtuple (req, AF_INET, h, res))
+	    return -EAI_MEMORY;
 
-    /*
-      buffer is the size of an unformatted IPv6 address in printable format.
-     */
-    while (at2 != NULL)
-      {
-	/* Only the first entry gets the canonical name.  */
-	if (at2 == at && (req->ai_flags & AI_CANONNAME) != 0)
-	  {
-	    if (canon == NULL)
-	      /* If the canonical name cannot be determined, use
-		 the passed in string.  */
-	      canon = orig_name;
+	  res->free_at = true;
+	  return 0;
+	}
+      if (h_errno == NO_DATA)
+	return -EAI_NODATA;
 
-	    bool do_idn = req->ai_flags & AI_CANONIDN;
-	    if (do_idn)
-	      {
-		char *out;
-		int rc = __idna_from_dns_encoding (canon, &out);
-		if (rc == 0)
-		  canon = out;
-		else if (rc == EAI_IDN_ENCODE)
-		  /* Use the punycode name as a fallback.  */
-		  do_idn = false;
-		else
-		  {
-		    result = -rc;
-		    goto free_and_return;
-		  }
-	      }
-	    if (!do_idn)
-	      {
-		if (canonbuf != NULL)
-		  /* We already allocated the string using malloc, but
-		     the buffer is now owned by canon.  */
-		  canonbuf = NULL;
-		else
-		  {
-		    canon = __strdup (canon);
-		    if (canon == NULL)
-		      {
-			result = -EAI_MEMORY;
-			goto free_and_return;
-		      }
-		  }
-	      }
-	  }
+      return -EAI_NONAME;
+    }
 
-	family = at2->family;
-	if (family == AF_INET6)
-	  {
-	    socklen = sizeof (struct sockaddr_in6);
+  if (h_errno == NETDB_INTERNAL)
+    return -EAI_SYSTEM;
+  if (h_errno == TRY_AGAIN)
+    return -EAI_AGAIN;
 
-	    /* If we looked up IPv4 mapped address discard them here if
-	       the caller isn't interested in all address and we have
-	       found at least one IPv6 address.  */
-	    if (got_ipv6
-		&& (req->ai_flags & (AI_V4MAPPED|AI_ALL)) == AI_V4MAPPED
-		&& IN6_IS_ADDR_V4MAPPED (at2->addr))
-	      goto ignore;
-	  }
-	else
-	  socklen = sizeof (struct sockaddr_in);
+  /* We made requests but they turned out no data.
+     The name is known, though.  */
+  return -EAI_NODATA;
+}
 
-	for (st2 = st; st2 != NULL; st2 = st2->next)
-	  {
-	    struct addrinfo *ai;
-	    ai = *pai = malloc (sizeof (struct addrinfo) + socklen);
-	    if (ai == NULL)
-	      {
-		free ((char *) canon);
-		result = -EAI_MEMORY;
-		goto free_and_return;
-	      }
+/* Add local address information into RES.  RES->AT is assumed to have enough
+   space for two tuples and is zeroed out.  */
 
-	    ai->ai_flags = req->ai_flags;
-	    ai->ai_family = family;
-	    ai->ai_socktype = st2->socktype;
-	    ai->ai_protocol = st2->protocol;
-	    ai->ai_addrlen = socklen;
-	    ai->ai_addr = (void *) (ai + 1);
+static void
+get_local_addresses (const struct addrinfo *req, struct gaih_result *res)
+{
+  struct gaih_addrtuple *atr = res->at;
+  if (req->ai_family == AF_UNSPEC)
+    res->at->next = res->at + 1;
 
-	    /* We only add the canonical name once.  */
-	    ai->ai_canonname = (char *) canon;
-	    canon = NULL;
+  if (req->ai_family == AF_UNSPEC || req->ai_family == AF_INET6)
+    {
+      res->at->family = AF_INET6;
+      if ((req->ai_flags & AI_PASSIVE) == 0)
+	memcpy (res->at->addr, &in6addr_loopback, sizeof (struct in6_addr));
+      atr = res->at->next;
+    }
+
+  if (req->ai_family == AF_UNSPEC || req->ai_family == AF_INET)
+    {
+      atr->family = AF_INET;
+      if ((req->ai_flags & AI_PASSIVE) == 0)
+	atr->addr[0] = htonl (INADDR_LOOPBACK);
+    }
+}
+
+/* Generate results in PAI and its count in NADDRS.  Return 0 on success or an
+   error code on failure.  */
+
+static int
+generate_addrinfo (const struct addrinfo *req, struct gaih_result *res,
+		   const struct gaih_servtuple *st, struct addrinfo **pai,
+		   unsigned int *naddrs)
+{
+  size_t socklen;
+  sa_family_t family;
+
+  /* Buffer is the size of an unformatted IPv6 address in printable format.  */
+  for (struct gaih_addrtuple *at = res->at; at != NULL; at = at->next)
+    {
+      family = at->family;
+      if (family == AF_INET6)
+	{
+	  socklen = sizeof (struct sockaddr_in6);
+
+	  /* If we looked up IPv4 mapped address discard them here if
+	     the caller isn't interested in all address and we have
+	     found at least one IPv6 address.  */
+	  if (res->got_ipv6
+	      && (req->ai_flags & (AI_V4MAPPED|AI_ALL)) == AI_V4MAPPED
+	      && IN6_IS_ADDR_V4MAPPED (at->addr))
+	    continue;
+	}
+      else
+	socklen = sizeof (struct sockaddr_in);
+
+      for (int i = 0; st[i].set; i++)
+	{
+	  struct addrinfo *ai;
+	  ai = *pai = malloc (sizeof (struct addrinfo) + socklen);
+	  if (ai == NULL)
+	    return -EAI_MEMORY;
+
+	  ai->ai_flags = req->ai_flags;
+	  ai->ai_family = family;
+	  ai->ai_socktype = st[i].socktype;
+	  ai->ai_protocol = st[i].protocol;
+	  ai->ai_addrlen = socklen;
+	  ai->ai_addr = (void *) (ai + 1);
+
+	  /* We only add the canonical name once.  */
+	  ai->ai_canonname = res->canon;
+	  res->canon = NULL;
 
 #ifdef _HAVE_SA_LEN
-	    ai->ai_addr->sa_len = socklen;
+	  ai->ai_addr->sa_len = socklen;
 #endif /* _HAVE_SA_LEN */
-	    ai->ai_addr->sa_family = family;
+	  ai->ai_addr->sa_family = family;
 
-	    /* In case of an allocation error the list must be NULL
-	       terminated.  */
-	    ai->ai_next = NULL;
+	  /* In case of an allocation error the list must be NULL
+	     terminated.  */
+	  ai->ai_next = NULL;
 
-	    if (family == AF_INET6)
-	      {
-		struct sockaddr_in6 *sin6p =
-		  (struct sockaddr_in6 *) ai->ai_addr;
+	  if (family == AF_INET6)
+	    {
+	      struct sockaddr_in6 *sin6p = (struct sockaddr_in6 *) ai->ai_addr;
+	      sin6p->sin6_port = st[i].port;
+	      sin6p->sin6_flowinfo = 0;
+	      memcpy (&sin6p->sin6_addr, at->addr, sizeof (struct in6_addr));
+	      sin6p->sin6_scope_id = at->scopeid;
+	    }
+	  else
+	    {
+	      struct sockaddr_in *sinp = (struct sockaddr_in *) ai->ai_addr;
+	      sinp->sin_port = st[i].port;
+	      memcpy (&sinp->sin_addr, at->addr, sizeof (struct in_addr));
+	      memset (sinp->sin_zero, '\0', sizeof (sinp->sin_zero));
+	    }
 
-		sin6p->sin6_port = st2->port;
-		sin6p->sin6_flowinfo = 0;
-		memcpy (&sin6p->sin6_addr,
-			at2->addr, sizeof (struct in6_addr));
-		sin6p->sin6_scope_id = at2->scopeid;
-	      }
-	    else
-	      {
-		struct sockaddr_in *sinp =
-		  (struct sockaddr_in *) ai->ai_addr;
-		sinp->sin_port = st2->port;
-		memcpy (&sinp->sin_addr,
-			at2->addr, sizeof (struct in_addr));
-		memset (sinp->sin_zero, '\0', sizeof (sinp->sin_zero));
-	      }
+	  pai = &(ai->ai_next);
+	}
 
-	    pai = &(ai->ai_next);
-	  }
+      ++*naddrs;
+    }
+  return 0;
+}
 
-	++*naddrs;
+static int
+gaih_inet (const char *name, const struct gaih_service *service,
+	   const struct addrinfo *req, struct addrinfo **pai,
+	   unsigned int *naddrs, struct scratch_buffer *tmpbuf)
+{
+  struct gaih_servtuple st[sizeof (gaih_inet_typeproto)
+			   / sizeof (struct gaih_typeproto)] = {0};
 
-      ignore:
-	at2 = at2->next;
-      }
-  }
+  const char *orig_name = name;
 
- free_and_return:
+  int rc;
+  if ((rc = get_servtuples (service, req, st, tmpbuf)) != 0)
+    return rc;
+
+  bool malloc_name = false;
+  struct gaih_addrtuple *addrmem = NULL;
+  int result = 0;
+
+  struct gaih_result res = {0};
+  struct gaih_addrtuple local_at[2] = {0};
+
+  res.at = local_at;
+
+  if (__glibc_unlikely (name == NULL))
+    {
+      get_local_addresses (req, &res);
+      goto process_list;
+    }
+
+  if (req->ai_flags & AI_IDN)
+    {
+      char *out;
+      result = __idna_to_dns_encoding (name, &out);
+      if (result != 0)
+	return -result;
+      name = out;
+      malloc_name = true;
+    }
+
+  if ((result = text_to_binary_address (name, req, &res)) != 0)
+    goto free_and_return;
+  else if (res.at != NULL)
+    goto process_list;
+
+  if ((result = try_simple_gethostbyname (name, req, tmpbuf, &res)) != 0)
+    goto free_and_return;
+  else if (res.at != NULL)
+    goto process_list;
+
+#ifdef USE_NSCD
+  if ((result = get_nscd_addresses (name, req, &res)) != 0)
+    goto free_and_return;
+  else if (res.at != NULL)
+    goto process_list;
+#endif
+
+  if ((result = get_nss_addresses (name, req, tmpbuf, &res)) != 0)
+    goto free_and_return;
+  else if (res.at != NULL)
+    goto process_list;
+
+  /* None of the lookups worked, so name not found.  */
+  result = -EAI_NONAME;
+  goto free_and_return;
+
+process_list:
+  /* Set up the canonical name if we need it.  */
+  if ((result = process_canonname (req, orig_name, &res)) != 0)
+    goto free_and_return;
+
+  result = generate_addrinfo (req, &res, st, pai, naddrs);
+
+free_and_return:
   if (malloc_name)
     free ((char *) name);
   free (addrmem);
-  free (canonbuf);
+  if (res.free_at)
+    free (res.at);
+  free (res.canon);
 
   return result;
 }
@@ -1761,6 +1851,66 @@ scopecmp (const void *p1, const void *p2)
   return 1;
 }
 
+static bool
+add_prefixlist (struct prefixlist **listp, size_t *lenp, bool *nullbitsp,
+		char *val1, char *val2, char **pos)
+{
+  struct in6_addr prefix;
+  unsigned long int bits;
+  unsigned long int val;
+  char *endp;
+
+  bits = 128;
+  __set_errno (0);
+  char *cp = strchr (val1, '/');
+  if (cp != NULL)
+    *cp++ = '\0';
+  *pos = cp;
+  if (inet_pton (AF_INET6, val1, &prefix)
+      && (cp == NULL
+	  || (bits = strtoul (cp, &endp, 10)) != ULONG_MAX
+	  || errno != ERANGE)
+      && *endp == '\0'
+      && bits <= 128
+      && ((val = strtoul (val2, &endp, 10)) != ULONG_MAX
+	  || errno != ERANGE)
+      && *endp == '\0'
+      && val <= INT_MAX)
+    {
+      struct prefixlist *newp = malloc (sizeof (*newp));
+      if (newp == NULL)
+	return false;
+
+      memcpy (&newp->entry.prefix, &prefix, sizeof (prefix));
+      newp->entry.bits = bits;
+      newp->entry.val = val;
+      newp->next = *listp;
+      *listp = newp;
+      ++*lenp;
+      *nullbitsp |= bits == 0;
+    }
+  return true;
+}
+
+static bool
+add_scopelist (struct scopelist **listp, size_t *lenp, bool *nullbitsp,
+	       const struct in6_addr *prefixp, unsigned long int bits,
+	       unsigned long int val)
+{
+  struct scopelist *newp = malloc (sizeof (*newp));
+  if (newp == NULL)
+    return false;
+
+  newp->entry.netmask = htonl (bits != 96 ? (0xffffffff << (128 - bits)) : 0);
+  newp->entry.addr32 = (prefixp->s6_addr32[3] & newp->entry.netmask);
+  newp->entry.scope = val;
+  newp->next = *listp;
+  *listp = newp;
+  ++*lenp;
+  *nullbitsp |= bits == 96;
+
+  return true;
+}
 
 static void
 gaiconf_init (void)
@@ -1776,357 +1926,314 @@ gaiconf_init (void)
   bool scopelist_nullbits = false;
 
   FILE *fp = fopen (GAICONF_FNAME, "rce");
-  if (fp != NULL)
+  if (fp == NULL)
+    goto no_file;
+
+  struct __stat64_t64 st;
+  if (__fstat64_time64 (fileno (fp), &st) != 0)
     {
-      struct __stat64_t64 st;
-      if (__fstat64_time64 (fileno (fp), &st) != 0)
+      fclose (fp);
+      goto no_file;
+    }
+
+  char *line = NULL;
+  size_t linelen = 0;
+
+  __fsetlocking (fp, FSETLOCKING_BYCALLER);
+
+  while (!feof_unlocked (fp))
+    {
+      ssize_t n = __getline (&line, &linelen, fp);
+      if (n <= 0)
+	break;
+
+      /* Handle comments.  No escaping possible so this is easy.  */
+      char *cp = strchr (line, '#');
+      if (cp != NULL)
+	*cp = '\0';
+
+      cp = line;
+      while (isspace (*cp))
+	++cp;
+
+      char *cmd = cp;
+      while (*cp != '\0' && !isspace (*cp))
+	++cp;
+      size_t cmdlen = cp - cmd;
+
+      if (*cp != '\0')
+	*cp++ = '\0';
+      while (isspace (*cp))
+	++cp;
+
+      char *val1 = cp;
+      while (*cp != '\0' && !isspace (*cp))
+	++cp;
+      size_t val1len = cp - cmd;
+
+      /* We always need at least two values.  */
+      if (val1len == 0)
+	continue;
+
+      if (*cp != '\0')
+	*cp++ = '\0';
+      while (isspace (*cp))
+	++cp;
+
+      char *val2 = cp;
+      while (*cp != '\0' && !isspace (*cp))
+	++cp;
+
+      /*  Ignore the rest of the line.  */
+      *cp = '\0';
+
+      switch (cmdlen)
 	{
-	  fclose (fp);
-	  goto no_file;
-	}
-
-      char *line = NULL;
-      size_t linelen = 0;
-
-      __fsetlocking (fp, FSETLOCKING_BYCALLER);
-
-      while (!feof_unlocked (fp))
-	{
-	  ssize_t n = __getline (&line, &linelen, fp);
-	  if (n <= 0)
-	    break;
-
-	  /* Handle comments.  No escaping possible so this is easy.  */
-	  char *cp = strchr (line, '#');
-	  if (cp != NULL)
-	    *cp = '\0';
-
-	  cp = line;
-	  while (isspace (*cp))
-	    ++cp;
-
-	  char *cmd = cp;
-	  while (*cp != '\0' && !isspace (*cp))
-	    ++cp;
-	  size_t cmdlen = cp - cmd;
-
-	  if (*cp != '\0')
-	    *cp++ = '\0';
-	  while (isspace (*cp))
-	    ++cp;
-
-	  char *val1 = cp;
-	  while (*cp != '\0' && !isspace (*cp))
-	    ++cp;
-	  size_t val1len = cp - cmd;
-
-	  /* We always need at least two values.  */
-	  if (val1len == 0)
-	    continue;
-
-	  if (*cp != '\0')
-	    *cp++ = '\0';
-	  while (isspace (*cp))
-	    ++cp;
-
-	  char *val2 = cp;
-	  while (*cp != '\0' && !isspace (*cp))
-	    ++cp;
-
-	  /*  Ignore the rest of the line.  */
-	  *cp = '\0';
-
-	  struct prefixlist **listp;
-	  size_t *lenp;
-	  bool *nullbitsp;
-	  switch (cmdlen)
+	case 5:
+	  if (strcmp (cmd, "label") == 0)
 	    {
-	    case 5:
-	      if (strcmp (cmd, "label") == 0)
+	      if (!add_prefixlist (&labellist, &nlabellist,
+				   &labellist_nullbits, val1, val2, &cp))
 		{
-		  struct in6_addr prefix;
-		  unsigned long int bits;
-		  unsigned long int val;
-		  char *endp;
+		  free (line);
+		  fclose (fp);
+		  goto no_file;
+		}
+	    }
+	  break;
 
-		  listp = &labellist;
-		  lenp = &nlabellist;
-		  nullbitsp = &labellist_nullbits;
+	case 6:
+	  if (strcmp (cmd, "reload") == 0)
+	    {
+	      gaiconf_reload_flag = strcmp (val1, "yes") == 0;
+	      if (gaiconf_reload_flag)
+		gaiconf_reload_flag_ever_set = 1;
+	    }
+	  break;
 
-		new_elem:
+	case 7:
+	  if (strcmp (cmd, "scopev4") == 0)
+	    {
+	      struct in6_addr prefix;
+	      unsigned long int bits;
+	      unsigned long int val;
+	      char *endp;
+
+	      bits = 32;
+	      __set_errno (0);
+	      cp = strchr (val1, '/');
+	      if (cp != NULL)
+		*cp++ = '\0';
+	      if (inet_pton (AF_INET6, val1, &prefix))
+		{
 		  bits = 128;
-		  __set_errno (0);
-		  cp = strchr (val1, '/');
-		  if (cp != NULL)
-		    *cp++ = '\0';
-		  if (inet_pton (AF_INET6, val1, &prefix)
+		  if (IN6_IS_ADDR_V4MAPPED (&prefix)
 		      && (cp == NULL
 			  || (bits = strtoul (cp, &endp, 10)) != ULONG_MAX
 			  || errno != ERANGE)
 		      && *endp == '\0'
+		      && bits >= 96
 		      && bits <= 128
 		      && ((val = strtoul (val2, &endp, 10)) != ULONG_MAX
 			  || errno != ERANGE)
 		      && *endp == '\0'
 		      && val <= INT_MAX)
 		    {
-		      struct prefixlist *newp = malloc (sizeof (*newp));
-		      if (newp == NULL)
+		      if (!add_scopelist (&scopelist, &nscopelist,
+					  &scopelist_nullbits, &prefix,
+					  bits, val))
 			{
 			  free (line);
 			  fclose (fp);
 			  goto no_file;
 			}
-
-		      memcpy (&newp->entry.prefix, &prefix, sizeof (prefix));
-		      newp->entry.bits = bits;
-		      newp->entry.val = val;
-		      newp->next = *listp;
-		      *listp = newp;
-		      ++*lenp;
-		      *nullbitsp |= bits == 0;
 		    }
 		}
-	      break;
-
-	    case 6:
-	      if (strcmp (cmd, "reload") == 0)
+	      else if (inet_pton (AF_INET, val1, &prefix.s6_addr32[3])
+		       && (cp == NULL
+			   || (bits = strtoul (cp, &endp, 10)) != ULONG_MAX
+			   || errno != ERANGE)
+		       && *endp == '\0'
+		       && bits <= 32
+		       && ((val = strtoul (val2, &endp, 10)) != ULONG_MAX
+			   || errno != ERANGE)
+		       && *endp == '\0'
+		       && val <= INT_MAX)
 		{
-		  gaiconf_reload_flag = strcmp (val1, "yes") == 0;
-		  if (gaiconf_reload_flag)
-		    gaiconf_reload_flag_ever_set = 1;
-		}
-	      break;
-
-	    case 7:
-	      if (strcmp (cmd, "scopev4") == 0)
-		{
-		  struct in6_addr prefix;
-		  unsigned long int bits;
-		  unsigned long int val;
-		  char *endp;
-
-		  bits = 32;
-		  __set_errno (0);
-		  cp = strchr (val1, '/');
-		  if (cp != NULL)
-		    *cp++ = '\0';
-		  if (inet_pton (AF_INET6, val1, &prefix))
+		  if (!add_scopelist (&scopelist, &nscopelist,
+				      &scopelist_nullbits, &prefix,
+				      bits + 96, val))
 		    {
-		      bits = 128;
-		      if (IN6_IS_ADDR_V4MAPPED (&prefix)
-			  && (cp == NULL
-			      || (bits = strtoul (cp, &endp, 10)) != ULONG_MAX
-			      || errno != ERANGE)
-			  && *endp == '\0'
-			  && bits >= 96
-			  && bits <= 128
-			  && ((val = strtoul (val2, &endp, 10)) != ULONG_MAX
-			      || errno != ERANGE)
-			  && *endp == '\0'
-			  && val <= INT_MAX)
-			{
-			  struct scopelist *newp;
-			new_scope:
-			  newp = malloc (sizeof (*newp));
-			  if (newp == NULL)
-			    {
-			      free (line);
-			      fclose (fp);
-			      goto no_file;
-			    }
-
-			  newp->entry.netmask = htonl (bits != 96
-						       ? (0xffffffff
-							  << (128 - bits))
-						       : 0);
-			  newp->entry.addr32 = (prefix.s6_addr32[3]
-						& newp->entry.netmask);
-			  newp->entry.scope = val;
-			  newp->next = scopelist;
-			  scopelist = newp;
-			  ++nscopelist;
-			  scopelist_nullbits |= bits == 96;
-			}
-		    }
-		  else if (inet_pton (AF_INET, val1, &prefix.s6_addr32[3])
-			   && (cp == NULL
-			       || (bits = strtoul (cp, &endp, 10)) != ULONG_MAX
-			       || errno != ERANGE)
-			   && *endp == '\0'
-			   && bits <= 32
-			   && ((val = strtoul (val2, &endp, 10)) != ULONG_MAX
-			       || errno != ERANGE)
-			   && *endp == '\0'
-			   && val <= INT_MAX)
-		    {
-		      bits += 96;
-		      goto new_scope;
+		      free (line);
+		      fclose (fp);
+		      goto no_file;
 		    }
 		}
-	      break;
+	    }
+	  break;
 
-	    case 10:
-	      if (strcmp (cmd, "precedence") == 0)
+	case 10:
+	  if (strcmp (cmd, "precedence") == 0)
+	    {
+	      if (!add_prefixlist (&precedencelist, &nprecedencelist,
+				   &precedencelist_nullbits, val1, val2,
+				   &cp))
 		{
-		  listp = &precedencelist;
-		  lenp = &nprecedencelist;
-		  nullbitsp = &precedencelist_nullbits;
-		  goto new_elem;
+		  free (line);
+		  fclose (fp);
+		  goto no_file;
 		}
-	      break;
 	    }
+	  break;
 	}
+    }
 
-      free (line);
+  free (line);
 
-      fclose (fp);
+  fclose (fp);
 
-      /* Create the array for the labels.  */
-      struct prefixentry *new_labels;
-      if (nlabellist > 0)
+  /* Create the array for the labels.  */
+  struct prefixentry *new_labels;
+  if (nlabellist > 0)
+    {
+      if (!labellist_nullbits)
+	++nlabellist;
+      new_labels = malloc (nlabellist * sizeof (*new_labels));
+      if (new_labels == NULL)
+	goto no_file;
+
+      int i = nlabellist;
+      if (!labellist_nullbits)
 	{
-	  if (!labellist_nullbits)
-	    ++nlabellist;
-	  new_labels = malloc (nlabellist * sizeof (*new_labels));
-	  if (new_labels == NULL)
-	    goto no_file;
-
-	  int i = nlabellist;
-	  if (!labellist_nullbits)
-	    {
-	      --i;
-	      memset (&new_labels[i].prefix, '\0', sizeof (struct in6_addr));
-	      new_labels[i].bits = 0;
-	      new_labels[i].val = 1;
-	    }
-
-	  struct prefixlist *l = labellist;
-	  while (i-- > 0)
-	    {
-	      new_labels[i] = l->entry;
-	      l = l->next;
-	    }
-	  free_prefixlist (labellist);
-	  labellist = NULL;
-
-	  /* Sort the entries so that the most specific ones are at
-	     the beginning.  */
-	  qsort (new_labels, nlabellist, sizeof (*new_labels), prefixcmp);
+	  --i;
+	  memset (&new_labels[i].prefix, '\0', sizeof (struct in6_addr));
+	  new_labels[i].bits = 0;
+	  new_labels[i].val = 1;
 	}
-      else
-	new_labels = (struct prefixentry *) default_labels;
 
-      struct prefixentry *new_precedence;
-      if (nprecedencelist > 0)
+      struct prefixlist *l = labellist;
+      while (i-- > 0)
 	{
-	  if (!precedencelist_nullbits)
-	    ++nprecedencelist;
-	  new_precedence = malloc (nprecedencelist * sizeof (*new_precedence));
-	  if (new_precedence == NULL)
-	    {
-	      if (new_labels != default_labels)
-		free (new_labels);
-	      goto no_file;
-	    }
-
-	  int i = nprecedencelist;
-	  if (!precedencelist_nullbits)
-	    {
-	      --i;
-	      memset (&new_precedence[i].prefix, '\0',
-		      sizeof (struct in6_addr));
-	      new_precedence[i].bits = 0;
-	      new_precedence[i].val = 40;
-	    }
-
-	  struct prefixlist *l = precedencelist;
-	  while (i-- > 0)
-	    {
-	      new_precedence[i] = l->entry;
-	      l = l->next;
-	    }
-	  free_prefixlist (precedencelist);
-	  precedencelist = NULL;
-
-	  /* Sort the entries so that the most specific ones are at
-	     the beginning.  */
-	  qsort (new_precedence, nprecedencelist, sizeof (*new_precedence),
-		 prefixcmp);
+	  new_labels[i] = l->entry;
+	  l = l->next;
 	}
-      else
-	new_precedence = (struct prefixentry *) default_precedence;
+      free_prefixlist (labellist);
+      labellist = NULL;
 
-      struct scopeentry *new_scopes;
-      if (nscopelist > 0)
-	{
-	  if (!scopelist_nullbits)
-	    ++nscopelist;
-	  new_scopes = malloc (nscopelist * sizeof (*new_scopes));
-	  if (new_scopes == NULL)
-	    {
-	      if (new_labels != default_labels)
-		free (new_labels);
-	      if (new_precedence != default_precedence)
-		free (new_precedence);
-	      goto no_file;
-	    }
-
-	  int i = nscopelist;
-	  if (!scopelist_nullbits)
-	    {
-	      --i;
-	      new_scopes[i].addr32 = 0;
-	      new_scopes[i].netmask = 0;
-	      new_scopes[i].scope = 14;
-	    }
-
-	  struct scopelist *l = scopelist;
-	  while (i-- > 0)
-	    {
-	      new_scopes[i] = l->entry;
-	      l = l->next;
-	    }
-	  free_scopelist (scopelist);
-
-	  /* Sort the entries so that the most specific ones are at
-	     the beginning.  */
-	  qsort (new_scopes, nscopelist, sizeof (*new_scopes),
-		 scopecmp);
-	}
-      else
-	new_scopes = (struct scopeentry *) default_scopes;
-
-      /* Now we are ready to replace the values.  */
-      const struct prefixentry *old = labels;
-      labels = new_labels;
-      if (old != default_labels)
-	free ((void *) old);
-
-      old = precedence;
-      precedence = new_precedence;
-      if (old != default_precedence)
-	free ((void *) old);
-
-      const struct scopeentry *oldscope = scopes;
-      scopes = new_scopes;
-      if (oldscope != default_scopes)
-	free ((void *) oldscope);
-
-      save_gaiconf_mtime (&st);
+      /* Sort the entries so that the most specific ones are at
+	 the beginning.  */
+      qsort (new_labels, nlabellist, sizeof (*new_labels), prefixcmp);
     }
   else
+    new_labels = (struct prefixentry *) default_labels;
+
+  struct prefixentry *new_precedence;
+  if (nprecedencelist > 0)
     {
-    no_file:
-      free_prefixlist (labellist);
+      if (!precedencelist_nullbits)
+	++nprecedencelist;
+      new_precedence = malloc (nprecedencelist * sizeof (*new_precedence));
+      if (new_precedence == NULL)
+	{
+	  if (new_labels != default_labels)
+	    free (new_labels);
+	  goto no_file;
+	}
+
+      int i = nprecedencelist;
+      if (!precedencelist_nullbits)
+	{
+	  --i;
+	  memset (&new_precedence[i].prefix, '\0',
+		  sizeof (struct in6_addr));
+	  new_precedence[i].bits = 0;
+	  new_precedence[i].val = 40;
+	}
+
+      struct prefixlist *l = precedencelist;
+      while (i-- > 0)
+	{
+	  new_precedence[i] = l->entry;
+	  l = l->next;
+	}
       free_prefixlist (precedencelist);
+      precedencelist = NULL;
+
+      /* Sort the entries so that the most specific ones are at
+	 the beginning.  */
+      qsort (new_precedence, nprecedencelist, sizeof (*new_precedence),
+	     prefixcmp);
+    }
+  else
+    new_precedence = (struct prefixentry *) default_precedence;
+
+  struct scopeentry *new_scopes;
+  if (nscopelist > 0)
+    {
+      if (!scopelist_nullbits)
+	++nscopelist;
+      new_scopes = malloc (nscopelist * sizeof (*new_scopes));
+      if (new_scopes == NULL)
+	{
+	  if (new_labels != default_labels)
+	    free (new_labels);
+	  if (new_precedence != default_precedence)
+	    free (new_precedence);
+	  goto no_file;
+	}
+
+      int i = nscopelist;
+      if (!scopelist_nullbits)
+	{
+	  --i;
+	  new_scopes[i].addr32 = 0;
+	  new_scopes[i].netmask = 0;
+	  new_scopes[i].scope = 14;
+	}
+
+      struct scopelist *l = scopelist;
+      while (i-- > 0)
+	{
+	  new_scopes[i] = l->entry;
+	  l = l->next;
+	}
       free_scopelist (scopelist);
 
-      /* If we previously read the file but it is gone now, free the
-	 old data and use the builtin one.  Leave the reload flag
-	 alone.  */
-      fini ();
+      /* Sort the entries so that the most specific ones are at
+	 the beginning.  */
+      qsort (new_scopes, nscopelist, sizeof (*new_scopes),
+	     scopecmp);
     }
+  else
+    new_scopes = (struct scopeentry *) default_scopes;
+
+  /* Now we are ready to replace the values.  */
+  const struct prefixentry *old = labels;
+  labels = new_labels;
+  if (old != default_labels)
+    free ((void *) old);
+
+  old = precedence;
+  precedence = new_precedence;
+  if (old != default_precedence)
+    free ((void *) old);
+
+  const struct scopeentry *oldscope = scopes;
+  scopes = new_scopes;
+  if (oldscope != default_scopes)
+    free ((void *) oldscope);
+
+  save_gaiconf_mtime (&st);
+  return;
+
+no_file:
+  free_prefixlist (labellist);
+  free_prefixlist (precedencelist);
+  free_scopelist (scopelist);
+
+  /* If we previously read the file but it is gone now, free the old data and
+     use the builtin one.  Leave the reload flag alone.  */
+  fini ();
 }
 
 
@@ -2139,6 +2246,36 @@ gaiconf_reload (void)
     gaiconf_init ();
 }
 
+static bool
+try_connect (int *fdp, int *afp, struct sockaddr_in6 *source_addrp,
+	     const struct sockaddr *addr, socklen_t addrlen, int family)
+{
+  int fd = *fdp;
+  int af = *afp;
+  socklen_t sl = sizeof (*source_addrp);
+
+  while (true)
+    {
+      if (fd != -1 && __connect (fd, addr, addrlen) == 0
+	  && __getsockname (fd, (struct sockaddr *) source_addrp, &sl) == 0)
+	return true;
+
+      if (errno == EAFNOSUPPORT && af == AF_INET6 && family == AF_INET)
+	{
+	  /* This could mean IPv6 sockets are IPv6-only.  */
+	  if (fd != -1)
+	    __close_nocancel_nostatus (fd);
+	  *afp = af = AF_INET;
+	  *fdp = fd = __socket (AF_INET, SOCK_DGRAM | SOCK_CLOEXEC,
+				IPPROTO_IP);
+	  continue;
+	}
+
+      return false;
+    }
+
+  __builtin_unreachable ();
+}
 
 int
 getaddrinfo (const char *name, const char *service,
@@ -2329,7 +2466,6 @@ getaddrinfo (const char *name, const char *service,
 	      if (fd == -1 || (af == AF_INET && q->ai_family == AF_INET6))
 		{
 		  if (fd != -1)
-		  close_retry:
 		    __close_nocancel_nostatus (fd);
 		  af = q->ai_family;
 		  fd = __socket (af, SOCK_DGRAM | SOCK_CLOEXEC, IPPROTO_IP);
@@ -2341,14 +2477,10 @@ getaddrinfo (const char *name, const char *service,
 		  __connect (fd, &sa, sizeof (sa));
 		}
 
-	      socklen_t sl = sizeof (results[i].source_addr);
-	      if (fd != -1
-		  && __connect (fd, q->ai_addr, q->ai_addrlen) == 0
-		  && __getsockname (fd,
-				    (struct sockaddr *) &results[i].source_addr,
-				    &sl) == 0)
+	      if (try_connect (&fd, &af, &results[i].source_addr, q->ai_addr,
+			       q->ai_addrlen, q->ai_family))
 		{
-		  results[i].source_addr_len = sl;
+		  results[i].source_addr_len = sizeof (results[i].source_addr);
 		  results[i].got_source_addr = true;
 
 		  if (in6ai != NULL)
@@ -2413,10 +2545,6 @@ getaddrinfo (const char *name, const char *service,
 		      results[i].source_addr_len = sizeof (struct sockaddr_in);
 		    }
 		}
-	      else if (errno == EAFNOSUPPORT && af == AF_INET6
-		       && q->ai_family == AF_INET)
-		/* This could mean IPv6 sockets are IPv6-only.  */
-		goto close_retry;
 	      else
 		/* Just make sure that if we have to process the same
 		   address again we do not copy any memory.  */

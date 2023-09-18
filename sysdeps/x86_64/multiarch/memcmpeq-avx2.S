@@ -1,5 +1,5 @@
 /* __memcmpeq optimized with AVX2.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,7 +16,9 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#if IS_IN (libc)
+#include <isa-level.h>
+
+#if ISA_SHOULD_BUILD (3)
 
 /* __memcmpeq is implemented as:
    1. Use ymm vector compares when possible. The only case where

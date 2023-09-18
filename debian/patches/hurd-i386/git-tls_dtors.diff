@@ -1,0 +1,23 @@
+commit 89ade8d8cb4c4f015942ab9b1319397b223012cf
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Sep 3 15:23:56 2023 +0200
+
+    htl: thread_local destructors support
+
+diff --git a/htl/pt-exit.c b/htl/pt-exit.c
+index b1cbe85861..22b585bb28 100644
+--- a/htl/pt-exit.c
++++ b/htl/pt-exit.c
+@@ -46,6 +46,12 @@ __pthread_exit (void *status)
+        *handlers = (*handlers)->__next)
+     (*handlers)->__handler ((*handlers)->__arg);
+ 
++  /* Call destructors for the thread_local TLS variables.  */
++#ifndef SHARED
++  if (&__call_tls_dtors != NULL)
++#endif
++    __call_tls_dtors ();
++
+   __pthread_setcancelstate (oldstate, &oldstate);
+ 
+   /* Decrease the number of threads.  We use an atomic operation to

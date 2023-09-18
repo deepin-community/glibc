@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2022 Free Software Foundation, Inc.
+# Copyright (C) 1991-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -536,6 +536,7 @@ lib%.so: lib%_pic.a $(+preinit) $(+postinit) $(link-libc-deps)
 define build-shlib-helper
 $(LINK.o) -shared -static-libgcc -Wl,-O1 $(sysdep-LDFLAGS) \
 	  $(if $($(@F)-no-z-defs)$(no-z-defs),,-Wl,-z,defs) $(rtld-LDFLAGS) \
+	  $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(dt-relr-ldflag)) \
 	  $(extra-B-$(@F:lib%.so=%).so) -B$(csu-objpfx) \
 	  $(extra-B-$(@F:lib%.so=%).so) $(load-map-file) \
 	  -Wl,-soname=lib$(libprefix)$(@F:lib%.so=%).so$($(@F)-version) \
@@ -545,25 +546,20 @@ endef
 
 ifeq (yes,$(use-default-link))
 # If the linker is good enough, we can let it use its default linker script.
+# In the long term the custom linker script will be removed.
 shlib-lds =
 shlib-lds-flags =
 else
 # binutils only position loadable notes into the first page for binaries,
 # not for shared objects
+# lld --verbose does not dump a linker script.  Use -fuse-ld=bfd.
 $(common-objpfx)shlib.lds: $(common-objpfx)config.make $(..)Makerules
 	$(LINK.o) -shared -Wl,-O1 \
-		  -nostdlib -nostartfiles \
+		  -nostdlib -nostartfiles -fuse-ld=bfd \
 		  $(sysdep-LDFLAGS) $(rtld-LDFLAGS) $(LDFLAGS.so) \
 		  -Wl,--verbose 2>/dev/null | \
 	  sed > $@T \
 	      -e '/^=========/,/^=========/!d;/^=========/d' \
-	      $(if $(filter yes,$(have-hash-style)), \
-		   -e 's/^.*\.gnu\.hash[ 	]*:.*$$/  .note.ABI-tag : { *(.note.ABI-tag) } &/' \
-		   -e '/^[ 	]*\.hash[ 	]*:.*$$/{h;d;}' \
-		   -e '/DATA_SEGMENT_ALIGN/{H;g}' \
-		, \
-		   -e 's/^.*\.hash[ 	]*:.*$$/  .note.ABI-tag : { *(.note.ABI-tag) } &/' \
-	       ) \
 	      -e 's/^.*\*(\.dynbss).*$$/& \
 		 PROVIDE(__start___libc_freeres_ptrs = .); \
 		 *(__libc_freeres_ptrs) \
@@ -572,9 +568,6 @@ $(common-objpfx)shlib.lds: $(common-objpfx)config.make $(..)Makerules
 		 PROVIDE(__start___libc_subfreeres = .);\
 		 __libc_subfreeres : { *(__libc_subfreeres) }\
 		 PROVIDE(__stop___libc_subfreeres = .);\
-		 PROVIDE(__start___libc_atexit = .);\
-		 __libc_atexit : { *(__libc_atexit) }\
-		 PROVIDE(__stop___libc_atexit = .);\
 		 PROVIDE(__start___libc_IO_vtables = .);\
 		 __libc_IO_vtables : { *(__libc_IO_vtables) }\
 		 PROVIDE(__stop___libc_IO_vtables = .);\
@@ -595,6 +588,7 @@ endef
 define build-module-helper
 $(LINK.o) -shared -static-libgcc $(sysdep-LDFLAGS) $(rtld-LDFLAGS) \
 	  $(if $($(@F)-no-z-defs)$(no-z-defs),,-Wl,-z,defs) \
+	  $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(dt-relr-ldflag)) \
 	  -B$(csu-objpfx) $(load-map-file) \
 	  $(LDFLAGS.so) $(LDFLAGS-$(@F:%.so=%).so) \
 	  $(link-test-modules-rpath-link) \
@@ -638,14 +632,10 @@ LDFLAGS-c.so = -nostdlib -nostartfiles
 LDLIBS-c.so += $(libc.so-gnulib)
 # Give libc.so an entry point and make it directly runnable itself.
 LDFLAGS-c.so += -e __libc_main
-# Pre-link the objects of libc_pic.a so that we can locally resolve
-# COMMON symbols before we link against ld.so.  This is because ld.so
-# contains some of libc_pic.a already, which will prevent the COMMONs
-# from being allocated in libc.so, which introduces evil dependencies
-# between libc.so and ld.so, which can make it impossible to upgrade.
+# Pre-link the objects of libc_pic.a for .gnu.glibc-stub.* processing.
 $(common-objpfx)libc_pic.os: $(common-objpfx)libc_pic.a
 	$(LINK.o) -nostdlib -nostartfiles -r -o $@ \
-	$(LDFLAGS-c_pic.os) -Wl,-d $(whole-archive) $^ -o $@
+	$(LDFLAGS-c_pic.os) $(whole-archive) $^ -o $@
 
 ifeq (,$(strip $(shlib-lds-flags)))
 # Generate a list of -R options to excise .gnu.glibc-stub.* sections.
@@ -770,6 +760,7 @@ endif
 	     $(patsubst %.oS,%.d,$(filter %.oS,$(extra-objs))) \
 	     $(patsubst %.o,%.d,$(filter %.o,$(extra-test-objs:.os=.o))) \
 	     $(addsuffix .d,$(tests) $(tests-internal) $(xtests) \
+		$(tests-container) $(tests-printers) \
 		$(test-srcs) $(tests-time64) $(xtests-time64))
 ifeq ($(build-programs),yes)
 +depfiles += $(addsuffix .d,$(others) $(sysdep-others))
@@ -802,7 +793,7 @@ endif
 # Maximize efficiency by minimizing the number of rules.
 .SUFFIXES:	# Clear the suffix list.  We don't use suffix rules.
 # Don't define any builtin rules.
-MAKEFLAGS := $(MAKEFLAGS)r
+MAKEFLAGS := $(MAKEFLAGS) -r
 
 # Generic rule for making directories.
 %/:
@@ -819,7 +810,7 @@ MAKEFLAGS := $(MAKEFLAGS)r
 .PRECIOUS: $(foreach l,$(libtypes),$(patsubst %,$(common-objpfx)$l,c))
 
 # Use the verbose option of ar and tar when not running silently.
-ifeq	"$(findstring s,$(MAKEFLAGS))" ""	# if not -s
+ifeq ($(silent-make),no)			# if not -s
 verbose := v
 else	   					# -s
 verbose	:=

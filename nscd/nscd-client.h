@@ -1,4 +1,4 @@
-/* Copyright (c) 1998-2022 Free Software Foundation, Inc.
+/* Copyright (c) 1998-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -421,7 +421,7 @@ __nscd_drop_map_ref (struct mapped_database *map, int *gc_cycle)
 	  return -1;
 	}
 
-      if (atomic_decrement_val (&map->counter) == 0)
+      if (atomic_fetch_add_relaxed (&map->counter, -1) == 1)
 	__nscd_unmap (map);
     }
 

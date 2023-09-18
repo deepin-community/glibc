@@ -1,4 +1,4 @@
-/* Copyright (C) 1994-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1994-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ __sendto (int fd,
 {
   addr_port_t aport = MACH_PORT_NULL;
   error_t err;
-  size_t wrote;
+  vm_size_t wrote;
 
   /* Get an address port for the desired destination address.  */
   error_t create_address_port (io_t port,

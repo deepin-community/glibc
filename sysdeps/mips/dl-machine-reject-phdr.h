@@ -1,5 +1,5 @@
 /* Machine-dependent program header inspection for the ELF loader.
-   Copyright (C) 2014-2022 Free Software Foundation, Inc.
+   Copyright (C) 2014-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -152,7 +152,7 @@ static const struct abi_req none_req = { true, true, true, false, true };
    impact of dlclose.  */
 
 static bool __attribute_used__
-elf_machine_reject_phdr_p (const ElfW(Phdr) *phdr, uint_fast16_t phnum,
+elf_machine_reject_phdr_p (const ElfW(Phdr) *phdr, unsigned int phnum,
 			   const char *buf, size_t len, struct link_map *map,
 			   int fd)
 {

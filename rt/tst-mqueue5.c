@@ -1,5 +1,5 @@
 /* Test mq_notify.
-   Copyright (C) 2004-2022 Free Software Foundation, Inc.
+   Copyright (C) 2004-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -58,7 +58,7 @@ rtmin_handler (int sig, siginfo_t *info, void *ctx)
 static int
 (mqsend) (mqd_t q, int line)
 {
-  char c;
+  char c = 0;
   if (mq_send (q, &c, 1, 1) != 0)
     {
       printf ("mq_send on line %d failed with: %m\n", line);

@@ -1,5 +1,5 @@
 /* Definitions for thread-local data handling.  NPTL/C-SKY version.
-   Copyright (C) 2018-2022 Free Software Foundation, Inc.
+   Copyright (C) 2018-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -92,8 +92,7 @@ typedef struct
   ({ long int result_var;						\
      result_var = INTERNAL_SYSCALL_CALL (set_thread_area, 		\
                     (char *) (tcbp) + TLS_TCB_OFFSET);			\
-     INTERNAL_SYSCALL_ERROR_P (result_var)				\
-       ? "unknown error" : NULL; })
+     !INTERNAL_SYSCALL_ERROR_P (result_var); })
 
 /* Return the address of the dtv for the current thread.  */
 # define THREAD_DTV() \
@@ -118,7 +117,7 @@ typedef struct
 # define THREAD_GSCOPE_RESET_FLAG() \
   do									      \
     { int __res								      \
-	= atomic_exchange_rel (&THREAD_SELF->header.gscope_flag,	      \
+	= atomic_exchange_release (&THREAD_SELF->header.gscope_flag,	      \
 			       THREAD_GSCOPE_FLAG_UNUSED);		      \
       if (__res == THREAD_GSCOPE_FLAG_WAIT)				      \
 	lll_futex_wake (&THREAD_SELF->header.gscope_flag, 1, LLL_PRIVATE);    \

@@ -1,5 +1,5 @@
 /* Stub version of processor capability information handling macros.
-   Copyright (C) 1998-2022 Free Software Foundation, Inc.
+   Copyright (C) 1998-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,8 +33,6 @@
 
 /* We don't have any hardware capabilities.  */
 #define _DL_HWCAP_COUNT 0
-
-#define _dl_string_hwcap(str) (-1)
 
 #define _dl_string_platform(str) (-1)
 

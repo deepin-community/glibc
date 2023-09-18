@@ -51,7 +51,6 @@ if test $host != $build; then
 fi
 AC_SUBST(cross_compiling)
 AC_PROG_CPP
-AC_CHECK_TOOL(READELF, readelf, false)
 
 # We need the C++ compiler only for testing.
 AC_PROG_CXX
@@ -153,7 +152,7 @@ AC_ARG_WITH([default-link],
 	    AS_HELP_STRING([--with-default-link],
 			   [do not use explicit linker scripts]),
 	    [use_default_link=$withval],
-	    [use_default_link=default])
+	    [use_default_link=no])
 
 dnl Additional build flags injection.
 AC_ARG_WITH([nonshared-cflags],
@@ -559,6 +558,118 @@ fi
 test -n "$base_machine" || base_machine=$machine
 AC_SUBST(base_machine)
 
+### Locate tools.
+
+AC_PROG_INSTALL
+if test "$INSTALL" = "${srcdir}/scripts/install-sh -c"; then
+  # The makefiles need to use a different form to find it in $srcdir.
+  INSTALL='\$(..)./scripts/install-sh -c'
+fi
+AC_PROG_LN_S
+
+LIBC_PROG_BINUTILS
+
+# Accept binutils 2.25 or newer.
+libc_cv_with_lld=no
+case $($LD --version) in
+  "GNU gold"*)
+  # Accept gold 1.14 or higher
+    AC_CHECK_PROG_VER(LD, $LD, --version,
+		    [GNU gold.* \([0-9][0-9]*\.[0-9.]*\)],
+		    [1.1[4-9]*|1.[2-9][0-9]*|1.1[0-9][0-9]*|[2-9].*|[1-9][0-9]*],
+		    LD=: critic_missing="$critic_missing GNU gold")
+    ;;
+  "LLD"*)
+  # Accept LLD 13.0.0 or higher
+    AC_CHECK_PROG_VER(LD, $LD, --version,
+		    [LLD.* \([0-9][0-9]*\.[0-9.]*\)],
+		    [1[3-9].*|[2-9][0-9].*],
+		    LD=: critic_missing="$critic_missing LLD")
+    libc_cv_with_lld=yes
+    ;;
+  *)
+    AC_CHECK_PROG_VER(LD, $LD, --version,
+		    [GNU ld.* \([0-9][0-9]*\.[0-9.]*\)],
+		    [2.1[0-9][0-9]*|2.2[5-9]*|2.[3-9][0-9]*|[3-9].*|[1-9][0-9]*],
+		    LD=: critic_missing="$critic_missing GNU ld")
+    ;;
+esac
+LIBC_CONFIG_VAR([with-lld], [$libc_cv_with_lld])
+
+# These programs are version sensitive.
+AC_CHECK_PROG_VER(MAKE, gnumake gmake make, --version,
+  [GNU Make[^0-9]*\([0-9][0-9.]*\)],
+  [[4-9].* | [1-9][0-9]*], critic_missing="$critic_missing make")
+
+AC_CHECK_PROG_VER(MSGFMT, gnumsgfmt gmsgfmt msgfmt, --version,
+  [GNU gettext.* \([0-9]*\.[0-9.]*\)],
+  [0.10.3[6-9]* | 0.10.[4-9][0-9]* | 0.1[1-9]* | 0.[2-9][0-9]* | [1-9].*],
+  MSGFMT=: aux_missing="$aux_missing msgfmt")
+AC_CHECK_PROG_VER(MAKEINFO, makeinfo, --version,
+  [GNU texinfo.* \([0-9][0-9.]*\)],
+  [4.[7-9]*|4.[1-9][0-9]*|[5-9].*],
+  MAKEINFO=: aux_missing="$aux_missing makeinfo")
+AC_CHECK_PROG_VER(SED, sed, --version,
+  [GNU sed[^0-9]* \([0-9]*\.[0-9.]*\)],
+  [3.0[2-9]*|3.[1-9]*|[4-9]*],
+  SED=: aux_missing="$aux_missing sed")
+AC_CHECK_PROG_VER(AWK, gawk, --version,
+  [GNU Awk[^0-9]*\([0-9][0-9.]*\)],
+  [3.1.[2-9]*|3.[2-9]*|[4-9]*], critic_missing="$critic_missing gawk")
+AC_CHECK_PROG_VER(BISON, bison, --version,
+  [bison (GNU Bison) \([0-9]*\.[0-9.]*\)],
+  [2.7*|[3-9].*|[1-9][0-9]*], critic_missing="$critic_missing bison")
+
+AC_CACHE_CHECK([if $CC is sufficient to build libc], libc_cv_compiler_ok, [
+AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[]], [[
+#if !defined __GNUC__ || __GNUC__ < 6 || (__GNUC__ == 6 && __GNUC_MINOR__ < 2)
+#error insufficient compiler
+#endif]])],
+	       [libc_cv_compiler_ok=yes],
+	       [libc_cv_compiler_ok=no])])
+AS_IF([test $libc_cv_compiler_ok != yes],
+      [critic_missing="$critic_missing compiler"])
+
+if test "x$maintainer" = "xyes"; then
+  AC_CHECK_PROGS(AUTOCONF, autoconf, no)
+  case "x$AUTOCONF" in
+  xno|x|x:) AUTOCONF=no ;;
+  *)
+    AC_CACHE_CHECK(dnl
+  whether $AUTOCONF${ACFLAGS:+ }$ACFLAGS works, libc_cv_autoconf_works, [dnl
+    if (cd $srcdir; $AUTOCONF $ACFLAGS configure.ac > /dev/null 2>&1); then
+      libc_cv_autoconf_works=yes
+    else
+      libc_cv_autoconf_works=no
+    fi])
+    test $libc_cv_autoconf_works = yes || AUTOCONF=no
+    ;;
+  esac
+  if test "x$AUTOCONF" = xno; then
+    aux_missing="$aux_missing autoconf"
+  fi
+else
+  AUTOCONF=no
+fi
+
+# Check for python3 if available, or else python.
+AC_CHECK_PROG_VER(PYTHON_PROG, python3 python, --version,
+  [Python \([0-9][0-9.]*\)],
+  [3.[4-9]*|3.[1-9][0-9]*|[4-9].*|[1-9][0-9]*],
+  critic_missing="$critic_missing python")
+PYTHON="$PYTHON_PROG -B"
+AC_SUBST(PYTHON)
+
+test -n "$critic_missing" && AC_MSG_ERROR([
+*** These critical programs are missing or too old:$critic_missing
+*** Check the INSTALL file for required versions.])
+
+test -n "$aux_missing" && AC_MSG_WARN([
+*** These auxiliary programs are missing or incompatible versions:$aux_missing
+*** some features or tests will be disabled.
+*** Check the INSTALL file for required versions.])
+
+
 # Determine whether to use fpu or nofpu sysdeps directories.
 AC_CACHE_CHECK([for use of fpu sysdeps directories],
 	       libc_cv_with_fp, [dnl
@@ -767,7 +878,7 @@ if test x"$libc_cv_gcc_indirect_function" != xyes; then
   # GCC 8+ emits a warning for alias with incompatible types and it might
   # fail to build ifunc resolvers aliases to either weak or internal
   # symbols.  Disables multiarch build in this case.
-  if test x"$libc_cv_gcc_incompatible_alias" == xyes; then
+  if test x"$libc_cv_gcc_incompatible_alias" = xyes; then
     AC_MSG_WARN([gcc emits a warning for alias between functions of incompatible types])
     if test x"$multi_arch" = xyes; then
       AC_MSG_ERROR([--enable-multi-arch support requires a gcc with gnu-indirect-function support])
@@ -990,125 +1101,6 @@ AC_SUBST(sysnames)
 # The other names were emitted during the scan.
 AC_MSG_RESULT($default_sysnames)
 
-
-### Locate tools.
-
-AC_PROG_INSTALL
-if test "$INSTALL" = "${srcdir}/scripts/install-sh -c"; then
-  # The makefiles need to use a different form to find it in $srcdir.
-  INSTALL='\$(..)./scripts/install-sh -c'
-fi
-AC_PROG_LN_S
-
-LIBC_PROG_BINUTILS
-
-# Accept binutils 2.25 or newer.
-AC_CHECK_PROG_VER(AS, $AS, --version,
-		  [GNU assembler.* \([0-9]*\.[0-9.]*\)],
-		  [2.1[0-9][0-9]*|2.2[5-9]*|2.[3-9][0-9]*|[3-9].*|[1-9][0-9]*],
-		  AS=: critic_missing="$critic_missing as")
-
-libc_cv_with_lld=no
-case $($LD --version) in
-  "GNU gold"*)
-  # Accept gold 1.14 or higher
-    AC_CHECK_PROG_VER(LD, $LD, --version,
-		    [GNU gold.* \([0-9][0-9]*\.[0-9.]*\)],
-		    [1.1[4-9]*|1.[2-9][0-9]*|1.1[0-9][0-9]*|[2-9].*|[1-9][0-9]*],
-		    LD=: critic_missing="$critic_missing GNU gold")
-    ;;
-  "LLD"*)
-  # Accept LLD 13.0.0 or higher
-    AC_CHECK_PROG_VER(LD, $LD, --version,
-		    [LLD.* \([0-9][0-9]*\.[0-9.]*\)],
-		    [1[3-9].*|[2-9][0-9].*],
-		    LD=: critic_missing="$critic_missing LLD")
-    libc_cv_with_lld=yes
-    ;;
-  *)
-    AC_CHECK_PROG_VER(LD, $LD, --version,
-		    [GNU ld.* \([0-9][0-9]*\.[0-9.]*\)],
-		    [2.1[0-9][0-9]*|2.2[5-9]*|2.[3-9][0-9]*|[3-9].*|[1-9][0-9]*],
-		    LD=: critic_missing="$critic_missing GNU ld")
-    ;;
-esac
-LIBC_CONFIG_VAR([with-lld], [$libc_cv_with_lld])
-
-# These programs are version sensitive.
-AC_CHECK_PROG_VER(MAKE, gnumake gmake make, --version,
-  [GNU Make[^0-9]*\([0-9][0-9.]*\)],
-  [[4-9].* | [1-9][0-9]*], critic_missing="$critic_missing make")
-
-AC_CHECK_PROG_VER(MSGFMT, gnumsgfmt gmsgfmt msgfmt, --version,
-  [GNU gettext.* \([0-9]*\.[0-9.]*\)],
-  [0.10.3[6-9]* | 0.10.[4-9][0-9]* | 0.1[1-9]* | 0.[2-9][0-9]* | [1-9].*],
-  MSGFMT=: aux_missing="$aux_missing msgfmt")
-AC_CHECK_PROG_VER(MAKEINFO, makeinfo, --version,
-  [GNU texinfo.* \([0-9][0-9.]*\)],
-  [4.[7-9]*|4.[1-9][0-9]*|[5-9].*],
-  MAKEINFO=: aux_missing="$aux_missing makeinfo")
-AC_CHECK_PROG_VER(SED, sed, --version,
-  [GNU sed[^0-9]* \([0-9]*\.[0-9.]*\)],
-  [3.0[2-9]*|3.[1-9]*|[4-9]*],
-  SED=: aux_missing="$aux_missing sed")
-AC_CHECK_PROG_VER(AWK, gawk, --version,
-  [GNU Awk[^0-9]*\([0-9][0-9.]*\)],
-  [3.1.[2-9]*|3.[2-9]*|[4-9]*], critic_missing="$critic_missing gawk")
-AC_CHECK_PROG_VER(BISON, bison, --version,
-  [bison (GNU Bison) \([0-9]*\.[0-9.]*\)],
-  [2.7*|[3-9].*|[1-9][0-9]*], critic_missing="$critic_missing bison")
-
-AC_CACHE_CHECK([if $CC is sufficient to build libc], libc_cv_compiler_ok, [
-AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[]], [[
-#if !defined __GNUC__ || __GNUC__ < 6 || (__GNUC__ == 6 && __GNUC_MINOR__ < 2)
-#error insufficient compiler
-#endif]])],
-	       [libc_cv_compiler_ok=yes],
-	       [libc_cv_compiler_ok=no])])
-AS_IF([test $libc_cv_compiler_ok != yes],
-      [critic_missing="$critic_missing compiler"])
-
-AC_CHECK_TOOL(NM, nm, false)
-
-if test "x$maintainer" = "xyes"; then
-  AC_CHECK_PROGS(AUTOCONF, autoconf, no)
-  case "x$AUTOCONF" in
-  xno|x|x:) AUTOCONF=no ;;
-  *)
-    AC_CACHE_CHECK(dnl
-  whether $AUTOCONF${ACFLAGS:+ }$ACFLAGS works, libc_cv_autoconf_works, [dnl
-    if (cd $srcdir; $AUTOCONF $ACFLAGS configure.ac > /dev/null 2>&1); then
-      libc_cv_autoconf_works=yes
-    else
-      libc_cv_autoconf_works=no
-    fi])
-    test $libc_cv_autoconf_works = yes || AUTOCONF=no
-    ;;
-  esac
-  if test "x$AUTOCONF" = xno; then
-    aux_missing="$aux_missing autoconf"
-  fi
-else
-  AUTOCONF=no
-fi
-
-# Check for python3 if available, or else python.
-AC_CHECK_PROG_VER(PYTHON_PROG, python3 python, --version,
-  [Python \([0-9][0-9.]*\)],
-  [3.[4-9]*|3.[1-9][0-9]*|[4-9].*|[1-9][0-9]*],
-  critic_missing="$critic_missing python")
-PYTHON="$PYTHON_PROG -B"
-AC_SUBST(PYTHON)
-
-test -n "$critic_missing" && AC_MSG_ERROR([
-*** These critical programs are missing or too old:$critic_missing
-*** Check the INSTALL file for required versions.])
-
-test -n "$aux_missing" && AC_MSG_WARN([
-*** These auxiliary programs are missing or incompatible versions:$aux_missing
-*** some features or tests will be disabled.
-*** Check the INSTALL file for required versions.])
-
 # if using special system headers, find out the compiler's sekrit
 # header directory and add that to the list.  NOTE: Only does the right
 # thing on a system that doesn't need fixincludes.  (Not presently a problem.)
@@ -1136,8 +1128,8 @@ AC_SUBST(CXX_SYSINCLUDES)
 # copy of those headers in Makerules.
 if test -n "$CXX"; then
   find_cxx_header () {
-    echo "#include <$1>" | $CXX -M -MP -x c++ - 2>/dev/null \
-	 | sed -n "\,$1:,{s/:\$//;p}"
+    echo "#include <$1>" | $CXX -H -fsyntax-only -x c++ - 2>&1 \
+	 | $AWK '$1 == "."{print $2}'
   }
   CXX_CSTDLIB_HEADER="$(find_cxx_header cstdlib)"
   CXX_CMATH_HEADER="$(find_cxx_header cmath)"
@@ -1324,37 +1316,6 @@ if test $libc_cv_as_noexecstack = yes; then
 fi
 AC_SUBST(ASFLAGS_config)
 
-AC_CACHE_CHECK(for -z combreloc,
-	       libc_cv_z_combreloc, [dnl
-cat > conftest.c <<EOF
-extern int bar (int);
-extern int mumble;
-int foo (void) { return bar (mumble); }
-EOF
-if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS
-			-fPIC -shared $no_ssp -o conftest.so conftest.c
-			-nostdlib -nostartfiles
-			-Wl,-z,combreloc 1>&AS_MESSAGE_LOG_FD])
-then
-dnl The following test is a bit weak.  We must use a tool which can test
-dnl cross-platform since the gcc used can be a cross compiler.  Without
-dnl introducing new options this is not easily doable.  Instead use a tool
-dnl which always is cross-platform: readelf.  To detect whether -z combreloc
-dnl look for a section named .rel.dyn or .rela.dyn.
-  if $READELF -S conftest.so | grep -E '.rela?.dyn' > /dev/null; then
-    libc_cv_z_combreloc=yes
-  else
-    libc_cv_z_combreloc=no
-  fi
-else
-  libc_cv_z_combreloc=no
-fi
-rm -f conftest*])
-if test "$libc_cv_z_combreloc" = yes; then
-  AC_DEFINE(HAVE_Z_COMBRELOC)
-fi
-AC_SUBST(libc_cv_z_combreloc)
-
 LIBC_LINKER_FEATURE([-z execstack], [-Wl,-z,execstack],
 		    [libc_cv_z_execstack=yes], [libc_cv_z_execstack=no])
 AC_SUBST(libc_cv_z_execstack)
@@ -1366,6 +1327,11 @@ LIBC_CONFIG_VAR([have-z-start-stop-gc], [$libc_cv_z_start_stop_gc])
 LIBC_LINKER_FEATURE([--depaudit], [-Wl,--depaudit,x],
 		    [libc_cv_depaudit=yes], [libc_cv_depaudit=no])
 LIBC_CONFIG_VAR([have-depaudit], [$libc_cv_depaudit])
+
+LIBC_LINKER_FEATURE([-z pack-relative-relocs],
+		    [-Wl,-z,pack-relative-relocs],
+		    [libc_cv_dt_relr=yes], [libc_cv_dt_relr=no])
+LIBC_CONFIG_VAR([have-dt-relr], [$libc_cv_dt_relr])
 
 LIBC_LINKER_FEATURE([--no-dynamic-linker],
 		    [-Wl,--no-dynamic-linker],
@@ -1385,75 +1351,6 @@ LIBC_TRY_CC_OPTION([-fpie], [libc_cv_fpie=yes], [libc_cv_fpie=no])
 ])
 
 AC_SUBST(libc_cv_fpie)
-
-AC_CACHE_CHECK(for --hash-style option,
-	       libc_cv_hashstyle, [dnl
-cat > conftest.c <<EOF
-int _start (void) { return 42; }
-EOF
-if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
-			    -fPIC -shared -o conftest.so conftest.c
-			    -Wl,--hash-style=both -nostdlib 1>&AS_MESSAGE_LOG_FD])
-then
-  libc_cv_hashstyle=yes
-else
-  libc_cv_hashstyle=no
-fi
-rm -f conftest*])
-AC_SUBST(libc_cv_hashstyle)
-
-# The linker's default -shared behavior is good enough if it
-# does these things that our custom linker scripts ensure that
-# all allocated NOTE sections come first.
-if test "$use_default_link" = default; then
-  AC_CACHE_CHECK([for sufficient default -shared layout],
-		  libc_cv_use_default_link, [dnl
-  libc_cv_use_default_link=no
-  cat > conftest.s <<\EOF
-	  .section .note.a,"a",%note
-	  .balign 4
-	  .long 4,4,9
-	  .string "GNU"
-	  .string "foo"
-	  .section .note.b,"a",%note
-	  .balign 4
-	  .long 4,4,9
-	  .string "GNU"
-	  .string "bar"
-EOF
-  if AC_TRY_COMMAND([dnl
-  ${CC-cc} $ASFLAGS -shared -o conftest.so conftest.s 1>&AS_MESSAGE_LOG_FD]) &&
-       ac_try=`$READELF -S conftest.so | sed -n \
-	 ['${x;p;}
-	  s/^ *\[ *[1-9][0-9]*\]  *\([^ ][^ ]*\)  *\([^ ][^ ]*\) .*$/\2 \1/
-	  t a
-	  b
-	  : a
-	  H']`
-  then
-    libc_seen_a=no libc_seen_b=no
-    set -- $ac_try
-    while test $# -ge 2 -a "$1" = NOTE; do
-      case "$2" in
-      .note.a) libc_seen_a=yes ;;
-      .note.b) libc_seen_b=yes ;;
-      esac
-      shift 2
-    done
-    case "$libc_seen_a$libc_seen_b" in
-    yesyes)
-      libc_cv_use_default_link=yes
-      ;;
-    *)
-      echo >&AS_MESSAGE_LOG_FD "\
-$libc_seen_a$libc_seen_b from:
-$ac_try"
-      ;;
-    esac
-  fi
-  rm -f conftest*])
-  use_default_link=$libc_cv_use_default_link
-fi
 
 AC_CACHE_CHECK(for GLOB_DAT reloc,
 	       libc_cv_has_glob_dat, [dnl
@@ -1478,25 +1375,6 @@ fi
 rm -f conftest*])
 AC_SUBST(libc_cv_has_glob_dat)
 
-AC_CACHE_CHECK(for -fno-toplevel-reorder -fno-section-anchors, libc_cv_fno_toplevel_reorder, [dnl
-cat > conftest.c <<EOF
-int foo;
-EOF
-if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS -S -fno-toplevel-reorder -fno-section-anchors
-			    conftest.c 1>&AS_MESSAGE_LOG_FD])
-then
-  libc_cv_fno_toplevel_reorder=yes
-else
-  libc_cv_fno_toplevel_reorder=no
-fi
-rm -f conftest*])
-if test $libc_cv_fno_toplevel_reorder = yes; then
-  fno_unit_at_a_time="-fno-toplevel-reorder -fno-section-anchors"
-else
-  fno_unit_at_a_time=-fno-unit-at-a-time
-fi
-AC_SUBST(fno_unit_at_a_time)
-
 AC_CACHE_CHECK([for -mtls-dialect=gnu2], libc_cv_mtls_dialect_gnu2,
 [dnl
 cat > conftest.c <<EOF
@@ -1516,6 +1394,28 @@ fi
 rm -f conftest*])
 AC_SUBST(libc_cv_mtls_dialect_gnu2)
 LIBC_CONFIG_VAR([have-mtls-dialect-gnu2], [$libc_cv_mtls_dialect_gnu2])
+
+dnl clang emits an warning for a double alias redirection, to warn the
+dnl original symbol is sed even when weak definition overriddes it.
+dnl It is a usual pattern for weak_alias, where multiple alias point to
+dnl same symbol.
+AC_CACHE_CHECK([if -Wno-ignored-attributes is required for aliases],
+	       libc_cv_wno_ignored_attributes, [dnl
+cat > conftest.c <<EOF
+void __foo (void)
+{
+}
+extern __typeof (__foo) foo __attribute__ ((weak, alias ("__foo")));
+extern __typeof (__foo) bar __attribute__ ((weak, alias ("foo")));
+EOF
+libc_cv_wno_ignored_attributes=""
+if ! AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS -Werror -c conftest.c])
+then
+  libc_cv_wno_ignored_attributes="-Wno-ignored-attributes"
+fi
+rm -f conftest*])
+LIBC_CONFIG_VAR([config-cflags-wno-ignored-attributes],
+		[$libc_cv_wno_ignored_attributes])
 
 AC_CACHE_CHECK(whether cc puts quotes around section names,
 	       libc_cv_have_section_quotes,
@@ -1600,6 +1500,16 @@ if test -n "$submachine"; then
   fi
 fi
 AC_SUBST(libc_cv_cc_submachine)
+
+dnl Determine if compiler supports -fsignaling-nans
+AC_CACHE_CHECK([for compiler option that -fsignaling-nans],
+	       libc_cv_cc_signaling_nans, [dnl
+LIBC_TRY_CC_OPTION([-Werror -fsignaling-nans],
+		   [libc_cv_cc_signaling_nans=-fsignaling-nans],
+		   [libc_cv_cc_signaling_nans=])
+])
+LIBC_CONFIG_VAR([config-cflags-signaling-nans],
+		[$libc_cv_cc_signaling_nans])
 
 AC_CACHE_CHECK(if $CC accepts -fno-tree-loop-distribute-patterns with \
 __attribute__ ((__optimize__)), libc_cv_cc_loop_to_function, [dnl

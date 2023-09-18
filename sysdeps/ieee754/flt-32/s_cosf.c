@@ -1,5 +1,5 @@
 /* Compute cosine of argument.
-   Copyright (C) 2018-2022 Free Software Foundation, Inc.
+   Copyright (C) 2018-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,6 +23,10 @@
 #include "math_config.h"
 #include "s_sincosf.h"
 
+#ifndef SECTION
+# define SECTION
+#endif
+
 #ifndef COSF
 # define COSF_FUNC __cosf
 #else
@@ -35,6 +39,7 @@
    arithmetic.
 */
 float
+SECTION
 COSF_FUNC (float y)
 {
   double x = y;

@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2022 Free Software Foundation, Inc.
+# Copyright (C) 1991-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,12 @@ include ../Makeconfig
 
 headers	:= assert.h
 
-routines := assert assert-perr __assert
+routines := \
+  __assert \
+  __libc_assert_fail \
+  assert \
+  assert-perr \
+  # routines
 tests := test-assert test-assert-perr tst-assert-c++ tst-assert-g++
 
 ifeq ($(have-cxx-thread_local),yes)

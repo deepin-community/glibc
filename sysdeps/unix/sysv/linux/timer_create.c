@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,9 +33,9 @@ ___timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
 {
   {
     clockid_t syscall_clockid = (clock_id == CLOCK_PROCESS_CPUTIME_ID
-				 ? MAKE_PROCESS_CPUCLOCK (0, CPUCLOCK_SCHED)
+				 ? PROCESS_CLOCK
 				 : clock_id == CLOCK_THREAD_CPUTIME_ID
-				 ? MAKE_THREAD_CPUCLOCK (0, CPUCLOCK_SCHED)
+				 ? THREAD_CLOCK
 				 : clock_id);
 
     /* If the user wants notification via a thread we need to handle

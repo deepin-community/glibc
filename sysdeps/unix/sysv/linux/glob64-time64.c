@@ -1,5 +1,5 @@
 /* Find pathnames matching a pattern.  Linux version.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@
 # define GLOB_LSTAT      gl_lstat
 # define GLOB_STAT64     __stat64_time64
 # define GLOB_LSTAT64    __lstat64_time64
+# define GLOB_FSTATAT64    __fstatat64_time64
 
 # define COMPILE_GLOB64	1
 

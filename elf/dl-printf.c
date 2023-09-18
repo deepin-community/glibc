@@ -1,5 +1,5 @@
 /* printf implementation for the dynamic loader.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@
 #include <string.h>
 #include <sys/uio.h>
 #include <unistd.h>
+#include <intprops.h>
 
 /* Bare-bones printf implementation.  This function only knows about
    the formats and flags needed and can handle only up to 64 stripes in
@@ -36,6 +37,9 @@ _dl_debug_vdprintf (int fd, int tag_p, const char *fmt, va_list arg)
 {
 # define NIOVMAX 64
   struct iovec iov[NIOVMAX];
+  /* Maximum size for 'd', 'u', and 'x' including padding.  */
+  enum { IFMTSIZE = INT_STRLEN_BOUND(void *) };
+  char ifmtbuf[NIOVMAX][IFMTSIZE];
   int niov = 0;
   pid_t pid = 0;
   char pidbuf[12];
@@ -100,6 +104,8 @@ _dl_debug_vdprintf (int fd, int tag_p, const char *fmt, va_list arg)
 	  if (*fmt == '*')
 	    {
 	      width = va_arg (arg, int);
+	      /* The maximum padding accepted is up to pointer size.  */
+	      assert (width < IFMTSIZE);
 	      ++fmt;
 	    }
 
@@ -113,7 +119,7 @@ _dl_debug_vdprintf (int fd, int tag_p, const char *fmt, va_list arg)
 	  /* Recognize the l modifier.  It is only important on some
 	     platforms where long and int have a different size.  We
 	     can use the same code for size_t.  */
-	  if (*fmt == 'l' || *fmt == 'Z')
+	  if (*fmt == 'l' || *fmt == 'z')
 	    {
 #if LONG_MAX != INT_MAX
 	      long_mod = 1;
@@ -160,11 +166,7 @@ _dl_debug_vdprintf (int fd, int tag_p, const char *fmt, va_list arg)
 #endif
 		  }
 
-		/* We use alloca() to allocate the buffer with the most
-		   pessimistic guess for the size.  Using alloca() allows
-		   having more than one integer formatting in a call.  */
-		char *buf = (char *) alloca (1 + 3 * sizeof (unsigned long int));
-		char *endp = &buf[1 + 3 * sizeof (unsigned long int)];
+		char *endp = &ifmtbuf[niov][IFMTSIZE];
 		char *cp = _itoa (num, endp, *fmt == 'x' ? 16 : 10, 0);
 
 		/* Pad to the width the user specified.  */

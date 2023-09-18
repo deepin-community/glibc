@@ -9,21 +9,22 @@
 # Wei-Lun Chao <bluebat@member.fsf.org>, 2012, 2013.
 # Jia Bailie <zhaohongxinxin@qq.com>, 2020.
 # Mingye Wang <arthur200126@gmail.com>, 2015, 2017, 2020.
+# Boyuan Yang <073plan@gmail.com>, 2022.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: libc 2.30.9000\n"
-"POT-Creation-Date: 2022-01-29 17:34-0500\n"
-"PO-Revision-Date: 2020-07-21 17:37+0800\n"
-"Last-Translator: Mingye Wang <arthur200126@gmail.com>\n"
+"Project-Id-Version: libc 2.35.9000\n"
+"POT-Creation-Date: 2023-01-23 08:47-0500\n"
+"PO-Revision-Date: 2022-08-01 17:42-0400\n"
+"Last-Translator: Boyuan Yang <073plan@gmail.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Bugs: Report translation errors to the Language-Team address.\n"
-"X-Generator: Poedit 2.2.3\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.1.1\n"
 
 #: argp/argp-help.c:229
 #, c-format
@@ -76,7 +77,7 @@ msgstr "给出简要的用法信息"
 
 #: argp/argp-parse.c:103 catgets/gencat.c:108 catgets/gencat.c:112
 #: iconv/iconv_prog.c:60 iconv/iconv_prog.c:61 nscd/nscd.c:106 nscd/nscd.c:110
-#: nss/makedb.c:120
+#: nss/makedb.c:121
 msgid "NAME"
 msgstr "名称"
 
@@ -135,7 +136,7 @@ msgstr "创建含有符号定义的给定名称的 C 头文件"
 msgid "Do not use existing catalog, force new output file"
 msgstr "不使用现有的分类，强制创建新输出文件"
 
-#: catgets/gencat.c:112 nss/makedb.c:120
+#: catgets/gencat.c:112 nss/makedb.c:121
 msgid "Write output to file NAME"
 msgstr "将输出写入到指定文件中"
 
@@ -155,12 +156,12 @@ msgstr ""
 "-o 输出文件 [输入文件]...\n"
 "[输出文件 [输入文件]...]"
 
-#: catgets/gencat.c:228 debug/pcprofiledump.c:208 elf/ldconfig.c:311
+#: catgets/gencat.c:228 debug/pcprofiledump.c:208 elf/ldconfig.c:216
 #: elf/pldd.c:246 elf/sln.c:77 elf/sprof.c:371 iconv/iconv_prog.c:387
 #: iconv/iconvconfig.c:380 locale/programs/locale.c:275
 #: locale/programs/localedef.c:437 login/programs/pt_chown.c:88
-#: malloc/memusagestat.c:562 nss/getent.c:952 nss/makedb.c:369
-#: posix/getconf.c:503 sysdeps/unix/sysv/linux/lddlibc4.c:60
+#: malloc/memusagestat.c:562 nss/getent.c:961 nss/makedb.c:370
+#: posix/getconf.c:503
 #, c-format
 msgid ""
 "For bug reporting instructions, please see:\n"
@@ -170,12 +171,11 @@ msgstr ""
 "%s。\n"
 
 #: catgets/gencat.c:244 debug/pcprofiledump.c:224 debug/xtrace.sh:63
-#: elf/ldconfig.c:327 elf/ldd.bash.in:38 elf/pldd.c:262 elf/sotruss.sh:75
+#: elf/ldconfig.c:232 elf/ldd.bash.in:38 elf/pldd.c:262 elf/sotruss.sh:75
 #: elf/sprof.c:388 iconv/iconv_prog.c:404 iconv/iconvconfig.c:397
 #: locale/programs/locale.c:292 locale/programs/localedef.c:459
 #: login/programs/pt_chown.c:62 malloc/memusage.sh:70 malloc/memusagestat.c:580
-#: nscd/nscd.c:521 nss/getent.c:87 nss/makedb.c:385 posix/getconf.c:485
-#: sysdeps/unix/sysv/linux/lddlibc4.c:67
+#: nscd/nscd.c:521 nss/getent.c:92 nss/makedb.c:386 posix/getconf.c:485
 #, c-format
 msgid ""
 "Copyright (C) %s Free Software Foundation, Inc.\n"
@@ -187,10 +187,10 @@ msgstr ""
 "或者适合某些特殊目的。\n"
 
 #: catgets/gencat.c:249 debug/pcprofiledump.c:229 debug/xtrace.sh:67
-#: elf/ldconfig.c:332 elf/pldd.c:267 elf/sprof.c:394 iconv/iconv_prog.c:409
+#: elf/ldconfig.c:237 elf/pldd.c:267 elf/sprof.c:394 iconv/iconv_prog.c:409
 #: iconv/iconvconfig.c:402 locale/programs/locale.c:297
 #: locale/programs/localedef.c:464 malloc/memusage.sh:74
-#: malloc/memusagestat.c:585 nscd/nscd.c:526 nss/getent.c:92 nss/makedb.c:390
+#: malloc/memusagestat.c:585 nscd/nscd.c:526 nss/getent.c:97 nss/makedb.c:391
 #: posix/getconf.c:490
 #, c-format
 msgid "Written by %s.\n"
@@ -201,7 +201,7 @@ msgid "*standard input*"
 msgstr "*标准输入*"
 
 #: catgets/gencat.c:286 iconv/iconv_charmap.c:172 iconv/iconv_prog.c:272
-#: nss/makedb.c:246
+#: nss/makedb.c:247
 #, c-format
 msgid "cannot open input file `%s'"
 msgstr "无法打开输入文件“%s”"
@@ -257,7 +257,7 @@ msgstr "忽略格式错误的行"
 msgid "cannot open output file `%s'"
 msgstr "无法打开输出文件“%s”"
 
-#: catgets/gencat.c:1186 locale/programs/linereader.c:559
+#: catgets/gencat.c:1186 locale/programs/linereader.c:588
 msgid "invalid escape sequence"
 msgstr "无效的转义序列"
 
@@ -369,7 +369,7 @@ msgstr "可运行文件 “$program” 找不到\\n"
 msgid "\\`$program' is no executable\\n"
 msgstr "“$program”不可执行\\n"
 
-#: dlfcn/dlinfo.c:43
+#: dlfcn/dlinfo.c:48
 msgid "unsupported dlinfo request"
 msgstr "不支持的 dlinfo 请求"
 
@@ -385,118 +385,134 @@ msgstr "无效的模式"
 msgid "invalid mode parameter"
 msgstr "无效的模式参数"
 
-#: elf/cache.c:179
-msgid "unknown"
-msgstr "未知"
-
-#: elf/cache.c:253
-msgid "Unknown OS"
-msgstr "未知的操作系统"
-
-#: elf/cache.c:258
+#: elf/cache.c:270
 #, c-format
-msgid ", OS ABI: %s %d.%d.%d"
-msgstr ", OS ABI: %s %d.%d.%d"
+msgid "Cache file has wrong endianness.\n"
+msgstr "缓存文件使用了错误的字节顺序。\n"
 
-#: elf/cache.c:319 elf/ldconfig.c:1437
+#: elf/cache.c:279
+msgid "Cache generated by: "
+msgstr "缓存生成方："
+
+#: elf/cache.c:293 elf/ldconfig.c:1238
 #, c-format
 msgid "Can't open cache file %s\n"
 msgstr "无法打开缓冲文件 %s\n"
 
-#: elf/cache.c:333
+#: elf/cache.c:307
 #, c-format
 msgid "mmap of cache file failed.\n"
 msgstr "缓冲文件的 mmap 失败。\n"
 
-#: elf/cache.c:337 elf/cache.c:351 elf/cache.c:362
+#: elf/cache.c:311 elf/cache.c:325 elf/cache.c:336
 #, c-format
 msgid "File is not a cache file.\n"
 msgstr "文件不是缓存文件。\n"
 
-#: elf/cache.c:391 elf/cache.c:406
+#: elf/cache.c:365 elf/cache.c:380
 #, c-format
 msgid "%d libs found in cache `%s'\n"
 msgstr "在缓存“%2$s”中找到 %1$d 个库\n"
 
-#: elf/cache.c:725
+#: elf/cache.c:378
+#, c-format
+msgid "Malformed extension data in cache file %s\n"
+msgstr "格式错误的扩展数据存在于缓存文件 %s\n"
+
+#: elf/cache.c:507
+#, c-format
+msgid "Writing of cache extension data failed"
+msgstr "缓存扩展数据写入失败"
+
+#: elf/cache.c:518
+#, c-format
+msgid "%s: ISA level is too high (%d > %d)"
+msgstr "%s：ISA 级别过高（%d > %d）"
+
+#: elf/cache.c:682
 #, c-format
 msgid "Can't create temporary cache file %s"
 msgstr "无法创建临时缓冲文件 %s"
 
-#: elf/cache.c:733 elf/cache.c:743 elf/cache.c:747 elf/cache.c:752
-#: elf/cache.c:770
+#: elf/cache.c:690 elf/cache.c:700 elf/cache.c:704 elf/cache.c:709
+#: elf/cache.c:728
 #, c-format
 msgid "Writing of cache data failed"
 msgstr "写缓冲数据失败"
 
-#: elf/cache.c:765
+#: elf/cache.c:723
 #, c-format
 msgid "Changing access rights of %s to %#o failed"
 msgstr "将 %s 的访问权限改变为 %#o 失败"
 
-#: elf/cache.c:774
+#: elf/cache.c:732
 #, c-format
 msgid "Renaming of %s to %s failed"
 msgstr "将 %s 改名为 %s 失败"
 
-#: elf/dl-close.c:386 elf/dl-open.c:298
+#: elf/cache.c:762
+#, c-format
+msgid "Could not create library path"
+msgstr "无法创建库路径"
+
+#: elf/dl-catch.c:85
+msgid "error while loading shared libraries"
+msgstr "载入共享库时出错"
+
+#: elf/dl-catch.c:118
+msgid "DYNAMIC LINKER BUG!!!"
+msgstr "动态链接器 BUG!!!"
+
+#: elf/dl-close.c:346 elf/dl-open.c:298
 msgid "cannot create scope list"
 msgstr "无法创建范围列表"
 
-#: elf/dl-close.c:815
+#: elf/dl-close.c:775
 msgid "shared object not open"
 msgstr "共享库未打开"
 
-#: elf/dl-deps.c:112
+#: elf/dl-deps.c:96
 msgid "DST not allowed in SUID/SGID programs"
 msgstr "在 SUID/SGID 程序中不允许 DST"
 
-#: elf/dl-deps.c:125
+#: elf/dl-deps.c:109
 msgid "empty dynamic string token substitution"
 msgstr "空动态字符串替换"
 
-#: elf/dl-deps.c:131
+#: elf/dl-deps.c:115
 #, c-format
 msgid "cannot load auxiliary `%s' because of empty dynamic string token substitution\n"
 msgstr "由于空的动态字串字组替换而无法加载外部的 `%s'\n"
 
-#: elf/dl-deps.c:220
+#: elf/dl-deps.c:204
 msgid "cannot allocate dependency buffer"
 msgstr "无法分配依赖缓冲"
 
-#: elf/dl-deps.c:443
+#: elf/dl-deps.c:427
 msgid "cannot allocate dependency list"
 msgstr "无法分配依赖列表"
 
-#: elf/dl-deps.c:483 elf/dl-deps.c:548
+#: elf/dl-deps.c:467
 msgid "cannot allocate symbol search list"
 msgstr "无法分配符号搜索列表"
 
-#: elf/dl-deps.c:528
-msgid "Filters not supported with LD_TRACE_PRELINKING"
-msgstr "过滤程序不支持与 LD_TRACE_PRELINKING 共用"
-
-#: elf/dl-error-skeleton.c:80
-msgid "error while loading shared libraries"
-msgstr "载入共享库时出错"
-
-#: elf/dl-error-skeleton.c:113
-msgid "DYNAMIC LINKER BUG!!!"
-msgstr "动态链接器 BUG!!!"
-
-#: elf/dl-fptr.c:88 sysdeps/hppa/dl-fptr.c:95
+#: elf/dl-fptr.c:88 sysdeps/hppa/dl-fptr.c:96
 msgid "cannot map pages for fdesc table"
 msgstr "无法为 fdesc 表映射页"
 
-#: elf/dl-fptr.c:192 sysdeps/hppa/dl-fptr.c:213
+#: elf/dl-fptr.c:192 sysdeps/hppa/dl-fptr.c:214
 msgid "cannot map pages for fptr table"
 msgstr "无法为 fptr 表映射页"
 
-#: elf/dl-fptr.c:221 sysdeps/hppa/dl-fptr.c:242
+#: elf/dl-fptr.c:221 sysdeps/hppa/dl-fptr.c:243
 msgid "internal error: symidx out of range of fptr table"
 msgstr "内部错误: symidx 超出 fptr 表的范围"
 
-#: elf/dl-hwcaps.c:247 elf/dl-hwcaps.c:262
+#: elf/dl-hwcaps.c:104
+msgid "cannot create HWCAP priorities"
+msgstr "无法创建 HWCAP 优先级"
+
+#: elf/dl-hwcaps.c:196
 msgid "cannot create capability list"
 msgstr "无法创建功能列表"
 
@@ -520,47 +536,51 @@ msgstr "无法创建搜索路径数组"
 msgid "cannot stat shared object"
 msgstr "无法对共享目标进行 stat 操作"
 
-#: elf/dl-load.c:1069 elf/dl-load.c:2282
+#: elf/dl-load.c:1069 elf/dl-load.c:2226
 msgid "cannot create shared object descriptor"
 msgstr "无法创建共享对象描述符"
 
-#: elf/dl-load.c:1088 elf/dl-load.c:1661 elf/dl-load.c:1763
+#: elf/dl-load.c:1088 elf/dl-load.c:1661 elf/dl-load.c:1769
 msgid "cannot read file data"
 msgstr "无法读入文件数据"
 
-#: elf/dl-load.c:1223
+#: elf/dl-load.c:1141 elf/dl-map-segments.h:117
+msgid "ELF load command address/offset not page-aligned"
+msgstr "ELF 载入命令的地址/偏移量没有对齐到页"
+
+#: elf/dl-load.c:1233
 msgid "object file has no loadable segments"
 msgstr "目标文件没有可加载段"
 
-#: elf/dl-load.c:1240
+#: elf/dl-load.c:1250
 msgid "cannot dynamically load executable"
 msgstr "无法动态载入可执行文件"
 
-#: elf/dl-load.c:1247
+#: elf/dl-load.c:1257
 msgid "object file has no dynamic section"
 msgstr "目标文件没有动态节"
 
-#: elf/dl-load.c:1282
+#: elf/dl-load.c:1292
 msgid "cannot dynamically load position-independent executable"
 msgstr "无法动态载入位置无关可执行文件"
 
-#: elf/dl-load.c:1284
+#: elf/dl-load.c:1294
 msgid "shared object cannot be dlopen()ed"
 msgstr "无法用 dlopen() 打开共享库"
 
-#: elf/dl-load.c:1297
+#: elf/dl-load.c:1307
 msgid "cannot allocate memory for program header"
 msgstr "无法为程序头分配内存"
 
-#: elf/dl-load.c:1330 elf/dl-load.h:131
+#: elf/dl-load.c:1340 elf/dl-load.h:131
 msgid "cannot change memory protections"
 msgstr "无法改变内存保护"
 
-#: elf/dl-load.c:1354
+#: elf/dl-load.c:1364
 msgid "cannot enable executable stack as shared object requires"
 msgstr "无法启用共享目标需要的执行栈"
 
-#: elf/dl-load.c:1382
+#: elf/dl-load.c:1392
 msgid "cannot close file descriptor"
 msgstr "无法关闭文件描述符"
 
@@ -572,56 +592,56 @@ msgstr "文件过短"
 msgid "invalid ELF header"
 msgstr "无效的 ELF 头"
 
-#: elf/dl-load.c:1709
+#: elf/dl-load.c:1712
 msgid "ELF file data encoding not big-endian"
 msgstr "ELF 文件数据编码不是大端序"
 
-#: elf/dl-load.c:1711
+#: elf/dl-load.c:1714
 msgid "ELF file data encoding not little-endian"
 msgstr "ELF 文件数据编码不是小端序"
 
 # e_ident[]
-#: elf/dl-load.c:1715
+#: elf/dl-load.c:1718
 msgid "ELF file version ident does not match current one"
 msgstr "ELF 文件的版本信息不符合目前所使用的"
 
-#: elf/dl-load.c:1719
+#: elf/dl-load.c:1722
 msgid "ELF file OS ABI invalid"
 msgstr "ELF 文件 OS ABI 无效"
 
-#: elf/dl-load.c:1722
+#: elf/dl-load.c:1725
 msgid "ELF file ABI version invalid"
 msgstr "ELF 文件 ABI 版本无效"
 
-#: elf/dl-load.c:1725
+#: elf/dl-load.c:1728
 msgid "nonzero padding in e_ident"
 msgstr "在 e_ident 中填补非零值"
 
-#: elf/dl-load.c:1728
+#: elf/dl-load.c:1731
 msgid "internal error"
 msgstr "内部错误"
 
-#: elf/dl-load.c:1735
+#: elf/dl-load.c:1738
 msgid "ELF file version does not match current one"
 msgstr "ELF 文件版本与当前版本不匹配"
 
-#: elf/dl-load.c:1743
+#: elf/dl-load.c:1750
 msgid "only ET_DYN and ET_EXEC can be loaded"
 msgstr "只有 ET_DYN 以及 ET_EXEC 可以加载"
 
-#: elf/dl-load.c:1748
+#: elf/dl-load.c:1755
 msgid "ELF file's phentsize not the expected size"
 msgstr "ELF 文件的标头项目大小（phentsize）出乎意料"
 
-#: elf/dl-load.c:2301
+#: elf/dl-load.c:2245
 msgid "wrong ELF class: ELFCLASS64"
 msgstr "错误的 ELF 类：ELFCLASS64"
 
-#: elf/dl-load.c:2302
+#: elf/dl-load.c:2246
 msgid "wrong ELF class: ELFCLASS32"
 msgstr "错误的 ELF 类：ELFCLASS32"
 
-#: elf/dl-load.c:2305
+#: elf/dl-load.c:2249
 msgid "cannot open shared object file"
 msgstr "无法打开共享对象文件"
 
@@ -633,7 +653,7 @@ msgstr "无法从共享目标中映射段"
 msgid "cannot map zero-fill pages"
 msgstr "无法映射用零填充的页"
 
-#: elf/dl-lookup.c:881
+#: elf/dl-lookup.c:797
 msgid "symbol lookup error"
 msgstr "符号查询错误"
 
@@ -645,6 +665,10 @@ msgstr "无法扩展全局范围"
 msgid "TLS generation counter wrapped!  Please report this."
 msgstr "TLS 产生计数器被转换运行！ 请报告这个情况。"
 
+#: elf/dl-open.c:737
+msgid "cannot allocate address lookup data"
+msgstr "无法分配地址查询数据"
+
 #: elf/dl-open.c:827
 msgid "invalid mode for dlopen()"
 msgstr "无效的 dlopen() 模式"
@@ -653,28 +677,28 @@ msgstr "无效的 dlopen() 模式"
 msgid "no more namespaces available for dlmopen()"
 msgstr "无更多命名空间可见于 dlmopen ()"
 
-#: elf/dl-open.c:868
+#: elf/dl-open.c:869
 msgid "invalid target namespace in dlmopen()"
 msgstr "dlmopen() 中无效的目标名字空间"
 
-#: elf/dl-reloc.c:139
+#: elf/dl-reloc.c:140
 msgid "cannot allocate memory in static TLS block"
 msgstr "无法在静态 TLS 块中分配内存"
 
-#: elf/dl-reloc.c:275
+#: elf/dl-reloc.c:288
 msgid "cannot make segment writable for relocation"
 msgstr "在重新寻址以后无法将节设为可写入状态"
 
-#: elf/dl-reloc.c:306
+#: elf/dl-reloc.c:319
 #, c-format
 msgid "%s: out of memory to store relocation results for %s\n"
 msgstr "%s: 内存不足以保存重寻址结果用于 %s\n"
 
-#: elf/dl-reloc.c:322
+#: elf/dl-reloc.c:335
 msgid "cannot restore segment prot after reloc"
 msgstr "重定位后无法恢复段 prot"
 
-#: elf/dl-reloc.c:353
+#: elf/dl-reloc.c:366
 msgid "cannot apply additional memory protection after relocation"
 msgstr "无法在重定位后应用额外的内存保护"
 
@@ -682,7 +706,7 @@ msgstr "无法在重定位后应用额外的内存保护"
 msgid "RTLD_NEXT used in code not dynamically loaded"
 msgstr "代码所使用的 RTLD_NEXT 没有动态加载"
 
-#: elf/dl-tls.c:1039
+#: elf/dl-tls.c:1050
 msgid "cannot create TLS data structures"
 msgstr "无法创建 TLS 数据结构"
 
@@ -690,201 +714,195 @@ msgstr "无法创建 TLS 数据结构"
 msgid "version lookup error"
 msgstr "版本查找错误"
 
-#: elf/dl-version.c:278
+#: elf/dl-version.c:285
 msgid "cannot allocate version reference table"
 msgstr "无法分配版本引用表格"
 
-#: elf/ldconfig.c:150
+#: elf/dl-version.c:380
+msgid "DT_RELR without GLIBC_ABI_DT_RELR dependency"
+msgstr "DT_RELR 没有 GLIBC_ABI_DT_RELR 依赖"
+
+#: elf/ldconfig.c:124
 msgid "Print cache"
 msgstr "打印缓存"
 
-#: elf/ldconfig.c:151
+#: elf/ldconfig.c:125
 msgid "Generate verbose messages"
 msgstr "生成详细消息"
 
-#: elf/ldconfig.c:152
+#: elf/ldconfig.c:126
 msgid "Don't build cache"
 msgstr "不要创建缓存"
 
-#: elf/ldconfig.c:153
+#: elf/ldconfig.c:127
 msgid "Don't update symbolic links"
 msgstr "不更新符号链接"
 
-#: elf/ldconfig.c:154
+#: elf/ldconfig.c:128
 msgid "Change to and use ROOT as root directory"
 msgstr "进入 ROOT 目录并将其作为根目录"
 
-#: elf/ldconfig.c:154
+#: elf/ldconfig.c:128
 msgid "ROOT"
 msgstr "ROOT"
 
-#: elf/ldconfig.c:155
+#: elf/ldconfig.c:129
 msgid "CACHE"
 msgstr "CACHE"
 
-#: elf/ldconfig.c:155
+#: elf/ldconfig.c:129
 msgid "Use CACHE as cache file"
 msgstr "将 CACHE 用作缓存文件"
 
-#: elf/ldconfig.c:156
+#: elf/ldconfig.c:130
 msgid "CONF"
 msgstr "CONF"
 
-#: elf/ldconfig.c:156
+#: elf/ldconfig.c:130
 msgid "Use CONF as configuration file"
 msgstr "将 CONF 用作配置文件"
 
-#: elf/ldconfig.c:157
+#: elf/ldconfig.c:131
 msgid "Only process directories specified on the command line.  Don't build cache."
 msgstr "只在命令行中给出了进程目录。未创建缓存。"
 
-#: elf/ldconfig.c:158
+#: elf/ldconfig.c:132
 msgid "Manually link individual libraries."
 msgstr "手工链接独立的库。"
 
-#: elf/ldconfig.c:159
+#: elf/ldconfig.c:133
 msgid "FORMAT"
 msgstr "FORMAT"
 
-#: elf/ldconfig.c:160
+#: elf/ldconfig.c:134
 msgid "Ignore auxiliary cache file"
 msgstr "忽略辅助缓存文件"
 
-#: elf/ldconfig.c:168
+#: elf/ldconfig.c:142
 msgid "Configure Dynamic Linker Run Time Bindings."
 msgstr "设置运行时期动态链接绑定。"
 
-#: elf/ldconfig.c:371
+#: elf/ldconfig.c:276
 #, c-format
 msgid "Path `%s' given more than once"
 msgstr "多次给出路径“%s”"
 
-#: elf/ldconfig.c:487
+#: elf/ldconfig.c:323
 #, c-format
-msgid "%s is not a known library type"
-msgstr "%s 不是已知类型的库"
+msgid "Listing directory %s"
+msgstr "正在列出目录 %s"
 
-#: elf/ldconfig.c:519
+#: elf/ldconfig.c:405
 #, c-format
 msgid "Can't stat %s"
 msgstr "无法对 %s 进行 stat 操作"
 
-#: elf/ldconfig.c:600
+#: elf/ldconfig.c:486
 #, c-format
 msgid "Can't stat %s\n"
 msgstr "无法对 %s 进行 stat 操作\n"
 
-#: elf/ldconfig.c:610
+#: elf/ldconfig.c:496
 #, c-format
 msgid "%s is not a symbolic link\n"
 msgstr "%s 不是符号链接\n"
 
-#: elf/ldconfig.c:629
+#: elf/ldconfig.c:515
 #, c-format
 msgid "Can't unlink %s"
 msgstr "无法取消链接 %s"
 
-#: elf/ldconfig.c:635
+#: elf/ldconfig.c:521
 #, c-format
 msgid "Can't link %s to %s"
 msgstr "无法将 %s 链接到 %s"
 
-#: elf/ldconfig.c:641
+#: elf/ldconfig.c:527
 msgid " (changed)\n"
 msgstr " (改变)\n"
 
-#: elf/ldconfig.c:643
+#: elf/ldconfig.c:529
 msgid " (SKIPPED)\n"
 msgstr " (跳过)\n"
 
-#: elf/ldconfig.c:699
+#: elf/ldconfig.c:584
 #, c-format
 msgid "Can't find %s"
 msgstr "无法找到 %s"
 
-#: elf/ldconfig.c:715 elf/ldconfig.c:895 elf/ldconfig.c:955 elf/ldconfig.c:987
+#: elf/ldconfig.c:600 elf/ldconfig.c:763 elf/ldconfig.c:830
 #, c-format
 msgid "Cannot lstat %s"
 msgstr "无法对 %s 进行 lstat 操作"
 
-#: elf/ldconfig.c:721
+#: elf/ldconfig.c:606
 #, c-format
 msgid "Ignored file %s since it is not a regular file."
 msgstr "忽略文件 %s 由于不是一个普通文件。"
 
-#: elf/ldconfig.c:729
+#: elf/ldconfig.c:614
 #, c-format
 msgid "No link created since soname could not be found for %s"
 msgstr "未创建链接，因为 %s 无法找到 soname"
 
-#: elf/ldconfig.c:828
+#: elf/ldconfig.c:700
 #, c-format
 msgid "Can't open directory %s"
 msgstr "无法打开目录 %s"
 
-#: elf/ldconfig.c:913 elf/ldconfig.c:975 elf/readlib.c:96
+#: elf/ldconfig.c:780 elf/ldconfig.c:818 elf/readlib.c:78
 #, c-format
 msgid "Input file %s not found.\n"
 msgstr "未找到输入文件 %s。\n"
 
-#: elf/ldconfig.c:920
+#: elf/ldconfig.c:787
 #, c-format
 msgid "Cannot stat %s"
 msgstr "无法对 %s 进行 stat 操作"
 
-#: elf/ldconfig.c:1073
-#, c-format
-msgid "libc5 library %s in wrong directory"
-msgstr "libc5 的库 %s 处于错误的目录中"
-
-#: elf/ldconfig.c:1076
+#: elf/ldconfig.c:906
 #, c-format
 msgid "libc6 library %s in wrong directory"
 msgstr "libc5 的库 %s 处于错误的目录中"
 
-#: elf/ldconfig.c:1079
-#, c-format
-msgid "libc4 library %s in wrong directory"
-msgstr "libc4 的库 %s 处于错误的目录中"
-
-#: elf/ldconfig.c:1107
+#: elf/ldconfig.c:925
 #, c-format
 msgid "libraries %s and %s in directory %s have same soname but different type."
 msgstr "目录 %3$s 中的 %1$s 和 %2$s 的 so 名称相同但类型不同。"
 
-#: elf/ldconfig.c:1237
+#: elf/ldconfig.c:1050
 #, c-format
 msgid "Warning: ignoring configuration file that cannot be opened: %s"
 msgstr "警告：正在忽略无法打开的组态文件：%s"
 
-#: elf/ldconfig.c:1304
+#: elf/ldconfig.c:1117
 #, c-format
 msgid "need absolute file name for configuration file when using -r"
 msgstr "需要绝对文件名称用于组态文件时正在使用 -r"
 
-#: elf/ldconfig.c:1311 locale/programs/xasprintf.c:31
+#: elf/ldconfig.c:1124 locale/programs/xasprintf.c:31
 #: locale/programs/xmalloc.c:63 malloc/obstack.c:416 malloc/obstack.c:418
 #: posix/getconf.c:458 posix/getconf.c:697
 #, c-format
 msgid "memory exhausted"
 msgstr "内存耗尽"
 
-#: elf/ldconfig.c:1344
+#: elf/ldconfig.c:1157
 #, c-format
 msgid "%s:%u: cannot read directory %s"
 msgstr "%s：%u: 无法读取目录 %s"
 
-#: elf/ldconfig.c:1392
+#: elf/ldconfig.c:1195
 #, c-format
 msgid "relative path `%s' used to build cache"
 msgstr "用来建置缓存的相对路径 `%s'"
 
-#: elf/ldconfig.c:1416
+#: elf/ldconfig.c:1217
 #, c-format
 msgid "Can't chdir to /"
 msgstr "无法改变目录到 /"
 
-#: elf/ldconfig.c:1457
+#: elf/ldconfig.c:1258
 #, c-format
 msgid "Can't open cache file directory %s\n"
 msgstr "无法打开缓冲文件目录 %s\n"
@@ -934,7 +952,7 @@ msgstr "缺少文件参数"
 msgid "No such file or directory"
 msgstr "没有那个文件或目录"
 
-#: elf/ldd.bash.in:150 inet/rcmd.c:481
+#: elf/ldd.bash.in:150 inet/rcmd.c:482
 msgid "not regular file"
 msgstr "不是普通文件"
 
@@ -954,42 +972,42 @@ msgstr "以未知的退出码退出"
 msgid "error: you do not have read permission for"
 msgstr "错误：你没有读权限 "
 
-#: elf/pldd-xx.c:101
+#: elf/pldd-xx.c:103
 #, c-format
 msgid "cannot find program header of process"
 msgstr "找不到进程的程序标头"
 
-#: elf/pldd-xx.c:105
+#: elf/pldd-xx.c:107
 #, c-format
 msgid "cannot read program header"
 msgstr "无法读取程序标头"
 
-#: elf/pldd-xx.c:127
+#: elf/pldd-xx.c:129
 #, c-format
 msgid "cannot read dynamic section"
 msgstr "无法读取动态节"
 
-#: elf/pldd-xx.c:136
+#: elf/pldd-xx.c:141
 #, c-format
 msgid "cannot read r_debug"
 msgstr "无法读取 r_debug"
 
-#: elf/pldd-xx.c:153
+#: elf/pldd-xx.c:159
 #, c-format
 msgid "cannot read program interpreter"
 msgstr "无法读取程序解译器"
 
-#: elf/pldd-xx.c:182
+#: elf/pldd-xx.c:188
 #, c-format
 msgid "cannot read link map"
 msgstr "无法读取链结映射"
 
-#: elf/pldd-xx.c:189
+#: elf/pldd-xx.c:195
 #, c-format
 msgid "cannot read object name"
 msgstr "无法读取对象名称"
 
-#: elf/pldd-xx.c:196
+#: elf/pldd-xx.c:202
 #, c-format
 msgid "cannot allocate buffer for object name"
 msgstr "无法为对象名称分配缓冲区"
@@ -1058,52 +1076,52 @@ msgstr "进程 %lu 并非 ELF 程序"
 msgid "file %s is truncated\n"
 msgstr "文件 %s 己被截断\n"
 
-#: elf/readelflib.c:65
+#: elf/readelflib.c:63
 #, c-format
 msgid "%s is a 32 bit ELF file.\n"
 msgstr "%s 是一个 32 位 ELF 文件。\n"
 
-#: elf/readelflib.c:67
+#: elf/readelflib.c:65
 #, c-format
 msgid "%s is a 64 bit ELF file.\n"
 msgstr "%s 是一个 64 位 ELF 文件。\n"
 
-#: elf/readelflib.c:69
+#: elf/readelflib.c:67
 #, c-format
 msgid "Unknown ELFCLASS in file %s.\n"
 msgstr "文件 %s 中未知的 ELFCLASS。\n"
 
-#: elf/readelflib.c:76
+#: elf/readelflib.c:74
 #, c-format
 msgid "%s is not a shared object file (Type: %d).\n"
 msgstr "%s 不是共享目标文件 (类型：%d)。\n"
 
-#: elf/readelflib.c:104
+#: elf/readelflib.c:101
 #, c-format
 msgid "more than one dynamic segment\n"
 msgstr "多于一个动态段\n"
 
-#: elf/readlib.c:102
+#: elf/readlib.c:84
 #, c-format
 msgid "Cannot fstat file %s.\n"
 msgstr "无法对文件 %s 进行 fstat 操作。\n"
 
-#: elf/readlib.c:113
+#: elf/readlib.c:95
 #, c-format
 msgid "File %s is empty, not checked."
 msgstr "文件 %s 为空，未检查。"
 
-#: elf/readlib.c:119
+#: elf/readlib.c:101
 #, c-format
 msgid "File %s is too small, not checked."
 msgstr "文件 %s 过小，未检查。"
 
-#: elf/readlib.c:129
+#: elf/readlib.c:111
 #, c-format
 msgid "Cannot mmap file %s.\n"
 msgstr "无法对文件 %s 进行 mmap 操作。\n"
 
-#: elf/readlib.c:168
+#: elf/readlib.c:149
 #, c-format
 msgid "%s is not an ELF file - it has the wrong magic bytes at the start.\n"
 msgstr "%s 不是 ELF 文件 - 起始处的魔数有误。\n"
@@ -1290,7 +1308,7 @@ msgstr "无法加载 profile 数据"
 #: elf/sprof.c:788
 #, c-format
 msgid "while stat'ing profiling data file"
-msgstr "当分析 profile 数据文件"
+msgstr "分析 profile 数据文件时"
 
 #: elf/sprof.c:796
 #, c-format
@@ -1326,11 +1344,6 @@ msgstr "无法打开输出文件"
 #, c-format
 msgid "error while closing input `%s'"
 msgstr "关闭输入“%s”时出错"
-
-#: iconv/iconv_charmap.c:443
-#, c-format
-msgid "illegal input sequence at position %Zd"
-msgstr "位于 %Zd 的非法输入序列"
 
 #: iconv/iconv_charmap.c:462 iconv/iconv_prog.c:518
 #, c-format
@@ -1512,68 +1525,68 @@ msgstr "插入搜索树时"
 msgid "cannot generate output file"
 msgstr "无法生成输出文件"
 
-#: inet/rcmd.c:158
+#: inet/rcmd.c:159
 msgid "rcmd: Cannot allocate memory\n"
 msgstr "rcmd：无法分配内存\n"
 
-#: inet/rcmd.c:175
+#: inet/rcmd.c:176
 msgid "rcmd: socket: All ports in use\n"
 msgstr "rcmd：socket：所有端口都已在使用了\n"
 
-#: inet/rcmd.c:203
+#: inet/rcmd.c:204
 #, c-format
 msgid "connect to address %s: "
 msgstr "连接到地址 %s： "
 
-#: inet/rcmd.c:216
+#: inet/rcmd.c:217
 #, c-format
 msgid "Trying %s...\n"
 msgstr "正在尝试 %s...\n"
 
-#: inet/rcmd.c:252
+#: inet/rcmd.c:253
 #, c-format
 msgid "rcmd: write (setting up stderr): %m\n"
 msgstr "rcmd: write (正在设置标准错误输出): %m\n"
 
-#: inet/rcmd.c:268
+#: inet/rcmd.c:269
 #, c-format
 msgid "rcmd: poll (setting up stderr): %m\n"
 msgstr "rcmd: poll (正在设置标准错误输出): %m\n"
 
-#: inet/rcmd.c:271
+#: inet/rcmd.c:272
 msgid "poll: protocol failure in circuit setup\n"
 msgstr "poll: 通信协定在设置线路时失效\n"
 
-#: inet/rcmd.c:303
+#: inet/rcmd.c:304
 msgid "socket: protocol failure in circuit setup\n"
 msgstr "socket: 通信协定在设置线路时失效\n"
 
-#: inet/rcmd.c:327
+#: inet/rcmd.c:328
 #, c-format
 msgid "rcmd: %s: short read"
 msgstr "rcmd: %s: 读入数据过短"
 
-#: inet/rcmd.c:479
+#: inet/rcmd.c:480
 msgid "lstat failed"
 msgstr "lstat 操作失败"
 
-#: inet/rcmd.c:486
+#: inet/rcmd.c:487
 msgid "cannot open"
 msgstr "无法打开"
 
-#: inet/rcmd.c:488
+#: inet/rcmd.c:489
 msgid "fstat failed"
 msgstr "fstat 失败"
 
-#: inet/rcmd.c:490
+#: inet/rcmd.c:491
 msgid "bad owner"
 msgstr "错误的拥有者"
 
-#: inet/rcmd.c:492
+#: inet/rcmd.c:493
 msgid "writeable by other than owner"
 msgstr "可由除所有者之外的人写入"
 
-#: inet/rcmd.c:494
+#: inet/rcmd.c:495
 msgid "hard linked somewhere"
 msgstr "某处的硬链接"
 
@@ -1689,10 +1702,10 @@ msgid "no symbolic name given for end of range"
 msgstr "没有为范围的结束给出符号化的名称"
 
 #: locale/programs/charmap.c:614 locale/programs/ld-address.c:523
-#: locale/programs/ld-collate.c:2642 locale/programs/ld-collate.c:3806
+#: locale/programs/ld-collate.c:2635 locale/programs/ld-collate.c:3799
 #: locale/programs/ld-ctype.c:2117 locale/programs/ld-ctype.c:2829
 #: locale/programs/ld-identification.c:396 locale/programs/ld-measurement.c:212
-#: locale/programs/ld-messages.c:294 locale/programs/ld-monetary.c:747
+#: locale/programs/ld-messages.c:294 locale/programs/ld-monetary.c:855
 #: locale/programs/ld-name.c:261 locale/programs/ld-numeric.c:324
 #: locale/programs/ld-paper.c:211 locale/programs/ld-telephone.c:275
 #: locale/programs/ld-time.c:958 locale/programs/repertoire.c:311
@@ -1715,10 +1728,10 @@ msgid "%s: error in state machine"
 msgstr "%s：状态机出错"
 
 #: locale/programs/charmap.c:855 locale/programs/ld-address.c:539
-#: locale/programs/ld-collate.c:2639 locale/programs/ld-collate.c:3999
+#: locale/programs/ld-collate.c:2632 locale/programs/ld-collate.c:3992
 #: locale/programs/ld-ctype.c:2114 locale/programs/ld-ctype.c:2846
 #: locale/programs/ld-identification.c:412 locale/programs/ld-measurement.c:228
-#: locale/programs/ld-messages.c:310 locale/programs/ld-monetary.c:763
+#: locale/programs/ld-messages.c:310 locale/programs/ld-monetary.c:871
 #: locale/programs/ld-name.c:277 locale/programs/ld-numeric.c:340
 #: locale/programs/ld-paper.c:227 locale/programs/ld-telephone.c:291
 #: locale/programs/ld-time.c:989 locale/programs/locfile.c:1009
@@ -1737,7 +1750,7 @@ msgstr "未知的字符“%s”"
 msgid "number of bytes for byte sequence of beginning and end of range not the same: %d vs %d"
 msgstr "在范围起始与结束的字节序列中，字节的数目并不一致: %d vs %d"
 
-#: locale/programs/charmap.c:998 locale/programs/ld-collate.c:2923
+#: locale/programs/charmap.c:998 locale/programs/ld-collate.c:2916
 #: locale/programs/repertoire.c:417
 msgid "invalid names for character range"
 msgstr "无效的字符范围名称"
@@ -1759,7 +1772,7 @@ msgstr "范围的上限小于下限"
 msgid "resulting bytes for range not representable."
 msgstr "范围的结果字节无法被表述出来。"
 
-#: locale/programs/ld-address.c:132 locale/programs/ld-collate.c:1570
+#: locale/programs/ld-address.c:132 locale/programs/ld-collate.c:1569
 #: locale/programs/ld-ctype.c:429 locale/programs/ld-identification.c:130
 #: locale/programs/ld-measurement.c:91 locale/programs/ld-messages.c:95
 #: locale/programs/ld-monetary.c:191 locale/programs/ld-name.c:92
@@ -1773,14 +1786,13 @@ msgstr "找不到 %s 类别的定义"
 #: locale/programs/ld-address.c:198 locale/programs/ld-address.c:227
 #: locale/programs/ld-address.c:299 locale/programs/ld-address.c:318
 #: locale/programs/ld-address.c:330 locale/programs/ld-identification.c:143
-#: locale/programs/ld-measurement.c:102 locale/programs/ld-monetary.c:203
-#: locale/programs/ld-monetary.c:257 locale/programs/ld-monetary.c:273
-#: locale/programs/ld-monetary.c:285 locale/programs/ld-name.c:103
-#: locale/programs/ld-name.c:140 locale/programs/ld-numeric.c:110
-#: locale/programs/ld-numeric.c:124 locale/programs/ld-paper.c:99
-#: locale/programs/ld-paper.c:108 locale/programs/ld-telephone.c:102
-#: locale/programs/ld-telephone.c:159 locale/programs/ld-time.c:179
-#: locale/programs/ld-time.c:200
+#: locale/programs/ld-measurement.c:102 locale/programs/ld-monetary.c:291
+#: locale/programs/ld-monetary.c:368 locale/programs/ld-monetary.c:389
+#: locale/programs/ld-name.c:103 locale/programs/ld-name.c:140
+#: locale/programs/ld-numeric.c:110 locale/programs/ld-numeric.c:124
+#: locale/programs/ld-paper.c:99 locale/programs/ld-paper.c:108
+#: locale/programs/ld-telephone.c:102 locale/programs/ld-telephone.c:159
+#: locale/programs/ld-time.c:179 locale/programs/ld-time.c:200
 #, c-format
 msgid "%s: field `%s' not defined"
 msgstr "%s：域“%s”未定义"
@@ -1826,8 +1838,8 @@ msgstr "%s：数值国家编码“%d”无效"
 #: locale/programs/ld-address.c:431 locale/programs/ld-address.c:468
 #: locale/programs/ld-address.c:506 locale/programs/ld-ctype.c:2478
 #: locale/programs/ld-identification.c:308 locale/programs/ld-measurement.c:195
-#: locale/programs/ld-messages.c:263 locale/programs/ld-monetary.c:502
-#: locale/programs/ld-monetary.c:537 locale/programs/ld-monetary.c:578
+#: locale/programs/ld-messages.c:263 locale/programs/ld-monetary.c:610
+#: locale/programs/ld-monetary.c:645 locale/programs/ld-monetary.c:686
 #: locale/programs/ld-name.c:234 locale/programs/ld-numeric.c:216
 #: locale/programs/ld-paper.c:194 locale/programs/ld-telephone.c:250
 #: locale/programs/ld-time.c:863 locale/programs/ld-time.c:905
@@ -1837,7 +1849,7 @@ msgstr "%s：多次声明域“%s”"
 
 #: locale/programs/ld-address.c:435 locale/programs/ld-address.c:473
 #: locale/programs/ld-identification.c:312 locale/programs/ld-messages.c:273
-#: locale/programs/ld-monetary.c:506 locale/programs/ld-monetary.c:541
+#: locale/programs/ld-monetary.c:614 locale/programs/ld-monetary.c:649
 #: locale/programs/ld-name.c:238 locale/programs/ld-numeric.c:220
 #: locale/programs/ld-telephone.c:254 locale/programs/ld-time.c:755
 #: locale/programs/ld-time.c:826 locale/programs/ld-time.c:868
@@ -1845,10 +1857,10 @@ msgstr "%s：多次声明域“%s”"
 msgid "%s: unknown character in field `%s'"
 msgstr "%s：域“%s”中含有未知字符"
 
-#: locale/programs/ld-address.c:520 locale/programs/ld-collate.c:3804
+#: locale/programs/ld-address.c:520 locale/programs/ld-collate.c:3797
 #: locale/programs/ld-ctype.c:2826 locale/programs/ld-identification.c:393
 #: locale/programs/ld-measurement.c:209 locale/programs/ld-messages.c:292
-#: locale/programs/ld-monetary.c:745 locale/programs/ld-name.c:259
+#: locale/programs/ld-monetary.c:853 locale/programs/ld-name.c:259
 #: locale/programs/ld-numeric.c:322 locale/programs/ld-paper.c:209
 #: locale/programs/ld-telephone.c:273 locale/programs/ld-time.c:956
 #, c-format
@@ -1857,12 +1869,12 @@ msgstr "%s：不完整的“END”行"
 
 #: locale/programs/ld-address.c:530 locale/programs/ld-collate.c:553
 #: locale/programs/ld-collate.c:605 locale/programs/ld-collate.c:901
-#: locale/programs/ld-collate.c:914 locale/programs/ld-collate.c:2608
-#: locale/programs/ld-collate.c:2629 locale/programs/ld-collate.c:3989
+#: locale/programs/ld-collate.c:914 locale/programs/ld-collate.c:2601
+#: locale/programs/ld-collate.c:2622 locale/programs/ld-collate.c:3982
 #: locale/programs/ld-ctype.c:1846 locale/programs/ld-ctype.c:2104
 #: locale/programs/ld-ctype.c:2676 locale/programs/ld-ctype.c:2837
 #: locale/programs/ld-identification.c:403 locale/programs/ld-measurement.c:219
-#: locale/programs/ld-messages.c:301 locale/programs/ld-monetary.c:754
+#: locale/programs/ld-messages.c:301 locale/programs/ld-monetary.c:862
 #: locale/programs/ld-name.c:268 locale/programs/ld-numeric.c:331
 #: locale/programs/ld-paper.c:218 locale/programs/ld-telephone.c:282
 #: locale/programs/ld-time.c:980
@@ -1926,11 +1938,6 @@ msgstr "%s: 权重必须使用与名称相同的省略符号"
 msgid "%s: too many values"
 msgstr "%s：值过多"
 
-#: locale/programs/ld-collate.c:1062 locale/programs/ld-collate.c:1237
-#, c-format
-msgid "order for `%.*s' already defined at %s:%Zu"
-msgstr "`%.*s' 的顺序已经在 %s:%Zu 里面定义了"
-
 #: locale/programs/ld-collate.c:1112
 #, c-format
 msgid "%s: the start and the end symbol of a range must stand for characters"
@@ -1961,166 +1968,161 @@ msgstr "%s: 符号范围的省略不可以直接在 `order_end' 之前"
 msgid "`%s' and `%.*s' are not valid names for symbolic range"
 msgstr "“%s”和“%.*s”是无效的符号范围名"
 
-#: locale/programs/ld-collate.c:1380 locale/programs/ld-collate.c:3738
-#, c-format
-msgid "%s: order for `%.*s' already defined at %s:%Zu"
-msgstr "%s: `%.*s' 的顺序已在 %s:%Zu 中定义"
-
 #: locale/programs/ld-collate.c:1389
 #, c-format
 msgid "%s: `%s' must be a character"
 msgstr "%s：“%s”必须是一个字符"
 
-#: locale/programs/ld-collate.c:1591
+#: locale/programs/ld-collate.c:1590
 #, c-format
 msgid "%s: `position' must be used for a specific level in all sections or none"
 msgstr "%s: `position' 必须在所有区块里特定的等级中使用，否则不能使用"
 
-#: locale/programs/ld-collate.c:1615
+#: locale/programs/ld-collate.c:1614
 #, c-format
 msgid "symbol `%s' not defined"
 msgstr "符号“%s”未定义"
 
-#: locale/programs/ld-collate.c:1691 locale/programs/ld-collate.c:1796
+#: locale/programs/ld-collate.c:1690 locale/programs/ld-collate.c:1789
 #, c-format
 msgid "symbol `%s' has the same encoding as"
 msgstr "跟符号 `%s' 有相同的编码: "
 
-#: locale/programs/ld-collate.c:1695 locale/programs/ld-collate.c:1800
+#: locale/programs/ld-collate.c:1694 locale/programs/ld-collate.c:1793
 #, c-format
 msgid "symbol `%s'"
 msgstr "符号“%s”"
 
-#: locale/programs/ld-collate.c:1863
+#: locale/programs/ld-collate.c:1856
 msgid "too many errors; giving up"
 msgstr "错误过多；放弃"
 
-#: locale/programs/ld-collate.c:2534 locale/programs/ld-collate.c:3928
+#: locale/programs/ld-collate.c:2527 locale/programs/ld-collate.c:3921
 #, c-format
 msgid "%s: nested conditionals not supported"
 msgstr "%s: 不支持嵌套条件"
 
-#: locale/programs/ld-collate.c:2552
+#: locale/programs/ld-collate.c:2545
 #, c-format
 msgid "%s: more than one 'else'"
 msgstr "%s: 使用多于一个 “else”"
 
-#: locale/programs/ld-collate.c:2731
+#: locale/programs/ld-collate.c:2724
 #, c-format
 msgid "%s: duplicate definition of `%s'"
 msgstr "%s：重复定义“%s”"
 
-#: locale/programs/ld-collate.c:2767
+#: locale/programs/ld-collate.c:2760
 #, c-format
 msgid "%s: duplicate declaration of section `%s'"
 msgstr "%s：重复声明节“%s”"
 
-#: locale/programs/ld-collate.c:2903
+#: locale/programs/ld-collate.c:2896
 #, c-format
 msgid "%s: unknown character in collating symbol name"
 msgstr "%s: 未知的字符在对照符号名称中"
 
-#: locale/programs/ld-collate.c:3032
+#: locale/programs/ld-collate.c:3025
 #, c-format
 msgid "%s: unknown character in equivalent definition name"
 msgstr "%s：等价定义名中未知的字符"
 
-#: locale/programs/ld-collate.c:3043
+#: locale/programs/ld-collate.c:3036
 #, c-format
 msgid "%s: unknown character in equivalent definition value"
 msgstr "%s：等价定义值中未知的字符"
 
-#: locale/programs/ld-collate.c:3053
+#: locale/programs/ld-collate.c:3046
 #, c-format
 msgid "%s: unknown symbol `%s' in equivalent definition"
 msgstr "%s：等价定义中未知的符号“%s”"
 
-#: locale/programs/ld-collate.c:3062
+#: locale/programs/ld-collate.c:3055
 msgid "error while adding equivalent collating symbol"
 msgstr "正在加入同义对照符号时发生错误"
 
-#: locale/programs/ld-collate.c:3100
+#: locale/programs/ld-collate.c:3093
 #, c-format
 msgid "duplicate definition of script `%s'"
 msgstr "重复定义脚本“%s”"
 
-#: locale/programs/ld-collate.c:3148
+#: locale/programs/ld-collate.c:3141
 #, c-format
 msgid "%s: unknown section name `%.*s'"
 msgstr "%s：未知的节名“%.*s”"
 
-#: locale/programs/ld-collate.c:3177
+#: locale/programs/ld-collate.c:3170
 #, c-format
 msgid "%s: multiple order definitions for section `%s'"
 msgstr "%s：关于“%s”节出现多个顺序定义"
 
-#: locale/programs/ld-collate.c:3205
+#: locale/programs/ld-collate.c:3198
 #, c-format
 msgid "%s: invalid number of sorting rules"
 msgstr "%s：排序规则的数量无效"
 
-#: locale/programs/ld-collate.c:3232
+#: locale/programs/ld-collate.c:3225
 #, c-format
 msgid "%s: multiple order definitions for unnamed section"
 msgstr "%s：关于未命名节出现多个顺序定义"
 
-#: locale/programs/ld-collate.c:3287 locale/programs/ld-collate.c:3417
-#: locale/programs/ld-collate.c:3782
+#: locale/programs/ld-collate.c:3280 locale/programs/ld-collate.c:3410
+#: locale/programs/ld-collate.c:3775
 #, c-format
 msgid "%s: missing `order_end' keyword"
 msgstr "%s：遗漏关键字“order_end”"
 
-#: locale/programs/ld-collate.c:3350
+#: locale/programs/ld-collate.c:3343
 #, c-format
 msgid "%s: order for collating symbol %.*s not yet defined"
 msgstr "%s: 对照符号 %.*s 的顺序尚未定义"
 
-#: locale/programs/ld-collate.c:3368
+#: locale/programs/ld-collate.c:3361
 #, c-format
 msgid "%s: order for collating element %.*s not yet defined"
 msgstr "%s: 对照元素 %.*s 的顺序尚未定义"
 
-#: locale/programs/ld-collate.c:3379
+#: locale/programs/ld-collate.c:3372
 #, c-format
 msgid "%s: cannot reorder after %.*s: symbol not known"
 msgstr "%s: 无法重新排列在 %.*s 之后: 未知的符号"
 
-#: locale/programs/ld-collate.c:3431 locale/programs/ld-collate.c:3794
+#: locale/programs/ld-collate.c:3424 locale/programs/ld-collate.c:3787
 #, c-format
 msgid "%s: missing `reorder-end' keyword"
 msgstr "%s：以后关键字“reorder-end”"
 
-#: locale/programs/ld-collate.c:3465 locale/programs/ld-collate.c:3663
+#: locale/programs/ld-collate.c:3458 locale/programs/ld-collate.c:3656
 #, c-format
 msgid "%s: section `%.*s' not known"
 msgstr "%s：未知的节“%.*s”"
 
-#: locale/programs/ld-collate.c:3530
+#: locale/programs/ld-collate.c:3523
 #, c-format
 msgid "%s: bad symbol <%.*s>"
 msgstr "%s: 不当的符号 <%.*s>"
 
-#: locale/programs/ld-collate.c:3726
+#: locale/programs/ld-collate.c:3719
 #, c-format
 msgid "%s: cannot have `%s' as end of ellipsis range"
 msgstr "%s: 无法用 `%s' 作为省略节的结尾"
 
-#: locale/programs/ld-collate.c:3778
+#: locale/programs/ld-collate.c:3771
 #, c-format
 msgid "%s: empty category description not allowed"
 msgstr "%s：不允许空范畴描述"
 
-#: locale/programs/ld-collate.c:3797
+#: locale/programs/ld-collate.c:3790
 #, c-format
 msgid "%s: missing `reorder-sections-end' keyword"
 msgstr "%s：遗漏关键字“reorder-sections-end”"
 
-#: locale/programs/ld-collate.c:3961
+#: locale/programs/ld-collate.c:3954
 #, c-format
 msgid "%s: '%s' without matching 'ifdef' or 'ifndef'"
 msgstr "%s: “%s” 没有匹配 “ifdef” 或 “ifndef” "
 
-#: locale/programs/ld-collate.c:3979
+#: locale/programs/ld-collate.c:3972
 #, c-format
 msgid "%s: 'endif' without matching 'ifdef' or 'ifndef'"
 msgstr "%s: “endif” 没有匹配 “ifdef” 或 “ifndef” "
@@ -2311,22 +2313,22 @@ msgstr "%s：需要作为默认值的字符“%s”无法以单个字节来表�
 msgid "no output digits defined and none of the standard names in the charmap"
 msgstr "没有定义输出数字，在字集对照表中也找不到相符的标准名称"
 
-#: locale/programs/ld-ctype.c:3572
+#: locale/programs/ld-ctype.c:3545
 #, c-format
 msgid "%s: transliteration data from locale `%s' not available"
 msgstr "%s: 语区数据`%s' 的音译数据不存在"
 
-#: locale/programs/ld-ctype.c:3671
+#: locale/programs/ld-ctype.c:3644
 #, c-format
 msgid "%s: table for class \"%s\": %lu bytes"
 msgstr "%s: 类别 \"%s\" 表格: %lu 字节"
 
-#: locale/programs/ld-ctype.c:3735
+#: locale/programs/ld-ctype.c:3708
 #, c-format
 msgid "%s: table for map \"%s\": %lu bytes"
 msgstr "%s：映射表 “%s” 表格：%lu 字节"
 
-#: locale/programs/ld-ctype.c:3859
+#: locale/programs/ld-ctype.c:3832
 #, c-format
 msgid "%s: table for width: %lu bytes"
 msgstr "%s：宽度表格：%lu 字节"
@@ -2359,7 +2361,7 @@ msgid "%s: field `%s' undefined"
 msgstr "%s：解除域“%s”的定义"
 
 #: locale/programs/ld-messages.c:118 locale/programs/ld-messages.c:151
-#: locale/programs/ld-monetary.c:263 locale/programs/ld-numeric.c:116
+#: locale/programs/ld-numeric.c:116
 #, c-format
 msgid "%s: value for field `%s' must not be an empty string"
 msgstr "%s：域“%s”的值不能是空字符串"
@@ -2369,37 +2371,42 @@ msgstr "%s：域“%s”的值不能是空字符串"
 msgid "%s: no correct regular expression for field `%s': %s"
 msgstr "%s：域“%s”中没有正确的常规表达式：%s"
 
-#: locale/programs/ld-monetary.c:227
+#: locale/programs/ld-monetary.c:310
 #, c-format
 msgid "%s: value of field `int_curr_symbol' has wrong length"
 msgstr "%s：域“int_curr_symbol”的值的长度错误"
 
-#: locale/programs/ld-monetary.c:244
+#: locale/programs/ld-monetary.c:327
 #, c-format
 msgid "%s: value of field `int_curr_symbol' does not correspond to a valid name in ISO 4217 [--no-warnings=intcurrsym]"
 msgstr "%s：域 “int_curr_symbol” 的值与 ISO 4217 中有效的名称不对应 [--no-warnings=intcurrsym]"
 
-#: locale/programs/ld-monetary.c:292 locale/programs/ld-monetary.c:321
+#: locale/programs/ld-monetary.c:348 locale/programs/ld-monetary.c:358
+#, c-format
+msgid "%s: field `%s' not defined, using defaults"
+msgstr "%s：域“%s”未定义，使用默认"
+
+#: locale/programs/ld-monetary.c:396 locale/programs/ld-monetary.c:420
 #, c-format
 msgid "%s: value for field `%s' must be in range %d...%d"
 msgstr "%s：“%s”域的值必须在 %d...%d 的范围内"
 
-#: locale/programs/ld-monetary.c:548 locale/programs/ld-numeric.c:227
+#: locale/programs/ld-monetary.c:656 locale/programs/ld-numeric.c:227
 #, c-format
 msgid "%s: value for field `%s' must be a single character"
 msgstr "%s：“%s”域的值必须是单个字符"
 
-#: locale/programs/ld-monetary.c:645 locale/programs/ld-numeric.c:271
+#: locale/programs/ld-monetary.c:753 locale/programs/ld-numeric.c:271
 #, c-format
 msgid "%s: `-1' must be last entry in `%s' field"
 msgstr "%s：“-1”必须是“%s”域中的最后一个条目"
 
-#: locale/programs/ld-monetary.c:667 locale/programs/ld-numeric.c:288
+#: locale/programs/ld-monetary.c:775 locale/programs/ld-numeric.c:288
 #, c-format
 msgid "%s: values for field `%s' must be smaller than 127"
 msgstr "%s：域“%s”的值必须小于 127"
 
-#: locale/programs/ld-monetary.c:713
+#: locale/programs/ld-monetary.c:821
 msgid "conversion rate value cannot be zero"
 msgstr "转换率的值不能为 0"
 
@@ -2489,36 +2496,49 @@ msgstr "多余的终止分号"
 msgid "%s: too many values for field `%s'"
 msgstr "%s：域“%s”的值过多"
 
-#: locale/programs/linereader.c:129
+#: locale/programs/linereader.c:130
 msgid "trailing garbage at end of line"
 msgstr "行尾出现无用字符"
 
-#: locale/programs/linereader.c:297
+#: locale/programs/linereader.c:298
 msgid "garbage at end of number"
 msgstr "数字末尾有无用字符"
 
-#: locale/programs/linereader.c:409
+#: locale/programs/linereader.c:423
 msgid "garbage at end of character code specification"
 msgstr "字符编码设置结束位置的无用数据"
 
-#: locale/programs/linereader.c:495
+#: locale/programs/linereader.c:531
 msgid "unterminated symbolic name"
 msgstr "未终止的符号名"
 
-#: locale/programs/linereader.c:622
+#: locale/programs/linereader.c:716
+#, c-format
+msgid "invalid UTF-8 sequence %s"
+msgstr "无效的 UTF-8 序列 %s"
+
+#: locale/programs/linereader.c:796
+msgid "illegal 8-bit character in untranslated string"
+msgstr "为翻译字符串中的非法 8 比特字符"
+
+#: locale/programs/linereader.c:804
 msgid "illegal escape sequence at end of string"
 msgstr "字符串末尾的非法转义序列"
 
-#: locale/programs/linereader.c:626 locale/programs/linereader.c:846
+#: locale/programs/linereader.c:808 locale/programs/linereader.c:979
 msgid "unterminated string"
 msgstr "未终止的字符串"
 
-#: locale/programs/linereader.c:807
+#: locale/programs/linereader.c:841
+msgid "illegal 8-bit escape sequence"
+msgstr "非法 8 比特转义序列"
+
+#: locale/programs/linereader.c:940
 #, c-format
 msgid "symbol `%.*s' not in charmap"
 msgstr "符号 `%.*s' 并不在字集对照表中"
 
-#: locale/programs/linereader.c:828
+#: locale/programs/linereader.c:961
 #, c-format
 msgid "symbol `%.*s' not in repertoire map"
 msgstr "符号 `%.*s' 并不在编码映射表中"
@@ -2722,6 +2742,16 @@ msgstr ""
 "\t\t      语区路径   ：%s\n"
 "%s"
 
+#: locale/programs/localedef.c:545
+#, c-format
+msgid "cannot create output path '%s': %s"
+msgstr "无法创建输出路径“%s”：%s"
+
+#: locale/programs/localedef.c:553
+#, c-format
+msgid "no write permission to output path '%s': %s"
+msgstr "没有输出路径“%s”的写权限：%s"
+
 #: locale/programs/localedef.c:645
 msgid "circular dependencies between locale definitions"
 msgstr "区域定义中的循环依赖"
@@ -2810,6 +2840,11 @@ msgstr "无法锁定区域归档文件“%s”"
 #, c-format
 msgid "cannot read archive header"
 msgstr "无法读入归档文件头"
+
+#: locale/programs/locarchive.c:661
+#, c-format
+msgid "bad magic value in archive header"
+msgstr "归档文件头中的无效魔数"
 
 #: locale/programs/locarchive.c:734
 #, c-format
@@ -3301,119 +3336,91 @@ msgstr "%2$s 目录中 UID 为 %1$d 的项目在 LOCAL 中不是唯一的\n"
 msgid "UNKNOWN"
 msgstr "未知"
 
-#: nis/nis_print.c:109
-msgid "BOGUS OBJECT\n"
-msgstr "虚假对象\n"
+#: nis/nis_print.c:69 nscd/nscd.c:117
+msgid "TABLE"
+msgstr "表格"
 
-#: nis/nis_print.c:112
-msgid "NO OBJECT\n"
-msgstr "无对象\n"
-
-#: nis/nis_print.c:115
-msgid "DIRECTORY\n"
-msgstr "目录\n"
-
-#: nis/nis_print.c:118
-msgid "GROUP\n"
-msgstr "组\n"
-
-#: nis/nis_print.c:121
-msgid "TABLE\n"
-msgstr "表\n"
-
-#: nis/nis_print.c:124
-msgid "ENTRY\n"
-msgstr "条目\n"
-
-#: nis/nis_print.c:127
-msgid "LINK\n"
-msgstr "链接\n"
-
-#: nis/nis_print.c:130
+#: nis/nis_print.c:75
 msgid "PRIVATE\n"
 msgstr "私有\n"
 
-#: nis/nis_print.c:133
-msgid "(Unknown object)\n"
-msgstr "（未知对象）\n"
-
-#: nis/nis_print.c:167
+#: nis/nis_print.c:164
 #, c-format
 msgid "Name : `%s'\n"
 msgstr "名称：“%s”\n"
 
-#: nis/nis_print.c:168
+#: nis/nis_print.c:165
 #, c-format
 msgid "Type : %s\n"
 msgstr "类型：%s\n"
 
-#: nis/nis_print.c:173
+#: nis/nis_print.c:170
 msgid "Master Server :\n"
 msgstr "主服务器：\n"
 
-#: nis/nis_print.c:175
+#: nis/nis_print.c:172
 msgid "Replicate :\n"
 msgstr "复制：\n"
 
-#: nis/nis_print.c:176
+#: nis/nis_print.c:173
 #, c-format
 msgid "\tName       : %s\n"
 msgstr "\t名称      ：%s\n"
 
-#: nis/nis_print.c:177
+#: nis/nis_print.c:174
 msgid "\tPublic Key : "
 msgstr "\t公钥      ："
 
-#: nis/nis_print.c:181
+#: nis/nis_print.c:178
 msgid "None.\n"
 msgstr "无。\n"
 
-#: nis/nis_print.c:184
+#: nis/nis_print.c:181
 #, c-format
 msgid "Diffie-Hellmann (%d bits)\n"
 msgstr "Diffie-Hellmann（%d 位）\n"
 
-#: nis/nis_print.c:189
+#: nis/nis_print.c:186
 #, c-format
 msgid "RSA (%d bits)\n"
 msgstr "RSA（%d 位）\n"
 
-#: nis/nis_print.c:192
+#: nis/nis_print.c:189
 msgid "Kerberos.\n"
 msgstr "Kerberos。\n"
 
-#: nis/nis_print.c:195
+#: nis/nis_print.c:192
 #, c-format
 msgid "Unknown (type = %d, bits = %d)\n"
 msgstr "未知（类型 = %d，位数 = %d）\n"
 
-#: nis/nis_print.c:206
+#: nis/nis_print.c:203
 #, c-format
 msgid "\tUniversal addresses (%u)\n"
 msgstr "\t绝对地址（%u）\n"
 
-#: nis/nis_print.c:228
+#: nis/nis_print.c:225
 msgid "Time to live : "
 msgstr "存留时间   ： "
 
-#: nis/nis_print.c:230
+#: nis/nis_print.c:227
 msgid "Default Access rights :\n"
 msgstr "默认访问权限：\n"
 
-#: nis/nis_print.c:239
+#: nis/nis_print.c:236
 #, c-format
 msgid "\tType         : %s\n"
 msgstr "\t类型       ：%s\n"
 
-#: nis/nis_print.c:240
+#: nis/nis_print.c:237
 msgid "\tAccess rights: "
 msgstr "\t访问权限   ："
 
-#: nis/nis_print.c:254
+#: nis/nis_print.c:251
 msgid "Group Flags :"
 msgstr "组标志     ："
 
-#: nis/nis_print.c:257
+#: nis/nis_print.c:254
 msgid ""
 "\n"
 "Group Members :\n"
@@ -3421,95 +3428,95 @@ msgstr ""
 "\n"
 "组成员     ：\n"
 
-#: nis/nis_print.c:269
+#: nis/nis_print.c:266
 #, c-format
 msgid "Table Type          : %s\n"
 msgstr "表格类型            ：%s\n"
 
-#: nis/nis_print.c:270
+#: nis/nis_print.c:267
 #, c-format
 msgid "Number of Columns   : %d\n"
 msgstr "列数                ：%d\n"
 
-#: nis/nis_print.c:271
+#: nis/nis_print.c:268
 #, c-format
 msgid "Character Separator : %c\n"
 msgstr "字符分隔符          ：%c\n"
 
-#: nis/nis_print.c:272
+#: nis/nis_print.c:269
 #, c-format
 msgid "Search Path         : %s\n"
 msgstr "搜索路径            ：%s\n"
 
-#: nis/nis_print.c:273
+#: nis/nis_print.c:270
 msgid "Columns             :\n"
 msgstr "列                  ：\n"
 
-#: nis/nis_print.c:276
+#: nis/nis_print.c:273
 #, c-format
 msgid "\t[%d]\tName          : %s\n"
 msgstr "\t[%d]\t名称         ：%s\n"
 
-#: nis/nis_print.c:278
+#: nis/nis_print.c:275
 msgid "\t\tAttributes    : "
 msgstr "\t\t属性     ："
 
-#: nis/nis_print.c:280
+#: nis/nis_print.c:277
 msgid "\t\tAccess Rights : "
 msgstr "\t\t访问权限 ："
 
-#: nis/nis_print.c:290
+#: nis/nis_print.c:287
 msgid "Linked Object Type : "
 msgstr "链接到对象类型 ："
 
-#: nis/nis_print.c:292
+#: nis/nis_print.c:289
 #, c-format
 msgid "Linked to : %s\n"
 msgstr "链接到 ：%s\n"
 
-#: nis/nis_print.c:302
+#: nis/nis_print.c:299
 #, c-format
 msgid "\tEntry data of type %s\n"
 msgstr "\t型别为 %s 的项目数据\n"
 
-#: nis/nis_print.c:305
+#: nis/nis_print.c:302
 #, c-format
 msgid "\t[%u] - [%u bytes] "
 msgstr "\t[%u] - [%u 字节] "
 
-#: nis/nis_print.c:308
+#: nis/nis_print.c:305
 msgid "Encrypted data\n"
 msgstr "已加密的数据\n"
 
-#: nis/nis_print.c:310
+#: nis/nis_print.c:307
 msgid "Binary data\n"
 msgstr "二进制数据\n"
 
-#: nis/nis_print.c:326
+#: nis/nis_print.c:323
 #, c-format
 msgid "Object Name   : %s\n"
 msgstr "对象名称  ：%s\n"
 
-#: nis/nis_print.c:327
+#: nis/nis_print.c:324
 #, c-format
 msgid "Directory     : %s\n"
 msgstr "目录      ：%s\n"
 
-#: nis/nis_print.c:328
+#: nis/nis_print.c:325
 #, c-format
 msgid "Owner         : %s\n"
 msgstr "所有者    ：%s\n"
 
-#: nis/nis_print.c:329
+#: nis/nis_print.c:326
 #, c-format
 msgid "Group         : %s\n"
 msgstr "组        ：%s\n"
 
-#: nis/nis_print.c:330
+#: nis/nis_print.c:327
 msgid "Access Rights : "
 msgstr "访问权限："
 
-#: nis/nis_print.c:332
+#: nis/nis_print.c:329
 #, c-format
 msgid ""
 "\n"
@@ -3518,36 +3525,36 @@ msgstr ""
 "\n"
 "存留时间   ："
 
-#: nis/nis_print.c:335
+#: nis/nis_print.c:332
 #, c-format
 msgid "Creation Time : %s"
 msgstr "创建时间   ：%s"
 
-#: nis/nis_print.c:337
+#: nis/nis_print.c:334
 #, c-format
 msgid "Mod. Time     : %s"
 msgstr "修改时间   ：%s"
 
-#: nis/nis_print.c:338
+#: nis/nis_print.c:335
 msgid "Object Type   : "
 msgstr "对象类型   ："
 
-#: nis/nis_print.c:358
+#: nis/nis_print.c:355
 #, c-format
 msgid "    Data Length = %u\n"
 msgstr "    数据长度 = %u\n"
 
-#: nis/nis_print.c:372
+#: nis/nis_print.c:369
 #, c-format
 msgid "Status            : %s\n"
 msgstr "状态     ：%s\n"
 
-#: nis/nis_print.c:373
+#: nis/nis_print.c:370
 #, c-format
 msgid "Number of objects : %u\n"
 msgstr "对象的数量 ：%u\n"
 
-#: nis/nis_print.c:377
+#: nis/nis_print.c:374
 #, c-format
 msgid "Object #%d:\n"
 msgstr "对象 #%d：\n"
@@ -3730,7 +3737,16 @@ msgstr "pruning %s 缓存；时间 %ld"
 #: nscd/cache.c:369
 #, c-format
 msgid "considering %s entry \"%s\", timeout %<PRIu64>"
-msgstr "认为中 %s 项目 “%s” ，逾时 %<PRIu64>"
+msgstr "考虑 %s 项目“%s”，超时 %<PRIu64>"
+
+#: nscd/cachedumper.c:168
+msgid " - all data: "
+msgstr " - 所有数据: "
+
+#: nscd/cachedumper.c:362
+#, c-format
+msgid " - remaining data %p: "
+msgstr " - 剩余数据 %p: "
 
 #: nscd/connections.c:519
 #, c-format
@@ -3957,34 +3973,34 @@ msgstr "添加文件监视 `%s' 失败: %s"
 msgid "disabled inotify-based monitoring after read error %d"
 msgstr "停用基于 inotify 的监控，在读取错误 %d 发生后"
 
-#: nscd/connections.c:2385
+#: nscd/connections.c:2386
 msgid "could not initialize conditional variable"
 msgstr "无法初始化条件变量"
 
-#: nscd/connections.c:2393
+#: nscd/connections.c:2394
 msgid "could not start clean-up thread; terminating"
 msgstr "无法开始清理线程；终止中"
 
-#: nscd/connections.c:2407
+#: nscd/connections.c:2408
 msgid "could not start any worker thread; terminating"
 msgstr "无法开始任何背景工作线程；终止中"
 
-#: nscd/connections.c:2462 nscd/connections.c:2464 nscd/connections.c:2480
-#: nscd/connections.c:2490 nscd/connections.c:2508 nscd/connections.c:2519
-#: nscd/connections.c:2529
+#: nscd/connections.c:2463 nscd/connections.c:2465 nscd/connections.c:2481
+#: nscd/connections.c:2491 nscd/connections.c:2509 nscd/connections.c:2520
+#: nscd/connections.c:2530
 #, c-format
 msgid "Failed to run nscd as user '%s'"
 msgstr "以用户 '%s' 的身分运行 nscd 失败"
 
-#: nscd/connections.c:2482
+#: nscd/connections.c:2483
 msgid "initial getgrouplist failed"
 msgstr "初始化 getgrouplist 失败"
 
-#: nscd/connections.c:2491
+#: nscd/connections.c:2492
 msgid "getgrouplist failed"
 msgstr "getgrouplist 失败"
 
-#: nscd/connections.c:2509
+#: nscd/connections.c:2510
 msgid "setgroups failed"
 msgstr "setgroups 失败"
 
@@ -4009,12 +4025,12 @@ msgstr "在组缓存中重新加载“%s”！"
 msgid "Invalid numeric gid \"%s\"!"
 msgstr "无效的 gid 数值 \"%s\"!"
 
-#: nscd/mem.c:424
+#: nscd/mem.c:420
 #, c-format
 msgid "freed %zu bytes in %s cache"
 msgstr "在 %2$s 缓存中 %1$zu 字节可用"
 
-#: nscd/mem.c:567
+#: nscd/mem.c:563
 #, c-format
 msgid "no more memory for database '%s'"
 msgstr "无更多内存可用于数据库 “%s” "
@@ -4067,10 +4083,6 @@ msgstr "关闭服务器"
 msgid "Print current configuration statistics"
 msgstr "印出目前组态统计"
 
-#: nscd/nscd.c:117
-msgid "TABLE"
-msgstr "表格"
-
 #: nscd/nscd.c:118
 msgid "Invalidate the specified cache"
 msgstr "使选定的缓存无效"
@@ -4087,7 +4099,7 @@ msgstr "为每个用户使用分离的缓存"
 msgid "Name Service Cache Daemon."
 msgstr "域名服务缓存守护进程。"
 
-#: nscd/nscd.c:158 nss/getent.c:986 nss/makedb.c:206
+#: nscd/nscd.c:158 nss/getent.c:995 nss/makedb.c:207
 #, c-format
 msgid "wrong number of arguments"
 msgstr "参数个数错误"
@@ -4493,59 +4505,59 @@ msgstr "要使用的服务配置"
 msgid "disable IDN encoding"
 msgstr "停用 IDN 编码"
 
-#: nss/getent.c:65
+#: nss/getent.c:67
 msgid "Get entries from administrative database."
 msgstr "从管理数据库取得条目。"
 
-#: nss/getent.c:149 nss/getent.c:461 nss/getent.c:508
+#: nss/getent.c:154 nss/getent.c:466 nss/getent.c:513
 #, c-format
 msgid "Enumeration not supported on %s\n"
 msgstr "%s 不支持枚举\n"
 
-#: nss/getent.c:516 nss/getent.c:529
+#: nss/getent.c:521 nss/getent.c:534
 #, c-format
 msgid "Could not allocate group list: %m\n"
 msgstr "无法分配组列表：%m\n"
 
-#: nss/getent.c:900
+#: nss/getent.c:905
 #, c-format
 msgid "Unknown database name"
 msgstr "未知的数据库名"
 
-#: nss/getent.c:930
+#: nss/getent.c:939
 msgid "Supported databases:\n"
 msgstr "支持的数据库：\n"
 
-#: nss/getent.c:996
+#: nss/getent.c:1005
 #, c-format
 msgid "Unknown database: %s\n"
 msgstr "未知的数据库：%s\n"
 
-#: nss/makedb.c:119
+#: nss/makedb.c:120
 msgid "Convert key to lower case"
 msgstr "转换键转换为小写"
 
-#: nss/makedb.c:122
+#: nss/makedb.c:123
 msgid "Do not print messages while building database"
 msgstr "不印出消息当创建数据库"
 
-#: nss/makedb.c:124
+#: nss/makedb.c:125
 msgid "Print content of database file, one entry a line"
 msgstr "印出内容的数据库文件，每项一行"
 
-#: nss/makedb.c:125
+#: nss/makedb.c:126
 msgid "CHAR"
 msgstr "字符"
 
-#: nss/makedb.c:126
+#: nss/makedb.c:127
 msgid "Generated line not part of iteration"
 msgstr "产生的行不是迭代的一部分"
 
-#: nss/makedb.c:131
+#: nss/makedb.c:132
 msgid "Create simple database from textual input."
 msgstr "从文本输入创建简单的数据库。"
 
-#: nss/makedb.c:134
+#: nss/makedb.c:135
 msgid ""
 "INPUT-FILE OUTPUT-FILE\n"
 "-o OUTPUT-FILE INPUT-FILE\n"
@@ -4555,71 +4567,71 @@ msgstr ""
 "-o 输出文件 输入文件\n"
 "-u 输入文件"
 
-#: nss/makedb.c:227
+#: nss/makedb.c:228
 #, c-format
 msgid "cannot open database file `%s'"
 msgstr "无法打开数据库文件 %s"
 
-#: nss/makedb.c:272
+#: nss/makedb.c:273
 #, c-format
 msgid "no entries to be processed"
 msgstr "没有条目可供处理"
 
-#: nss/makedb.c:282
+#: nss/makedb.c:283
 #, c-format
 msgid "cannot create temporary file name"
 msgstr "无法创建暂存文件名称"
 
-#: nss/makedb.c:288
+#: nss/makedb.c:289
 #, c-format
 msgid "cannot create temporary file"
 msgstr "无法创建临时文件"
 
-#: nss/makedb.c:304
+#: nss/makedb.c:305
 #, c-format
 msgid "cannot stat newly created file"
 msgstr "无法取得新创建文件的状态"
 
-#: nss/makedb.c:315
+#: nss/makedb.c:316
 #, c-format
 msgid "cannot rename temporary file"
 msgstr "无法重命名暂存文件"
 
-#: nss/makedb.c:527 nss/makedb.c:550
+#: nss/makedb.c:528 nss/makedb.c:551
 #, c-format
 msgid "cannot create search tree"
 msgstr "无法创建搜索树"
 
-#: nss/makedb.c:556
+#: nss/makedb.c:557
 msgid "duplicate key"
 msgstr "重复键值"
 
-#: nss/makedb.c:568
+#: nss/makedb.c:569
 #, c-format
 msgid "problems while reading `%s'"
 msgstr "读取“%s”时出错"
 
-#: nss/makedb.c:804
+#: nss/makedb.c:805
 #, c-format
 msgid "failed to write new database file"
 msgstr "写入新数据库文件时失败"
 
-#: nss/makedb.c:821
+#: nss/makedb.c:822
 #, c-format
 msgid "cannot stat database file"
 msgstr "无法取得数据库文件的状态"
 
-#: nss/makedb.c:826
+#: nss/makedb.c:827
 #, c-format
 msgid "cannot map database file"
 msgstr "无法映射数据库文件"
 
-#: nss/makedb.c:829
+#: nss/makedb.c:830
 #, c-format
 msgid "file not a database file"
 msgstr "文件不是数据库文件"
 
-#: nss/makedb.c:887
+#: nss/makedb.c:891
 #, c-format
 msgid "cannot set file creation context for `%s'"
 msgstr "无法为 %s 设置文件创建语境"
@@ -4672,37 +4684,37 @@ msgstr "未定义"
 msgid "Unrecognized variable `%s'"
 msgstr "不可识别的变量“%s”"
 
-#: posix/getopt.c:277
+#: posix/getopt.c:278
 #, c-format
 msgid "%s: option '%s%s' is ambiguous\n"
 msgstr "%s： 选项 ‘%s%s’ 含义不清\n"
 
-#: posix/getopt.c:283
+#: posix/getopt.c:284
 #, c-format
 msgid "%s: option '%s%s' is ambiguous; possibilities:"
 msgstr "%s： 选项 ‘%s%s’ 含义不清；可能为："
 
-#: posix/getopt.c:318
+#: posix/getopt.c:319
 #, c-format
 msgid "%s: unrecognized option '%s%s'\n"
 msgstr "%s：未识别的选项 ‘%s%s’\n"
 
-#: posix/getopt.c:344
+#: posix/getopt.c:345
 #, c-format
 msgid "%s: option '%s%s' doesn't allow an argument\n"
 msgstr "%s：选项 ‘%s%s’ 不允许有参数\n"
 
-#: posix/getopt.c:359
+#: posix/getopt.c:360
 #, c-format
 msgid "%s: option '%s%s' requires an argument\n"
 msgstr "%s：选项 ‘%s%s’ 需要一个参数\n"
 
-#: posix/getopt.c:620
+#: posix/getopt.c:621
 #, c-format
 msgid "%s: invalid option -- '%c'\n"
 msgstr "%s: 不适用的选项 -- %c\n"
 
-#: posix/getopt.c:635 posix/getopt.c:681
+#: posix/getopt.c:636 posix/getopt.c:682
 #, c-format
 msgid "%s: option requires an argument -- '%c'\n"
 msgstr "%s: 选项需要一个参数 -- %c\n"
@@ -5294,6 +5306,14 @@ msgstr "svc_unix.c - AF_UNIX 套接字创建问题"
 #: sunrpc/svc_unix.c:176
 msgid "svc_unix.c - cannot getsockname or listen"
 msgstr "svc_unix.c - 无法进行 getsockname 或 listen 操作"
+
+#: sysdeps/aarch64/dl-bti.c:72
+msgid "failed to turn on BTI protection"
+msgstr "启用 BTI 保护失败"
+
+#: sysdeps/generic/dl-protected.h:55
+msgid "error due to GNU_PROPERTY_1_NEEDED_INDIRECT_EXTERN_ACCESS"
+msgstr "由 GNU_PROPERTY_1_NEEDED_INDIRECT_EXTERN_ACCESS 导致的错误"
 
 #: sysdeps/generic/siglist.h:29
 msgid "Hangup"
@@ -6038,122 +6058,126 @@ msgid "Invalid slot"
 msgstr "不适用的 slot"
 
 #: sysdeps/gnu/errlist.h:597
+msgid "File locking deadlock error"
+msgstr "文件锁死锁错误"
+
+#: sysdeps/gnu/errlist.h:600
 msgid "Bad font file format"
 msgstr "错误的字体文件格式"
 
-#: sysdeps/gnu/errlist.h:600
+#: sysdeps/gnu/errlist.h:603
 msgid "Machine is not on the network"
 msgstr "机器不在网络中"
 
-#: sysdeps/gnu/errlist.h:603
+#: sysdeps/gnu/errlist.h:606
 msgid "Package not installed"
 msgstr "包未安装"
 
-#: sysdeps/gnu/errlist.h:606
+#: sysdeps/gnu/errlist.h:609
 msgid "Advertise error"
 msgstr "通知错误"
 
-#: sysdeps/gnu/errlist.h:609
+#: sysdeps/gnu/errlist.h:612
 msgid "Srmount error"
 msgstr "Srmount 错误"
 
-#: sysdeps/gnu/errlist.h:612
+#: sysdeps/gnu/errlist.h:615
 msgid "Communication error on send"
 msgstr "发送时出现通讯错误"
 
-#: sysdeps/gnu/errlist.h:615
+#: sysdeps/gnu/errlist.h:618
 msgid "RFS specific error"
 msgstr "RFS 特定错误"
 
-#: sysdeps/gnu/errlist.h:618
+#: sysdeps/gnu/errlist.h:621
 msgid "Name not unique on network"
 msgstr "网络上的名称不是唯一的"
 
-#: sysdeps/gnu/errlist.h:621
+#: sysdeps/gnu/errlist.h:624
 msgid "File descriptor in bad state"
 msgstr "文件描述符处于错误状态"
 
-#: sysdeps/gnu/errlist.h:624
+#: sysdeps/gnu/errlist.h:627
 msgid "Remote address changed"
 msgstr "远程地址已改变"
 
-#: sysdeps/gnu/errlist.h:627
+#: sysdeps/gnu/errlist.h:630
 msgid "Can not access a needed shared library"
 msgstr "无法访问必须的共享库"
 
-#: sysdeps/gnu/errlist.h:630
+#: sysdeps/gnu/errlist.h:633
 msgid "Accessing a corrupted shared library"
 msgstr "正在访问一个已毁坏的共享库"
 
-#: sysdeps/gnu/errlist.h:633
+#: sysdeps/gnu/errlist.h:636
 msgid ".lib section in a.out corrupted"
 msgstr "a.out 中的 .lib 节已毁坏"
 
-#: sysdeps/gnu/errlist.h:636
+#: sysdeps/gnu/errlist.h:639
 msgid "Attempting to link in too many shared libraries"
 msgstr "试图与过多的共享库相链接"
 
-#: sysdeps/gnu/errlist.h:639
+#: sysdeps/gnu/errlist.h:642
 msgid "Cannot exec a shared library directly"
 msgstr "无法直接执行共享库"
 
-#: sysdeps/gnu/errlist.h:642
+#: sysdeps/gnu/errlist.h:645
 msgid "Streams pipe error"
 msgstr "流管道错误"
 
-#: sysdeps/gnu/errlist.h:645
+#: sysdeps/gnu/errlist.h:648
 msgid "Structure needs cleaning"
 msgstr "结构需要清理"
 
-#: sysdeps/gnu/errlist.h:648
+#: sysdeps/gnu/errlist.h:651
 msgid "Not a XENIX named type file"
 msgstr "不是 XENIX 命名的类型文件"
 
-#: sysdeps/gnu/errlist.h:651
+#: sysdeps/gnu/errlist.h:654
 msgid "No XENIX semaphores available"
 msgstr "没有可用的 XENIX 信号量"
 
-#: sysdeps/gnu/errlist.h:654
+#: sysdeps/gnu/errlist.h:657
 msgid "Is a named type file"
 msgstr "是一个有名类型文件"
 
-#: sysdeps/gnu/errlist.h:657
+#: sysdeps/gnu/errlist.h:660
 msgid "Remote I/O error"
 msgstr "远程 I/O 错误"
 
-#: sysdeps/gnu/errlist.h:660
+#: sysdeps/gnu/errlist.h:663
 msgid "No medium found"
 msgstr "找不到介质"
 
-#: sysdeps/gnu/errlist.h:663
+#: sysdeps/gnu/errlist.h:666
 msgid "Wrong medium type"
 msgstr "错误的介质类型"
 
-#: sysdeps/gnu/errlist.h:666
+#: sysdeps/gnu/errlist.h:669
 msgid "Required key not available"
 msgstr "需要的关键字不存在"
 
-#: sysdeps/gnu/errlist.h:669
+#: sysdeps/gnu/errlist.h:672
 msgid "Key has expired"
 msgstr "关键字已过期"
 
-#: sysdeps/gnu/errlist.h:672
+#: sysdeps/gnu/errlist.h:675
 msgid "Key has been revoked"
 msgstr "键值已取消"
 
-#: sysdeps/gnu/errlist.h:675
+#: sysdeps/gnu/errlist.h:678
 msgid "Key was rejected by service"
 msgstr "键值被服务所拒绝"
 
-#: sysdeps/gnu/errlist.h:678
+#: sysdeps/gnu/errlist.h:681
 msgid "Operation not possible due to RF-kill"
 msgstr "由于 RF-kill 而无法操作"
 
-#: sysdeps/gnu/errlist.h:681
+#: sysdeps/gnu/errlist.h:684
 msgid "Memory page has hardware error"
 msgstr "内存分页有硬件错误"
 
-#: sysdeps/gnu/errlist.h:684
+#: sysdeps/gnu/errlist.h:687
 msgid "RPC struct is bad"
 msgstr "RPC 结构错误"
 
@@ -6162,43 +6186,43 @@ msgstr "RPC 结构错误"
 #. TRANS
 #. TRANS On some systems @code{chmod} returns this error if you try to set the
 #. TRANS sticky bit on a non-directory file; @pxref{Setting Permissions}.
-#: sysdeps/gnu/errlist.h:693
+#: sysdeps/gnu/errlist.h:696
 msgid "Inappropriate file type or format"
 msgstr "不适当的文件类型或格式"
 
-#: sysdeps/gnu/errlist.h:696
+#: sysdeps/gnu/errlist.h:699
 msgid "RPC bad procedure for program"
 msgstr "程序的 RPC 进程错误"
 
-#: sysdeps/gnu/errlist.h:699
+#: sysdeps/gnu/errlist.h:702
 msgid "Authentication error"
 msgstr "认证错误"
 
 #. TRANS On @gnuhurdsystems{}, opening a file returns this error when the file is
 #. TRANS translated by a program and the translator program dies while starting
 #. TRANS up, before it has connected to the file.
-#: sysdeps/gnu/errlist.h:706
+#: sysdeps/gnu/errlist.h:709
 msgid "Translator died"
 msgstr "中介程序已经结束"
 
-#: sysdeps/gnu/errlist.h:709
+#: sysdeps/gnu/errlist.h:712
 msgid "RPC version wrong"
 msgstr "RPC 版本错误"
 
 #. TRANS You did @strong{what}?
-#: sysdeps/gnu/errlist.h:714
+#: sysdeps/gnu/errlist.h:717
 msgid "You really blew it this time"
 msgstr "这次真的被您打败了"
 
 #. TRANS This means that the per-user limit on new process would be exceeded by
 #. TRANS an attempted @code{fork}.  @xref{Limits on Resources}, for details on
 #. TRANS the @code{RLIMIT_NPROC} limit.
-#: sysdeps/gnu/errlist.h:721
+#: sysdeps/gnu/errlist.h:724
 msgid "Too many processes"
 msgstr "进程过多"
 
 #. TRANS This error code has no purpose.
-#: sysdeps/gnu/errlist.h:726
+#: sysdeps/gnu/errlist.h:729
 msgid "Gratuitous error"
 msgstr "无故的错误"
 
@@ -6214,11 +6238,11 @@ msgstr "无故的错误"
 #. TRANS
 #. TRANS If the entire function is not available at all in the implementation,
 #. TRANS it returns @code{ENOSYS} instead.
-#: sysdeps/gnu/errlist.h:742
+#: sysdeps/gnu/errlist.h:745
 msgid "Not supported"
 msgstr "不支持"
 
-#: sysdeps/gnu/errlist.h:745
+#: sysdeps/gnu/errlist.h:748
 msgid "RPC program version wrong"
 msgstr "RPC 程序版本错误"
 
@@ -6228,7 +6252,7 @@ msgstr "RPC 程序版本错误"
 #. TRANS error because functions such as @code{read} and @code{write} translate
 #. TRANS it into a @code{SIGTTIN} or @code{SIGTTOU} signal.  @xref{Job Control},
 #. TRANS for information on process groups and these signals.
-#: sysdeps/gnu/errlist.h:755
+#: sysdeps/gnu/errlist.h:758
 msgid "Inappropriate operation for background process"
 msgstr "对后台进程的不适当操作"
 
@@ -6278,7 +6302,7 @@ msgstr "对后台进程的不适当操作"
 #. TRANS @c
 #. TRANS @c Translators, please do not translate this litteraly, translate it into
 #. TRANS @c an idiomatic funny way of saying that the computer died.
-#: sysdeps/gnu/errlist.h:773
+#: sysdeps/gnu/errlist.h:776
 msgid "Computer bought the farm"
 msgstr "这台电脑买了一块地啰"
 
@@ -6287,26 +6311,26 @@ msgstr "这台电脑买了一块地啰"
 #. TRANS
 #. TRANS C libraries in many older Unix systems have @code{EWOULDBLOCK} as a
 #. TRANS separate error code.
-#: sysdeps/gnu/errlist.h:782
+#: sysdeps/gnu/errlist.h:785
 msgid "Operation would block"
 msgstr "操作将阻塞"
 
-#: sysdeps/gnu/errlist.h:785
+#: sysdeps/gnu/errlist.h:788
 msgid "Need authenticator"
 msgstr "需要认证器"
 
 #. TRANS The experienced user will know what is wrong.
 #. TRANS @c This error code is a joke.  Its perror text is part of the joke.
 #. TRANS @c Don't change it.
-#: sysdeps/gnu/errlist.h:792
+#: sysdeps/gnu/errlist.h:795
 msgid "?"
 msgstr "？"
 
-#: sysdeps/gnu/errlist.h:795
+#: sysdeps/gnu/errlist.h:798
 msgid "RPC program not available"
 msgstr "RPC 程序不可用"
 
-#: sysdeps/mach/_strerror.c:43
+#: sysdeps/mach/_strerror.c:43 sysdeps/mach/xpg-strerror.c:55
 msgid "Error in unknown error system: "
 msgstr "未知的错误系统中出错："
 
@@ -6383,33 +6407,26 @@ msgstr "参数字串无法正确编码"
 msgid "makecontext: does not know how to handle more than 8 arguments\n"
 msgstr "makecontext：不知道该如何处理多于 8 个参数的情况\n"
 
-#: sysdeps/unix/sysv/linux/lddlibc4.c:59
-#, c-format
-msgid ""
-"Usage: lddlibc4 FILE\n"
-"\n"
-msgstr ""
-"用法：lddlibc4 文件\n"
-"\n"
-
-#: sysdeps/unix/sysv/linux/lddlibc4.c:80
-#, c-format
-msgid "cannot open `%s'"
-msgstr "无法打开“%s”"
-
-#: sysdeps/unix/sysv/linux/lddlibc4.c:84
-#, c-format
-msgid "cannot read header from `%s'"
-msgstr "无法从“%s”中读入头"
-
-#: sysdeps/unix/sysv/linux/x86/readelflib.c:64
+#: sysdeps/unix/sysv/linux/x86/readelflib.c:62
 #, c-format
 msgid "%s is for unknown machine %d.\n"
 msgstr "%s 用于未知的机器 %d。\n"
 
+#: sysdeps/x86/dl-cet.c:154
+msgid "rebuild shared object with IBT support enabled"
+msgstr "启用 IBT 支持重新构建共享对象"
+
+#: sysdeps/x86/dl-cet.c:165
+msgid "rebuild shared object with SHSTK support enabled"
+msgstr "启用 SHSTK 支持重新构建共享对象"
+
 #: sysdeps/x86/dl-cet.c:194
 msgid "can't disable CET"
 msgstr "无法禁用 CET"
+
+#: sysdeps/x86/dl-prop.h:61
+msgid "CPU ISA level is lower than required"
+msgstr "CPU ISA 级别低于需求"
 
 #: timezone/zdump.c:332
 msgid "has characters other than ASCII alphanumerics, '-' or '+'"
@@ -6497,6 +6514,23 @@ msgstr " （规则来自 \"%s\"，第 %<PRIdMAX> 行）"
 msgid "warning: "
 msgstr "警告： "
 
+#: timezone/zic.c:579
+#, c-format
+msgid ""
+"%s: usage is %s [ --version ] [ --help ] [ -v ] \\\n"
+"\t[ -b {slim|fat} ] [ -d directory ] [ -l localtime ] [ -L leapseconds ] \\\n"
+"\t[ -p posixrules ] [ -r '[@lo][/@hi]' ] [ -t localtime-link ] \\\n"
+"\t[ filename ... ]\n"
+"\n"
+"Report bugs to %s.\n"
+msgstr ""
+"%s：用法为 %s [ --version ] [ --help ] [ -v ]\\\n"
+"\t[ -b {slim|fat} ] [ -d 目录 ] [ -l 本地时间 ] [ -L 闰秒 ] \\\n"
+"\t[ -p posixrules ] [ -r '[@lo][/@hi]' ] [ -t localtime-link ] \\\n"
+"\t[ 文件名 ... ]\n"
+"\n"
+"请将程序错误报告至 %s。\n"
+
 #: timezone/zic.c:604
 #, c-format
 msgid "%s: Can't chdir to %s: %s\n"
@@ -6505,6 +6539,15 @@ msgstr "%s：无法改变目录到 %s：%s\n"
 #: timezone/zic.c:698
 msgid "wild compilation-time specification of zic_t"
 msgstr "zic_t 的万用编译时间规格"
+
+#: timezone/zic.c:716 timezone/zic.c:720
+msgid "incompatible -b options"
+msgstr "不兼容的 -b 选项"
+
+#: timezone/zic.c:723
+#, c-format
+msgid "invalid option: -b '%s'"
+msgstr "无效选项：-b '%s'"
 
 #: timezone/zic.c:730
 #, c-format
@@ -6539,6 +6582,16 @@ msgstr "%s：给出了多个 -y 选项\n"
 #, c-format
 msgid "%s: More than one -L option specified\n"
 msgstr "%s：给出了多个 -L 选项\n"
+
+#: timezone/zic.c:792
+#, c-format
+msgid "%s: More than one -r option specified\n"
+msgstr "%s：给出了多个 -r 选项\n"
+
+#: timezone/zic.c:798
+#, c-format
+msgid "%s: invalid time range: %s\n"
+msgstr "%s：无效的时间范围：%s\n"
 
 #: timezone/zic.c:805
 msgid "-s ignored"
@@ -6838,6 +6891,10 @@ msgstr "太多闰秒"
 #: timezone/zic.c:3032
 msgid "Leap seconds too close together"
 msgstr "闰秒距离太近"
+
+#: timezone/zic.c:3043
+msgid "\"#expires\" is obsolescent; use \"Expires\""
+msgstr "“#expires”已过时；使用“Expires”"
 
 #: timezone/zic.c:3095
 msgid "Wild result from command execution"

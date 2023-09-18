@@ -1,0 +1,28 @@
+commit e3ae80adbc626c4073a082e0205fdbb83033018a
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Aug 8 16:03:24 2023 +0200
+
+    hurd: Make error_t an int in C++
+    
+    Making error_t defined to enum __error_t_codes conveniently makes the
+    debugger print symbolic values, but in C++ int is not interoperable with
+    enum __error_t_codes, leading to C++ application build issues, so let's
+    revert error_t to int in C++.
+
+diff --git a/sysdeps/mach/hurd/bits/types/error_t.h b/sysdeps/mach/hurd/bits/types/error_t.h
+index 380aa434d5..4a7bd452c8 100644
+--- a/sysdeps/mach/hurd/bits/types/error_t.h
++++ b/sysdeps/mach/hurd/bits/types/error_t.h
+@@ -24,6 +24,12 @@
+ #ifndef __error_t_defined
+ # define __error_t_defined 1
+ 
++#ifdef __cplusplus
++/* Unfortunately, in C++ int and enum __error_t_codes are not
++   interoperable...  */
++typedef int error_t;
++#else
+ typedef enum __error_t_codes error_t;
++#endif
+ 
+ #endif

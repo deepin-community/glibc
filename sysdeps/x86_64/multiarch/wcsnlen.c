@@ -1,6 +1,6 @@
 /* Multiple versions of wcsnlen.
    All versions must be listed in ifunc-impl-list.c.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 # undef __wcsnlen
 
 # define SYMBOL_NAME wcsnlen
+# define GENERIC generic
 # include "ifunc-wcslen.h"
 
 libc_ifunc_redirected (__redirect_wcsnlen, __wcsnlen, IFUNC_SELECTOR ());

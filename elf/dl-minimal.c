@@ -1,5 +1,5 @@
 /* Minimal replacements for basic facilities used in the dynamic linker.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@
 #include <dl-minimal-malloc.h>
 #include <stdio.h>
 #include <unistd.h>
-
+#include <errno.h>
 
 /* The rtld startup code calls __rtld_malloc_init_stubs after the
   first self-relocation to adjust the pointers to the minimal

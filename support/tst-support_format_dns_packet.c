@@ -1,5 +1,5 @@
 /* Tests for the support_format_dns_packet function.
-   Copyright (C) 2016-2022 Free Software Foundation, Inc.
+   Copyright (C) 2016-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -85,8 +85,8 @@ test_multiple_cnames (void)
     "\xc0\x00\x02\x01";
   check_packet (packet, sizeof (packet) - 1, __func__,
                 "name: www.example\n"
-                "name: www1.example\n"
-                "name: www2.example\n"
+                "data: www.example CNAME www1.example\n"
+                "data: www1.example CNAME www2.example\n"
                 "address: 192.0.2.1\n");
 }
 

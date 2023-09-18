@@ -1,5 +1,5 @@
 /* Dynamic loading of the libgcc unwinder.  Generic version.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@ unwind_arch_adjustment (void *prev, void *addr)
 #endif
 
 #ifdef SHARED
-# include <sysdep.h>
+# include <pointer_guard.h>
 # include <unwind-resume.h>
 
 # if UNWIND_LINK_FRAME_STATE_FOR
@@ -61,16 +61,12 @@ libc_hidden_proto (__libc_unwind_link_get)
 /* UNWIND_LINK_PTR returns the stored function pointer NAME from the
    cached unwind link OBJ (which was previously returned by
    __libc_unwind_link_get).  */
-# ifdef PTR_DEMANGLE
-#  define UNWIND_LINK_PTR(obj, name, ...)                          \
+# define UNWIND_LINK_PTR(obj, name, ...)                             \
   ({                                                                \
     __typeof ((obj)->ptr_##name) __unwind_fptr = (obj)->ptr_##name; \
     PTR_DEMANGLE (__unwind_fptr);                                   \
     __unwind_fptr;                                                  \
   })
-# else /* !PTR_DEMANGLE */
-#  define UNWIND_LINK_PTR(obj, name, ...) ((obj)->ptr_##name)
-# endif
 
 /* Called from fork, in the new subprocess.  */
 void __libc_unwind_link_after_fork (void);

@@ -1,5 +1,5 @@
 /* Hash table for TLS descriptors.
-   Copyright (C) 2005-2022 Free Software Foundation, Inc.
+   Copyright (C) 2005-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -110,6 +110,8 @@ _dl_make_tlsdesc_dynamic (struct link_map *map, size_t ti_offset)
     }
 
   *entry = td = malloc (sizeof (struct tlsdesc_dynamic_arg));
+  if (! td)
+    return 0;
   /* This may be higher than the map's generation, but it doesn't
      matter much.  Worst case, we'll have one extra DTV update per
      thread.  */

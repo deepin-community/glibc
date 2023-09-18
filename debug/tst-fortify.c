@@ -1,4 +1,4 @@
-/* Copyright (C) 2004-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2004-2023 Free Software Foundation, Inc.
    Copyright The GNU Toolchain Authors.
    This file is part of the GNU C Library.
 
@@ -1478,10 +1478,15 @@ do_test (void)
 	 character which has a multibyte representation which does not
 	 fit.  */
       CHK_FAIL_START
-      char smallbuf[2];
+      char smallbuf[1];
       if (wcrtomb (smallbuf, L'\x100', &s) != 2)
 	FAIL ();
       CHK_FAIL_END
+
+      /* Same input with a large enough buffer and we're good.  */
+      char bigenoughbuf[2];
+      if (wcrtomb (bigenoughbuf, L'\x100', &s) != 2)
+	FAIL ();
 #endif
 
       wchar_t wenough[10];
@@ -1503,6 +1508,11 @@ do_test (void)
       mbsrtowcs (wsmallbuf, &cp, 10, &s);
       CHK_FAIL_END
 #endif
+
+      /* Bug 29030 regresion check */
+      cp = "HelloWorld";
+      if (mbsrtowcs (NULL, &cp, (size_t)-1, &s) != 10)
+        FAIL ();
 
       cp = "A";
       if (mbstowcs (wenough, cp, 10) != 1

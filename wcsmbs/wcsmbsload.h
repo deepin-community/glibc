@@ -1,4 +1,4 @@
-/* Copyright (C) 1998-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -66,13 +66,10 @@ extern const struct __locale_data _nl_C_LC_CTYPE attribute_hidden;
 static inline const struct gconv_fcts *
 get_gconv_fcts (struct __locale_data *data)
 {
-  if (__glibc_unlikely (data->private.ctype == NULL))
-    {
-      if (__glibc_unlikely (data == &_nl_C_LC_CTYPE))
-	return &__wcsmbs_gconv_fcts_c;
-      __wcsmbs_load_conv (data);
-    }
-  return data->private.ctype;
+  struct lc_ctype_data *private = data->private;
+  if (private->fcts == NULL)
+    __wcsmbs_load_conv (data);
+  return private->fcts;
 }
 
 #endif	/* wcsmbsload.h */

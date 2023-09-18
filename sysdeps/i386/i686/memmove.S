@@ -1,7 +1,7 @@
 /* Copy memory block and return pointer to beginning of destination block
    For Intel 80x86, x>=6.
    This file is part of the GNU C Library.
-   Copyright (C) 2003-2022 Free Software Foundation, Inc.
+   Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,22 +25,16 @@
 
 	.text
 
-#ifdef USE_AS_BCOPY
-# define SRC	RTN
-# define DEST	SRC+4
-# define LEN	DEST+4
-#else
-# define DEST	RTN
-# define SRC	DEST+4
-# define LEN	SRC+4
+#define DEST	RTN
+#define SRC	DEST+4
+#define LEN	SRC+4
 
-# if defined PIC && IS_IN (libc)
+#if defined PIC && IS_IN (libc)
 ENTRY_CHK (__memmove_chk)
 	movl	12(%esp), %eax
 	cmpl	%eax, 16(%esp)
 	jb	HIDDEN_JUMPTARGET (__chk_fail)
 END_CHK (__memmove_chk)
-# endif
 #endif
 
 ENTRY (memmove)
@@ -71,9 +65,7 @@ ENTRY (memmove)
 	movsl
 	movl	%edx, %esi
 	cfi_restore (esi)
-#ifndef USE_AS_BCOPY
 	movl	DEST(%esp), %eax
-#endif
 
 	popl	%edi
 	cfi_adjust_cfa_offset (-4)
@@ -103,9 +95,7 @@ ENTRY (memmove)
 	movsl
 	movl	%edx, %esi
 	cfi_restore (esi)
-#ifndef USE_AS_BCOPY
 	movl	DEST(%esp), %eax
-#endif
 
 	cld
 	popl	%edi
@@ -114,6 +104,4 @@ ENTRY (memmove)
 
 	ret
 END (memmove)
-#ifndef USE_AS_BCOPY
 libc_hidden_builtin_def (memmove)
-#endif

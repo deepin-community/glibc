@@ -1,5 +1,5 @@
 /* Definitions for POSIX memory map interface.  Linux/ia64 version.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,9 +24,7 @@
    But the kernel header is not namespace clean.  */
 
 /* These are Linux-specific.  */
-#ifdef __USE_MISC
-# define MAP_GROWSUP	  0x00200	/* Register stack-like segment */
-#endif
+#define MAP_GROWSUP	  0x00200	/* Register stack-like segment */
 
 #include <bits/mman-map-flags-generic.h>
 

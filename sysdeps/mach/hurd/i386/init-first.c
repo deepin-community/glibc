@@ -1,5 +1,5 @@
 /* Initialization code run first thing by the ELF startup code.  For i386/Hurd.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,13 +38,14 @@ extern void __init_misc (int, char **, char **);
 unsigned long int __hurd_threadvar_stack_offset;
 unsigned long int __hurd_threadvar_stack_mask;
 
-#ifndef SHARED
-int __libc_enable_secure;
-#endif
-
 extern int __libc_argc attribute_hidden;
 extern char **__libc_argv attribute_hidden;
 extern char **_dl_argv;
+
+#ifndef SHARED
+unsigned short __init1_desc;
+static tcbhead_t __init1_tcbhead;
+#endif
 
 /* Things that want to be run before _hurd_init or much anything else.
    Importantly, these are called before anything tries to use malloc.  */
@@ -99,8 +100,13 @@ init1 (int argc, char *arg0, ...)
   d = (void *) ++envp;
 
   if ((void *) d == argv[0])
-    /* No Hurd data block to process.  */
-    return;
+    {
+      /* No Hurd data block to process.  */
+#ifndef SHARED
+      __libc_enable_secure = 0;
+#endif
+      return;
+    }
 
 #ifndef SHARED
   __libc_enable_secure = d->flags & EXEC_SECURE;
@@ -242,6 +248,13 @@ first_init (void)
   /* Initialize data structures so we can do RPCs.  */
   __mach_init ();
 
+#ifndef SHARED
+  /* In the static case, we need to set up TLS early so that the stack
+     protection guard can be read at gs:0x14 by the gcc-generated snippets.  */
+  _hurd_tls_init(&__init1_tcbhead);
+  asm ("movw %%gs,%w0" : "=m" (__init1_desc));
+#endif
+
   RUN_RELHOOK (_hurd_preinit_hook, ());
 }
 
@@ -284,6 +297,7 @@ strong_alias (posixland_init, __libc_init_first);
    This poorly-named function is called by static-start.S,
    which should not exist at all.  */
 void
+inhibit_stack_protector
 _hurd_stack_setup (void)
 {
   intptr_t caller = (intptr_t) __builtin_return_address (0);

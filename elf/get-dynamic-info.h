@@ -1,5 +1,5 @@
 /* Read the dynamic section at DYN and fill in INFO with indices DT_*.
-   Copyright (C) 2012-2022 Free Software Foundation, Inc.
+   Copyright (C) 2012-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -75,23 +75,36 @@ elf_get_dynamic_info (struct link_map *l, bool bootstrap,
 
 # define ADJUST_DYN_INFO(tag) \
       do								      \
-	if (info[tag] != NULL)						      \
-         info[tag]->d_un.d_ptr += l_addr;				      \
+	{								      \
+	  if (info[tag] != NULL)					      \
+	  info[tag]->d_un.d_ptr += l_addr;				      \
+	}								      \
       while (0)
 
       ADJUST_DYN_INFO (DT_HASH);
       ADJUST_DYN_INFO (DT_PLTGOT);
       ADJUST_DYN_INFO (DT_STRTAB);
       ADJUST_DYN_INFO (DT_SYMTAB);
+      ADJUST_DYN_INFO (DT_RELR);
+      ADJUST_DYN_INFO (DT_JMPREL);
+      ADJUST_DYN_INFO (VERSYMIDX (DT_VERSYM));
+      ADJUST_DYN_INFO (ADDRIDX (DT_GNU_HASH));
+# undef ADJUST_DYN_INFO
+
+      /* DT_RELA/DT_REL are mandatory.  But they may have zero value if
+	 there is DT_RELR.  Don't relocate them if they are zero.  */
+# define ADJUST_DYN_INFO(tag) \
+      do								      \
+	if (info[tag] != NULL && info[tag]->d_un.d_ptr != 0)		      \
+         info[tag]->d_un.d_ptr += l_addr;				      \
+      while (0)
+
 # if ! ELF_MACHINE_NO_RELA
       ADJUST_DYN_INFO (DT_RELA);
 # endif
 # if ! ELF_MACHINE_NO_REL
       ADJUST_DYN_INFO (DT_REL);
 # endif
-      ADJUST_DYN_INFO (DT_JMPREL);
-      ADJUST_DYN_INFO (VERSYMIDX (DT_VERSYM));
-      ADJUST_DYN_INFO (ADDRIDX (DT_GNU_HASH));
 # undef ADJUST_DYN_INFO
     }
   if (info[DT_PLTREL] != NULL)
@@ -113,6 +126,8 @@ elf_get_dynamic_info (struct link_map *l, bool bootstrap,
   if (info[DT_REL] != NULL)
     assert (info[DT_RELENT]->d_un.d_val == sizeof (ElfW(Rel)));
 #endif
+  if (info[DT_RELR] != NULL)
+    assert (info[DT_RELRENT]->d_un.d_val == sizeof (ElfW(Relr)));
   if (bootstrap || static_pie_bootstrap)
     {
       assert (info[DT_RUNPATH] == NULL);

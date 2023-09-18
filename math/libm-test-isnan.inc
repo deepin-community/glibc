@@ -1,5 +1,5 @@
 /* Test isnan.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,8 +33,10 @@ static const struct test_f_i_data isnan_test_data[] =
     TEST_f_b (isnan, minus_infty, 0, NO_INEXACT_EXCEPTION|ERRNO_UNCHANGED),
     TEST_f_b (isnan, qnan_value, 1, NO_INEXACT_EXCEPTION|ERRNO_UNCHANGED),
     TEST_f_b (isnan, -qnan_value, 1, NO_INEXACT_EXCEPTION|ERRNO_UNCHANGED),
+#ifdef __SUPPORT_SNAN__
     TEST_f_b (isnan, snan_value, 1, NO_INEXACT_EXCEPTION|ERRNO_UNCHANGED),
     TEST_f_b (isnan, -snan_value, 1, NO_INEXACT_EXCEPTION|ERRNO_UNCHANGED),
+#endif
   };
 
 #if TEST_COND_intel96

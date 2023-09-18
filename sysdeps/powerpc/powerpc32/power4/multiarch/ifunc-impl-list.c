@@ -1,5 +1,5 @@
 /* Enumerate available IFUNC implementations of a function.  PowerPC32 version.
-   Copyright (C) 2013-2022 Free Software Foundation, Inc.
+   Copyright (C) 2013-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,16 +22,11 @@
 #include <ldsodefs.h>
 #include <ifunc-impl-list.h>
 
-/* Maximum number of IFUNC implementations.  */
-#define MAX_IFUNC	6
-
 size_t
 __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 			size_t max)
 {
-  assert (max >= MAX_IFUNC);
-
-  size_t i = 0;
+  size_t i = max;
 
   unsigned long int hwcap = GLRO(dl_hwcap);
   /* hwcap contains only the latest supported ISA, the code checks which is
@@ -72,14 +67,6 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 	      IFUNC_IMPL_ADD (array, i, memset, hwcap & PPC_FEATURE_ARCH_2_05,
 			      __memset_power6)
 	      IFUNC_IMPL_ADD (array, i, memset, 1, __memset_ppc))
-
-  /* Support sysdeps/powerpc/powerpc32/power4/multiarch/bzero.c.  */
-  IFUNC_IMPL (i, name, bzero,
-	      IFUNC_IMPL_ADD (array, i, bzero, hwcap & PPC_FEATURE_HAS_VSX,
-			      __bzero_power7)
-	      IFUNC_IMPL_ADD (array, i, bzero, hwcap & PPC_FEATURE_ARCH_2_05,
-			      __bzero_power6)
-	      IFUNC_IMPL_ADD (array, i, bzero, 1, __bzero_ppc))
 
   /* Support sysdeps/powerpc/powerpc32/power4/multiarch/strlen.c.  */
   IFUNC_IMPL (i, name, strlen,
@@ -187,5 +174,5 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 	      IFUNC_IMPL_ADD (array, i, strchr, 1,
 			      __strchr_ppc))
 
-  return i;
+  return 0;
 }

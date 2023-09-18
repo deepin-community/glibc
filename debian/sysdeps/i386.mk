@@ -1,5 +1,7 @@
 # configuration options for all flavours
 extra_config_options = --enable-multi-arch
+CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)$(DEB_GCC_VERSION) -Wl,--hash-style=both
+CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)$(DEB_GCC_VERSION) -Wl,--hash-style=both
 
 # multilib flavours
 ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))

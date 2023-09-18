@@ -1,5 +1,5 @@
 /* futex helper functions for glibc-internal use.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -87,7 +87,7 @@ __futex_abstimed_wait_common (unsigned int* futex_word,
   err = __futex_abstimed_wait_common64 (futex_word, expected, op, abstime,
 					private, cancel);
 #else
-  bool need_time64 = abstime != NULL && !in_time_t_range (abstime->tv_sec);
+  bool need_time64 = abstime != NULL && !in_int32_t_range (abstime->tv_sec);
   if (need_time64)
     {
       err = __futex_abstimed_wait_common64 (futex_word, expected, op, abstime,
@@ -162,7 +162,7 @@ __futex_lock_pi64 (int *futex_word, clockid_t clockid,
 # ifdef __ASSUME_TIME64_SYSCALLS
   err = INTERNAL_SYSCALL_CALL (futex_time64, futex_word, op_pi, 0, abstime);
 # else
-  bool need_time64 = abstime != NULL && !in_time_t_range (abstime->tv_sec);
+  bool need_time64 = abstime != NULL && !in_int32_t_range (abstime->tv_sec);
   if (need_time64)
     err = INTERNAL_SYSCALL_CALL (futex_time64, futex_word, op_pi, 0, abstime);
   else

@@ -1,5 +1,4 @@
-libc_packages := libc6 libc6.1 libc0.1 libc0.3
-libc0_1_archs := kfreebsd-amd64 kfreebsd-i386
+libc_packages := libc6 libc6.1 libc0.3
 libc0_3_archs := hurd-i386
 libc6_archs   := amd64 arc arm64 armel armhf hppa i386 m68k mips mipsel mipsn32 mipsn32el mips64 mips64el mipsr6 mipsr6el \
                  mipsn32r6 mipsn32r6el mips64r6 mips64r6el nios2 powerpc ppc64 ppc64el riscv64 \
@@ -15,7 +14,7 @@ $(patsubst %,debian/control.in/%,$(libc_packages)) :: debian/control.in/% : debi
 	    -e "s%@libc-dev-conflict@%$(foreach arch,$(filter-out $*,$(libc_packages)),$(arch)-dev,)%g" \
 	    < $< > $@
 
-GPP_CROSS_DEP = $(foreach a,$(libc0_1_archs) $(libc0_1_archs) $(libc6_archs) $(libc6_1_archs),g++$(DEB_GCC_VERSION)-$(shell dpkg-architecture -f -a$(a) -qDEB_HOST_GNU_TYPE | tr _ -) [$(a)] <cross>,)
+GPP_CROSS_DEP = $(foreach a,$(libc6_archs) $(libc6_1_archs),g++$(DEB_GCC_VERSION)-$(shell dpkg-architecture -f -a$(a) -qDEB_HOST_GNU_TYPE | tr _ -) [$(a)] <cross>,)
 
 debian/control: $(stamp)control
 $(stamp)control: debian/rules.d/control.mk $(control_deps) debian/tests/control.in
@@ -29,7 +28,6 @@ $(stamp)control: debian/rules.d/control.mk $(control_deps) debian/tests/control.
 	cat debian/control.in/libc6		>> $@T
 	cat debian/control.in/libc6.1		>> $@T
 	cat debian/control.in/libc0.3		>> $@T
-	cat debian/control.in/libc0.1		>> $@T
 	cat debian/control.in/i386		>> $@T
 	cat debian/control.in/sparc		>> $@T
 	cat debian/control.in/sparc64		>> $@T
@@ -40,9 +38,7 @@ $(stamp)control: debian/rules.d/control.mk $(control_deps) debian/tests/control.
 	cat debian/control.in/mips32		>> $@T
 	cat debian/control.in/mipsn32		>> $@T
 	cat debian/control.in/mips64		>> $@T
-	cat debian/control.in/kfreebsd-i386	>> $@T
 	cat debian/control.in/x32		>> $@T
-	cat debian/control.in/opt		>> $@T
 	sed -e 's%@libc@%$(libc)%g' -e 's%@DEB_VERSION_UPSTREAM@%$(DEB_VERSION_UPSTREAM)%g' -e 's%@GPP_CROSS_DEP@%$(GPP_CROSS_DEP)%g' < $@T > debian/control
 	rm $@T
 

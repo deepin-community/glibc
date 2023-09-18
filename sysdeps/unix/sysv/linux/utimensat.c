@@ -1,5 +1,5 @@
 /* Change access and modification times of open file.  Linux version.
-   Copyright (C) 2007-2022 Free Software Foundation, Inc.
+   Copyright (C) 2007-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -41,9 +41,9 @@ __utimensat64_helper (int fd, const char *file,
 
   bool need_time64 = tsp64 != NULL
 		     && ((!TS_SPECIAL (tsp64[0])
-			  && !in_time_t_range (tsp64[0].tv_sec))
+			  && !in_int32_t_range (tsp64[0].tv_sec))
 			 || (!TS_SPECIAL (tsp64[1])
-			     && !in_time_t_range (tsp64[1].tv_sec)));
+			     && !in_int32_t_range (tsp64[1].tv_sec)));
   if (need_time64)
     {
       int r = INLINE_SYSCALL_CALL (utimensat_time64, fd, file, &tsp64[0],

@@ -1,9 +1,292 @@
 GNU C Library NEWS -- history of user-visible changes.
-Copyright (C) 1992-2022 Free Software Foundation, Inc.
+Copyright (C) 1992-2023 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
 using `glibc' in the "product" field.
+
+Version 2.37
+
+Major new features:
+
+* The getent tool now supports the --no-addrconfig option. The output of
+  getent with --no-addrconfig may contain addresses of families not
+  configured on the current host i.e. as-if you had not passed
+  AI_ADDRCONFIG to getaddrinfo calls.
+
+Deprecated and removed features, and other changes affecting compatibility:
+
+* The dynamic linker no longer loads shared objects from the "tls"
+  subdirectories on the library search path or the subdirectory that
+  corresponds to the AT_PLATFORM system name, or employs the legacy AT_HWCAP
+  search mechanism, which was deprecated in version 2.33.
+
+Security related changes:
+
+  CVE-2022-39046: When the syslog function is passed a crafted input
+  string larger than 1024 bytes, it reads uninitialized memory from the
+  heap and prints it to the target log file, potentially revealing a
+  portion of the contents of the heap.
+
+The following bugs are resolved with this release:
+
+  [12154] network: Cannot resolve hosts which have wildcard aliases
+  [12165] libc: readdir: Do not skip entries with zero d_ino values
+  [19444] build: build failures with -O1 due to -Wmaybe-uninitialized
+  [24774] nptl: pthread_rwlock_timedwrlock stalls on ARM
+  [24816] nss: nss/tst-nss-files-hosts-long fails when no interface has
+    AF_INET6 address (ie docker)
+  [27087] stdio: PowerPC: Redefinition error with Clang from IEEE
+    redirection headers
+  [28846] network: CMSG_NXTHDR may trigger -Wstrict-overflow warning
+  [28937] dynamic-link: New DSO dependency sorter does not put new map
+    first if in a cycle
+  [29249] libc: csu/libc-tls.c:202: undefined reference to
+    `_startup_fatal_not_constant'
+  [29305] network: Inefficient buffer space usage in nss_dns for
+    gethostbyname and other functions
+  [29375] libc: don't hide MAP_ANONYMOUS behind _GNU_SOURCE
+  [29402] nscd: nscd: No such file or directory
+  [29415] nscd: getaddrinfo with AI_ADDRCONFIG returns addresses with
+    wrong family
+  [29427] dynamic-link: Inconsistency detected by ld.so: dl-printf.c:
+    200: _dl_debug_vdprintf: Assertion `! "invalid format specifier"'
+    failed!
+  [29463] math: math/test-float128-y1 fails on x86_64
+  [29485] build: Make hangs when the test misc/tst-pidfile returns
+    FAIL_UNSUPPORTED
+  [29490] dynamic-link: [bisected] new __brk_call causes dynamic loader
+    segfault on alpha
+  [29499] build: Check failed on misc/tst-glibcsyscalls while building
+    for RISCV64 on a unmatched hardware
+  [29501] build: Check failed on stdlib/tst-strfrom while building for
+    RISCV64 on a unmatched hardware
+  [29502] libc: alpha sys/acct.h out of date
+  [29514] build: Need to use -fPIE not -fpie
+  [29528] dynamic-link: __libc_early_init not called after dlmopen that
+    reuses namespace
+  [29536] libc: syslog fail to create large messages (CVE-2022-39046)
+  [29537] libc: [2.34 regression]: Alignment issue on m68k when using
+    futexes on qemu-user
+  [29539] libc: LD_TRACE_LOADED_OBJECTS changed how vDSO library are
+    printed
+  [29544] libc: Regression in syslog(3) calls breaks RFC due to extra
+    whitespace
+  [29564] build: Incorrect way to change MAKEFLAGS in Makerules
+  [29576] build: librtld.os: in function `_dl_start_profile':
+    (.text+0x9444): undefined reference to `strcpy'
+  [29578] libc: Definition of SUN_LEN() is wrong
+  [29583] build: iconv failures on 32bit platform due to missing large
+    file support
+  [29600] dynamic-link: dlmopen hangs after loading certain libraries
+  [29604] localedata: Update locale data to Unicode 15.0.0
+  [29605] nscd: Regression in NSCD backend of getaddrinfo
+  [29607] nscd: nscd repeatably crashes calling __strlen_avx2 when hosts
+    cache is enabled
+  [29611] string: Optimized AVX2 string functions unconditionally use
+    BMI2 instructions
+  [29624] malloc: errno is not cleared when entering main
+  [29638] libc: stdlib: arc4random fallback is never used
+  [29657] libc: Incorrect struct stat for 64-bit time on linux/generic
+    platforms
+  [29698] build: Configuring for AArch32 on ARMv8+ disables
+    optimizations
+  [29727] locale: __strtol_internal out-of-bounds read when parsing
+    thousands grouping
+  [29730] libc: broken y2038 support in fstatat on MIPS N64
+  [29746] libc: ppoll() does not switch to __ppoll64 when
+    -D_TIME_BITS=64 and -D_FORTIFY_SOURCE=2 is given on 32bit
+  [29771] libc: Restore IPC_64 support in sysvipc *ctl functions
+  [29780] build: possible parallel make issue in glibc-2.36 (siglist-
+    aux.S: No such file or directory)
+  [29864] libc: __libc_start_main() should obtain program headers
+    address (_dl_phdr) from the auxv, not the ELF header.
+  [29951] time: daylight variable not set correctly if last DST change
+    coincides with offset change
+  [30039] stdio: __vsprintf_internal does not handle unspecified buffer
+    length in fortify mode
+
+Version 2.36
+
+Major new features:
+
+* Support for DT_RELR relative relocation format has been added to
+  glibc.  This is a new ELF dynamic tag that improves the size of
+  relative relocations in shared object files and position independent
+  executables (PIE).  DT_RELR generation requires linker support for
+  -z pack-relative-relocs option, which is supported for some targets
+  in recent binutils versions.  Lazy binding doesn't apply to DT_RELR.
+
+* On Linux, the pidfd_open, pidfd_getfd, and pidfd_send_signal functions
+  have been added.  The pidfd functionality provides access to a process
+  while avoiding the issue of PID reuse on tranditional Unix systems.
+
+* On Linux, the process_madvise function has been added. It has the
+  same functionality as madvise but alters the target process identified
+  by the pidfd.
+
+* On Linux, the process_mrelease function has been added.  It allows a
+  caller to release the memory of a dying process.  The release of the
+  memory is carried out in the context of the caller, using the caller's
+  CPU affinity, and priority with CPU usage accounted to the caller.
+
+* The “no-aaaa” DNS stub resolver option has been added.  System
+  administrators can use it to suppress AAAA queries made by the stub
+  resolver, including AAAA lookups triggered by NSS-based interfaces
+  such as getaddrinfo.  Only DNS lookups are affected: IPv6 data in
+  /etc/hosts is still used, getaddrinfo with AI_PASSIVE will still
+  produce IPv6 addresses, and configured IPv6 name servers are still
+  used.  To produce correct Name Error (NXDOMAIN) results, AAAA queries
+  are translated to A queries.  The new resolver option is intended
+  primarily for diagnostic purposes, to rule out that AAAA DNS queries
+  have adverse impact.  It is incompatible with EDNS0 usage and DNSSEC
+  validation by applications.
+
+* On Linux, the fsopen, fsmount, move_mount, fsconfig, fspick, open_tree,
+  and mount_setattr have been added.  They are part of the new Linux kernel
+  mount APIs that allow applications to more flexibly configure and operate
+  on filesystem mounts.  The new mount APIs are specifically designed to work
+  with namespaces.
+
+* localedef now accepts locale definition files encoded in UTF-8.
+  Previously, input bytes not within the ASCII range resulted in
+  unpredictable output.
+
+* Support for the mbrtoc8 and c8rtomb multibyte/UTF-8 character conversion
+  functions has been added per the ISO C2X N2653 and C++20 P0482R6 proposals.
+  Support for the char8_t typedef has been added per the ISO C2X N2653
+  proposal.  The functions are declared in uchar.h in C2X mode or when the
+  _GNU_SOURCE macro or C++20 __cpp_char8_t feature test macro is defined.
+  The char8_t typedef is declared in uchar.h in C2X mode or when the
+  _GNU_SOURCE macro is defined and the C++20 __cpp_char8_t feature test macro
+  is not defined (if __cpp_char8_t is defined, then char8_t is a builtin type).
+
+* The functions arc4random, arc4random_buf, and arc4random_uniform have been
+  added.  The functions wrap getrandom and/or /dev/urandom to return high-
+  quality randomness from the kernel.
+
+* Support for LoongArch running on Linux has been added.  This port requires
+  as least binutils 2.38, GCC 12, and Linux 5.19.  Currently only hard-float
+  ABI is supported:
+
+    - loongarch64-linux-gnu
+
+  The LoongArch ABI is 64-bit little-endian.
+
+Deprecated and removed features, and other changes affecting compatibility:
+
+* Support for prelink will be removed in the next release; this includes
+  removal of the LD_TRACE_PRELINKING, and LD_USE_LOAD_BIAS, environment
+  variables and their functionality in the dynamic loader.
+
+* The Linux kernel version check has been removed along with the
+  LD_ASSUME_KERNEL environment variable.  The minimum kernel used to built
+  glibc is still provided through NT_GNU_ABI_TAG ELF note and also printed
+  when libc.so is issued directly.
+
+* On Linux, The LD_LIBRARY_VERSION environment variable has been removed.
+
+The following bugs are resolved with this release:
+
+  [14932] dynamic-link: dlsym(handle, "foo") and dlsym(RTLD_NEXT, "foo")
+    return different result with versioned "foo"
+  [16355] libc: syslog.h's SYSLOG_NAMES namespace violation and utter
+    mess
+  [23293] dynamic-link: aarch64: getauxval is broken when run as ld.so
+    ./exe and ld.so adjusts argv on the stack
+  [24595] nptl: [2.28 Regression]: Deadlock in atfork handler which
+    calls dlclose
+  [25744] locale: mbrtowc with Big5-HKSCS returns 2 instead of 1 when
+    consuming the second byte of certain double byte characters
+  [25812] stdio: Libio vtable protection is sometimes only partially
+    enforced
+  [27054] libc: pthread_atfork handlers that call pthread_atfork
+    deadlock
+  [27924] dynamic-link: ld.so: Support DT_RELR relative relocation
+    format
+  [28128] build: declare_symbol_alias doesn't work for assembly codes
+  [28566] network: getnameinfo with NI_NOFQDN is not thread safe
+  [28752] nss: Segfault in getpwuid when stat fails
+  [28815] libc: realpath should not copy to resolved buffer on error
+  [28828] stdio: fputwc crashes
+  [28838] libc: FAIL: elf/tst-p_align3
+  [28845] locale: ld-monetary.c should be updated to match ISO C and
+    other standards.
+  [28850] libc: linux: __get_nprocs_sched reads uninitialized memory
+    from the stack
+  [28852] libc: getaddrinfo leaks memory with AI_ALL
+  [28853] libc: tst-spawn6 changes current foreground process group
+    (breaks test isolation)
+  [28857] libc: FAIL: elf/tst-audit24a
+  [28860] build: --enable-kernel=5.1.0 build fails because of missing
+    __convert_scm_timestamps
+  [28865] libc: linux: _SC_NPROCESSORS_CONF and _SC_NPROCESSORS_ONLN are
+    inaccurate without /sys and /proc
+  [28868] dynamic-link: Dynamic loader DFS algorithm segfaults on
+    missing libraries
+  [28880] libc: Program crashes if date beyone 2038
+  [28883] libc: sysdeps/unix/sysv/linux/select.c: __select64
+    !__ASSUME_TIME64_SYSCALLS && !__ASSUME_PSELECT fails on Microblaze
+  [28896] string: strncmp-avx2-rtm and wcsncmp-avx2-rtm fallback on non-
+    rtm variants when avoiding overflow
+  [28922] build: The .d dependency files aren't always generated
+  [28931] libc: hosts lookup broken for SUCCESS=CONTINUE and
+    SUCCESS=MERGE
+  [28936] build: nm: No such file
+  [28950] localedata: Add locale for ISO code "tok" (Toki Pona)
+  [28953] nss: NSS lookup result can be incorrect if function lookup
+    clobbers errno
+  [28970] math: benchtest: libmvec benchmark doesn't build with make
+    bench.
+  [28991] libc: sysconf(_SC_NPROCESSORS_CONF) should read
+    /sys/devices/system/cpu/possible
+  [28993] libc: closefrom() iterates until max int if no access to
+    /proc/self/fd/
+  [28996] libc: realpath fails to copy partial result to resolved buffer
+    on ENOENT and EACCES
+  [29027] math: [ia64] fabs fails with sNAN input
+  [29029] nptl: poll() spuriously returns EINTR during thread
+    cancellation and with cancellation disabled
+  [29030] string: GLIBC 2.35 regression - Fortify crash on certain valid
+    uses of mbsrtowcs (*** buffer overflow detected ***: terminated)
+  [29062] dynamic-link: Memory leak in _dl_find_object_update if object
+    is promoted to global scope
+  [29069] libc: fstatat64_time64_statx wrapper broken on MIPS N32 with
+    -D_FILE_OFFSET_BITS=64 and -D_TIME_BITS=64
+  [29071] dynamic-link: m68k: Removal of ELF_DURING_STARTUP optimization
+    broke ld.so
+  [29097] time: fchmodat does not handle 64 bit time_t for
+    AT_SYMLINK_NOFOLLOW
+  [29109] libc: posix_spawn() always returns 1 (EPERM) on clone()
+    failure
+  [29141] libc: _FORTIFY_SOURCE=3 fail for gcc 12/glibc 2.35
+  [29162] string: [PATCH] string.h syntactic error:
+    include/bits/string_fortified.h:110: error: expected ',' or ';'
+    before '__fortified_attr_access'
+  [29165] libc: [Regression] broken argv adjustment
+  [29187] dynamic-link: [regression] broken argv adjustment for nios2
+  [29193] math: sincos produces a different output than sin/cos
+  [29197] string: __strncpy_power9() uses uninitialised register vs18
+    value for filling after \0
+  [29203] libc: daemon is not y2038 aware
+  [29204] libc: getusershell is not 2038 aware
+  [29207] libc: posix_fallocate fallback implementation is not y2038
+    aware
+  [29208] libc: fpathconf(_PC_ASYNC_IO) is not y2038 aware
+  [29209] libc: isfdtype is not y2038 aware
+  [29210] network: ruserpass is not y2038 aware
+  [29211] libc: __open_catalog is not y2038 aware
+  [29213] libc: gconv_parseconfdir is not y2038 aware
+  [29214] nptl: pthread_setcanceltype fails to set type
+  [29225] network: Mistyped define statement in socket/sys/socket.h in
+    line 184
+  [29274] nptl: __read_chk is not a cancellation point
+  [29279] libc: undefined reference to `mbstowcs_chk' after
+    464d189b9622932a75302290625de84931656ec0
+  [29304] libc: mq_timedreceive does not handle 64 bit syscall return
+    correct for !__ASSUME_TIME64_SYSCALLS
+  [29403] libc: st_atim, st_mtim, st_ctim stat struct members are
+    missing on microblaze with largefile
 
 Version 2.35
 
@@ -139,6 +422,9 @@ Major new features:
   fortification balanced against additional runtime cost (checking non-constant
   bounds).
 
+* The audit libraries will avoid unnecessary slowdown if it is not required
+  PLT tracking (by not implementing the la_pltenter or la_pltexit callbacks).
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * On x86-64, the LD_PREFER_MAP_32BIT_EXEC environment variable support
@@ -166,6 +452,13 @@ Deprecated and removed features, and other changes affecting compatibility:
 * Support for prelink will be removed in the next release; this includes
   removal of the LD_TRACE_PRELINKING, and LD_USE_LOAD_BIAS, environment
   variables and their functionality in the dynamic loader.
+
+* The LD_TRACE_PRELINKING environment variable has been removed.  Similar
+  functionality to obtain the program mapping address can be achieved by
+  using LD_TRACE_LOADED_OBJECTS to value of 2.
+
+* The LD_USE_LOAD_BIAS has been removed.  The variable was mainly used to
+  support prelink PIE binaries.
 
 Changes to build and runtime requirements:
 
@@ -430,9 +723,6 @@ Major new features:
 * When invoked explicitly, the dynamic linker now uses the kernel to
   execute programs that do not have any dynamic dependency (that is,
   they are statically linked).  This feature is Linux-specific.
-
-* The audit libraries will avoid unnecessary slowdown if it is not required
-  PLT tracking (by not implementing the la_pltenter or la_pltexit callbacks).
 
 Deprecated and removed features, and other changes affecting compatibility:
 

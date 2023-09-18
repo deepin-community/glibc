@@ -1,5 +1,5 @@
 # sysdeps makefile fragment for all pthread-supporting configurations.
-# Copyright (C) 2014-2022 Free Software Foundation, Inc.
+# Copyright (C) 2014-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -69,6 +69,7 @@ tests += tst-cnd-basic tst-mtx-trylock tst-cnd-broadcast \
 	 tst-cancel12 tst-cancel13 tst-cancel14 tst-cancel15 tst-cancel16 \
 	 tst-cancel18 tst-cancel19 tst-cancel20 tst-cancel21 \
 	 tst-cancel22 tst-cancel23 tst-cancel26 tst-cancel27 tst-cancel28 \
+	 tst-cancel29 \
 	 tst-cleanup0 tst-cleanup1 tst-cleanup2 tst-cleanup3 \
 	 tst-clock1 \
 	 tst-cond-except \
@@ -125,9 +126,10 @@ tests += tst-cnd-basic tst-mtx-trylock tst-cnd-broadcast \
 	 tst-pthread-raise-blocked-self \
 	 tst-pthread_kill-exited \
 	 tst-pthread_kill-exiting \
+	 tst-cancel30 \
 	 # tests
 
-tests-time64 := \
+tests-time64 += \
   tst-abstime-time64 \
   tst-cnd-timedwait-time64 \
   tst-cond11-time64 \
@@ -153,16 +155,36 @@ tests += tst-cancelx2 tst-cancelx3 tst-cancelx6 tst-cancelx8 tst-cancelx9 \
 	 tst-cleanupx0 tst-cleanupx1 tst-cleanupx2 tst-cleanupx3
 
 ifeq ($(build-shared),yes)
-tests += tst-atfork2 tst-pt-tls4 tst-_res1 tst-fini1 tst-create1
+tests += \
+  tst-atfork2 \
+  tst-pt-tls4 \
+  tst-_res1 \
+  tst-fini1 \
+  tst-create1 \
+  tst-atfork3 \
+  tst-atfork4 \
+# tests
+
 tests-nolibpthread += tst-fini1
 endif
 
-modules-names += tst-atfork2mod tst-tls4moda tst-tls4modb \
-		 tst-_res1mod1 tst-_res1mod2 tst-fini1mod \
-		 tst-create1mod
+modules-names += \
+  tst-atfork2mod \
+  tst-tls4moda \
+  tst-tls4modb \
+  tst-_res1mod1 \
+  tst-_res1mod2 \
+  tst-fini1mod \
+  tst-create1mod \
+  tst-atfork3mod \
+  tst-atfork4mod \
+# module-names
+
 test-modules = $(addprefix $(objpfx),$(addsuffix .so,$(modules-names)))
 
 tst-atfork2mod.so-no-z-defs = yes
+tst-atfork3mod.so-no-z-defs = yes
+tst-atfork4mod.so-no-z-defs = yes
 tst-create1mod.so-no-z-defs = yes
 
 ifeq ($(build-shared),yes)
@@ -225,8 +247,18 @@ tst-atfork2-ENV = MALLOC_TRACE=$(objpfx)tst-atfork2.mtrace \
 		  LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 $(objpfx)tst-atfork2mod.so: $(shared-thread-library)
 
+$(objpfx)tst-atfork3: $(shared-thread-library)
+LDFLAGS-tst-atfork3 = -rdynamic
+$(objpfx)tst-atfork3mod.so: $(shared-thread-library)
+
+$(objpfx)tst-atfork4: $(shared-thread-library)
+LDFLAGS-tst-atfork4 = -rdynamic
+$(objpfx)tst-atfork4mod.so: $(shared-thread-library)
+
 ifeq ($(build-shared),yes)
 $(objpfx)tst-atfork2.out: $(objpfx)tst-atfork2mod.so
+$(objpfx)tst-atfork3.out: $(objpfx)tst-atfork3mod.so
+$(objpfx)tst-atfork4.out: $(objpfx)tst-atfork4mod.so
 endif
 
 ifeq ($(build-shared),yes)

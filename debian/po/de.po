@@ -1,13 +1,13 @@
 # Translation of glibc debconf templates to German
-# Copyright (C) Helge Kreutzmann <debian@helgefjell.de>, 2006-2009, 2011, 2016, 2017.
+# Copyright (C) Helge Kreutzmann <debian@helgefjell.de>, 2006-2009, 2011, 2016, 2017, 2023.
 # This file is distributed under the same license as the glibc package.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: glibc 2.24-17\n"
+"Project-Id-Version: glibc 2.36-7\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2017-06-13 22:11+0200\n"
-"PO-Revision-Date: 2017-09-30 10:35+0200\n"
+"POT-Creation-Date: 2023-01-03 21:34+0100\n"
+"PO-Revision-Date: 2023-01-03 09:57+0100\n"
 "Last-Translator: Helge Kreutzmann <debian@helgefjell.de>\n"
 "Language-Team: de <debian-l10n-german@lists.debian.org>\n"
 "Language: German\n"
@@ -255,10 +255,13 @@ msgstr "Kernel muss aktualisiert werden."
 #: ../debhelper.in/libc.templates:6001
 msgid ""
 "This version of the GNU libc requires kernel version ${kernel_ver} or "
-"later.  Please upgrade your kernel before installing glibc."
+"later.  Please upgrade your kernel and reboot before installing glibc. You "
+"may need to use \"apt -f install\" after reboot to solve dependencies."
 msgstr ""
 "Diese Version der GNU-Libc benötigt Kernel Version ${kernel_ver} oder neuer. "
-"Bitte führen Sie vor der Installation der Glibc ein Upgrade durch."
+"Bitte führen Sie vor der Installation der Glibc ein Upgrade durch und "
+"starten Sie das System neu. Nach dem Neustart könnte es sein, dass Sie »apt -"
+"f install« verwenden müssen, um Abhängigkeiten aufzulösen."
 
 #. Type: note
 #. Description
@@ -275,5 +278,5 @@ msgid ""
 "Debian.  Please consider upgrading your kernel."
 msgstr ""
 "Diese Version der GNU-Libc benötigt Kernel Version ${kernel_ver} oder neuer. "
-"Ältere Versionen können funktionieren, werden aber nicht offiziell "
-"durch Debian unterstützt. Bitte prüfen Sie ein Upgrade Ihres Kernels."
+"Ältere Versionen können funktionieren, werden aber nicht offiziell durch "
+"Debian unterstützt. Bitte prüfen Sie ein Upgrade Ihres Kernels."

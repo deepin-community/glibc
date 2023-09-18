@@ -1,5 +1,5 @@
 /* Internal header file for __libc_supported_implementations.
-   Copyright (C) 2012-2022 Free Software Foundation, Inc.
+   Copyright (C) 2012-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,15 +34,15 @@ struct libc_ifunc_impl
 
 /* Add an IFUNC implementation, IMPL, for function FUNC, to ARRAY with
    USABLE at index I and advance I by one.  */
-#define IFUNC_IMPL_ADD(array, i, func, usable, impl) \
+#define IFUNC_IMPL_ADD(array, max, func, usable, impl) \
   extern __typeof (func) impl attribute_hidden; \
-  (array)[i++] = (struct libc_ifunc_impl) { #impl, (void (*) (void)) impl, (usable) };
+  if (n < max) (array)[n++] = (struct libc_ifunc_impl) { #impl, (void (*) (void)) impl, (usable) };
 
 /* Return the number of IFUNC implementations, N, for function FUNC if
    string NAME matches FUNC.  */
-#define IFUNC_IMPL(n, name, func, ...) \
+#define IFUNC_IMPL(max, name, func, ...) \
   if (strcmp (name, #func) == 0) \
-    { \
+    { size_t n = 0;\
       __VA_ARGS__; \
       return n; \
     }

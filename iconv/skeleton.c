@@ -1,5 +1,5 @@
 /* Skeleton for a conversion module.
-   Copyright (C) 1998-2022 Free Software Foundation, Inc.
+   Copyright (C) 1998-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -147,7 +147,7 @@
 # include <dlfcn.h>
 #endif
 
-#include <sysdep.h>
+#include <pointer_guard.h>
 #include <stdint.h>
 
 #ifndef DL_CALL_FCT
@@ -404,10 +404,8 @@ FUNCTION_NAME (struct __gconv_step *step, struct __gconv_step_data *data,
   if ((data->__flags & __GCONV_IS_LAST) == 0)
     {
       fct = next_step->__fct;
-#ifdef PTR_DEMANGLE
       if (next_step->__shlib_handle != NULL)
 	PTR_DEMANGLE (fct);
-#endif
     }
 
   /* If the function is called with no input this means we have to reset

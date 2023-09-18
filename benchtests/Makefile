@@ -1,4 +1,5 @@
-# Copyright (C) 2013-2022 Free Software Foundation, Inc.
+# Copyright (C) 2013-2023 Free Software Foundation, Inc.
+# Copyright The GNU Toolchain Authors.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -86,37 +87,117 @@ bench-math := \
   y1 \
 
 ifneq (,$(filter yes,$(float96-fcts)))
-bench-math += cbrtl
+bench-math += \
+  cbrtl \
+# bench-math
 endif
 
 ifneq (,$(filter yes,$(float128-fcts) $(float128-alias-fcts)))
-bench-math += expf128 powf128 sinf128 ilogbf128
+bench-math += \
+  expf128 \
+  ilogbf128 \
+  powf128 \
+  sinf128 \
+# bench-math
 endif
 
-bench-pthread := pthread_once thread_create pthread-locks
+bench-pthread := \
+  pthread-locks \
+  pthread-mutex-lock \
+  pthread-mutex-trylock \
+  pthread-spin-lock \
+  pthread-spin-trylock \
+  pthread_once \
+  thread_create \
+# bench-pthread
 
-bench-string := ffs ffsll
+LDLIBS-bench-pthread-mutex-lock += -lm
+LDLIBS-bench-pthread-mutex-trylock += -lm
+LDLIBS-bench-pthread-spin-lock += -lm
+LDLIBS-bench-pthread-spin-trylock += -lm
 
-ifeq (${BENCHSET},)
-bench := $(bench-math) $(bench-pthread) $(bench-string)
-else
-bench := $(foreach B,$(filter bench-%,${BENCHSET}), ${${B}})
-endif
+bench-string := \
+  ffs \
+  ffsll \
+# bench-string
 
 # String function benchmarks.
-string-benchset := memccpy memchr memcmp memcmpeq memcpy memmem memmove \
-		   mempcpy memset rawmemchr stpcpy stpncpy strcasecmp strcasestr \
-		   strcat strchr strchrnul strcmp strcpy strcspn strlen \
-		   strncasecmp strncat strncmp strncpy strnlen strpbrk strrchr \
-		   strspn strstr strcpy_chk stpcpy_chk memrchr strsep strtok \
-		   strcoll memcpy-large memcpy-random memmove-large memset-large \
-		   memcpy-walk memset-walk memmove-walk
+string-benchset := \
+  bzero \
+  bzero-large \
+  bzero-walk \
+  memccpy \
+  memchr \
+  memcmp \
+  memcmpeq \
+  memcpy \
+  memcpy-large \
+  memcpy-random \
+  memcpy-walk \
+  memmem \
+  memmove \
+  memmove-large \
+  memmove-walk \
+  mempcpy \
+  memrchr \
+  memset \
+  memset-large \
+  memset-walk \
+  memset-zero \
+  memset-zero-large \
+  memset-zero-walk \
+  rawmemchr \
+  stpcpy \
+  stpcpy_chk \
+  stpncpy \
+  strcasecmp \
+  strcasestr \
+  strcat \
+  strchr \
+  strchrnul \
+  strcmp \
+  strcoll \
+  strcpy \
+  strcpy_chk \
+  strcspn \
+  strlen \
+  strncasecmp \
+  strncat \
+  strncmp \
+  strncpy \
+  strnlen \
+  strpbrk \
+  strrchr \
+  strsep \
+  strspn \
+  strstr \
+  strtok \
+# string-benchset
 
 # Build and run locale-dependent benchmarks only if we're building natively.
 ifeq (no,$(cross-compiling))
-wcsmbs-benchset := wcslen wcsnlen wcscpy wcpcpy wcsncpy wcpncpy wcscat wcsncat \
-		   wcscmp wcsncmp wcschr wcschrnul wcsrchr wcsspn wcspbrk wcscspn \
-		   wmemchr wmemset wmemcmp
+wcsmbs-benchset := \
+  wcpcpy \
+  wcpncpy \
+  wcrtomb \
+  wcscat \
+  wcschr \
+  wcschrnul \
+  wcscmp \
+  wcscpy \
+  wcscspn \
+  wcslen \
+  wcsncat \
+  wcsncmp \
+  wcsncpy \
+  wcsnlen \
+  wcspbrk \
+  wcsrchr \
+  wcsspn \
+  wmemchr \
+  wmemcmp \
+  wmemset \
+# wcsmbs-benchset
 else
 wcsmbs-benchset :=
 endif
@@ -125,15 +206,45 @@ string-benchset-all := $(string-benchset) ${wcsmbs-benchset}
 
 ifeq (no,$(cross-compiling))
 # We have to generate locales
-LOCALES := en_US.UTF-8 tr_TR.UTF-8 cs_CZ.UTF-8 fa_IR.UTF-8 fr_FR.UTF-8 \
-	   ja_JP.UTF-8 si_LK.UTF-8 en_GB.UTF-8 vi_VN.UTF-8 ar_SA.UTF-8 \
-	   da_DK.UTF-8 pl_PL.UTF-8 pt_PT.UTF-8 el_GR.UTF-8 ru_RU.UTF-8 \
-	   he_IL.UTF-8 is_IS.UTF-8 es_ES.UTF-8 hi_IN.UTF-8 sv_SE.UTF-8 \
-	   hu_HU.UTF-8 it_IT.UTF-8 sr_RS.UTF-8 zh_CN.UTF-8
+LOCALES := \
+  ar_SA.UTF-8 \
+  cs_CZ.UTF-8 \
+  da_DK.UTF-8 \
+  el_GR.UTF-8 \
+  en_GB.UTF-8 \
+  en_US.UTF-8 \
+  es_ES.UTF-8 \
+  fa_IR.UTF-8 \
+  fr_FR.UTF-8 \
+  he_IL.UTF-8 \
+  hi_IN.UTF-8 \
+  hu_HU.UTF-8 \
+  is_IS.UTF-8 \
+  it_IT.UTF-8 \
+  ja_JP.UTF-8 \
+  pl_PL.UTF-8 \
+  pt_PT.UTF-8 \
+  ru_RU.UTF-8 \
+  si_LK.UTF-8 \
+  sr_RS.UTF-8 \
+  sv_SE.UTF-8 \
+  tr_TR.UTF-8 \
+  vi_VN.UTF-8 \
+  zh_CN.UTF-8 \
+# LOCALES
 include ../gen-locales.mk
 endif
 
-stdlib-benchset := strtod
+hash-benchset := \
+  dl-elf-hash \
+  dl-new-hash \
+  nss-hash \
+# hash-benchset
+
+stdlib-benchset := \
+  arc4random \
+  strtod \
+  # stdlib-benchset
 
 stdio-common-benchset := sprintf
 
@@ -141,7 +252,7 @@ math-benchset := math-inlines
 
 ifeq (${BENCHSET},)
 benchset := $(string-benchset-all) $(stdlib-benchset) $(stdio-common-benchset) \
-	    $(math-benchset)
+	    $(math-benchset) $(hash-benchset)
 else
 benchset := $(foreach B,$(filter %-benchset,${BENCHSET}), ${${B}})
 endif
@@ -157,9 +268,9 @@ CFLAGS-bench-trunc.c += -fno-builtin
 CFLAGS-bench-truncf.c += -fno-builtin
 CFLAGS-bench-roundeven.c += -fno-builtin
 CFLAGS-bench-roundevenf.c += -fno-builtin
-CFLAGS-bench-isnan.c += -fsignaling-nans
-CFLAGS-bench-isinf.c += -fsignaling-nans
-CFLAGS-bench-isfinite.c += -fsignaling-nans
+CFLAGS-bench-isnan.c += $(config-cflags-signaling-nans)
+CFLAGS-bench-isinf.c += $(config-cflags-signaling-nans)
+CFLAGS-bench-isfinite.c += $(config-cflags-signaling-nans)
 
 ifeq (${BENCHSET},)
 bench-malloc := malloc-thread malloc-simple
@@ -184,6 +295,7 @@ $(addprefix $(objpfx)bench-,$(math-benchset)): $(libm-benchtests)
 $(addprefix $(objpfx)bench-,$(bench-pthread)): $(thread-library-benchtests)
 $(addprefix $(objpfx)bench-,$(bench-malloc)): $(thread-library-benchtests)
 $(addprefix $(objpfx)bench-,pthread-locks): $(libm-benchtests)
+$(addprefix $(objpfx)bench-,pthread-mutex-locks): $(libm-benchtests)
 
 
 
@@ -198,12 +310,6 @@ bench-extra-objs = json-lib.o
 
 extra-objs += $(bench-extra-objs)
 others-extras = $(bench-extra-objs)
-
-include ../Rules
-
-binaries-bench := $(addprefix $(objpfx)bench-,$(bench))
-binaries-benchset := $(addprefix $(objpfx)bench-,$(benchset))
-binaries-bench-malloc := $(addprefix $(objpfx)bench-,$(bench-malloc))
 
 # The default duration: 1 seconds.
 ifndef BENCH_DURATION
@@ -237,6 +343,26 @@ run-bench = $(test-wrapper-env) \
 	    $($*-ENV) $(test-via-rtld-prefix) $${run}
 
 timing-type := $(objpfx)bench-timing-type
+extra-objs += bench-timing-type.o
+
+include ../Rules
+
+bench-math += $(bench-libmvec)
+
+ifeq (${BENCHSET},)
+bench := $(bench-math) $(bench-pthread) $(bench-string)
+else
+bench := $(foreach B,$(filter bench-%,${BENCHSET}), ${${B}})
+endif
+
+# NB: Use "=" instead of ":=" since sysdeps Makefiles may add more
+# benches.
+binaries-bench = $(addprefix $(objpfx)bench-,$(bench))
+extra-objs += $(addsuffix .o,$(addprefix bench-,$(bench)))
+binaries-benchset = $(addprefix $(objpfx)bench-,$(benchset))
+extra-objs += $(addsuffix .o,$(addprefix bench-,$(benchset)))
+binaries-bench-malloc := $(addprefix $(objpfx)bench-,$(bench-malloc))
+extra-objs += $(addsuffix .o,$(addprefix bench-,$(bench-malloc)))
 
 # This makes sure CPPFLAGS-nonlib and CFLAGS-nonlib are passed
 # for all these modules.
@@ -254,9 +380,20 @@ bench-clean:
 
 # Validate the passed in BENCHSET
 ifneq ($(strip ${BENCHSET}),)
-VALIDBENCHSETNAMES := bench-pthread bench-math bench-string string-benchset \
-   wcsmbs-benchset stdlib-benchset stdio-common-benchset math-benchset \
-   malloc-thread malloc-simple
+VALIDBENCHSETNAMES := \
+  bench-math \
+  bench-pthread \
+  bench-string \
+  hash-benchset \
+  malloc-simple \
+  malloc-thread \
+  math-benchset \
+  stdio-common-benchset \
+  stdlib-benchset \
+  string-benchset \
+  wcsmbs-benchset \
+# VALIDBENCHSETNAMES
+
 INVALIDBENCHSETNAMES := $(filter-out ${VALIDBENCHSETNAMES},${BENCHSET})
 ifneq (${INVALIDBENCHSETNAMES},)
 $(info The following values in BENCHSET are invalid: ${INVALIDBENCHSETNAMES})
@@ -312,11 +449,23 @@ bench-func: $(binaries-bench)
 	  echo "{\"timing_type\": \"$${timing_type}\","; \
 	  echo " \"functions\": {"; \
 	  for run in $^; do \
-	    if ! [ "x$${run}" = "x$<" ]; then \
-	      echo ","; \
-	    fi; \
-	    echo "Running $${run}" >&2; \
-	    $(run-bench) $(DETAILED_OPT); \
+	    op=$$($(run-bench) $(DETAILED_OPT)); \
+	    ret=$$?; \
+	    case "$${ret}" in \
+	      77) \
+	      echo "UNSUPPORTED $${run}: $${op}" >&2; \
+		;; \
+	      0) \
+		echo "Running $${run}" >&2; \
+		if [ "$${run}" != "$<" ]; then \
+		  echo ","; \
+		fi; \
+		echo "$${op}"; \
+		;; \
+	      *) \
+		echo "FAILED $${run}" >&2; \
+		;; \
+	    esac; \
 	  done; \
 	  echo; \
 	  echo " }"; \

@@ -1,5 +1,5 @@
 /* Test strncmp and wcsncmp functions.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,12 +16,16 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#define TEST_LEN (getpagesize () * 3)
+#define MIN_PAGE_SIZE (TEST_LEN + 2 * getpagesize ())
+
 #define TEST_MAIN
 #ifdef WIDE
 # define TEST_NAME "wcsncmp"
 #else
 # define TEST_NAME "strncmp"
 #endif
+#define TIMEOUT (5 * 60)
 #include "test-string.h"
 
 #ifdef WIDE
@@ -33,7 +37,6 @@
 # define STRDUP wcsdup
 # define MEMCPY wmemcpy
 # define SIMPLE_STRNCMP simple_wcsncmp
-# define STUPID_STRNCMP stupid_wcsncmp
 # define CHAR wchar_t
 # define UCHAR wchar_t
 # define CHARBYTES 4
@@ -57,25 +60,6 @@ simple_wcsncmp (const CHAR *s1, const CHAR *s2, size_t n)
   return 0;
 }
 
-int
-stupid_wcsncmp (const CHAR *s1, const CHAR *s2, size_t n)
-{
-  wchar_t c1, c2;
-  size_t ns1 = wcsnlen (s1, n) + 1, ns2 = wcsnlen (s2, n) + 1;
-
-  n = ns1 < n ? ns1 : n;
-  n = ns2 < n ? ns2 : n;
-
-  while (n--)
-    {
-      c1 = *s1++;
-      c2 = *s2++;
-      if (c1 != c2)
-	return c1 > c2 ? 1 : -1;
-    }
-  return 0;
-}
-
 #else
 # define L(str) str
 # define STRNCMP strncmp
@@ -83,7 +67,6 @@ stupid_wcsncmp (const CHAR *s1, const CHAR *s2, size_t n)
 # define STRDUP strdup
 # define MEMCPY memcpy
 # define SIMPLE_STRNCMP simple_strncmp
-# define STUPID_STRNCMP stupid_strncmp
 # define CHAR char
 # define UCHAR unsigned char
 # define CHARBYTES 1
@@ -101,24 +84,10 @@ simple_strncmp (const char *s1, const char *s2, size_t n)
   return ret;
 }
 
-int
-stupid_strncmp (const char *s1, const char *s2, size_t n)
-{
-  size_t ns1 = strnlen (s1, n) + 1, ns2 = strnlen (s2, n) + 1;
-  int ret = 0;
-
-  n = ns1 < n ? ns1 : n;
-  n = ns2 < n ? ns2 : n;
-  while (n-- && (ret = *(unsigned char *) s1++ - * (unsigned char *) s2++) == 0);
-  return ret;
-}
-
 #endif
 
 typedef int (*proto_t) (const CHAR *, const CHAR *, size_t);
 
-IMPL (STUPID_STRNCMP, 0)
-IMPL (SIMPLE_STRNCMP, 0)
 IMPL (STRNCMP, 1)
 
 
@@ -200,11 +169,11 @@ do_test_limit (size_t align1, size_t align2, size_t len, size_t n, int max_char,
 }
 
 static void
-do_test (size_t align1, size_t align2, size_t len, size_t n, int max_char,
-	 int exp_result)
+do_test_n (size_t align1, size_t align2, size_t len, size_t n, int n_in_bounds,
+           int max_char, int exp_result)
 {
-  size_t i;
-  CHAR *s1, *s2;
+  size_t i, buf_bound;
+  CHAR *s1, *s2, *s1_end, *s2_end;
 
   align1 &= ~(CHARBYTES - 1);
   align2 &= ~(CHARBYTES - 1);
@@ -212,22 +181,28 @@ do_test (size_t align1, size_t align2, size_t len, size_t n, int max_char,
   if (n == 0)
     return;
 
-  align1 &= 63;
-  if (align1 + (n + 1) * CHARBYTES >= page_size)
+  buf_bound = n_in_bounds ? n : len;
+
+  align1 &= getpagesize () - 1;
+  if (align1 + (buf_bound + 2) * CHARBYTES >= page_size)
     return;
 
-  align2 &= 63;
-  if (align2 + (n + 1) * CHARBYTES >= page_size)
+  align2 &= getpagesize () - 1;
+  if (align2 + (buf_bound + 2) * CHARBYTES >= page_size)
     return;
 
-  s1 = (CHAR *) (buf1 + align1);
-  s2 = (CHAR *) (buf2 + align2);
+  s1 = (CHAR *)(buf1 + align1);
+  s2 = (CHAR *)(buf2 + align2);
 
-  for (i = 0; i < n; i++)
+  if (n_in_bounds)
+    {
+      s1[n] = 24 + exp_result;
+      s2[n] = 23;
+    }
+
+  for (i = 0; i < buf_bound; i++)
     s1[i] = s2[i] = 1 + (23 << ((CHARBYTES - 1) * 8)) * i % max_char;
 
-  s1[n] = 24 + exp_result;
-  s2[n] = 23;
   s1[len] = 0;
   s2[len] = 0;
   if (exp_result < 0)
@@ -237,8 +212,22 @@ do_test (size_t align1, size_t align2, size_t len, size_t n, int max_char,
   if (len >= n)
     s2[n - 1] -= exp_result;
 
+  /* Ensure that both s1 and s2 are valid null terminated strings. This is
+   * required by the standard. */
+  s1_end = (CHAR *)(buf1 + MIN_PAGE_SIZE - CHARBYTES);
+  s2_end = (CHAR *)(buf2 + MIN_PAGE_SIZE - CHARBYTES);
+  *s1_end = 0;
+  *s2_end = 0;
+
   FOR_EACH_IMPL (impl, 0)
     do_one_test (impl, s1, s2, n, exp_result);
+}
+
+static void
+do_test (size_t align1, size_t align2, size_t len, size_t n, int max_char,
+         int exp_result)
+{
+  do_test_n (align1, align2, len, n, 1, max_char, exp_result);
 }
 
 static void
@@ -434,16 +423,165 @@ check3 (void)
 	}
 }
 
+static void
+check4 (void)
+{
+  /* To trigger bug 28895; We need 1) both s1 and s2 to be within 32 bytes of
+     the end of the page. 2) For there to be no mismatch/null byte before the
+     first page cross. 3) For length (`n`) to be large enough for one string to
+     cross the page. And 4) for there to be either mismatch/null bytes before
+     the start of the strings.  */
+
+  size_t size = 10;
+  size_t addr_mask = (getpagesize () - 1) ^ (sizeof (CHAR) - 1);
+  CHAR *s1 = (CHAR *)(buf1 + (addr_mask & 0xffa));
+  CHAR *s2 = (CHAR *)(buf2 + (addr_mask & 0xfed));
+  int exp_result;
+
+  STRCPY (s1, L ("tst-tlsmod%"));
+  STRCPY (s2, L ("tst-tls-manydynamic73mod"));
+  exp_result = SIMPLE_STRNCMP (s1, s2, size);
+  FOR_EACH_IMPL (impl, 0)
+  check_result (impl, s1, s2, size, exp_result);
+}
+
+static void
+check5 (void)
+{
+  const CHAR *s1 = L ("abc");
+  CHAR *s2 = STRDUP (s1);
+
+  FOR_EACH_IMPL (impl, 0)
+    check_result (impl, s1, s2, SIZE_MAX, 0);
+
+  free (s2);
+}
+
+static void
+check_overflow (void)
+{
+  size_t i, j, of_mask, of_idx;
+  const size_t of_masks[]
+      = { ULONG_MAX, LONG_MIN, ULONG_MAX - (ULONG_MAX >> 2),
+          ((size_t)LONG_MAX) >> 1 };
+  const size_t test_len = MIN(TEST_LEN, 3 * 4096);
+  for (of_idx = 0; of_idx < sizeof (of_masks) / sizeof (of_masks[0]); ++of_idx)
+    {
+      of_mask = of_masks[of_idx];
+      for (j = 0; j < 160; ++j)
+        {
+          for (i = 1; i <= 161; i += (32 / sizeof (CHAR)))
+            {
+              do_test_n (j, 0, i, of_mask, 0, 127, 0);
+              do_test_n (j, 0, i, of_mask, 0, 127, 1);
+              do_test_n (j, 0, i, of_mask, 0, 127, -1);
+
+              do_test_n (j, 0, i, of_mask - j / 2, 0, 127, 0);
+              do_test_n (j, 0, i, of_mask - j * 2, 0, 127, 1);
+              do_test_n (j, 0, i, of_mask - j, 0, 127, -1);
+
+              do_test_n (j / 2, j, i, of_mask, 0, 127, 0);
+              do_test_n (j / 2, j, i, of_mask, 0, 127, 1);
+              do_test_n (j / 2, j, i, of_mask, 0, 127, -1);
+
+              do_test_n (j / 2, j, i, of_mask - j, 0, 127, 0);
+              do_test_n (j / 2, j, i, of_mask - j / 2, 0, 127, 1);
+              do_test_n (j / 2, j, i, of_mask - j * 2, 0, 127, -1);
+
+              do_test_n (0, j, i, of_mask - j * 2, 0, 127, 0);
+              do_test_n (0, j, i, of_mask - j, 0, 127, 1);
+              do_test_n (0, j, i, of_mask - j / 2, 0, 127, -1);
+
+              do_test_n (getpagesize () - j - 1, 0, i, of_mask, 0, 127, 0);
+              do_test_n (getpagesize () - j - 1, 0, i, of_mask, 0, 127, 1);
+              do_test_n (getpagesize () - j - 1, 0, i, of_mask, 0, 127, -1);
+
+              do_test_n (getpagesize () - j - 1, 0, i, of_mask - j / 2, 0, 127,
+                         0);
+              do_test_n (getpagesize () - j - 1, 0, i, of_mask - j * 2, 0, 127,
+                         1);
+              do_test_n (getpagesize () - j - 1, 0, i, of_mask - j, 0, 127,
+                         -1);
+
+              do_test_n (getpagesize () - j - 1, getpagesize () - 2 * j - 1, i,
+                         of_mask, 0, 127, 0);
+              do_test_n (getpagesize () - j - 1, getpagesize () - 2 * j - 1, i,
+                         of_mask, 0, 127, 1);
+              do_test_n (getpagesize () - j - 1, getpagesize () - 2 * j - 1, i,
+                         of_mask, 0, 127, -1);
+
+              do_test_n (getpagesize () - j - 1, getpagesize () - 2 * j - 1, i,
+                         of_mask - j, 0, 127, 0);
+              do_test_n (getpagesize () - j - 1, getpagesize () - 2 * j - 1, i,
+                         of_mask - j / 2, 0, 127, 1);
+              do_test_n (getpagesize () - j - 1, getpagesize () - 2 * j - 1, i,
+                         of_mask - j * 2, 0, 127, -1);
+            }
+
+          for (i = 1; i < test_len; i += i)
+            {
+              do_test_n (j, 0, i - 1, of_mask, 0, 127, 0);
+              do_test_n (j, 0, i - 1, of_mask, 0, 127, 1);
+              do_test_n (j, 0, i - 1, of_mask, 0, 127, -1);
+
+              do_test_n (j, 0, i - 1, of_mask - j / 2, 0, 127, 0);
+              do_test_n (j, 0, i - 1, of_mask - j * 2, 0, 127, 1);
+              do_test_n (j, 0, i - 1, of_mask - j, 0, 127, -1);
+
+              do_test_n (j / 2, j, i - 1, of_mask, 0, 127, 0);
+              do_test_n (j / 2, j, i - 1, of_mask, 0, 127, 1);
+              do_test_n (j / 2, j, i - 1, of_mask, 0, 127, -1);
+
+              do_test_n (j / 2, j, i - 1, of_mask - j, 0, 127, 0);
+              do_test_n (j / 2, j, i - 1, of_mask - j / 2, 0, 127, 1);
+              do_test_n (j / 2, j, i - 1, of_mask - j * 2, 0, 127, -1);
+
+              do_test_n (0, j, i - 1, of_mask - j * 2, 0, 127, 0);
+              do_test_n (0, j, i - 1, of_mask - j, 0, 127, 1);
+              do_test_n (0, j, i - 1, of_mask - j / 2, 0, 127, -1);
+
+              do_test_n (getpagesize () - j - 1, 0, i - 1, of_mask, 0, 127, 0);
+              do_test_n (getpagesize () - j - 1, 0, i - 1, of_mask, 0, 127, 1);
+              do_test_n (getpagesize () - j - 1, 0, i - 1, of_mask, 0, 127,
+                         -1);
+
+              do_test_n (getpagesize () - j - 1, 0, i - 1, of_mask - j / 2, 0,
+                         127, 0);
+              do_test_n (getpagesize () - j - 1, 0, i - 1, of_mask - j * 2, 0,
+                         127, 1);
+              do_test_n (getpagesize () - j - 1, 0, i - 1, of_mask - j, 0, 127,
+                         -1);
+
+              do_test_n (getpagesize () - j - 1, getpagesize () - 2 * j - 1,
+                         i - 1, of_mask, 0, 127, 0);
+              do_test_n (getpagesize () - j - 1, getpagesize () - 2 * j - 1,
+                         i - 1, of_mask, 0, 127, 1);
+              do_test_n (getpagesize () - j - 1, getpagesize () - 2 * j - 1,
+                         i - 1, of_mask, 0, 127, -1);
+
+              do_test_n (getpagesize () - j - 1, getpagesize () - 2 * j - 1,
+                         i - 1, of_mask - j, 0, 127, 0);
+              do_test_n (getpagesize () - j - 1, getpagesize () - 2 * j - 1,
+                         i - 1, of_mask - j / 2, 0, 127, 1);
+              do_test_n (getpagesize () - j - 1, getpagesize () - 2 * j - 1,
+                         i - 1, of_mask - j * 2, 0, 127, -1);
+            }
+        }
+    }
+}
+
 int
 test_main (void)
 {
-  size_t i;
-
+  size_t i, j, k;
+  const size_t test_len = MIN(TEST_LEN, 3 * 4096);
   test_init ();
 
   check1 ();
   check2 ();
   check3 ();
+  check4 ();
+  check5 ();
 
   printf ("%23s", "");
   FOR_EACH_IMPL (impl, 0)
@@ -504,6 +642,124 @@ test_main (void)
       do_test_limit (0, 0, 15 - i, 16 - i, 255, -1);
     }
 
+  for (j = 0; j < 160; ++j)
+    {
+      for (i = 0; i < test_len;)
+        {
+          do_test_n (getpagesize () - j - 1, 0, i, i + 1, 0, 127, 0);
+          do_test_n (getpagesize () - j - 1, 0, i, i + 1, 0, 127, 1);
+          do_test_n (getpagesize () - j - 1, 0, i, i + 1, 0, 127, -1);
+
+          do_test_n (getpagesize () - j - 1, 0, i, i, 0, 127, 0);
+          do_test_n (getpagesize () - j - 1, 0, i, i - 1, 0, 127, 0);
+
+          do_test_n (getpagesize () - j - 1, 0, i, ULONG_MAX, 0, 127, 0);
+          do_test_n (getpagesize () - j - 1, 0, i, ULONG_MAX, 0, 127, 1);
+          do_test_n (getpagesize () - j - 1, 0, i, ULONG_MAX, 0, 127, -1);
+
+          do_test_n (getpagesize () - j - 1, 0, i, ULONG_MAX - i, 0, 127, 0);
+          do_test_n (getpagesize () - j - 1, 0, i, ULONG_MAX - i, 0, 127, 1);
+          do_test_n (getpagesize () - j - 1, 0, i, ULONG_MAX - i, 0, 127, -1);
+
+          do_test_n (getpagesize () - j - 1, j, i, i + 1, 0, 127, 0);
+          do_test_n (getpagesize () - j - 1, j, i, i + 1, 0, 127, 1);
+          do_test_n (getpagesize () - j - 1, j, i, i + 1, 0, 127, -1);
+
+          do_test_n (getpagesize () - j - 1, j, i, i, 0, 127, 0);
+          do_test_n (getpagesize () - j - 1, j, i, i - 1, 0, 127, 0);
+
+          do_test_n (getpagesize () - j - 1, j, i, ULONG_MAX, 0, 127, 0);
+          do_test_n (getpagesize () - j - 1, j, i, ULONG_MAX, 0, 127, 1);
+          do_test_n (getpagesize () - j - 1, j, i, ULONG_MAX, 0, 127, -1);
+
+          do_test_n (getpagesize () - j - 1, j, i, ULONG_MAX - i, 0, 127, 0);
+          do_test_n (getpagesize () - j - 1, j, i, ULONG_MAX - i, 0, 127, 1);
+          do_test_n (getpagesize () - j - 1, j, i, ULONG_MAX - i, 0, 127, -1);
+
+          do_test_n (0, getpagesize () - j - 1, i, i + 1, 0, 127, 0);
+          do_test_n (0, getpagesize () - j - 1, i, i + 1, 0, 127, 1);
+          do_test_n (0, getpagesize () - j - 1, i, i + 1, 0, 127, -1);
+
+          do_test_n (0, getpagesize () - j - 1, i, i, 0, 127, 0);
+          do_test_n (0, getpagesize () - j - 1, i, i - 1, 0, 127, 0);
+
+          do_test_n (0, getpagesize () - j - 1, i, ULONG_MAX, 0, 127, 0);
+          do_test_n (0, getpagesize () - j - 1, i, ULONG_MAX, 0, 127, 1);
+          do_test_n (0, getpagesize () - j - 1, i, ULONG_MAX, 0, 127, -1);
+
+          do_test_n (0, getpagesize () - j - 1, i, ULONG_MAX - i, 0, 127, 0);
+          do_test_n (0, getpagesize () - j - 1, i, ULONG_MAX - i, 0, 127, 1);
+          do_test_n (0, getpagesize () - j - 1, i, ULONG_MAX - i, 0, 127, -1);
+
+          do_test_n (j, getpagesize () - j - 1, i, i + 1, 0, 127, 0);
+          do_test_n (j, getpagesize () - j - 1, i, i + 1, 0, 127, 1);
+          do_test_n (j, getpagesize () - j - 1, i, i + 1, 0, 127, -1);
+
+          do_test_n (j, getpagesize () - j - 1, i, i, 0, 127, 0);
+          do_test_n (j, getpagesize () - j - 1, i, i - 1, 0, 127, 0);
+
+          do_test_n (j, getpagesize () - j - 1, i, ULONG_MAX, 0, 127, 0);
+          do_test_n (j, getpagesize () - j - 1, i, ULONG_MAX, 0, 127, 1);
+          do_test_n (j, getpagesize () - j - 1, i, ULONG_MAX, 0, 127, -1);
+
+          do_test_n (j, getpagesize () - j - 1, i, ULONG_MAX - i, 0, 127, 0);
+          do_test_n (j, getpagesize () - j - 1, i, ULONG_MAX - i, 0, 127, 1);
+          do_test_n (j, getpagesize () - j - 1, i, ULONG_MAX - i, 0, 127, -1);
+
+          for (k = 2; k <= 128; k += k)
+            {
+              do_test (getpagesize () - k, getpagesize () - j - 1, i - 1, i,
+                       127, 0);
+              do_test (getpagesize () - k - 1, getpagesize () - j - 1, i - 1,
+                       i, 127, 0);
+              do_test (getpagesize () - k, getpagesize () - j - 1, i + 1, i,
+                       127, 0);
+              do_test (getpagesize () - k - 1, getpagesize () - j - 1, i + 1,
+                       i, 127, 0);
+              do_test (getpagesize () - k, getpagesize () - j - 1, i, i, 127,
+                       0);
+              do_test (getpagesize () - k - 1, getpagesize () - j - 1, i, i,
+                       127, 0);
+              do_test (getpagesize () - k, getpagesize () - j - 1, i + 1, i,
+                       127, -1);
+              do_test (getpagesize () - k - 1, getpagesize () - j - 1, i + 1,
+                       i, 127, -1);
+              do_test (getpagesize () - k, getpagesize () - j - 1, i + 1, i,
+                       127, 1);
+              do_test (getpagesize () - k - 1, getpagesize () - j - 1, i + 1,
+                       i, 127, 1);
+            }
+
+          if (i < 32)
+            {
+              i += 1;
+            }
+          else if (i < 161)
+            {
+              i += 7;
+            }
+          else if (i + 161 < test_len)
+            {
+              i += 31;
+              i *= 17;
+              i /= 16;
+              if (i + 161 > test_len)
+                {
+                  i = test_len - 160;
+                }
+            }
+          else if (i + 32 < test_len)
+            {
+              i += 7;
+            }
+          else
+            {
+              i += 1;
+            }
+        }
+    }
+
+  check_overflow ();
   do_random_tests ();
   return ret;
 }

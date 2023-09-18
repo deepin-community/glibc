@@ -1,5 +1,5 @@
 /* Locate the shared object symbol nearest a given address.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ int
 __dladdr (const void *address, Dl_info *info)
 {
 #ifdef SHARED
-  if (!rtld_active ())
+  if (GLRO (dl_dlfcn_hook) != NULL)
     return GLRO (dl_dlfcn_hook)->dladdr (address, info);
 #endif
   return _dl_addr (address, info, NULL, NULL);

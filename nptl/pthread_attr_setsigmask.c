@@ -1,5 +1,5 @@
 /* Set the signal mask in a POSIX thread attribute.  Public variant.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@ pthread_attr_setsigmask_np (pthread_attr_t *attr, const sigset_t *sigmask)
 
   /* Filter out internal signals.  */
   struct pthread_attr *iattr = (struct pthread_attr *) attr;
-  __clear_internal_signals (&iattr->extension->sigmask);
+  clear_internal_signals (&iattr->extension->sigmask);
 
   return 0;
 }

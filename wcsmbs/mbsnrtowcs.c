@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@
 #include <wchar.h>
 #include <wcsmbsload.h>
 
-#include <sysdep.h>
+#include <pointer_guard.h>
 
 #ifndef EILSEQ
 # define EILSEQ EINVAL
@@ -64,10 +64,8 @@ __mbsnrtowcs (wchar_t *dst, const char **src, size_t nmc, size_t len,
   /* Get the structure with the function pointers.  */
   towc = fcts->towc;
   __gconv_fct fct = towc->__fct;
-#ifdef PTR_DEMANGLE
   if (towc->__shlib_handle != NULL)
     PTR_DEMANGLE (fct);
-#endif
 
   /* We have to handle DST == NULL special.  */
   if (dst == NULL)

@@ -1,5 +1,5 @@
 /* Support for dynamic linking code in static libc.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -35,7 +35,6 @@
 #include <dl-machine.h>
 #include <libc-lock.h>
 #include <dl-cache.h>
-#include <dl-librecon.h>
 #include <dl-procinfo.h>
 #include <unsecvars.h>
 #include <hp-timing.h>
@@ -44,6 +43,8 @@
 #include <dl-vdso-setup.h>
 #include <dl-auxv.h>
 #include <dl-find_object.h>
+#include <array_length.h>
+#include <dl-symbol-redir-ifunc.h>
 
 extern char *__progname;
 char **_dl_argv = &__progname;	/* This is checked for some error messages.  */
@@ -54,7 +55,6 @@ size_t _dl_platformlen;
 
 int _dl_debug_mask;
 int _dl_lazy;
-ElfW(Addr) _dl_use_load_bias = -2;
 int _dl_dynamic_weak;
 
 /* If nonzero print warnings about problematic situations.  */
@@ -145,8 +145,6 @@ size_t _dl_minsigstacksize = CONSTANT_MINSIGSTKSZ;
 
 int _dl_inhibit_cache;
 
-unsigned int _dl_osversion;
-
 /* All known directories in sorted order.  */
 struct r_search_path_elem *_dl_all_dirs;
 
@@ -158,8 +156,6 @@ struct link_map *_dl_initfirst;
 
 /* Descriptor to write debug messages to.  */
 int _dl_debug_fd = STDERR_FILENO;
-
-int _dl_correct_cache_id = _DL_CACHE_DEFAULT_ID;
 
 ElfW(auxv_t) *_dl_auxv;
 const ElfW(Phdr) *_dl_phdr;
@@ -241,93 +237,44 @@ __rtld_lock_define_initialized_recursive (, _dl_load_tls_lock)
 
 
 #ifdef HAVE_AUX_VECTOR
+#include <dl-parse_auxv.h>
+
 int _dl_clktck;
 
 void
 _dl_aux_init (ElfW(auxv_t) *av)
 {
-  int seen = 0;
-  uid_t uid = 0;
-  gid_t gid = 0;
-
 #ifdef NEED_DL_SYSINFO
   /* NB: Avoid RELATIVE relocation in static PIE.  */
   GL(dl_sysinfo) = DL_SYSINFO_DEFAULT;
 #endif
 
   _dl_auxv = av;
-  for (; av->a_type != AT_NULL; ++av)
-    switch (av->a_type)
-      {
-      case AT_PAGESZ:
-	if (av->a_un.a_val != 0)
-	  GLRO(dl_pagesize) = av->a_un.a_val;
-	break;
-      case AT_CLKTCK:
-	GLRO(dl_clktck) = av->a_un.a_val;
-	break;
-      case AT_PHDR:
-	GL(dl_phdr) = (const void *) av->a_un.a_val;
-	break;
-      case AT_PHNUM:
-	GL(dl_phnum) = av->a_un.a_val;
-	break;
-      case AT_PLATFORM:
-	GLRO(dl_platform) = (void *) av->a_un.a_val;
-	break;
-      case AT_HWCAP:
-	GLRO(dl_hwcap) = (unsigned long int) av->a_un.a_val;
-	break;
-      case AT_HWCAP2:
-	GLRO(dl_hwcap2) = (unsigned long int) av->a_un.a_val;
-	break;
-      case AT_FPUCW:
-	GLRO(dl_fpu_control) = av->a_un.a_val;
-	break;
-#ifdef NEED_DL_SYSINFO
-      case AT_SYSINFO:
-	GL(dl_sysinfo) = av->a_un.a_val;
-	break;
-#endif
-#ifdef NEED_DL_SYSINFO_DSO
-      case AT_SYSINFO_EHDR:
-	GL(dl_sysinfo_dso) = (void *) av->a_un.a_val;
-	break;
-#endif
-      case AT_UID:
-	uid ^= av->a_un.a_val;
-	seen |= 1;
-	break;
-      case AT_EUID:
-	uid ^= av->a_un.a_val;
-	seen |= 2;
-	break;
-      case AT_GID:
-	gid ^= av->a_un.a_val;
-	seen |= 4;
-	break;
-      case AT_EGID:
-	gid ^= av->a_un.a_val;
-	seen |= 8;
-	break;
-      case AT_SECURE:
-	seen = -1;
-	__libc_enable_secure = av->a_un.a_val;
-	__libc_enable_secure_decided = 1;
-	break;
-      case AT_RANDOM:
-	_dl_random = (void *) av->a_un.a_val;
-	break;
-      case AT_MINSIGSTKSZ:
-	_dl_minsigstacksize = av->a_un.a_val;
-	break;
-      DL_PLATFORM_AUXV
-      }
-  if (seen == 0xf)
+  dl_parse_auxv_t auxv_values;
+  /* Use an explicit initialization loop here because memset may not
+     be available yet.  */
+  for (int i = 0; i < array_length (auxv_values); ++i)
+    auxv_values[i] = 0;
+  _dl_parse_auxv (av, auxv_values);
+
+  _dl_phdr = (void*) auxv_values[AT_PHDR];
+  _dl_phnum = auxv_values[AT_PHNUM];
+
+  if (_dl_phdr == NULL)
     {
-      __libc_enable_secure = uid != 0 || gid != 0;
-      __libc_enable_secure_decided = 1;
+      /* Starting from binutils-2.23, the linker will define the
+         magic symbol __ehdr_start to point to our own ELF header
+         if it is visible in a segment that also includes the phdrs.
+         So we can set up _dl_phdr and _dl_phnum even without any
+         information from auxv.  */
+
+      extern const ElfW(Ehdr) __ehdr_start attribute_hidden;
+      assert (__ehdr_start.e_phentsize == sizeof *GL(dl_phdr));
+      _dl_phdr = (const void *) &__ehdr_start + __ehdr_start.e_phoff;
+      _dl_phnum = __ehdr_start.e_phnum;
     }
+
+  assert (_dl_phdr != NULL);
 }
 #endif
 
@@ -373,9 +320,6 @@ _dl_non_dynamic_init (void)
     {
       static const char unsecure_envvars[] =
 	UNSECURE_ENVVARS
-#ifdef EXTRA_UNSECURE_ENVVARS
-	EXTRA_UNSECURE_ENVVARS
-#endif
 	;
       const char *cp = unsecure_envvars;
 
@@ -395,28 +339,23 @@ _dl_non_dynamic_init (void)
   DL_PLATFORM_INIT;
 #endif
 
-#ifdef DL_OSVERSION_INIT
-  DL_OSVERSION_INIT;
-#endif
-
   /* Now determine the length of the platform string.  */
   if (_dl_platform != NULL)
     _dl_platformlen = strlen (_dl_platform);
 
-  if (_dl_phdr != NULL)
-    for (const ElfW(Phdr) *ph = _dl_phdr; ph < &_dl_phdr[_dl_phnum]; ++ph)
-      switch (ph->p_type)
-	{
-	/* Check if the stack is nonexecutable.  */
-	case PT_GNU_STACK:
-	  _dl_stack_flags = ph->p_flags;
-	  break;
+  for (const ElfW(Phdr) *ph = _dl_phdr; ph < &_dl_phdr[_dl_phnum]; ++ph)
+    switch (ph->p_type)
+      {
+      /* Check if the stack is nonexecutable.  */
+      case PT_GNU_STACK:
+	_dl_stack_flags = ph->p_flags;
+	break;
 
-	case PT_GNU_RELRO:
-	  _dl_main_map.l_relro_addr = ph->p_vaddr;
-	  _dl_main_map.l_relro_size = ph->p_memsz;
-	  break;
-	}
+      case PT_GNU_RELRO:
+	_dl_main_map.l_relro_addr = ph->p_vaddr;
+	_dl_main_map.l_relro_size = ph->p_memsz;
+	break;
+      }
 
   call_function_static_weak (_dl_find_object_init);
 

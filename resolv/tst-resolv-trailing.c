@@ -1,5 +1,5 @@
 /* Test name resolution behavior with trailing characters.
-   Copyright (C) 2019-2022 Free Software Foundation, Inc.
+   Copyright (C) 2019-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -114,7 +114,7 @@ do_test (void)
          AI_V4MAPPED,
          AI_V4MAPPED | AI_NUMERICHOST,
         };
-      for (size_t gai_flags_idx; gai_flags_idx < array_length (gai_flags);
+      for (size_t gai_flags_idx = 0; gai_flags_idx < array_length (gai_flags);
              ++gai_flags_idx)
         {
           struct addrinfo hints = { .ai_flags = gai_flags[gai_flags_idx], };

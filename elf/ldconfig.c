@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -46,16 +46,6 @@
 
 #include <dl-procinfo.h>
 
-/* This subpath in search path entries is always supported and
-   included in the cache for backwards compatibility.  */
-#define TLS_SUBPATH "tls"
-
-/* The MSB of the hwcap field is set for objects in TLS_SUBPATH
-   directories.  There is always TLS support in glibc, so the dynamic
-   loader does not check the bit directly.  But more hwcap bits make a
-   an object more preferred, so the bit still has meaning.  */
-#define TLS_HWCAP_BIT 63
-
 #ifndef LD_SO_CONF
 # define LD_SO_CONF SYSCONFDIR "/ld.so.conf"
 #endif
@@ -64,19 +54,6 @@
 #include <version.h>
 
 #define PACKAGE _libc_intl_domainname
-
-static const struct
-{
-  const char *name;
-  int flag;
-} lib_types[] =
-{
-  {"libc4", FLAG_LIBC4},
-  {"libc5", FLAG_ELF_LIBC5},
-  {"libc6", FLAG_ELF_LIBC6},
-  {"glibc2", FLAG_ELF_LIBC6}
-};
-
 
 /* List of directories to handle.  */
 struct dir_entry
@@ -133,9 +110,6 @@ static char *cache_file;
 /* Configuration file.  */
 static const char *config_file;
 
-/* Mask to use for important hardware capabilities.  */
-static unsigned long int hwcap_mask = HWCAP_IMPORTANT;
-
 /* Name and version of program.  */
 static void print_version (FILE *stream, struct argp_state *state);
 void (*argp_program_version_hook) (FILE *, struct argp_state *)
@@ -175,75 +149,6 @@ static struct argp argp =
 {
   options, parse_opt, NULL, doc, NULL, more_help, NULL
 };
-
-/* Check if string corresponds to an important hardware capability or
-   a platform.  */
-static int
-is_hwcap_platform (const char *name)
-{
-  int hwcap_idx = _dl_string_hwcap (name);
-
-  /* Is this a normal hwcap for the machine like "fpu?"  */
-  if (hwcap_idx != -1 && ((1 << hwcap_idx) & hwcap_mask))
-    return 1;
-
-  /* Is this a platform pseudo-hwcap like "i686?"  */
-  hwcap_idx = _dl_string_platform (name);
-  if (hwcap_idx != -1)
-    return 1;
-
-  /* Backwards-compatibility for the "tls" subdirectory.  */
-  if (strcmp (name, TLS_SUBPATH) == 0)
-    return 1;
-
-  return 0;
-}
-
-/* Get hwcap (including platform) encoding of path.  */
-static uint64_t
-path_hwcap (const char *path)
-{
-  char *str = xstrdup (path);
-  char *ptr;
-  uint64_t hwcap = 0;
-  uint64_t h;
-
-  size_t len;
-
-  len = strlen (str);
-  if (str[len] == '/')
-    str[len] = '\0';
-
-  /* Search pathname from the end and check for hwcap strings.  */
-  for (;;)
-    {
-      ptr = strrchr (str, '/');
-
-      if (ptr == NULL)
-	break;
-
-      h = _dl_string_hwcap (ptr + 1);
-
-      if (h == (uint64_t) -1)
-	{
-	  h = _dl_string_platform (ptr + 1);
-	  if (h == (uint64_t) -1)
-	    {
-	      if (strcmp (ptr + 1, TLS_SUBPATH) == 0)
-		h = TLS_HWCAP_BIT;
-	      else
-		break;
-	    }
-	}
-      hwcap += 1ULL << h;
-
-      /* Search the next part of the path.  */
-      *ptr = '\0';
-    }
-
-  free (str);
-  return hwcap;
-}
 
 /* Handle program arguments.  */
 static error_t
@@ -328,7 +233,7 @@ print_version (FILE *stream, struct argp_state *state)
 Copyright (C) %s Free Software Foundation, Inc.\n\
 This is free software; see the source for copying conditions.  There is NO\n\
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
-"), "2022");
+"), "2023");
   fprintf (stream, gettext ("Written by %s.\n"),
 	   "Andreas Jaeger");
 }
@@ -469,27 +374,8 @@ add_dir_1 (const char *line, const char *from_file, int from_line)
   entry->from_file = strdup (from_file);
   entry->from_line = from_line;
 
-  /* Search for an '=' sign.  */
   entry->path = xstrdup (line);
-  char *equal_sign = strchr (entry->path, '=');
-  if (equal_sign)
-    {
-      *equal_sign = '\0';
-      ++equal_sign;
-      entry->flag = FLAG_ANY;
-      for (i = 0; i < sizeof (lib_types) / sizeof (lib_types[0]); ++i)
-	if (strcmp (equal_sign, lib_types[i].name) == 0)
-	  {
-	    entry->flag = lib_types[i].flag;
-	    break;
-	  }
-      if (entry->flag == FLAG_ANY)
-	error (0, 0, _("%s is not a known library type"), equal_sign);
-    }
-  else
-    {
-      entry->flag = FLAG_ANY;
-    }
+  entry->flag = FLAG_ELF_LIBC6;
 
   /* Canonify path: for now only remove leading and trailing
      whitespace and the trailing slashes.  */
@@ -658,7 +544,6 @@ manual_link (char *library)
   char *soname;
   struct stat stat_buf;
   int flag;
-  unsigned int osversion;
   unsigned int isa_level;
 
   /* Prepare arguments for create_links call.  Split library name in
@@ -723,8 +608,8 @@ manual_link (char *library)
       goto out;
     }
 
-  if (process_file (real_library, library, libname, &flag, &osversion,
-		    &isa_level, &soname, 0, &stat_buf))
+  if (process_file (real_library, library, libname, &flag, &isa_level, &soname,
+		    0, &stat_buf))
     {
       error (0, 0, _("No link created since soname could not be found for %s"),
 	     library);
@@ -772,7 +657,6 @@ struct dlib_entry
   char *soname;
   int flag;
   int is_link;
-  unsigned int osversion;
   unsigned int isa_level;
   struct dlib_entry *next;
 };
@@ -781,27 +665,15 @@ struct dlib_entry
 static void
 search_dir (const struct dir_entry *entry)
 {
-  uint64_t hwcap;
-  if (entry->hwcaps == NULL)
+  if (opt_verbose)
     {
-      hwcap = path_hwcap (entry->path);
-      if (opt_verbose)
-	{
-	  if (hwcap != 0)
-	    printf ("%s: (hwcap: %#.16" PRIx64 ")", entry->path, hwcap);
-	  else
-	    printf ("%s:", entry->path);
-	}
-    }
-  else
-    {
-      hwcap = 0;
-      if (opt_verbose)
+      if (entry->hwcaps == NULL)
+	printf ("%s:", entry->path);
+      else
 	printf ("%s: (hwcap: \"%s\")", entry->path,
 		glibc_hwcaps_subdirectory_name (entry->hwcaps));
+      printf (_(" (from %s:%d)\n"), entry->from_file, entry->from_line);
     }
-  if (opt_verbose)
-    printf (_(" (from %s:%d)\n"), entry->from_file, entry->from_line);
 
   char *dir_name;
   char *real_file_name;
@@ -842,14 +714,10 @@ search_dir (const struct dir_entry *entry)
 	  && direntry->d_type != DT_REG
 	  && direntry->d_type != DT_DIR)
 	continue;
-      /* Does this file look like a shared library or is it a hwcap
-	 subdirectory (if not already processing a glibc-hwcaps
-	 subdirectory)?  The dynamic linker is also considered as
-	 shared library.  */
+      /* Does this file look like a shared library?  The dynamic linker
+	 is also considered as shared library.  */
       if (!_dl_is_dso (direntry->d_name)
-	  && (direntry->d_type == DT_REG
-	      || (entry->hwcaps == NULL
-		  && !is_hwcap_platform (direntry->d_name))))
+	  && (direntry->d_type == DT_REG || entry->hwcaps == NULL))
 	continue;
 
       size_t len = strlen (direntry->d_name);
@@ -897,7 +765,6 @@ search_dir (const struct dir_entry *entry)
 	  }
 
       struct stat stat_buf;
-      bool is_dir;
       int is_link = S_ISLNK (lstat_buf.st_mode);
       if (is_link)
 	{
@@ -932,37 +799,13 @@ search_dir (const struct dir_entry *entry)
 	  if (opt_chroot != NULL)
 	    free (target_name);
 
-	  is_dir = S_ISDIR (stat_buf.st_mode);
-
 	  /* lstat_buf is later stored, update contents.  */
 	  lstat_buf.st_dev = stat_buf.st_dev;
 	  lstat_buf.st_ino = stat_buf.st_ino;
 	  lstat_buf.st_size = stat_buf.st_size;
 	  lstat_buf.st_ctime = stat_buf.st_ctime;
 	}
-      else
-	is_dir = S_ISDIR (lstat_buf.st_mode);
-
-      /* No descending into subdirectories if this directory is a
-	 glibc-hwcaps subdirectory (which are not recursive).  */
-      if (entry->hwcaps == NULL
-	  && is_dir && is_hwcap_platform (direntry->d_name))
-	{
-	  if (!is_link
-	      && direntry->d_type != DT_UNKNOWN
-	      && __builtin_expect (lstat (real_file_name, &lstat_buf), 0))
-	    {
-	      error (0, errno, _("Cannot lstat %s"), file_name);
-	      continue;
-	    }
-
-	  /* Handle subdirectory later.  */
-	  struct dir_entry *new_entry = new_sub_entry (entry, file_name,
-						       &lstat_buf);
-	  add_single_dir (new_entry, 0);
-	  continue;
-	}
-      else if (!S_ISREG (lstat_buf.st_mode) && !is_link)
+      else if (!S_ISREG (lstat_buf.st_mode))
 	continue;
 
       char *real_name;
@@ -991,22 +834,18 @@ search_dir (const struct dir_entry *entry)
       /* First search whether the auxiliary cache contains this
 	 library already and it's not changed.  */
       char *soname;
-      unsigned int osversion;
       unsigned int isa_level;
-      if (!search_aux_cache (&lstat_buf, &flag, &osversion, &isa_level,
-			     &soname))
+      if (!search_aux_cache (&lstat_buf, &flag, &isa_level, &soname))
 	{
 	  if (process_file (real_name, file_name, direntry->d_name, &flag,
-			    &osversion, &isa_level, &soname, is_link,
-			    &lstat_buf))
+			    &isa_level, &soname, is_link, &lstat_buf))
 	    {
 	      if (real_name != real_file_name)
 		free (real_name);
 	      continue;
 	    }
 	  else if (opt_build_cache)
-	    add_to_aux_cache (&lstat_buf, flag, osversion, isa_level,
-			      soname);
+	    add_to_aux_cache (&lstat_buf, flag, isa_level, soname);
 	}
 
       if (soname == NULL)
@@ -1060,23 +899,11 @@ search_dir (const struct dir_entry *entry)
 	  soname = xstrdup (direntry->d_name);
 	}
 
-      if (flag == FLAG_ELF
-	  && (entry->flag == FLAG_ELF_LIBC5
-	      || entry->flag == FLAG_ELF_LIBC6))
-	flag = entry->flag;
-
       /* Some sanity checks to print warnings.  */
       if (opt_verbose)
 	{
-	  if (flag == FLAG_ELF_LIBC5 && entry->flag != FLAG_ELF_LIBC5
-	      && entry->flag != FLAG_ANY)
-	    error (0, 0, _("libc5 library %s in wrong directory"), file_name);
-	  if (flag == FLAG_ELF_LIBC6 && entry->flag != FLAG_ELF_LIBC6
-	      && entry->flag != FLAG_ANY)
+	  if (flag == FLAG_ELF_LIBC6 && entry->flag != FLAG_ELF_LIBC6)
 	    error (0, 0, _("libc6 library %s in wrong directory"), file_name);
-	  if (flag == FLAG_LIBC4 && entry->flag != FLAG_LIBC4
-	      && entry->flag != FLAG_ANY)
-	    error (0, 0, _("libc4 library %s in wrong directory"), file_name);
 	}
 
       /* Add library to list.  */
@@ -1095,23 +922,11 @@ search_dir (const struct dir_entry *entry)
 		  /* It's newer - add it.  */
 		  /* Flag should be the same - sanity check.  */
 		  if (dlib_ptr->flag != flag)
-		    {
-		      if (dlib_ptr->flag == FLAG_ELF
-			  && (flag == FLAG_ELF_LIBC5 || flag == FLAG_ELF_LIBC6))
-			dlib_ptr->flag = flag;
-		      else if ((dlib_ptr->flag == FLAG_ELF_LIBC5
-				|| dlib_ptr->flag == FLAG_ELF_LIBC6)
-			       && flag == FLAG_ELF)
-			dlib_ptr->flag = flag;
-		      else
-			error (0, 0, _("libraries %s and %s in directory %s have same soname but different type."),
-			       dlib_ptr->name, direntry->d_name,
-			       entry->path);
-		    }
+		    error (0, 0, _("libraries %s and %s in directory %s have same soname but different type."),
+			   dlib_ptr->name, direntry->d_name, entry->path);
 		  free (dlib_ptr->name);
 		  dlib_ptr->name = xstrdup (direntry->d_name);
 		  dlib_ptr->is_link = is_link;
-		  dlib_ptr->osversion = osversion;
 		  dlib_ptr->isa_level = isa_level;
 		}
 	      /* Don't add this library, abort loop.  */
@@ -1128,7 +943,6 @@ search_dir (const struct dir_entry *entry)
 	  dlib_ptr->soname = soname;
 	  dlib_ptr->flag = flag;
 	  dlib_ptr->is_link = is_link;
-	  dlib_ptr->osversion = osversion;
 	  dlib_ptr->isa_level = isa_level;
 	  /* Add at head of list.  */
 	  dlib_ptr->next = dlibs;
@@ -1166,8 +980,7 @@ search_dir (const struct dir_entry *entry)
 	}
       if (opt_build_cache)
 	add_to_cache (entry->path, filename, dlib_ptr->soname,
-		      dlib_ptr->flag, dlib_ptr->osversion,
-		      dlib_ptr->isa_level, hwcap, entry->hwcaps);
+		      dlib_ptr->flag, dlib_ptr->isa_level, entry->hwcaps);
     }
 
   /* Free all resources.  */
@@ -1353,16 +1166,6 @@ parse_conf_include (const char *config_file, unsigned int lineno,
   free (copy);
 }
 
-/* Honour LD_HWCAP_MASK.  */
-static void
-set_hwcap (void)
-{
-  char *mask = getenv ("LD_HWCAP_MASK");
-
-  if (mask)
-    hwcap_mask = strtoul (mask, NULL, 0);
-}
-
 
 int
 main (int argc, char **argv)
@@ -1394,8 +1197,6 @@ main (int argc, char **argv)
 	else
 	  add_dir_1 (argv[i], "<cmdline>", 0);
     }
-
-  set_hwcap ();
 
   if (opt_chroot != NULL)
     {

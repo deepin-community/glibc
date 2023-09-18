@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  SPARC version.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -142,44 +142,6 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
       plt[1] = 0x85c0a000 | (rfunc & 0x3ff);
       plt[2] = OPCODE_NOP;	/* Fill call delay slot.  */
       plt[3] = (Elf32_Addr) l;
-      if (__builtin_expect (l->l_info[VALIDX(DT_GNU_PRELINKED)] != NULL, 0)
-	  || __builtin_expect (l->l_info [VALIDX (DT_GNU_LIBLISTSZ)] != NULL, 0))
-	{
-	  /* Need to reinitialize .plt to undo prelinking.  */
-	  Elf32_Rela *rela = (Elf32_Rela *) D_PTR (l, l_info[DT_JMPREL]);
-	  Elf32_Rela *relaend
-	    = (Elf32_Rela *) ((char *) rela
-			      + l->l_info[DT_PLTRELSZ]->d_un.d_val);
-#if !defined RTLD_BOOTSTRAP && !defined __sparc_v9__
-	  /* Note that we don't mask the hwcap here, as the flush is
-	     essential to functionality on those cpu's that implement it.
-	     For sparcv9 we can assume flush is present.  */
-	  const int do_flush = GLRO(dl_hwcap) & HWCAP_SPARC_FLUSH;
-#else
-	  const int do_flush = 1;
-#endif
-
-	  /* prelink must ensure there are no R_SPARC_NONE relocs left
-	     in .rela.plt.  */
-	  while (rela < relaend)
-	    {
-	      *(unsigned int *) (rela->r_offset + l->l_addr)
-		= OPCODE_SETHI_G1 | (rela->r_offset + l->l_addr
-				     - (Elf32_Addr) plt);
-	      *(unsigned int *) (rela->r_offset + l->l_addr + 4)
-		= OPCODE_BA | ((((Elf32_Addr) plt
-				 - rela->r_offset - l->l_addr - 4) >> 2)
-			       & 0x3fffff);
-	      if (do_flush)
-		{
-		  __asm __volatile ("flush %0" : : "r" (rela->r_offset
-							+ l->l_addr));
-		  __asm __volatile ("flush %0+4" : : "r" (rela->r_offset
-							  + l->l_addr));
-		}
-	      ++rela;
-	    }
-	}
     }
 
   return lazy;
@@ -234,48 +196,9 @@ _dl_start_user:\n\
 	add	%l7, %o7, %l7\n\
   /* Save the user entry point address in %l0 */\n\
 	mov	%o0, %l0\n\
-  /* See if we were run as a command with the executable file name as an\n\
-     extra leading argument.  If so, adjust the contents of the stack.  */\n\
-	" RTLD_GOT_ADDRESS(%l7, %g2, _dl_skip_args) "\n\
-	ld	[%g2], %i0\n\
-	tst	%i0\n\
-	beq	3f\n\
-	 ld	[%sp+22*4], %i5		/* load argc */\n\
-	/* Find out how far to shift.  */\n\
-	" RTLD_GOT_ADDRESS(%l7, %l3, _dl_argv) "\n\
-	sub	%i5, %i0, %i5\n\
-	ld	[%l3], %l4\n\
-	sll	%i0, 2, %i2\n\
-	st	%i5, [%sp+22*4]\n\
-	sub	%l4, %i2, %l4\n\
-	add	%sp, 23*4, %i1\n\
-	add	%i1, %i2, %i2\n\
-	st	%l4, [%l3]\n\
-	/* Copy down argv */\n\
-21:	ld	[%i2], %i3\n\
-	add	%i2, 4, %i2\n\
-	tst	%i3\n\
-	st	%i3, [%i1]\n\
-	bne	21b\n\
-	 add	%i1, 4, %i1\n\
-	/* Copy down env */\n\
-22:	ld	[%i2], %i3\n\
-	add	%i2, 4, %i2\n\
-	tst	%i3\n\
-	st	%i3, [%i1]\n\
-	bne	22b\n\
-	 add	%i1, 4, %i1\n\
-	/* Copy down auxiliary table.  */\n\
-23:	ld	[%i2], %i3\n\
-	ld	[%i2+4], %i4\n\
-	add	%i2, 8, %i2\n\
-	tst	%i3\n\
-	st	%i3, [%i1]\n\
-	st	%i4, [%i1+4]\n\
-	bne	23b\n\
-	 add	%i1, 8, %i1\n\
+	ld	[%sp+22*4], %i5		/* load argc */\n\
   /* %o0 = _dl_loaded, %o1 = argc, %o2 = argv, %o3 = envp.  */\n\
-3:	" RTLD_GOT_ADDRESS(%l7, %o0, _rtld_local) "\n\
+	" RTLD_GOT_ADDRESS(%l7, %o0, _rtld_local) "\n\
 	add	%sp, 23*4, %o2\n\
 	sll	%i5, 2, %o3\n\
 	add	%o3, 4, %o3\n\
@@ -334,23 +257,12 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 		  void *const reloc_addr_arg, int skip_ifunc)
 {
   Elf32_Addr *const reloc_addr = reloc_addr_arg;
-#if !defined RTLD_BOOTSTRAP && !defined RESOLVE_CONFLICT_FIND_MAP
+#if !defined RTLD_BOOTSTRAP
   const Elf32_Sym *const refsym = sym;
 #endif
   Elf32_Addr value;
   const unsigned int r_type = ELF32_R_TYPE (reloc->r_info);
-#if !defined RESOLVE_CONFLICT_FIND_MAP
   struct link_map *sym_map = NULL;
-#endif
-
-#if !defined RTLD_BOOTSTRAP && !defined HAVE_Z_COMBRELOC
-  /* This is defined in rtld.c, but nowhere in the static libc.a; make the
-     reference weak so static programs can still link.  This declaration
-     cannot be done when compiling rtld.c (i.e.  #ifdef RTLD_BOOTSTRAP)
-     because rtld.c contains the common defn for _dl_rtld_map, which is
-     incompatible with a weak decl in the same file.  */
-  weak_extern (_dl_rtld_map);
-#endif
 
   if (__glibc_unlikely (r_type == R_SPARC_NONE))
     return;
@@ -361,18 +273,14 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
       return;
     }
 
-#if !defined RTLD_BOOTSTRAP || !defined HAVE_Z_COMBRELOC
+#if !defined RTLD_BOOTSTRAP
   if (__glibc_unlikely (r_type == R_SPARC_RELATIVE))
     {
-# if !defined RTLD_BOOTSTRAP && !defined HAVE_Z_COMBRELOC
-      if (map != &_dl_rtld_map) /* Already done in rtld itself. */
-# endif
-	*reloc_addr += map->l_addr + reloc->r_addend;
+      *reloc_addr += map->l_addr + reloc->r_addend;
       return;
     }
 #endif
 
-#ifndef RESOLVE_CONFLICT_FIND_MAP
   if (__builtin_expect (ELF32_ST_BIND (sym->st_info) == STB_LOCAL, 0)
       && sym->st_shndx != SHN_UNDEF)
     {
@@ -384,9 +292,6 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
       sym_map = RESOLVE_MAP (map, scope, &sym, version, r_type);
       value = SYMBOL_ADDRESS (sym_map, sym, true);
     }
-#else
-  value = 0;
-#endif
 
   value += reloc->r_addend;	/* Assume copy relocs have zero addend.  */
 
@@ -400,7 +305,7 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 
   switch (r_type)
     {
-#if !defined RTLD_BOOTSTRAP && !defined RESOLVE_CONFLICT_FIND_MAP
+#if !defined RTLD_BOOTSTRAP
     case R_SPARC_COPY:
       if (sym == NULL)
 	/* This can happen in trace mode if an object could not be
@@ -450,7 +355,6 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 	sparc_fixup_plt (reloc, reloc_addr, value, 0, do_flush);
       }
       break;
-#ifndef RESOLVE_CONFLICT_FIND_MAP
     case R_SPARC_TLS_DTPMOD32:
       /* Get the information from the link map returned by the
 	 resolv function.  */
@@ -474,7 +378,7 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 	    + reloc->r_addend;
 	}
       break;
-# ifndef RTLD_BOOTSTRAP
+#ifndef RTLD_BOOTSTRAP
     case R_SPARC_TLS_LE_HIX22:
     case R_SPARC_TLS_LE_LOX10:
       if (sym != NULL)
@@ -489,7 +393,6 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 	      | 0x1c00;
 	}
       break;
-# endif
 #endif
 #ifndef RTLD_BOOTSTRAP
     case R_SPARC_8:

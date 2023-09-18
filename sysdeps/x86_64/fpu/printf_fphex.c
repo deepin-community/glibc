@@ -1,5 +1,5 @@
 /* Print floating point number in hexadecimal notation according to ISO C99.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,31 +34,16 @@ do {									      \
       zero_mantissa = num == 0;						      \
 									      \
       if (sizeof (unsigned long int) > 6)				      \
-	{								      \
-	  numstr = _itoa_word (num, numbuf + sizeof numbuf, 16,		      \
-			       info->spec == 'A');			      \
-	  wnumstr = _itowa_word (num,					      \
-				 wnumbuf + sizeof (wnumbuf) / sizeof (wchar_t),\
-				 16, info->spec == 'A');		      \
-	}								      \
+	numstr = _itoa_word (num, numbuf + sizeof numbuf, 16, info->spec == 'A');\
       else								      \
-	{								      \
-	  numstr = _itoa (num, numbuf + sizeof numbuf, 16, info->spec == 'A');\
-	  wnumstr = _itowa (num,					      \
-			    wnumbuf + sizeof (wnumbuf) / sizeof (wchar_t),    \
-			    16, info->spec == 'A');			      \
-	}								      \
+	numstr = _itoa (num, numbuf + sizeof numbuf, 16, info->spec == 'A');  \
 									      \
       /* Fill with zeroes.  */						      \
       while (numstr > numbuf + (sizeof numbuf - 64 / 4))		      \
-	{								      \
-	  *--numstr = '0';						      \
-	  *--wnumstr = L'0';						      \
-	}								      \
+	*--numstr = '0';						      \
 									      \
       /* We use a full nibble for the leading digit.  */		      \
       leading = *numstr++;						      \
-      wnumstr++;							      \
 									      \
       /* We have 3 bits from the mantissa in the leading nibble.	      \
 	 Therefore we are here using `IEEE854_LONG_DOUBLE_BIAS + 3'.  */      \

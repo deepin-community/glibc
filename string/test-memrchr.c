@@ -1,5 +1,5 @@
 /* Test and measure memrchr functions.
-   Copyright (C) 2013-2022 Free Software Foundation, Inc.
+   Copyright (C) 2013-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,11 +21,10 @@
 #include "test-string.h"
 
 typedef char *(*proto_t) (const char *, int, size_t);
-char *simple_memrchr (const char *, int, size_t);
 
-IMPL (simple_memrchr, 0)
 IMPL (memrchr, 1)
 
+/* Naive implementation to verify results.  */
 char *
 simple_memrchr (const char *s, int c, size_t n)
 {

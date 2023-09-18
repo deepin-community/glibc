@@ -1,5 +1,5 @@
 /* _Float128 overrides for building ldbl-128 as _Float128.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -161,6 +161,12 @@
 #define USE_COPYSIGNL_BUILTIN USE_COPYSIGNF128_BUILTIN
 #undef USE_FMAL_BUILTIN
 #define USE_FMAL_BUILTIN USE_FMAF128_BUILTIN
+#undef USE_LRINTL_BUILTIN
+#define USE_LRINTL_BUILTIN USE_LRINTF128_BUILTIN
+#undef USE_LLRINTL_BUILTIN
+#define USE_LLRINTL_BUILTIN USE_LLRINTF128_BUILTIN
+#undef USE_LOGBL_BUILTIN
+#define USE_LOGBL_BUILTIN USE_LOGBF128_BUILTIN
 
 /* IEEE function renames.  */
 #define __ieee754_acoshl __ieee754_acoshf128
@@ -400,7 +406,11 @@
 #define __builtin_ceill __builtin_ceilf128
 #define __builtin_truncl __builtin_truncf128
 #define __builtin_roundl __builtin_roundf128
+#define __builtin_roundevenl __builtin_roundevenf128
+#define __builtin_lrintl __builtin_lrintf128
+#define __builtin_llrintl __builtin_llrintf128
 #define __builtin_copysignl __builtin_copysignf128
+#define __builtin_fabsl __builtin_fabsf128
 
 /* Get the constant suffix from bits/floatn-compat.h.  */
 #define L(x) __f128 (x)

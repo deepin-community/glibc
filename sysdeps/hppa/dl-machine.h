@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  PA-RISC version.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -175,6 +175,15 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
     unsigned char c[8];
     Elf32_Addr i[2];
   } sig = {{0x00,0xc0,0xff,0xee, 0xde,0xad,0xbe,0xef}};
+
+  /* Initialize dp register for main executable.  */
+  if (l->l_main_map)
+    {
+      register Elf32_Addr dp asm ("%r27");
+
+      dp = D_PTR (l, l_info[DT_PLTGOT]);
+      asm volatile ("" : : "r" (dp));
+    }
 
   /* If we don't have a PLT we can just skip all this... */
   if (__builtin_expect (l->l_info[DT_JMPREL] == NULL,0))
@@ -355,10 +364,6 @@ asm (									\
 "_start:\n"								\
 	/* The kernel does not give us an initial stack frame. */	\
 "	ldo	64(%sp),%sp\n"						\
-	/* Save the relevant arguments (yes, those are the correct	\
-	   registers, the kernel is weird) in their stack slots. */	\
-"	stw	%r25,-40(%sp)\n" /* argc */				\
-"	stw	%r24,-44(%sp)\n" /* argv */				\
 									\
 	/* We need the LTP, and we need it now.				\
 	   $PIC_pcrel$0 points 8 bytes past the current instruction,	\
@@ -416,12 +421,7 @@ asm (									\
 	  So, obviously, we can't just pass %sp to _dl_start.  That's	\
 	  okay, argv-4 will do just fine.				\
 									\
-	  The pleasant part of this is that if we need to skip		\
-	  arguments we can just decrement argc and move argv, because	\
-	  the stack pointer is utterly unrelated to the location of	\
-	  the environment and argument vectors. */			\
-									\
-	/* This is always within range so we'll be okay. */		\
+	  This is always within range so we'll be okay. */		\
 "	bl	_dl_start,%rp\n"					\
 "	ldo	-4(%r24),%r26\n"					\
 									\
@@ -431,32 +431,34 @@ asm (									\
 	/* Save the entry point in %r3. */				\
 "	copy	%ret0,%r3\n"						\
 									\
-	/* See if we were called as a command with the executable file	\
-	   name as an extra leading argument. */			\
-"	addil	LT'_dl_skip_args,%r19\n"				\
-"	ldw	RT'_dl_skip_args(%r1),%r20\n"				\
-"	ldw	0(%r20),%r20\n"						\
+	/* The loader adjusts argc, argv, env, and the aux vectors	\
+	   directly on the stack to remove any arguments used for	\
+	   direct loader invocation.  Thus, argc and argv must be	\
+	   reloaded from from _dl_argc and _dl_argv.  */		\
 									\
-"	ldw	-40(%sp),%r25\n"	/* argc */			\
-"	comib,=	0,%r20,.Lnofix\n"	/* FIXME: Mispredicted branch */\
-"	ldw	-44(%sp),%r24\n"	/* argv (delay slot) */		\
-									\
-"	sub	%r25,%r20,%r25\n"					\
-"	stw	%r25,-40(%sp)\n"					\
-"	sh2add	%r20,%r24,%r24\n"					\
-"	stw	%r24,-44(%sp)\n"					\
-									\
-".Lnofix:\n"								\
+	/* Load main_map from _rtld_local and setup dp. */		\
 "	addil	LT'_rtld_local,%r19\n"					\
 "	ldw	RT'_rtld_local(%r1),%r26\n"				\
 "	bl	set_dp, %r2\n"						\
 "	ldw	0(%r26),%r26\n"						\
+"	copy	%ret0,%r26\n"						\
 									\
-	/* Call _dl_init(_dl_loaded, argc, argv, envp). */		\
-"	copy	%r28,%r26\n"						\
+	/* Load argc from _dl_argc.  */					\
+"	addil	LT'_dl_argc,%r19\n"					\
+"	ldw	RT'_dl_argc(%r1),%r20\n"				\
+"	ldw	0(%r20),%r25\n"						\
+"	stw	%r25,-40(%sp)\n"					\
+									\
+	/* Same for argv with _dl_argv.  */				\
+"	addil	LT'_dl_argv,%r19\n"					\
+"	ldw	RT'_dl_argv(%r1),%r20\n"				\
+"	ldw	0(%r20),%r24\n"						\
+"	stw	%r24,-44(%sp)\n"					\
 									\
 	/* envp = argv + argc + 1 */					\
 "	sh2add	%r25,%r24,%r23\n"					\
+									\
+	/* Call _dl_init(main_map, argc, argv, envp). */		\
 "	bl	_dl_init,%r2\n"						\
 "	ldo	4(%r23),%r23\n"	/* delay slot */			\
 									\
@@ -560,15 +562,6 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
   unsigned long const r_type = ELF32_R_TYPE (reloc->r_info);
   struct link_map *sym_map;
   Elf32_Addr value;
-
-# if !defined RTLD_BOOTSTRAP && !defined HAVE_Z_COMBRELOC && !defined SHARED
-  /* This is defined in rtld.c, but nowhere in the static libc.a; make the
-     reference weak so static programs can still link.  This declaration
-     cannot be done when compiling rtld.c (i.e.  #ifdef RTLD_BOOTSTRAP)
-     because rtld.c contains the common defn for _dl_rtld_map, which is
-     incompatible with a weak decl in the same file.  */
-  weak_extern (GL(dl_rtld_map));
-# endif
 
   /* RESOLVE_MAP will return a null value for undefined syms, and
      non-null for all other syms.  In particular, relocs with no

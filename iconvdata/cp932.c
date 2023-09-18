@@ -1,5 +1,5 @@
 /* Mapping tables for CP932 handling.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -4572,7 +4572,7 @@ static const char from_ucs4_extra[229][2] =
 	/* Two-byte character.  First test whether the next character	      \
 	   is also available.  */					      \
 	uint32_t ch2;							      \
-	uint_fast32_t idx;						      \
+	uint32_t idx;						      \
 									      \
 	if (__glibc_unlikely (inptr + 1 >= inend))			      \
 	  {								      \

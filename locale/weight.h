@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,7 +27,14 @@ findidx (const int32_t *table,
 	 const unsigned char *extra,
 	 const unsigned char **cpp, size_t len)
 {
-  int_fast32_t i = table[*(*cpp)++];
+  /* With GCC 8 when compiling with -Os the compiler warns that
+     seq1.back_us and seq2.back_us might be used uninitialized.
+     This uninitialized use is impossible for the same reason
+     as described in comments in locale/weightwc.h.  */
+  DIAG_PUSH_NEEDS_COMMENT;
+  DIAG_IGNORE_Os_NEEDS_COMMENT (8, "-Wmaybe-uninitialized");
+  int32_t i = table[*(*cpp)++];
+  DIAG_POP_NEEDS_COMMENT;
   const unsigned char *cp;
   const unsigned char *usrc;
 

@@ -1,5 +1,5 @@
 /* Assembler and syscall macros.  OpenRISC version.
-   Copyright (C) 2022 Free Software Foundation, Inc.
+   Copyright (C) 2022-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,8 +19,9 @@
 #ifndef _LINUX_OR1K_SYSDEP_H
 #define _LINUX_OR1K_SYSDEP_H 1
 
+#include <sysdeps/unix/sysv/linux/sysdep.h>
 #include <sysdeps/or1k/sysdep.h>
-#include <sysdeps/unix/sysv/linux/generic/sysdep.h>
+#include <sysdeps/unix/sysdep.h>
 #include <tls.h>
 
 /* "workarounds" for generic code needing to handle 64-bit time_t.  */
@@ -118,10 +119,6 @@ L(pseudo_end): \
 #include <errno.h>
 
 extern long int __syscall_error (long int neg_errno);
-
-/* Pointer mangling is not yet supported for or1k.  */
-#define PTR_MANGLE(var) (void) (var)
-#define PTR_DEMANGLE(var) (void) (var)
 
 #undef INTERNAL_SYSCALL
 #define INTERNAL_SYSCALL(name, nr, args...) \

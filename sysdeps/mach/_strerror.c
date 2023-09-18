@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,7 +40,7 @@ __strerror_r (int errnum, char *buf, size_t buflen)
 
   if (system > err_max_system || ! __mach_error_systems[system].bad_sub)
     {
-      __snprintf (buf, buflen, "%s: %d", _("Error in unknown error system: "),
+      __snprintf (buf, buflen, "%s%X", _("Error in unknown error system: "),
 		  errnum);
       return buf;
     }

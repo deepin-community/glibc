@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -133,7 +133,10 @@ _IO_str_overflow (FILE *fp, int c)
     *fp->_IO_write_ptr++ = (unsigned char) c;
   if (fp->_IO_write_ptr > fp->_IO_read_end)
     fp->_IO_read_end = fp->_IO_write_ptr;
-  return c;
+  if (flush_only)
+    return 0;
+  else
+    return c;
 }
 libc_hidden_def (_IO_str_overflow)
 

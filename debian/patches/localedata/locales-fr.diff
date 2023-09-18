@@ -31,7 +31,7 @@
  country_car "B"
 +country_post "BE"
 +country_isbn "979-10"
- lang_name "fran<U00E7>ais"
+ lang_name "français"
  lang_ab      "fr"
  lang_term    "fra"
 --- a/localedata/locales/fr_CH
@@ -51,7 +51,7 @@
  country_car "CH"
 +country_post "CH"
 +country_isbn "979-10"
- lang_name "fran<U00E7>ais"
+ lang_name "français"
  lang_ab      "fr"
  lang_term    "fra"
 --- a/localedata/locales/fr_FR
@@ -75,7 +75,7 @@
 +country_post "FR"
  country_isbn "979-10"
  country_car  "F"
- lang_name "fran<U00E7>ais"
+ lang_name "français"
 --- a/localedata/locales/fr_LU
 +++ b/localedata/locales/fr_LU
 @@ -139,7 +140,7 @@
@@ -93,6 +93,6 @@
  country_car "L"
 +country_post "LU"
 +country_isbn "979-10"
- lang_name "fran<U00E7>ais"
+ lang_name "français"
  lang_ab      "fr"
  lang_term    "fra"

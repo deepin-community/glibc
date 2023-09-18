@@ -1,5 +1,5 @@
 /* clock_getcpuclockid -- Get a clockid_t for process CPU time.  Linux version.
-   Copyright (C) 2004-2022 Free Software Foundation, Inc.
+   Copyright (C) 2004-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ __clock_getcpuclockid (pid_t pid, clockid_t *clock_id)
   /* The clockid_t value is a simple computation from the PID.
      But we do a clock_getres call to validate it.  */
 
-  const clockid_t pidclock = MAKE_PROCESS_CPUCLOCK (pid, CPUCLOCK_SCHED);
+  const clockid_t pidclock = make_process_cpuclock (pid, CPUCLOCK_SCHED);
 
 #ifndef __NR_clock_getres_time64
 # define __NR_clock_getres_time64 __NR_clock_getres

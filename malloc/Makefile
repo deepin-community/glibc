@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2022 Free Software Foundation, Inc.
+# Copyright (C) 1991-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -123,7 +123,6 @@ tests-mcheck = $(filter-out $(tests-exclude-mcheck) $(tests-static), $(tests))
 endif
 
 routines = malloc mcheck mtrace obstack reallocarray \
-  scratch_buffer_dupfree \
   scratch_buffer_grow scratch_buffer_grow_preserve \
   scratch_buffer_set_array_size \
   dynarray_at_failure \
@@ -145,7 +144,7 @@ extra-libs = libmemusage libc_malloc_debug
 extra-libs-others = $(extra-libs)
 
 # Helper objects for some tests.
-extra-tests-objs += \
+extra-test-objs += \
   tst-interpose-aux-nothread.o \
   tst-interpose-aux-thread.o \
 

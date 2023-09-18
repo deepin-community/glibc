@@ -118,26 +118,33 @@ case "$CC" in
     *fuse-ld=lld*) LDNAME=ld.lld;;
     *)             LDNAME=ld;;
 esac
-AS=`$CC -print-prog-name=as`
-LD=`$CC -print-prog-name=$LDNAME`
-AR=`$CC -print-prog-name=ar`
+if test -z "$LD"; then
+    LD=`$CC -print-prog-name=$LDNAME`
+fi
+if test -z "$AR"; then
+    AR=`$CC -print-prog-name=ar`
+fi
 AC_SUBST(AR)
-OBJDUMP=`$CC -print-prog-name=objdump`
-AC_SUBST(OBJDUMP)
-OBJCOPY=`$CC -print-prog-name=objcopy`
+if test -z "$OBJCOPY"; then
+    OBJCOPY=`$CC -print-prog-name=objcopy`
+fi
 AC_SUBST(OBJCOPY)
-GPROF=`$CC -print-prog-name=gprof`
+if test -z "$GPROF"; then
+    GPROF=`$CC -print-prog-name=gprof`
+fi
 AC_SUBST(GPROF)
-
-# Determine whether we are using GNU binutils.
-AC_CACHE_CHECK(whether $AS is GNU as, libc_cv_prog_as_gnu,
-[LIBC_PROG_FOO_GNU($AS, libc_cv_prog_as_gnu=yes, libc_cv_prog_as_gnu=no)])
-rm -f a.out
-gnu_as=$libc_cv_prog_as_gnu
-
-AC_CACHE_CHECK(whether $LD is GNU ld, libc_cv_prog_ld_gnu,
-[LIBC_PROG_FOO_GNU($LD, libc_cv_prog_ld_gnu=yes, libc_cv_prog_ld_gnu=no)])
-gnu_ld=$libc_cv_prog_ld_gnu
+if test -z "$READELF"; then
+    READELF=`$CC -print-prog-name=readelf`
+fi
+AC_SUBST(READELF)
+if test -z "$OBJDUMP"; then
+    OBJDUMP=`$CC -print-prog-name=objdump`
+fi
+AC_SUBST(OBJDUMP)
+if test -z "$NM"; then
+    NM=`$CC -print-prog-name=nm`
+fi
+AC_SUBST(NM)
 ])
 
 dnl Run a static link test with -nostdlib -nostartfiles.
@@ -227,25 +234,23 @@ dnl LIBC_LINKER_FEATURE([ld_option], [cc_option], [action-if-true], [action-if-f
 AC_DEFUN([LIBC_LINKER_FEATURE],
 [AC_MSG_CHECKING([for linker that supports $1])
 libc_linker_feature=no
-if test x"$gnu_ld" = x"yes"; then
-  cat > conftest.c <<EOF
+cat > conftest.c <<EOF
 int _start (void) { return 42; }
 EOF
-  if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
-		    $2 -nostdlib -nostartfiles
-		    -fPIC -shared -o conftest.so conftest.c
-		    1>&AS_MESSAGE_LOG_FD])
-  then
-    if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp $2 -nostdlib \
-	-nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
-	| grep "warning: $1 ignored" > /dev/null 2>&1; then
-      true
-    else
-      libc_linker_feature=yes
-    fi
+if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		  $2 -nostdlib -nostartfiles
+		  -fPIC -shared -o conftest.so conftest.c
+		  1>&AS_MESSAGE_LOG_FD])
+then
+  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp $2 -nostdlib \
+      -nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
+      | grep "warning: $1 ignored" > /dev/null 2>&1; then
+    true
+  else
+    libc_linker_feature=yes
   fi
-  rm -f conftest*
 fi
+rm -f conftest*
 if test $libc_linker_feature = yes; then
   $3
 else
@@ -280,7 +285,7 @@ int _start (void) { $2 return 0; }
 EOF
 if ! AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
 		     $3 -nostdlib -nostartfiles
-		     -S conftest.c -o - | fgrep "$1"
+		     -S conftest.c -o - | grep -F "$1"
 		     1>&AS_MESSAGE_LOG_FD])
 then
   libc_compiler_builtin_inlined=yes

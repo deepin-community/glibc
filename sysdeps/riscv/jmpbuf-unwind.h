@@ -1,5 +1,5 @@
 /* Examine __jmp_buf for unwinding frames.  RISC-V version.
-   Copyright (C) 2003-2022 Free Software Foundation, Inc.
+   Copyright (C) 2003-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <unwind.h>
 #include <sysdep.h>
+#include <pointer_guard.h>
 
 /* Test if longjmp to JMPBUF would unwind the frame
    containing a local variable at ADDRESS.  */
@@ -33,9 +34,7 @@ static inline uintptr_t __attribute__ ((unused))
 _jmpbuf_sp (__jmp_buf regs)
 {
   uintptr_t sp = regs[0].__sp;
-#ifdef PTR_DEMANGLE
   PTR_DEMANGLE (sp);
-#endif
   return sp;
 }
 

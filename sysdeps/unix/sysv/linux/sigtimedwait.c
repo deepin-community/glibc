@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@ __sigtimedwait64 (const sigset_t *set, siginfo_t *info,
   result = SYSCALL_CANCEL (rt_sigtimedwait_time64, set, info, timeout,
 			   __NSIG_BYTES);
 #else
-  bool need_time64 = timeout != NULL && !in_time_t_range (timeout->tv_sec);
+  bool need_time64 = timeout != NULL && !in_int32_t_range (timeout->tv_sec);
   if (need_time64)
     {
       result = SYSCALL_CANCEL (rt_sigtimedwait_time64, set, info, timeout,

@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  i386 version.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -143,17 +143,8 @@ _dl_start_user:\n\
 	# Point %ebx at the GOT.\n\
 	call 0b\n\
 	addl $_GLOBAL_OFFSET_TABLE_, %ebx\n\
-	# See if we were run as a command with the executable file\n\
-	# name as an extra leading argument.\n\
-	movl _dl_skip_args@GOTOFF(%ebx), %eax\n\
-	# Pop the original argument count.\n\
-	popl %edx\n\
-	# Adjust the stack pointer to skip _dl_skip_args words.\n\
-	leal (%esp,%eax,4), %esp\n\
-	# Subtract _dl_skip_args from argc.\n\
-	subl %eax, %edx\n\
-	# Push argc back on the stack.\n\
-	push %edx\n\
+	# Read the original argument count.\n\
+	movl (%esp), %edx\n\
 	# The special initializer gets called with the stack just\n\
 	# as the application's entry point will see it; it can\n\
 	# switch stacks if it moves these contents over.\n\
@@ -194,17 +185,13 @@ _dl_start_user:\n\
    TLS variable, so undefined references should not be allowed to
    define the value.
    ELF_RTYPE_CLASS_COPY iff TYPE should not be allowed to resolve to one
-   of the main executable's symbols, as for a COPY reloc.
-   ELF_RTYPE_CLASS_EXTERN_PROTECTED_DATA iff TYPE describes relocation may
-   against protected data whose address be external due to copy relocation.
- */
+   of the main executable's symbols, as for a COPY reloc.  */
 # define elf_machine_type_class(type) \
   ((((type) == R_386_JMP_SLOT || (type) == R_386_TLS_DTPMOD32		      \
      || (type) == R_386_TLS_DTPOFF32 || (type) == R_386_TLS_TPOFF32	      \
      || (type) == R_386_TLS_TPOFF || (type) == R_386_TLS_DESC)		      \
     * ELF_RTYPE_CLASS_PLT)						      \
-   | (((type) == R_386_COPY) * ELF_RTYPE_CLASS_COPY)			      \
-   | (((type) == R_386_GLOB_DAT) * ELF_RTYPE_CLASS_EXTERN_PROTECTED_DATA))
+   | (((type) == R_386_COPY) * ELF_RTYPE_CLASS_COPY))
 
 /* A reloc type used for ld.so cmdline arg lookups to reject PLT entries.  */
 #define ELF_MACHINE_JMP_SLOT	R_386_JMP_SLOT
@@ -266,29 +253,15 @@ elf_machine_rel (struct link_map *map, struct r_scope_elem *scope[],
   Elf32_Addr *const reloc_addr = reloc_addr_arg;
   const unsigned int r_type = ELF32_R_TYPE (reloc->r_info);
 
-# if !defined RTLD_BOOTSTRAP || !defined HAVE_Z_COMBRELOC
+# if !defined RTLD_BOOTSTRAP
   if (__glibc_unlikely (r_type == R_386_RELATIVE))
-    {
-#  if !defined RTLD_BOOTSTRAP && !defined HAVE_Z_COMBRELOC
-      /* This is defined in rtld.c, but nowhere in the static libc.a;
-	 make the reference weak so static programs can still link.
-	 This declaration cannot be done when compiling rtld.c
-	 (i.e. #ifdef RTLD_BOOTSTRAP) because rtld.c contains the
-	 common defn for _dl_rtld_map, which is incompatible with a
-	 weak decl in the same file.  */
-#   ifndef SHARED
-      weak_extern (_dl_rtld_map);
-#   endif
-      if (map != &GL(dl_rtld_map)) /* Already done in rtld itself.  */
-#  endif
-	*reloc_addr += map->l_addr;
-    }
+    *reloc_addr += map->l_addr;
 #  ifndef RTLD_BOOTSTRAP
   else if (__glibc_unlikely (r_type == R_386_NONE))
     return;
 #  endif
   else
-# endif	/* !RTLD_BOOTSTRAP and have no -z combreloc */
+# endif	/* !RTLD_BOOTSTRAP */
     {
 # ifndef RTLD_BOOTSTRAP
       const Elf32_Sym *const refsym = sym;
@@ -464,157 +437,6 @@ and creates an unsatisfiable circular dependency.\n",
     }
 }
 
-# ifndef RTLD_BOOTSTRAP
-static inline void
-__attribute__ ((always_inline))
-elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
-		  const Elf32_Rela *reloc, const Elf32_Sym *sym,
-		  const struct r_found_version *version,
-		  void *const reloc_addr_arg, int skip_ifunc)
-{
-  Elf32_Addr *const reloc_addr = reloc_addr_arg;
-  const unsigned int r_type = ELF32_R_TYPE (reloc->r_info);
-
-  if (ELF32_R_TYPE (reloc->r_info) == R_386_RELATIVE)
-    *reloc_addr = map->l_addr + reloc->r_addend;
-  else if (r_type != R_386_NONE)
-    {
-#  ifndef RESOLVE_CONFLICT_FIND_MAP
-      const Elf32_Sym *const refsym = sym;
-#  endif
-      struct link_map *sym_map = RESOLVE_MAP (map, scope, &sym, version,
-					      r_type);
-      Elf32_Addr value = SYMBOL_ADDRESS (sym_map, sym, true);
-
-      if (sym != NULL
-	  && __glibc_likely (sym->st_shndx != SHN_UNDEF)
-	  && __glibc_unlikely (ELFW(ST_TYPE) (sym->st_info) == STT_GNU_IFUNC)
-	  && __glibc_likely (!skip_ifunc))
-	value = ((Elf32_Addr (*) (void)) value) ();
-
-      switch (ELF32_R_TYPE (reloc->r_info))
-	{
-	case R_386_SIZE32:
-	  /* Set to symbol size plus addend.  */
-	  value = sym->st_size;
-	  /* Fall through.  */
-	case R_386_GLOB_DAT:
-	case R_386_JMP_SLOT:
-	case R_386_32:
-	  *reloc_addr = value + reloc->r_addend;
-	  break;
-#  ifndef RESOLVE_CONFLICT_FIND_MAP
-	  /* Not needed for dl-conflict.c.  */
-	case R_386_PC32:
-	  *reloc_addr = (value + reloc->r_addend - (Elf32_Addr) reloc_addr);
-	  break;
-
-	case R_386_TLS_DTPMOD32:
-	  /* Get the information from the link map returned by the
-	     resolv function.  */
-	  if (sym_map != NULL)
-	    *reloc_addr = sym_map->l_tls_modid;
-	  break;
-	case R_386_TLS_DTPOFF32:
-	  /* During relocation all TLS symbols are defined and used.
-	     Therefore the offset is already correct.  */
-	  *reloc_addr = (sym == NULL ? 0 : sym->st_value) + reloc->r_addend;
-	  break;
-	case R_386_TLS_DESC:
-	  {
-	    struct tlsdesc volatile *td =
-	      (struct tlsdesc volatile *)reloc_addr;
-
-#   ifndef RTLD_BOOTSTRAP
-	    if (!sym)
-	      {
-		td->arg = (void*)reloc->r_addend;
-		td->entry = _dl_tlsdesc_undefweak;
-	      }
-	    else
-#   endif
-	      {
-#   ifndef RTLD_BOOTSTRAP
-#    ifndef SHARED
-		CHECK_STATIC_TLS (map, sym_map);
-#    else
-		if (!TRY_STATIC_TLS (map, sym_map))
-		  {
-		    td->arg = _dl_make_tlsdesc_dynamic
-		      (sym_map, sym->st_value + reloc->r_addend);
-		    td->entry = _dl_tlsdesc_dynamic;
-		  }
-		else
-#    endif
-#   endif
-		  {
-		    td->arg = (void*)(sym->st_value - sym_map->l_tls_offset
-				      + reloc->r_addend);
-		    td->entry = _dl_tlsdesc_return;
-		  }
-	      }
-	  }
-	  break;
-	case R_386_TLS_TPOFF32:
-	  /* The offset is positive, backward from the thread pointer.  */
-	  /* We know the offset of object the symbol is contained in.
-	     It is a positive value which will be subtracted from the
-	     thread pointer.  To get the variable position in the TLS
-	     block we subtract the offset from that of the TLS block.  */
-	  if (sym != NULL)
-	    {
-	      CHECK_STATIC_TLS (map, sym_map);
-	      *reloc_addr = sym_map->l_tls_offset - sym->st_value
-			    + reloc->r_addend;
-	    }
-	  break;
-	case R_386_TLS_TPOFF:
-	  /* The offset is negative, forward from the thread pointer.  */
-	  /* We know the offset of object the symbol is contained in.
-	     It is a negative value which will be added to the
-	     thread pointer.  */
-	  if (sym != NULL)
-	    {
-	      CHECK_STATIC_TLS (map, sym_map);
-	      *reloc_addr = sym->st_value - sym_map->l_tls_offset
-			    + reloc->r_addend;
-	    }
-	  break;
-	case R_386_COPY:
-	  if (sym == NULL)
-	    /* This can happen in trace mode if an object could not be
-	       found.  */
-	    break;
-	  if (__glibc_unlikely (sym->st_size > refsym->st_size)
-	      || (__glibc_unlikely (sym->st_size < refsym->st_size)
-		  && GLRO(dl_verbose)))
-	    {
-	      const char *strtab;
-
-	      strtab = (const char *) D_PTR (map, l_info[DT_STRTAB]);
-	      _dl_error_printf ("\
-%s: Symbol `%s' has different size in shared object, consider re-linking\n",
-				RTLD_PROGNAME, strtab + refsym->st_name);
-	    }
-	  memcpy (reloc_addr_arg, (void *) value,
-		  MIN (sym->st_size, refsym->st_size));
-	  break;
-#  endif /* !RESOLVE_CONFLICT_FIND_MAP */
-	case R_386_IRELATIVE:
-	  value = map->l_addr + reloc->r_addend;
-	  if (__glibc_likely (!skip_ifunc))
-	    value = ((Elf32_Addr (*) (void)) value) ();
-	  *reloc_addr = value;
-	  break;
-	default:
-	  /* We add these checks in the version to relocate ld.so only
-	     if we are still debugging.  */
-	  _dl_reloc_bad_type (map, r_type, 0);
-	  break;
-	}
-    }
-}
-# endif	/* !RTLD_BOOTSTRAP */
 
 static inline void
 __attribute ((always_inline))
@@ -694,49 +516,5 @@ elf_machine_lazy_rel (struct link_map *map, struct r_scope_elem *scope[],
   else
     _dl_reloc_bad_type (map, r_type, 1);
 }
-
-# ifndef RTLD_BOOTSTRAP
-
-static inline void
-__attribute__ ((always_inline))
-elf_machine_lazy_rela (struct link_map *map, struct r_scope_elem *scope[],
-		       Elf32_Addr l_addr, const Elf32_Rela *reloc,
-		       int skip_ifunc)
-{
-  Elf32_Addr *const reloc_addr = (void *) (l_addr + reloc->r_offset);
-  const unsigned int r_type = ELF32_R_TYPE (reloc->r_info);
-  if (__glibc_likely (r_type == R_386_JMP_SLOT))
-    ;
-  else if (__glibc_likely (r_type == R_386_TLS_DESC))
-    {
-      const Elf_Symndx symndx = ELFW (R_SYM) (reloc->r_info);
-      const ElfW (Sym) *symtab = (const void *)D_PTR (map, l_info[DT_SYMTAB]);
-      const ElfW (Sym) *sym = &symtab[symndx];
-      const struct r_found_version *version = NULL;
-
-      if (map->l_info[VERSYMIDX (DT_VERSYM)] != NULL)
-	{
-	  const ElfW (Half) *vernum =
-	    (const void *)D_PTR (map, l_info[VERSYMIDX (DT_VERSYM)]);
-	  version = &map->l_versions[vernum[symndx] & 0x7fff];
-	}
-
-      /* Always initialize TLS descriptors completely at load time, in
-	 case static TLS is allocated for it that requires locking.  */
-      elf_machine_rela (map, scope, reloc, sym, version, reloc_addr,
-			skip_ifunc);
-    }
-  else if (__glibc_unlikely (r_type == R_386_IRELATIVE))
-    {
-      Elf32_Addr value = map->l_addr + reloc->r_addend;
-      if (__glibc_likely (!skip_ifunc))
-	value = ((Elf32_Addr (*) (void)) value) ();
-      *reloc_addr = value;
-    }
-  else
-    _dl_reloc_bad_type (map, r_type, 1);
-}
-
-# endif	/* !RTLD_BOOTSTRAP */
 
 #endif /* RESOLVE_MAP */

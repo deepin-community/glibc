@@ -1,5 +1,5 @@
 /* memmove with SSE2.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,18 +16,23 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#if IS_IN (libc)
-# define MEMMOVE_SYMBOL(p,s)	p##_sse2_##s
-#else
-weak_alias (__mempcpy, mempcpy)
-#endif
+#include <isa-level.h>
 
-#include <sysdeps/x86_64/memmove.S>
+/* MINIMUM_X86_ISA_LEVEL <= 2 because there is no V2 implementation
+   so we need this to build for ISA V2 builds. */
+#if ISA_SHOULD_BUILD (2)
 
-#if defined SHARED && IS_IN (libc)
-# include <shlib-compat.h>
-# if SHLIB_COMPAT (libc, GLIBC_2_2_5, GLIBC_2_14)
-/* Use __memmove_sse2_unaligned to support overlapping addresses.  */
-compat_symbol (libc, __memmove_sse2_unaligned, memcpy, GLIBC_2_2_5);
+# include "x86-sse2-vecs.h"
+
+# define PREFETCHNT	prefetchnta
+
+# ifndef MEMMOVE_SYMBOL
+#  define MEMMOVE_SYMBOL(p,s)	p##_sse2_##s
+# endif
+
+# include "multiarch/memmove-vec-unaligned-erms.S"
+
+# if MINIMUM_X86_ISA_LEVEL <= 2
+#  include "memmove-shlib-compat.h"
 # endif
 #endif

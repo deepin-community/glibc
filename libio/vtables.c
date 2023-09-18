@@ -1,5 +1,5 @@
 /* libio vtable validation.
-   Copyright (C) 2016-2022 Free Software Foundation, Inc.
+   Copyright (C) 2016-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,14 +20,11 @@
 #include <libioP.h>
 #include <stdio.h>
 #include <ldsodefs.h>
+#include <pointer_guard.h>
 
 #ifdef SHARED
 
 void (*IO_accept_foreign_vtables) (void) attribute_hidden;
-
-/* Used to detected multiple libcs.  */
-extern struct dl_open_hook *_dl_open_hook;
-libc_hidden_proto (_dl_open_hook);
 
 #else  /* !SHARED */
 
@@ -42,9 +39,7 @@ _IO_vtable_check (void)
 #ifdef SHARED
   /* Honor the compatibility flag.  */
   void (*flag) (void) = atomic_load_relaxed (&IO_accept_foreign_vtables);
-#ifdef PTR_DEMANGLE
   PTR_DEMANGLE (flag);
-#endif
   if (flag == &_IO_vtable_check)
     return;
 

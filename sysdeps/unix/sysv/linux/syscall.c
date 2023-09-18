@@ -1,5 +1,5 @@
 /* Indirect system call.  Linux generic implementation.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ syscall (long int number, ...)
   long int a5 = va_arg (args, long int);
   va_end (args);
 
-  int r = INTERNAL_SYSCALL_NCS_CALL (number, a0, a1, a2, a3, a4, a5);
+  long int r = INTERNAL_SYSCALL_NCS_CALL (number, a0, a1, a2, a3, a4, a5);
   if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (r)))
     {
       __set_errno (-r);

@@ -258,6 +258,7 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  __pci_get_dev_regions@Base 2.27-8+hurd.1
  __pci_get_dev_rom@Base 2.27-8+hurd.1
  __pci_get_ndevs@Base 2.27-8+hurd.1
+ __pfinet_getroutes@Base 2.35-2
  __pfinet_siocgifconf@Base 2.11
  __proc_child@Base 2.11
  __proc_child_request@Base 2.11
@@ -640,6 +641,7 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  pci_get_dev_regions@Base 2.27-8+hurd.1
  pci_get_dev_rom@Base 2.27-8+hurd.1
  pci_get_ndevs@Base 2.27-8+hurd.1
+ pfinet_getroutes@Base 2.35-2
  pfinet_siocgifconf@Base 2.11
  proc_child@Base 2.11
  proc_child_request@Base 2.11
@@ -824,12 +826,6 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
 libmachuser.so.1 #PACKAGE# #MINVER#
  _S_exc_server@Base 2.11
  _S_exc_server_routines@Base 2.19-14~
- __default_pager_info@Base 2.11
- __default_pager_object_create@Base 2.11
- __default_pager_object_pages@Base 2.11
- __default_pager_objects@Base 2.11
- __default_pager_paging_file@Base 2.11
- __default_pager_register_fileserver@Base 2.11
  __device_close@Base 2.11
  __device_get_status@Base 2.11
  __device_intr_ack@Base 2.31-1+b1
@@ -852,7 +848,6 @@ libmachuser.so.1 #PACKAGE# #MINVER#
  __gsync_wait@Base 2.23-4
  __gsync_wake@Base 2.23-4
  __host_adjust_time@Base 2.11
- __host_get_boot_info@Base 2.11
  __host_get_time@Base 2.11
  __host_info@Base 2.11
  __host_kernel_version@Base 2.11
@@ -941,6 +936,7 @@ libmachuser.so.1 #PACKAGE# #MINVER#
  __task_resume@Base 2.11
  __task_set_emulation@Base 2.11
  __task_set_emulation_vector@Base 2.11
+ __task_set_essential@Base 2.36-7
  __task_set_name@Base 2.18-5
  __task_set_special_port_rpc@Base 2.11
  __task_suspend_rpc@Base 2.11
@@ -987,12 +983,6 @@ libmachuser.so.1 #PACKAGE# #MINVER#
  __vm_wire@Base 2.11
  __vm_wire_all@Base 2.24-9~
  __vm_write@Base 2.11
- default_pager_info@Base 2.11
- default_pager_object_create@Base 2.11
- default_pager_object_pages@Base 2.11
- default_pager_objects@Base 2.11
- default_pager_paging_file@Base 2.11
- default_pager_register_fileserver@Base 2.11
  device_close@Base 2.11
  device_get_status@Base 2.11
  device_intr_ack@Base 2.31-1+b1
@@ -1015,7 +1005,6 @@ libmachuser.so.1 #PACKAGE# #MINVER#
  gsync_wait@Base 2.23-4
  gsync_wake@Base 2.23-4
  host_adjust_time@Base 2.11
- host_get_boot_info@Base 2.11
  host_get_time@Base 2.11
  host_info@Base 2.11
  host_kernel_version@Base 2.11
@@ -1104,6 +1093,7 @@ libmachuser.so.1 #PACKAGE# #MINVER#
  task_resume@Base 2.11
  task_set_emulation@Base 2.11
  task_set_emulation_vector@Base 2.11
+ task_set_essential@Base 2.36-7
  task_set_name@Base 2.18-5
  task_set_special_port_rpc@Base 2.11
  task_suspend_rpc@Base 2.11

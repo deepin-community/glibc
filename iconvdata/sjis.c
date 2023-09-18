@@ -1,5 +1,5 @@
 /* Mapping tables for SJIS handling.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@
    from the Unicode CD (also available on their FTP server) using
    the command
 
-	egrep '^0x8[01234][[:xdigit:]][[:xdigit:]]' \
+	grep -E '^0x8[01234][[:xdigit:]][[:xdigit:]]' \
 	  /mnt/cdrom/unix/mappings/eastasia/jis/shiftjis.txt | perl ~/sjis.pl
 
    where sjis.pl contains:
@@ -185,7 +185,7 @@ static const uint16_t cjk_block1[703] =
    from the Unicode CD (also available on their FTP server) using
    the command
 
-	egrep '^0x8[89][[:xdigit:]][[:xdigit:]]' \
+	grep -E '^0x8[89][[:xdigit:]][[:xdigit:]]' \
 	  /mnt/cdrom/unix/mappings/eastasia/jis/shiftjis.txt | perl ~/sjis.pl
 
    where sjis.pl contains:
@@ -235,7 +235,7 @@ static const uint16_t cjk_block2[94] =
    from the Unicode CD (also available on their FTP server) using
    the command
 
-	egrep '^0x(8[9a-fA-F]|9[[:xdigit:]])[[:xdigit:]][[:xdigit:]]' \
+	grep -E '^0x(8[9a-fA-F]|9[[:xdigit:]])[[:xdigit:]][[:xdigit:]]' \
 	  /mnt/cdrom/unix/mappings/eastasia/jis/shiftjis.txt | perl ~/sjis.pl
 
    where sjis.pl contains:
@@ -1333,7 +1333,7 @@ static const uint16_t cjk_block3[4413] =
    from the Unicode CD (also available on their FTP server) using
    the command
 
-	egrep '^0x[eE][[:xdigit:]][[:xdigit:]][[:xdigit:]]' \
+	grep -E '^0x[eE][[:xdigit:]][[:xdigit:]][[:xdigit:]]' \
 	  /mnt/cdrom/unix/mappings/eastasia/jis/shiftjis.txt | perl ~/sjis.pl
 
    where sjis.pl contains:
@@ -1856,7 +1856,7 @@ static const uint16_t cjk_block4[2021] =
 /* The following table can be generated using
 
    awk '/^0x/ { print $2, $1; }' < .../eastasia/jis/shiftjis.txt |
-   egrep "^0x00[[:xdigit:]][[:xdigit:]]" |
+   grep -E "^0x00[[:xdigit:]][[:xdigit:]]" |
    sort -u | perl tab.pl
 
    where tab.pl is
@@ -1938,7 +1938,7 @@ static const char from_ucs4_lat1[0xf8][2] =
 /* The following table can be generated using
 
    awk '/^0x/ { print $2, $1; }' < .../eastasia/jis/shiftjis.txt |
-   egrep "^0x0[34][[:xdigit:]][[:xdigit:]]" |
+   grep -E "^0x0[34][[:xdigit:]][[:xdigit:]]" |
    sort -u | perl tab.pl
 
    where tab.pl is
@@ -2007,7 +2007,7 @@ static const char from_ucs4_greek[193][2] =
    The following table can be generated using
 
    awk '/^0x/ { print $2, $1; }' < ...eastasia/jis/shiftjis.txt |
-   egrep "^0x[2-9][[:xdigit:]][[:xdigit:]][[:xdigit:]]" |
+   grep -E "^0x[2-9][[:xdigit:]][[:xdigit:]][[:xdigit:]]" |
    sort -u | perl tab.pl
 
    where tab.pl is
@@ -4359,7 +4359,7 @@ static const char from_ucs4_extra[0x100][2] =
 	/* Two-byte character.  First test whether the next byte	      \
 	   is also available.  */					      \
 	uint32_t ch2;							      \
-	uint_fast32_t idx;						      \
+	uint32_t idx;						      \
 									      \
 	if (__glibc_unlikely (inptr + 1 >= inend))			      \
 	  {								      \

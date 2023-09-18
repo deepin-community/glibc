@@ -1,5 +1,5 @@
 /* Optimized strncpy implementation for POWER9 LE.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -352,7 +352,7 @@ L(zero_padding_loop):
 	cmpldi	cr6,r5,16	/* Check if length was reached.  */
 	ble	cr6,L(zero_padding_end)
 
-	stxv	v18,0(r11)
+	stxv	32+v18,0(r11)
 	addi	r11,r11,16
 	addi	r5,r5,-16
 
@@ -360,7 +360,7 @@ L(zero_padding_loop):
 
 L(zero_padding_end):
 	sldi	r10,r5,56	/* stxvl wants size in top 8 bits  */
-	stxvl	v18,r11,r10	/* Partial store  */
+	stxvl	32+v18,r11,r10	/* Partial store  */
 	blr
 
 	.align	4

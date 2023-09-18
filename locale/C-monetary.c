@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ const struct __locale_data _nl_C_LC_MONETARY attribute_hidden =
 {
   _nl_C_name,
   NULL, 0, 0,			/* no file mapped */
-  { NULL, },			/* no cached data */
+  NULL,				/* No cached data.  */
   UNDELETABLE,
   0,
   46,

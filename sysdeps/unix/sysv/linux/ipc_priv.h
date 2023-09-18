@@ -1,5 +1,5 @@
 /* Old SysV permission definition for Linux.  Default version.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -61,6 +61,12 @@ struct __old_ipc_perm
 # define __IPC_TIME64 1
 #else
 # define __IPC_TIME64 0
+#endif
+
+#if __IPC_TIME64 || defined __ASSUME_SYSVIPC_BROKEN_MODE_T
+# define IPC_CTL_NEED_TRANSLATION 1
+#else
+# define IPC_CTL_NEED_TRANSLATION 0
 #endif
 
 #include <ipc_ops.h>

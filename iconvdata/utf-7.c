@@ -1,5 +1,5 @@
 /* Conversion module for UTF-7.
-   Copyright (C) 2000-2022 Free Software Foundation, Inc.
+   Copyright (C) 2000-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,72 +27,101 @@
 #include <gconv.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 
-/* Define this to 1 if you want the so-called "optional direct" characters
-      ! " # $ % & * ; < = > @ [ ] ^ _ ` { | }
-   to be encoded. Define to 0 if you want them to be passed straight
-   through, like the so-called "direct" characters.
-   We set this to 1 because it's safer.
- */
-#define UTF7_ENCODE_OPTIONAL_CHARS 1
+enum variant
+{
+  UTF7,
+  UTF_7_IMAP
+};
 
+/* Must be in the same order as enum variant above.  */
+static const char names[] =
+  "UTF-7//\0"
+  "UTF-7-IMAP//\0"
+  "\0";
+
+static uint32_t
+shift_character (enum variant const var)
+{
+  if (var == UTF7)
+    return '+';
+  else if (var == UTF_7_IMAP)
+    return '&';
+  else
+    abort ();
+}
+
+static bool
+between (uint32_t const ch,
+	 uint32_t const lower_bound, uint32_t const upper_bound)
+{
+  return (ch >= lower_bound && ch <= upper_bound);
+}
 
 /* The set of "direct characters":
    A-Z a-z 0-9 ' ( ) , - . / : ? space tab lf cr
+   FOR UTF-7-IMAP
+   A-Z a-z 0-9 ' ( ) , - . / : ? space
+   ! " # $ % + * ; < = > @ [ \ ] ^ _ ` { | } ~
 */
 
-static const unsigned char direct_tab[128 / 8] =
-  {
-    0x00, 0x26, 0x00, 0x00, 0x81, 0xf3, 0xff, 0x87,
-    0xfe, 0xff, 0xff, 0x07, 0xfe, 0xff, 0xff, 0x07
-  };
-
-static int
-isdirect (uint32_t ch)
+static bool
+isdirect (uint32_t ch, enum variant var)
 {
-  return (ch < 128 && ((direct_tab[ch >> 3] >> (ch & 7)) & 1));
+  if (var == UTF7)
+    return (between (ch, 'A', 'Z')
+	    || between (ch, 'a', 'z')
+	    || between (ch, '0', '9')
+	    || ch == '\'' || ch == '(' || ch == ')'
+	    || between (ch, ',', '/')
+	    || ch == ':' || ch == '?'
+	    || ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r');
+  else if (var == UTF_7_IMAP)
+    return (ch != '&' && between (ch, ' ', '~'));
+  abort ();
 }
 
 
 /* The set of "direct and optional direct characters":
    A-Z a-z 0-9 ' ( ) , - . / : ? space tab lf cr
+   (UTF-7 only)
    ! " # $ % & * ; < = > @ [ ] ^ _ ` { | }
 */
 
-static const unsigned char xdirect_tab[128 / 8] =
-  {
-    0x00, 0x26, 0x00, 0x00, 0xff, 0xf7, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xef, 0xff, 0xff, 0xff, 0x3f
-  };
-
-static int
-isxdirect (uint32_t ch)
+static bool
+isxdirect (uint32_t ch, enum variant var)
 {
-  return (ch < 128 && ((xdirect_tab[ch >> 3] >> (ch & 7)) & 1));
+  if (isdirect (ch, var))
+    return true;
+  if (var != UTF7)
+    return false;
+  return between (ch, '!', '&')
+    || ch == '*'
+    || between (ch, ';', '@')
+    || (between (ch, '[', '`') && ch != '\\')
+    || between (ch, '{', '}');
 }
 
 
-/* The set of "extended base64 characters":
+/* Characters which needs to trigger an explicit shift back to US-ASCII (UTF-7
+   only): Modified base64 + '-' (shift back character)
    A-Z a-z 0-9 + / -
 */
 
-static const unsigned char xbase64_tab[128 / 8] =
-  {
-    0x00, 0x00, 0x00, 0x00, 0x00, 0xa8, 0xff, 0x03,
-    0xfe, 0xff, 0xff, 0x07, 0xfe, 0xff, 0xff, 0x07
-  };
-
-static int
-isxbase64 (uint32_t ch)
+static bool
+needs_explicit_shift (uint32_t ch)
 {
-  return (ch < 128 && ((xbase64_tab[ch >> 3] >> (ch & 7)) & 1));
+  return (between (ch, 'A', 'Z')
+	  || between (ch, 'a', 'z')
+	  || between (ch, '/', '9') || ch == '+' || ch == '-');
 }
 
 
 /* Converts a value in the range 0..63 to a base64 encoded char.  */
 static unsigned char
-base64 (unsigned int i)
+base64 (unsigned int i, enum variant var)
 {
   if (i < 26)
     return i + 'A';
@@ -102,17 +131,18 @@ base64 (unsigned int i)
     return i - 52 + '0';
   else if (i == 62)
     return '+';
-  else if (i == 63)
+  else if (i == 63 && var == UTF7)
     return '/';
+  else if (i == 63 && var == UTF_7_IMAP)
+    return ',';
   else
     abort ();
 }
 
 
 /* Definitions used in the body of the `gconv' function.  */
-#define CHARSET_NAME		"UTF-7//"
-#define DEFINE_INIT		1
-#define DEFINE_FINI		1
+#define DEFINE_INIT		0
+#define DEFINE_FINI		0
 #define FROM_LOOP		from_utf7_loop
 #define TO_LOOP			to_utf7_loop
 #define MIN_NEEDED_FROM		1
@@ -120,11 +150,27 @@ base64 (unsigned int i)
 #define MIN_NEEDED_TO		4
 #define MAX_NEEDED_TO		4
 #define ONE_DIRECTION		0
+#define FROM_DIRECTION      (dir == from_utf7)
 #define PREPARE_LOOP \
   mbstate_t saved_state;						      \
-  mbstate_t *statep = data->__statep;
-#define EXTRA_LOOP_ARGS		, statep
+  mbstate_t *statep = data->__statep;					      \
+  enum direction dir = ((struct utf7_data *) step->__data)->dir;	      \
+  enum variant var = ((struct utf7_data *) step->__data)->var;
+#define EXTRA_LOOP_ARGS		, statep, var
 
+
+enum direction
+{
+  illegal_dir,
+  from_utf7,
+  to_utf7
+};
+
+struct utf7_data
+{
+  enum direction dir;
+  enum variant var;
+};
 
 /* Since we might have to reset input pointer we must be able to save
    and restore the state.  */
@@ -133,6 +179,70 @@ base64 (unsigned int i)
     saved_state = *statep;						      \
   else									      \
     *statep = saved_state
+
+int
+gconv_init (struct __gconv_step *step)
+{
+  /* Determine which direction.  */
+  struct utf7_data *new_data;
+  enum direction dir = illegal_dir;
+
+  enum variant var = 0;
+  for (const char *name = names; *name != '\0';
+       name = __rawmemchr (name, '\0') + 1)
+    {
+      if (__strcasecmp (step->__from_name, name) == 0)
+	{
+	  dir = from_utf7;
+	  break;
+	}
+      else if (__strcasecmp (step->__to_name, name) == 0)
+	{
+	  dir = to_utf7;
+	  break;
+	}
+      ++var;
+    }
+
+  if (__glibc_likely (dir != illegal_dir))
+    {
+      new_data = malloc (sizeof (*new_data));
+      if (new_data == NULL)
+	return __GCONV_NOMEM;
+
+      new_data->dir = dir;
+      new_data->var = var;
+      step->__data = new_data;
+
+      if (dir == from_utf7)
+	{
+	  step->__min_needed_from = MIN_NEEDED_FROM;
+	  step->__max_needed_from = MAX_NEEDED_FROM;
+	  step->__min_needed_to = MIN_NEEDED_TO;
+	  step->__max_needed_to = MAX_NEEDED_TO;
+	}
+      else
+	{
+	  step->__min_needed_from = MIN_NEEDED_TO;
+	  step->__max_needed_from = MAX_NEEDED_TO;
+	  step->__min_needed_to = MIN_NEEDED_FROM;
+	  step->__max_needed_to = MAX_NEEDED_FROM;
+	}
+    }
+  else
+    return __GCONV_NOCONV;
+
+  step->__stateful = 1;
+
+  return __GCONV_OK;
+}
+
+void
+gconv_end (struct __gconv_step *data)
+{
+  free (data->__data);
+}
+
 
 
 /* First define the conversion function from UTF-7 to UCS4.
@@ -161,13 +271,13 @@ base64 (unsigned int i)
     if ((statep->__count >> 3) == 0)					      \
       {									      \
 	/* base64 encoding inactive.  */				      \
-	if (isxdirect (ch))						      \
+	if (isxdirect (ch, var))					      \
 	  {								      \
 	    inptr++;							      \
 	    put32 (outptr, ch);						      \
 	    outptr += 4;						      \
 	  }								      \
-	else if (__glibc_likely (ch == '+'))				      \
+	else if (__glibc_likely (ch == shift_character (var)))		      \
 	  {								      \
 	    if (__glibc_unlikely (inptr + 2 > inend))			      \
 	      {								      \
@@ -209,7 +319,8 @@ base64 (unsigned int i)
 	  i = ch - '0' + 52;						      \
 	else if (ch == '+')						      \
 	  i = 62;							      \
-	else if (ch == '/')						      \
+	else if ((var == UTF7 && ch == '/')                                   \
+		  || (var == UTF_7_IMAP && ch == ','))			      \
 	  i = 63;							      \
 	else								      \
 	  {								      \
@@ -217,8 +328,10 @@ base64 (unsigned int i)
 									      \
 	    /* If accumulated data is nonzero, the input is invalid.  */      \
 	    /* Also, partial UTF-16 characters are invalid.  */		      \
-	    if (__builtin_expect (statep->__value.__wch != 0, 0)	      \
-		|| __builtin_expect ((statep->__count >> 3) <= 26, 0))	      \
+	    /* In IMAP variant, must be terminated by '-'.  */		      \
+	    if (__glibc_unlikely (statep->__value.__wch != 0)		      \
+		|| __glibc_unlikely ((statep->__count >> 3) <= 26)	      \
+		|| __glibc_unlikely (var == UTF_7_IMAP && ch != '-'))	      \
 	      {								      \
 		STANDARD_FROM_LOOP_ERR_HANDLER ((statep->__count = 0, 1));    \
 	      }								      \
@@ -260,7 +373,7 @@ base64 (unsigned int i)
 		   indeed form a Low Surrogate.  */			      \
 		uint32_t wc2 = wch & 0xffff;				      \
 									      \
-		if (! __builtin_expect (wc2 >= 0xdc00 && wc2 < 0xe000, 1))    \
+		if (! __glibc_likely (wc2 >= 0xdc00 && wc2 < 0xe000))	      \
 		  {							      \
 		    STANDARD_FROM_LOOP_ERR_HANDLER ((statep->__count = 0, 1));\
 		  }							      \
@@ -292,7 +405,7 @@ base64 (unsigned int i)
       }									      \
   }
 #define LOOP_NEED_FLAGS
-#define EXTRA_LOOP_DECLS	, mbstate_t *statep
+#define EXTRA_LOOP_DECLS	, mbstate_t *statep, enum variant var
 #include <iconv/loop.c>
 
 
@@ -323,7 +436,7 @@ base64 (unsigned int i)
     if ((statep->__count & 0x18) == 0)					      \
       {									      \
 	/* base64 encoding inactive */					      \
-	if (UTF7_ENCODE_OPTIONAL_CHARS ? isdirect (ch) : isxdirect (ch))      \
+	if (isdirect (ch, var))						      \
 	  {								      \
 	    *outptr++ = (unsigned char) ch;				      \
 	  }								      \
@@ -331,7 +444,7 @@ base64 (unsigned int i)
 	  {								      \
 	    size_t count;						      \
 									      \
-	    if (ch == '+')						      \
+	    if (ch == shift_character (var))				      \
 	      count = 2;						      \
 	    else if (ch < 0x10000)					      \
 	      count = 3;						      \
@@ -346,13 +459,13 @@ base64 (unsigned int i)
 		break;							      \
 	      }								      \
 									      \
-	    *outptr++ = '+';						      \
-	    if (ch == '+')						      \
+	    *outptr++ = shift_character (var);				      \
+	    if (ch == shift_character (var))				      \
 	      *outptr++ = '-';						      \
 	    else if (ch < 0x10000)					      \
 	      {								      \
-		*outptr++ = base64 (ch >> 10);				      \
-		*outptr++ = base64 ((ch >> 4) & 0x3f);			      \
+		*outptr++ = base64 (ch >> 10, var);			      \
+		*outptr++ = base64 ((ch >> 4) & 0x3f, var);		      \
 		statep->__count = ((ch & 15) << 5) | (3 << 3);		      \
 	      }								      \
 	    else if (ch < 0x110000)					      \
@@ -361,11 +474,11 @@ base64 (unsigned int i)
 		uint32_t ch2 = 0xdc00 + ((ch - 0x10000) & 0x3ff);	      \
 									      \
 		ch = (ch1 << 16) | ch2;					      \
-		*outptr++ = base64 (ch >> 26);				      \
-		*outptr++ = base64 ((ch >> 20) & 0x3f);			      \
-		*outptr++ = base64 ((ch >> 14) & 0x3f);			      \
-		*outptr++ = base64 ((ch >> 8) & 0x3f);			      \
-		*outptr++ = base64 ((ch >> 2) & 0x3f);			      \
+		*outptr++ = base64 (ch >> 26, var);			      \
+		*outptr++ = base64 ((ch >> 20) & 0x3f, var);		      \
+		*outptr++ = base64 ((ch >> 14) & 0x3f, var);		      \
+		*outptr++ = base64 ((ch >> 8) & 0x3f, var);		      \
+		*outptr++ = base64 ((ch >> 2) & 0x3f, var);		      \
 		statep->__count = ((ch & 3) << 7) | (2 << 3);		      \
 	      }								      \
 	    else							      \
@@ -375,12 +488,15 @@ base64 (unsigned int i)
     else								      \
       {									      \
 	/* base64 encoding active */					      \
-	if (UTF7_ENCODE_OPTIONAL_CHARS ? isdirect (ch) : isxdirect (ch))      \
+	if ((var == UTF_7_IMAP && ch == '&') || isdirect (ch, var))	      \
 	  {								      \
 	    /* deactivate base64 encoding */				      \
 	    size_t count;						      \
 									      \
-	    count = ((statep->__count & 0x18) >= 0x10) + isxbase64 (ch) + 1;  \
+	    count = ((statep->__count & 0x18) >= 0x10)			      \
+	      + (var == UTF_7_IMAP || needs_explicit_shift (ch))	      \
+	      + (var == UTF_7_IMAP && ch == '&')			      \
+	      + 1;							      \
 	    if (__glibc_unlikely (outptr + count > outend))		      \
 	      {								      \
 		result = __GCONV_FULL_OUTPUT;				      \
@@ -388,10 +504,12 @@ base64 (unsigned int i)
 	      }								      \
 									      \
 	    if ((statep->__count & 0x18) >= 0x10)			      \
-	      *outptr++ = base64 ((statep->__count >> 3) & ~3);		      \
-	    if (isxbase64 (ch))						      \
+	      *outptr++ = base64 ((statep->__count >> 3) & ~3, var);	      \
+	    if (var == UTF_7_IMAP || needs_explicit_shift (ch))		      \
 	      *outptr++ = '-';						      \
 	    *outptr++ = (unsigned char) ch;				      \
+	    if (var == UTF_7_IMAP && ch == '&')				      \
+	      *outptr++ = '-';						      \
 	    statep->__count = 0;					      \
 	  }								      \
 	else								      \
@@ -416,22 +534,24 @@ base64 (unsigned int i)
 		switch ((statep->__count >> 3) & 3)			      \
 		  {							      \
 		  case 1:						      \
-		    *outptr++ = base64 (ch >> 10);			      \
-		    *outptr++ = base64 ((ch >> 4) & 0x3f);		      \
+		    *outptr++ = base64 (ch >> 10, var);			      \
+		    *outptr++ = base64 ((ch >> 4) & 0x3f, var);		      \
 		    statep->__count = ((ch & 15) << 5) | (3 << 3);	      \
 		    break;						      \
 		  case 2:						      \
 		    *outptr++ =						      \
-		      base64 (((statep->__count >> 3) & ~3) | (ch >> 12));    \
-		    *outptr++ = base64 ((ch >> 6) & 0x3f);		      \
-		    *outptr++ = base64 (ch & 0x3f);			      \
+		      base64 (((statep->__count >> 3) & ~3) | (ch >> 12),     \
+			      var);					      \
+		    *outptr++ = base64 ((ch >> 6) & 0x3f, var);		      \
+		    *outptr++ = base64 (ch & 0x3f, var);		      \
 		    statep->__count = (1 << 3);				      \
 		    break;						      \
 		  case 3:						      \
 		    *outptr++ =						      \
-		      base64 (((statep->__count >> 3) & ~3) | (ch >> 14));    \
-		    *outptr++ = base64 ((ch >> 8) & 0x3f);		      \
-		    *outptr++ = base64 ((ch >> 2) & 0x3f);		      \
+		      base64 (((statep->__count >> 3) & ~3) | (ch >> 14),     \
+			      var);					      \
+		    *outptr++ = base64 ((ch >> 8) & 0x3f, var);		      \
+		    *outptr++ = base64 ((ch >> 2) & 0x3f, var);		      \
 		    statep->__count = ((ch & 3) << 7) | (2 << 3);	      \
 		    break;						      \
 		  default:						      \
@@ -447,30 +567,32 @@ base64 (unsigned int i)
 		switch ((statep->__count >> 3) & 3)			      \
 		  {							      \
 		  case 1:						      \
-		    *outptr++ = base64 (ch >> 26);			      \
-		    *outptr++ = base64 ((ch >> 20) & 0x3f);		      \
-		    *outptr++ = base64 ((ch >> 14) & 0x3f);		      \
-		    *outptr++ = base64 ((ch >> 8) & 0x3f);		      \
-		    *outptr++ = base64 ((ch >> 2) & 0x3f);		      \
+		    *outptr++ = base64 (ch >> 26, var);			      \
+		    *outptr++ = base64 ((ch >> 20) & 0x3f, var);	      \
+		    *outptr++ = base64 ((ch >> 14) & 0x3f, var);	      \
+		    *outptr++ = base64 ((ch >> 8) & 0x3f, var);		      \
+		    *outptr++ = base64 ((ch >> 2) & 0x3f, var);		      \
 		    statep->__count = ((ch & 3) << 7) | (2 << 3);	      \
 		    break;						      \
 		  case 2:						      \
 		    *outptr++ =						      \
-		      base64 (((statep->__count >> 3) & ~3) | (ch >> 28));    \
-		    *outptr++ = base64 ((ch >> 22) & 0x3f);		      \
-		    *outptr++ = base64 ((ch >> 16) & 0x3f);		      \
-		    *outptr++ = base64 ((ch >> 10) & 0x3f);		      \
-		    *outptr++ = base64 ((ch >> 4) & 0x3f);		      \
+		      base64 (((statep->__count >> 3) & ~3) | (ch >> 28),     \
+			      var);					      \
+		    *outptr++ = base64 ((ch >> 22) & 0x3f, var);	      \
+		    *outptr++ = base64 ((ch >> 16) & 0x3f, var);	      \
+		    *outptr++ = base64 ((ch >> 10) & 0x3f, var);	      \
+		    *outptr++ = base64 ((ch >> 4) & 0x3f, var);		      \
 		    statep->__count = ((ch & 15) << 5) | (3 << 3);	      \
 		    break;						      \
 		  case 3:						      \
 		    *outptr++ =						      \
-		      base64 (((statep->__count >> 3) & ~3) | (ch >> 30));    \
-		    *outptr++ = base64 ((ch >> 24) & 0x3f);		      \
-		    *outptr++ = base64 ((ch >> 18) & 0x3f);		      \
-		    *outptr++ = base64 ((ch >> 12) & 0x3f);		      \
-		    *outptr++ = base64 ((ch >> 6) & 0x3f);		      \
-		    *outptr++ = base64 (ch & 0x3f);			      \
+		      base64 (((statep->__count >> 3) & ~3) | (ch >> 30),     \
+			      var);					      \
+		    *outptr++ = base64 ((ch >> 24) & 0x3f, var);	      \
+		    *outptr++ = base64 ((ch >> 18) & 0x3f, var);	      \
+		    *outptr++ = base64 ((ch >> 12) & 0x3f, var);	      \
+		    *outptr++ = base64 ((ch >> 6) & 0x3f, var);		      \
+		    *outptr++ = base64 (ch & 0x3f, var);		      \
 		    statep->__count = (1 << 3);				      \
 		    break;						      \
 		  default:						      \
@@ -486,7 +608,7 @@ base64 (unsigned int i)
     inptr += 4;								      \
   }
 #define LOOP_NEED_FLAGS
-#define EXTRA_LOOP_DECLS	, mbstate_t *statep
+#define EXTRA_LOOP_DECLS	, mbstate_t *statep, enum variant var
 #include <iconv/loop.c>
 
 
@@ -516,7 +638,7 @@ base64 (unsigned int i)
 	    {								      \
 	      /* Write out the shift sequence.  */			      \
 	      if ((state & 0x18) >= 0x10)				      \
-		*outbuf++ = base64 ((state >> 3) & ~3);			      \
+		*outbuf++ = base64 ((state >> 3) & ~3, var);		      \
 	      *outbuf++ = '-';						      \
 									      \
 	      data->__statep->__count = 0;				      \

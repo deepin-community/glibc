@@ -13,20 +13,23 @@
 # Hiei Xu <nicky@mail.edu.cn>, 2004.
 # Carlos Z.F. Liu <carlos_liu@yahoo.com>, 2004.
 # LI Daobing <lidaobing@gmail.com>, 2007, 2008.
+# Tianyu Chen <billchenchina2001@gmail.com>, 2022.
+# Cyan Young <cyanoxygen@aosc.io>, 2022.
 #
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glibc 2.7-9\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2017-08-26 13:35+0200\n"
-"PO-Revision-Date: 2008-02-28 23:44+0800\n"
-"Last-Translator: LI Daobing <lidaobing@gmail.com>\n"
+"POT-Creation-Date: 2023-01-03 21:34+0100\n"
+"PO-Revision-Date: 2023-01-08 17:46+0800\n"
+"Last-Translator: Tianyu Chen <billchenchina2001@gmail.com>\n"
 "Language-Team: Chinese (Simplified) <debian-chinese-gb@lists.debian.org>\n"
-"Language: \n"
+"Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.2.2\n"
 
 #. Type: multiselect
 #. Choices
@@ -186,7 +189,7 @@ msgstr "你需要通过手动运行 'invoke-rc.d <service> start' 来启动这�
 #. Description
 #: ../debhelper.in/libc.templates:4001
 msgid "xscreensaver and xlockmore must be restarted before upgrading"
-msgstr ""
+msgstr "xscreensaver 和 xlockmore 需要重启才能升级"
 
 #. Type: error
 #. Description
@@ -199,12 +202,16 @@ msgid ""
 "stopped before continuing this upgrade, to avoid locking your users out of "
 "their current sessions."
 msgstr ""
+"在此系统上检测到一个或多个正在运行的 xscreensaver 或 xlockmore 进程。由于 "
+"GNU libc 库的升级存在不兼容的更改，因此升级后会导致用户无法在这些程序中进行身"
+"份认证（或登录）。为避免出现用户无法解锁会话的情况，在继续升级前请重新启动或"
+"停止这些程序。"
 
 #. Type: boolean
 #. Description
 #: ../debhelper.in/libc.templates:5001
 msgid "Restart services during package upgrades without asking?"
-msgstr ""
+msgstr "要在升级时自动重启服务吗？"
 
 #. Type: boolean
 #. Description
@@ -218,26 +225,34 @@ msgid ""
 "necessary restarts will be done for you automatically so you can avoid being "
 "asked questions on each library upgrade."
 msgstr ""
+"您系统中部分运行中的服务由于依赖或使用了当前正在更新的库（如 libpam、libc、"
+"libssl 等），需要重新启动。鉴于此类重启的操作可能会导致系统中的服务被中断，每"
+"次更新时系统通常会提示您选择需要重启的服务。您可以勾选该选项，让系统在后续遇"
+"到此类更新时自动重启必要的服务，同时避免在更新时出现此提示。"
 
 #. Type: error
 #. Description
 #: ../debhelper.in/libc.templates:6001
 msgid "Kernel must be upgraded"
-msgstr ""
+msgstr "内核需要升级"
 
 #. Type: error
 #. Description
 #: ../debhelper.in/libc.templates:6001
 msgid ""
 "This version of the GNU libc requires kernel version ${kernel_ver} or "
-"later.  Please upgrade your kernel before installing glibc."
+"later.  Please upgrade your kernel and reboot before installing glibc. You "
+"may need to use \"apt -f install\" after reboot to solve dependencies."
 msgstr ""
+"此版本的 GNU glibc 需要版本为 ${kernel_ver} 或更高版本的内核。安装 glibc 前请"
+"先升级你的内核并重启计算机。重启后你可能需要使用 \"apt -f install\" 来解决依"
+"赖问题。"
 
 #. Type: note
 #. Description
 #: ../debhelper.in/libc.templates:7001
 msgid "Kernel version not supported"
-msgstr ""
+msgstr "不支持的内核版本"
 
 #. Type: note
 #. Description
@@ -247,3 +262,6 @@ msgid ""
 "later.  Older versions might work but are not officially supported by "
 "Debian.  Please consider upgrading your kernel."
 msgstr ""
+"此版本的 GNU glibc 需要版本为 ${kernel_ver} 或更高版本的内核。  使用旧版本内"
+"核时系统可能会正常运行，但是此类情况不被 Debian 正式支持。请考虑升级你的内"
+"核。"

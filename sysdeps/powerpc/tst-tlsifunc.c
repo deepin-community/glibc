@@ -1,5 +1,5 @@
 /* Test if an executable can read from the TLS from an STT_GNU_IFUNC resolver.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -101,11 +101,14 @@ do_test (void)
 
   if (&bar == bar_ptr)
     printf ("PASS: bar address read from IFUNC resolver is correct.\n");
+#if !defined TST_TLSIFUNC_STATIC || !defined PIC \
+    || defined HIDDEN_VAR_NEEDS_DYNAMIC_RELOC
   else
     {
       printf ("FAIL: bar address read from IFUNC resolver is incorrect.\n");
       ret = 1;
     }
+#endif
 
   if (tcb_test ())
     printf ("PASS: tcb_test IFUNC resolver called once.\n");

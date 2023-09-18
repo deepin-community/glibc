@@ -1,5 +1,5 @@
 /* Optimized memset implementation for PowerPC64.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -253,16 +253,3 @@ L(medium_28t):
 	blr
 END_GEN_TB (MEMSET,TB_TOCLESS)
 libc_hidden_builtin_def (memset)
-
-#ifndef NO_BZERO_IMPL
-/* Copied from bzero.S to prevent the linker from inserting a stub
-   between bzero and memset.  */
-ENTRY (__bzero)
-	CALL_MCOUNT 3
-	mr	r5,r4
-	li	r4,0
-	b	L(_memset)
-END_GEN_TB (__bzero,TB_TOCLESS)
-
-weak_alias (__bzero, bzero)
-#endif

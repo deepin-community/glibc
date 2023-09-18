@@ -1,5 +1,5 @@
 /* utimes -- change access and modification times of file.  Hurd version.
-   Copyright (C) 1991-2022 Free Software Foundation, Inc.
+   Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,18 +28,6 @@
 int
 __utimes (const char *file, const struct timeval tvp[2])
 {
-  error_t err;
-  file_t port;
-
-  port = __file_name_lookup (file, 0, 0);
-  if (port == MACH_PORT_NULL)
-    return -1;
-
-  err = hurd_futimes (port, tvp);
-
-  __mach_port_deallocate (__mach_task_self (), port);
-  if (err)
-    return __hurd_fail (err);
-  return 0;
+  return __futimesat (AT_FDCWD, file, tvp);
 }
 weak_alias (__utimes, utimes)

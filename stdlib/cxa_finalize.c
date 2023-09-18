@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include "exit.h"
 #include <register-atfork.h>
-#include <sysdep.h>
+#include <pointer_guard.h>
 #include <stdint.h>
 
 /* If D is non-NULL, call all functions registered with `__cxa_atexit'
@@ -75,9 +75,8 @@ __cxa_finalize (void *d)
 	       parallel.  */
 	    f->flavor = ef_free;
 
-#ifdef PTR_DEMANGLE
 	    PTR_DEMANGLE (cxafn);
-#endif
+
 	    /* Unlock the list while we call a foreign function.  */
 	    __libc_lock_unlock (__exit_funcs_lock);
 	    cxafn (cxaarg, 0);

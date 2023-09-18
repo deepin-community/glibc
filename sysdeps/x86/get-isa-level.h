@@ -1,6 +1,6 @@
 /* Get x86 ISA level.
    This file is part of the GNU C Library.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -47,6 +47,8 @@ get_isa_level (const struct cpu_features *cpu_features)
 	  isa_level |= GNU_PROPERTY_X86_ISA_1_V2;
 	  if (CPU_FEATURE_USABLE_P (cpu_features, AVX)
 	      && CPU_FEATURE_USABLE_P (cpu_features, AVX2)
+	      && CPU_FEATURE_USABLE_P (cpu_features, BMI1)
+	      && CPU_FEATURE_USABLE_P (cpu_features, BMI2)
 	      && CPU_FEATURE_USABLE_P (cpu_features, F16C)
 	      && CPU_FEATURE_USABLE_P (cpu_features, FMA)
 	      && CPU_FEATURE_USABLE_P (cpu_features, LZCNT)

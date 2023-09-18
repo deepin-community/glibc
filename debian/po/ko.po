@@ -3,14 +3,15 @@
 # Copyright (C) 2007 THE glibc'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the glibc package.
 # Sunjae Park <darehanl@gmail.com>, 2007 - 2008.
+# Changwoo Ryu <cwryu@debian.org>, 2023.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glibc\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2017-08-26 13:35+0200\n"
-"PO-Revision-Date: 2008-03-02 20:33-0500\n"
-"Last-Translator: Sunjae Park <darehanl@gmail.com>\n"
+"POT-Creation-Date: 2023-01-03 21:34+0100\n"
+"PO-Revision-Date: 2023-01-06 00:11+0900\n"
+"Last-Translator: Changwoo Ryu <cwryu@debian.org>\n"
 "Language-Team: Korean <debian-l10n-korean@lists.debian.org>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
@@ -22,13 +23,13 @@ msgstr ""
 #. Choices
 #: ../debhelper.in/locales.templates:1001
 msgid "All locales"
-msgstr "모든 로케일"
+msgstr "모든 로캘"
 
 #. Type: multiselect
 #. Description
 #: ../debhelper.in/locales.templates:1002
 msgid "Locales to be generated:"
-msgstr "생성할 로케일 목록:"
+msgstr "생성할 로캘 목록:"
 
 #. Type: multiselect
 #. Description
@@ -37,8 +38,8 @@ msgid ""
 "Locales are a framework to switch between multiple languages and allow users "
 "to use their language, country, characters, collation order, etc."
 msgstr ""
-"로케일이란 여러 언어 중에서 선택하여 사용자들이 자신의 언어, 국가, 문자, 정렬"
-"순서 등을 사용할 수 있도록 해주는 구성틀입니다."
+"로캘이란 여러 언어 중에서 선택하여 사용자들이 자신의 언어, 국가, 문자, 정렬순"
+"서 등을 사용할 수 있도록 해주는 구성틀입니다."
 
 #. Type: multiselect
 #. Description
@@ -48,9 +49,9 @@ msgid ""
 "default, particularly for new installations. Other character sets may be "
 "useful for backwards compatibility with older systems and software."
 msgstr ""
-"생성하고자 하는 로케일을 선택하여 주십시오. 기본적으로는 UTF-8 로케일을 선택"
-"하시고, 특히 새로 설치하는 시스템에서는 더더욱 이를 선택하십시오. 기존 시스템"
-"이나 소프트웨어와의 역호환성을 위해서는 다른 문제셋을 선택하셔도 됩니다."
+"생성하고자 하는 로캘을 선택하여 주십시오. 기본적으로는 UTF-8 로캘을 선택하시"
+"고, 특히 새로 설치하는 시스템에서는 더더욱 이를 선택하십시오. 기존 시스템이"
+"나 소프트웨어와의 역호환성을 위해서는 다른 문제셋을 선택하셔도 됩니다."
 
 #. Type: select
 #. Choices
@@ -62,7 +63,7 @@ msgstr "없음"
 #. Description
 #: ../debhelper.in/locales.templates:2002
 msgid "Default locale for the system environment:"
-msgstr "시스템 환경의 기본 로케일:"
+msgstr "시스템 환경의 기본 로캘:"
 
 #. Type: select
 #. Description
@@ -72,9 +73,9 @@ msgid ""
 "for the user. You can choose a default locale for the system from the "
 "generated locales."
 msgstr ""
-"데비안에 있는 많은 꾸러미들은 사용자에게 맞는 언어로 출력하기 위해 로케일을 "
-"사용합니다. 생성된 로케일 중에서 시스템의 기본 로케일로 사용할 로케일을 선택"
-"하실 수 있습니다."
+"데비안에 있는 많은 꾸러미들은 사용자에게 맞는 언어로 출력하기 위해 로캘을 사"
+"용합니다. 생성된 로캘 중에서 시스템의 기본 로캘로 사용할 로캘을 선택하실 수 "
+"있습니다."
 
 #. Type: select
 #. Description
@@ -191,7 +192,7 @@ msgstr ""
 #. Description
 #: ../debhelper.in/libc.templates:4001
 msgid "xscreensaver and xlockmore must be restarted before upgrading"
-msgstr ""
+msgstr "업그레이드 전에 xscreensaver 및 xlockmore를 다시 시작해야 합니다."
 
 #. Type: error
 #. Description
@@ -204,12 +205,17 @@ msgid ""
 "stopped before continuing this upgrade, to avoid locking your users out of "
 "their current sessions."
 msgstr ""
+"이 시스템에 하나 이상의 xscreensaver 또는 xlockmore가 발견되었습니다. 호환되"
+"지 않은 라이브러리 변경 사항 때문에, GNU libc 라이브러리를 업그레이드하면 이 "
+"프로그램에 인증할 수 없게 됩니다. 업그레이드를 계속 하기 전에 이 프로그램을 "
+"다시 시작하거나 중단해야 합니다. 그래야 현재 사용자 세션이 잠겨버리는 상황을 "
+"피할 수 있습니다."
 
 #. Type: boolean
 #. Description
 #: ../debhelper.in/libc.templates:5001
 msgid "Restart services during package upgrades without asking?"
-msgstr ""
+msgstr "패키지 업그레이드 중에 물어보지 않고 서비스를 다시 시작할까요?"
 
 #. Type: boolean
 #. Description
@@ -223,26 +229,36 @@ msgid ""
 "necessary restarts will be done for you automatically so you can avoid being "
 "asked questions on each library upgrade."
 msgstr ""
+"시스템에 설치된 서비스 중에는, 특정 라이브러리를 (예를 들어 libpam, libc, "
+"libssl) 업그레이드할 때 다시 시작해야 하는 서비스가 있습니다. 다시 시작하면"
+"서 시스템의 서비스가 중단될 수도 있기 때문에, 업그레이드할 때마다 다시 시작해"
+"야 하는 서비스 목록을 표시합니다. 이 재시작 확인을 건너 뛸 수도 있습니다. 건"
+"너 뛰는 경우 필요한 모든 재시작을 자동으로 수행하므로, 라이브러리를 업그레이"
+"드할 때마다 질문을 받지 않아도 됩니다."
 
 #. Type: error
 #. Description
 #: ../debhelper.in/libc.templates:6001
 msgid "Kernel must be upgraded"
-msgstr ""
+msgstr "커널을 업그레이드해야 합니다"
 
 #. Type: error
 #. Description
 #: ../debhelper.in/libc.templates:6001
 msgid ""
 "This version of the GNU libc requires kernel version ${kernel_ver} or "
-"later.  Please upgrade your kernel before installing glibc."
+"later.  Please upgrade your kernel and reboot before installing glibc. You "
+"may need to use \"apt -f install\" after reboot to solve dependencies."
 msgstr ""
+"이 버전의 GNU libc는 ${kernel_ver} 이후 버전 커널이 필요합니다. glibc를 설치"
+"하기 전에 커널을 업그레이드하고 다시 시작하십시오. 다시 시작한 뒤 의존성을 해"
+"결하기 위해 \"apt -f install\" 명령을 사용해야 할 수도 있습니다."
 
 #. Type: note
 #. Description
 #: ../debhelper.in/libc.templates:7001
 msgid "Kernel version not supported"
-msgstr ""
+msgstr "커널 버전을 지원하지 않습니다"
 
 #. Type: note
 #. Description
@@ -252,3 +268,6 @@ msgid ""
 "later.  Older versions might work but are not officially supported by "
 "Debian.  Please consider upgrading your kernel."
 msgstr ""
+"이 버전의 GNU libc는 ${kernel_ver} 이후 버전 커널이 필요합니다. 더 과거 버전"
+"도 동작하지만 데비안에서 공식적으로 지원하지 않습니다. 커널 업그레이드를 고려"
+"해 보십시오."

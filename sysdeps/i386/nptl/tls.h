@@ -1,5 +1,5 @@
 /* Definition for thread-local data handling.  nptl/i386 version.
-   Copyright (C) 2002-2022 Free Software Foundation, Inc.
+   Copyright (C) 2002-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -203,8 +203,7 @@ tls_fill_user_desc (union user_desc_init *desc,
 	  which is necessary since we have changed it.   */		      \
        TLS_SET_GS (_segdescr.desc.entry_number * 8 + 3);		      \
 									      \
-     _result == 0 ? NULL						      \
-     : "set_thread_area failed when setting up thread-local storage\n"; })
+     _result == 0; })
 
 # define TLS_DEFINE_INIT_TP(tp, pd)					      \
   union user_desc_init _segdescr;					      \

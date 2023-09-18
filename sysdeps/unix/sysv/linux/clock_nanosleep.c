@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ __clock_nanosleep_time64 (clockid_t clock_id, int flags,
   if (clock_id == CLOCK_THREAD_CPUTIME_ID)
     return EINVAL;
   if (clock_id == CLOCK_PROCESS_CPUTIME_ID)
-    clock_id = MAKE_PROCESS_CPUCLOCK (0, CPUCLOCK_SCHED);
+    clock_id = PROCESS_CLOCK;
 
   /* If the call is interrupted by a signal handler or encounters an error,
      it returns a positive value similar to errno.  */
@@ -48,7 +48,7 @@ __clock_nanosleep_time64 (clockid_t clock_id, int flags,
   r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep_time64, clock_id, flags, req,
 			       rem);
 #else
-  if (!in_time_t_range (req->tv_sec))
+  if (!in_int32_t_range (req->tv_sec))
     {
       r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep_time64, clock_id, flags,
 				   req, rem);

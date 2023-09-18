@@ -1,5 +1,5 @@
 /* Uncancelable versions of cancelable interfaces.  Hurd version.
-   Copyright (C) 2003-2022 Free Software Foundation, Inc.
+   Copyright (C) 2003-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,9 +21,11 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <poll.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <sys/uio.h>
+#include <sys/random.h>
 #include <hurd.h>
 #include <hurd/fd.h>
 
@@ -73,6 +75,19 @@ __typeof (__fcntl) __fcntl_nocancel;
 /* fcntl64 is just the same as fcntl for us.  */
 #define __fcntl64_nocancel(...) \
   __fcntl_nocancel (__VA_ARGS__)
+
+static inline ssize_t
+__getrandom_nocancel (void *buf, size_t buflen, unsigned int flags)
+{
+  int save_errno = errno;
+  ssize_t r = __getrandom (buf, buflen, flags);
+  r = r == -1 ? -errno : r;
+  __set_errno (save_errno);
+  return r;
+}
+
+#define __poll_infinity_nocancel(fds, nfds) \
+  __poll (fds, nfds, -1)
 
 #if IS_IN (libc)
 hidden_proto (__close_nocancel)

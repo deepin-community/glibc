@@ -1,5 +1,5 @@
 /* Malloc implementation for multiple threads without lock contention.
-   Copyright (C) 2001-2022 Free Software Foundation, Inc.
+   Copyright (C) 2001-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -300,11 +300,6 @@ next_env_entry (char ***position)
 #endif
 
 
-#ifdef SHARED
-extern struct dl_open_hook *_dl_open_hook;
-libc_hidden_proto (_dl_open_hook);
-#endif
-
 #if USE_TCACHE
 static void tcache_key_initialize (void);
 #endif
@@ -391,34 +386,39 @@ ptmalloc_init (void)
               if (!__builtin_expect (__libc_enable_secure, 0))
                 {
                   if (memcmp (envline, "TOP_PAD_", 8) == 0)
-                    __libc_mallopt (M_TOP_PAD, atoi (&envline[9]));
+                    __libc_mallopt (M_TOP_PAD, strtol (&envline[9], NULL, 10));
                   else if (memcmp (envline, "PERTURB_", 8) == 0)
-                    __libc_mallopt (M_PERTURB, atoi (&envline[9]));
+                    __libc_mallopt (M_PERTURB, strtol (&envline[9], NULL, 10));
                 }
               break;
             case 9:
               if (!__builtin_expect (__libc_enable_secure, 0))
                 {
                   if (memcmp (envline, "MMAP_MAX_", 9) == 0)
-                    __libc_mallopt (M_MMAP_MAX, atoi (&envline[10]));
+                    __libc_mallopt (M_MMAP_MAX, strtol (&envline[10],
+							NULL, 10));
                   else if (memcmp (envline, "ARENA_MAX", 9) == 0)
-                    __libc_mallopt (M_ARENA_MAX, atoi (&envline[10]));
+                    __libc_mallopt (M_ARENA_MAX, strtol (&envline[10],
+							 NULL, 10));
                 }
               break;
             case 10:
               if (!__builtin_expect (__libc_enable_secure, 0))
                 {
                   if (memcmp (envline, "ARENA_TEST", 10) == 0)
-                    __libc_mallopt (M_ARENA_TEST, atoi (&envline[11]));
+                    __libc_mallopt (M_ARENA_TEST, strtol (&envline[11],
+							  NULL, 10));
                 }
               break;
             case 15:
               if (!__builtin_expect (__libc_enable_secure, 0))
                 {
                   if (memcmp (envline, "TRIM_THRESHOLD_", 15) == 0)
-                    __libc_mallopt (M_TRIM_THRESHOLD, atoi (&envline[16]));
+                    __libc_mallopt (M_TRIM_THRESHOLD, strtol (&envline[16],
+							      NULL, 10));
                   else if (memcmp (envline, "MMAP_THRESHOLD_", 15) == 0)
-                    __libc_mallopt (M_MMAP_THRESHOLD, atoi (&envline[16]));
+                    __libc_mallopt (M_MMAP_THRESHOLD, strtol (&envline[16],
+							      NULL, 10));
                 }
               break;
             default:
@@ -444,7 +444,7 @@ dump_heap (heap_info *heap)
   fprintf (stderr, "Heap %p, size %10lx:\n", heap, (long) heap->size);
   ptr = (heap->ar_ptr != (mstate) (heap + 1)) ?
         (char *) (heap + 1) : (char *) (heap + 1) + sizeof (struct malloc_state);
-  p = (mchunkptr) (((unsigned long) ptr + MALLOC_ALIGN_MASK) &
+  p = (mchunkptr) (((uintptr_t) ptr + MALLOC_ALIGN_MASK) &
                    ~MALLOC_ALIGN_MASK);
   for (;; )
     {
@@ -518,7 +518,7 @@ alloc_new_heap  (size_t size, size_t top_pad, size_t pagesize,
       p1 = (char *) MMAP (0, max_size << 1, PROT_NONE, mmap_flags);
       if (p1 != MAP_FAILED)
         {
-          p2 = (char *) (((unsigned long) p1 + (max_size - 1))
+          p2 = (char *) (((uintptr_t) p1 + (max_size - 1))
                          & ~(max_size - 1));
           ul = p2 - p1;
           if (ul)
@@ -564,16 +564,13 @@ new_heap (size_t size, size_t top_pad)
 #if HAVE_TUNABLES
   if (__glibc_unlikely (mp_.hp_pagesize != 0))
     {
-      /* MAP_NORESERVE is not used for huge pages because some kernel may
-	 not reserve the mmap region and a subsequent access may trigger
-	 a SIGBUS if there is no free pages in the pool.  */
       heap_info *h = alloc_new_heap (size, top_pad, mp_.hp_pagesize,
 				     mp_.hp_flags);
       if (h != NULL)
 	return h;
     }
 #endif
-  return alloc_new_heap (size, top_pad, GLRO (dl_pagesize), MAP_NORESERVE);
+  return alloc_new_heap (size, top_pad, GLRO (dl_pagesize), 0);
 }
 
 /* Grow a heap.  size is automatically rounded up to a
@@ -760,7 +757,7 @@ _int_new_arena (size_t size)
 
   /* Set up the top chunk, with proper alignment. */
   ptr = (char *) (a + 1);
-  misalign = (unsigned long) chunk2mem (ptr) & MALLOC_ALIGN_MASK;
+  misalign = (uintptr_t) chunk2mem (ptr) & MALLOC_ALIGN_MASK;
   if (misalign > 0)
     ptr += MALLOC_ALIGNMENT - misalign;
   top (a) = (mchunkptr) ptr;

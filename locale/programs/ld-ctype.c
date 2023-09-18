@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -526,7 +526,7 @@ internal error in %s, line %u"), __FUNCTION__, __LINE__);
 			  {
 			    char buf[17];
 
-			    snprintf (buf, sizeof buf, "\\%Zo", cnt);
+			    snprintf (buf, sizeof buf, "\\%zo", cnt);
 
 			    record_error (0, 0, _("\
 character '%s' in class `%s' must be in class `%s'"),
@@ -541,7 +541,7 @@ character '%s' in class `%s' must be in class `%s'"),
 			  {
 			    char buf[17];
 
-			    snprintf (buf, sizeof buf, "\\%Zo", cnt);
+			    snprintf (buf, sizeof buf, "\\%zo", cnt);
 
 			    record_error (0, 0, _("\
 character '%s' in class `%s' must not be in class `%s'"),
@@ -3352,33 +3352,6 @@ wctype_table_init (struct wctype_table *t)
   t->level2_alloc = t->level2_size = 0;
   t->level3 = NULL;
   t->level3_alloc = t->level3_size = 0;
-}
-
-/* Retrieve an entry.  */
-static inline int
-wctype_table_get (struct wctype_table *t, uint32_t wc)
-{
-  uint32_t index1 = wc >> (t->q + t->p + 5);
-  if (index1 < t->level1_size)
-    {
-      uint32_t lookup1 = t->level1[index1];
-      if (lookup1 != EMPTY)
-	{
-	  uint32_t index2 = ((wc >> (t->p + 5)) & ((1 << t->q) - 1))
-			    + (lookup1 << t->q);
-	  uint32_t lookup2 = t->level2[index2];
-	  if (lookup2 != EMPTY)
-	    {
-	      uint32_t index3 = ((wc >> 5) & ((1 << t->p) - 1))
-				+ (lookup2 << t->p);
-	      uint32_t lookup3 = t->level3[index3];
-	      uint32_t index4 = wc & 0x1f;
-
-	      return (lookup3 >> index4) & 1;
-	    }
-	}
-    }
-  return 0;
 }
 
 /* Add one entry.  */

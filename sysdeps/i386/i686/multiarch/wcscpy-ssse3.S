@@ -1,5 +1,5 @@
 /* wcscpy with SSSE3
-   Copyright (C) 2011-2022 Free Software Foundation, Inc.
+   Copyright (C) 2011-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -41,13 +41,13 @@ ENTRY (__wcscpy_ssse3)
 	mov	STR1(%esp), %edx
 	mov	STR2(%esp), %ecx
 
-	cmp	$0, (%ecx)
+	cmpl	$0, (%ecx)
 	jz	L(ExitTail4)
-	cmp	$0, 4(%ecx)
+	cmpl	$0, 4(%ecx)
 	jz	L(ExitTail8)
-	cmp	$0, 8(%ecx)
+	cmpl	$0, 8(%ecx)
 	jz	L(ExitTail12)
-	cmp	$0, 12(%ecx)
+	cmpl	$0, 12(%ecx)
 	jz	L(ExitTail16)
 
 	PUSH	(%edi)

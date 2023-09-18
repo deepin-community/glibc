@@ -1,5 +1,5 @@
 /* Hierarchial argument parsing help output
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Written by Miles Bader <miles@gnu.ai.mit.edu>.
 
@@ -210,9 +210,9 @@ fill_in_uparams (const struct argp_state *state)
 	      }
 	    else if (isdigit ((unsigned char) *arg))
 	      {
-		val = atoi (arg);
-		while (isdigit ((unsigned char) *arg))
-		  arg++;
+		char *ep;
+		val = strtol (arg, &ep, 10);
+		arg = ep;
 		SKIPWS (arg);
 	      }
 

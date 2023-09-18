@@ -1,5 +1,5 @@
 /* fork - create a child process.
-   Copyright (C) 1991-2022 Free Software Foundation, Inc.
+   Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -45,9 +45,10 @@ __libc_fork (void)
      requirement for fork (Austin Group tracker issue #62) this is
      best effort to make is async-signal-safe at least for single-thread
      case.  */
-  bool multiple_threads = __libc_single_threaded == 0;
+  bool multiple_threads = !SINGLE_THREAD_P;
+  uint64_t lastrun;
 
-  __run_fork_handlers (atfork_run_prepare, multiple_threads);
+  lastrun = __run_prefork_handlers (multiple_threads);
 
   struct nss_database_data nss_database_data;
 
@@ -105,7 +106,7 @@ __libc_fork (void)
       reclaim_stacks ();
 
       /* Run the handlers registered for the child.  */
-      __run_fork_handlers (atfork_run_child, multiple_threads);
+      __run_postfork_handlers (atfork_run_child, multiple_threads, lastrun);
     }
   else
     {
@@ -123,7 +124,7 @@ __libc_fork (void)
 	}
 
       /* Run the handlers registered for the parent.  */
-      __run_fork_handlers (atfork_run_parent, multiple_threads);
+      __run_postfork_handlers (atfork_run_parent, multiple_threads, lastrun);
 
       if (pid < 0)
 	__set_errno (save_errno);

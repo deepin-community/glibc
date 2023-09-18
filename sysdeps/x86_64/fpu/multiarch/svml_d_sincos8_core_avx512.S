@@ -1,5 +1,5 @@
 /* Function sincos vectorized with AVX-512. KNL and SKX versions.
-   Copyright (C) 2014-2022 Free Software Foundation, Inc.
+   Copyright (C) 2014-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@
      cos(arg) = sin(arg+Pi/2) = sin(N'*Pi + R') = (-1)^N' * sin(R')
      sin(R), sin(R') are approximated by corresponding polynomial.  */
 
-	.text
+	.section .text.evex512, "ax", @progbits
 ENTRY (_ZGVeN8vl8l8_sincos_knl)
         pushq     %rbp
         cfi_adjust_cfa_offset (8)

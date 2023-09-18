@@ -1,5 +1,5 @@
 /* Resolver state initialization and resolv.conf parsing.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -654,7 +654,7 @@ res_setoptions (struct resolv_conf_parser *parser, const char *options)
       /* Search for and process individual options.  */
       if (!strncmp (cp, "ndots:", sizeof ("ndots:") - 1))
         {
-          int i = atoi (cp + sizeof ("ndots:") - 1);
+          int i = strtol (cp + sizeof ("ndots:") - 1, NULL, 10);
           if (i <= RES_MAXNDOTS)
             parser->template.ndots = i;
           else
@@ -662,7 +662,7 @@ res_setoptions (struct resolv_conf_parser *parser, const char *options)
         }
       else if (!strncmp (cp, "timeout:", sizeof ("timeout:") - 1))
         {
-          int i = atoi (cp + sizeof ("timeout:") - 1);
+          int i = strtol (cp + sizeof ("timeout:") - 1, NULL, 10);
           if (i <= RES_MAXRETRANS)
             parser->template.retrans = i;
           else
@@ -670,7 +670,7 @@ res_setoptions (struct resolv_conf_parser *parser, const char *options)
         }
       else if (!strncmp (cp, "attempts:", sizeof ("attempts:") - 1))
         {
-          int i = atoi (cp + sizeof ("attempts:") - 1);
+          int i = strtol (cp + sizeof ("attempts:") - 1, NULL, 10);
           if (i <= RES_MAXRETRY)
             parser->template.retry = i;
           else
@@ -695,6 +695,7 @@ res_setoptions (struct resolv_conf_parser *parser, const char *options)
             { STRnLEN ("no-reload"), 0, RES_NORELOAD },
             { STRnLEN ("use-vc"), 0, RES_USEVC },
             { STRnLEN ("trust-ad"), 0, RES_TRUSTAD },
+            { STRnLEN ("no-aaaa"), 0, RES_NOAAAA },
           };
 #define noptions (sizeof (options) / sizeof (options[0]))
           for (int i = 0; i < noptions; ++i)

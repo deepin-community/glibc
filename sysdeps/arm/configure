@@ -1,9 +1,6 @@
 # This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
  # Local configure fragment for sysdeps/arm.
 
-$as_echo "#define PI_STATIC_AND_HIDDEN 1" >>confdefs.h
-
-
 # We check to see if the compiler and flags are
 # selecting the hard-float ABI and if they are then
 # we set libc_cv_arm_pcs_vfp to yes which causes
@@ -212,7 +209,7 @@ ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS \
 LC_ALL=C $READELF -dr conftest.so > conftest.dr 2>&5 &&
 {
   cat conftest.dr 1>&5
-  fgrep 'TEXTREL
+  grep -F 'TEXTREL
 R_ARM_NONE' conftest.dr > /dev/null || libc_cv_arm_pcrel_movw=yes
 }
 rm -f conftest*

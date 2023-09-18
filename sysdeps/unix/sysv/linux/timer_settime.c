@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -46,8 +46,8 @@ ___timer_settime64 (timer_t timerid, int flags,
 #  endif
   struct itimerspec its32, oits32;
 
-  if (! in_time_t_range ((value->it_value).tv_sec)
-      || ! in_time_t_range ((value->it_interval).tv_sec))
+  if (! in_int32_t_range ((value->it_value).tv_sec)
+      || ! in_int32_t_range ((value->it_interval).tv_sec))
     {
       __set_errno (EOVERFLOW);
       return -1;

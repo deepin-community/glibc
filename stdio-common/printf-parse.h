@@ -1,5 +1,5 @@
 /* Internal header for parsing printf format strings.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of th GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -44,29 +44,6 @@ struct printf_spec
     int size;
   };
 
-
-/* The various kinds off arguments that can be passed to printf.  */
-union printf_arg
-  {
-    wchar_t pa_wchar;
-    int pa_int;
-    long int pa_long_int;
-    long long int pa_long_long_int;
-    unsigned int pa_u_int;
-    unsigned long int pa_u_long_int;
-    unsigned long long int pa_u_long_long_int;
-    double pa_double;
-    long double pa_long_double;
-#if __HAVE_FLOAT128_UNLIKE_LDBL
-    _Float128 pa_float128;
-#endif
-    const char *pa_string;
-    const wchar_t *pa_wstring;
-    void *pa_pointer;
-    void *pa_user;
-  };
-
-
 #ifndef DONT_NEED_READ_INT
 /* Read a simple integer from a string and update the string pointer.
    It is assumed that the first character is a digit.  */
@@ -95,12 +72,6 @@ read_int (const UCHAR_T * *pstr)
   return retval;
 }
 #endif
-
-
-/* These are defined in reg-printf.c.  */
-extern printf_arginfo_size_function **__printf_arginfo_table attribute_hidden;
-extern printf_function **__printf_function_table attribute_hidden;
-extern printf_va_arg_function **__printf_va_arg_table attribute_hidden;
 
 
 /* Find the next spec in FORMAT, or the end of the string.  Returns

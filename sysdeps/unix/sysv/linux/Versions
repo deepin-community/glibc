@@ -299,6 +299,25 @@ libc {
 %endif
     epoll_pwait2;
   }
+  GLIBC_2.36 {
+    fsconfig;
+    fsmount;
+    fsopen;
+    fspick;
+    move_mount;
+    mount_setattr;
+    open_tree;
+    pidfd_open;
+    pidfd_getfd;
+    pidfd_send_signal;
+    process_madvise;
+    process_mrelease;
+  }
+  GLIBC_2.37 {
+%ifdef TIME64_NON_DEFAULT
+    __ppoll64_chk;
+%endif
+  }
   GLIBC_PRIVATE {
     # functions used in other libraries
     __syscall_rt_sigqueueinfo;

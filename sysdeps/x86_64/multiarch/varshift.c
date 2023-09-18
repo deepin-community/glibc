@@ -1,5 +1,5 @@
 /* Helper for variable shifts of SSE registers.
-   Copyright (C) 2010-2022 Free Software Foundation, Inc.
+   Copyright (C) 2010-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,10 +16,16 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include "varshift.h"
+#include <isa-level.h>
+#if IS_IN (libc) || MINIMUM_X86_ISA_LEVEL >= 2
 
-const int8_t ___m128i_shift_right[31] attribute_hidden =
+# include <stdint.h>
+
+const int8_t ___m128i_shift_right[31] attribute_hidden
+    __attribute__((aligned(32))) =
   {
     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
   };
+
+#endif

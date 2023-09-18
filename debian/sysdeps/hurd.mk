@@ -42,6 +42,9 @@ $(stamp)mkincludedir:
 # Also to make configure happy.
 export CPPFLAGS = -isystem $(shell pwd)/debian/include
 
+# We prefer easy backtraces over small performance hit
+extra_cflags = -fno-omit-frame-pointer
+
 # Do not care about kernel versions for now.
 define kernel_check
 true

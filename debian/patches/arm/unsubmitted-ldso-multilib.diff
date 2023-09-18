@@ -1,8 +1,12 @@
---- glibc/elf/dl-load.c	2013-01-23 19:29:03.412797023 -0700
-+++ glibc/elf/dl-load.c	2013-01-23 19:30:02.556794931 -0700
-@@ -1999,6 +2000,15 @@
- 	      *found_other_class = true;
- 	      goto close_and_out;
+---
+ elf/dl-load.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -1706,6 +1706,17 @@
+ 	      __set_errno (ENOENT);
+ 	      return -1;
  	    }
 +#ifdef __arm__
 +          else if (!VALID_FLOAT_ABI (ehdr->e_flags))
@@ -10,7 +14,9 @@
 +	      /* This is not a fatal error.  On architectures where
 +		 soft-float and hard-float binaries can be run this
 +		 might happen.  */
-+	      goto close_and_out;
++	      __close_nocancel (fd);
++	      __set_errno (ENOENT);
++	      return -1;
 +	    }
 +#endif
  	  else if (ehdr->e_ident[EI_DATA] != byteorder)

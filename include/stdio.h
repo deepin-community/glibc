@@ -143,18 +143,11 @@ extern int __gen_tempname (char *__tmpl, int __suffixlen, int __flags,
 #  define __GT_DIR	1	/* create a directory */
 #  define __GT_NOCREATE	2	/* just find a name not currently in use */
 
-enum __libc_message_action
-{
-  do_message	= 0,		/* Print message.  */
-  do_abort	= 1 << 0,	/* Abort.  */
-};
-
 /* Print out MESSAGE (which should end with a newline) on the error output
    and abort.  */
 extern void __libc_fatal (const char *__message)
      __attribute__ ((__noreturn__));
-extern void __libc_message (enum __libc_message_action action,
-			    const char *__fnt, ...) attribute_hidden;
+_Noreturn void __libc_message (const char *__fnt, ...) attribute_hidden;
 extern void __fortify_fail (const char *msg) __attribute__ ((__noreturn__));
 libc_hidden_proto (__fortify_fail)
 
@@ -180,6 +173,7 @@ int __vfxprintf (FILE *__fp, const char *__fmt, __gnuc_va_list,
   attribute_hidden;
 
 extern const char *const _sys_errlist_internal[] attribute_hidden;
+extern const size_t _sys_errlist_internal_len attribute_hidden;
 extern const char *__get_errlist (int) attribute_hidden;
 extern const char *__get_errname (int) attribute_hidden;
 

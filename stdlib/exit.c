@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,12 +18,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sysdep.h>
+#include <pointer_guard.h>
 #include <libc-lock.h>
+#include <libio/libioP.h>
 #include "exit.h"
-
-#include "set-hooks.h"
-DEFINE_HOOK (__libc_atexit, (void))
 
 /* Initialize the flag that indicates exit function processing
    is complete. See concurrency notes in stdlib/exit.h where
@@ -81,9 +79,8 @@ __run_exit_handlers (int status, struct exit_function_list **listp,
 	    case ef_on:
 	      onfct = f->func.on.fn;
 	      arg = f->func.on.arg;
-#ifdef PTR_DEMANGLE
 	      PTR_DEMANGLE (onfct);
-#endif
+
 	      /* Unlock the list while we call a foreign function.  */
 	      __libc_lock_unlock (__exit_funcs_lock);
 	      onfct (status, arg);
@@ -91,9 +88,8 @@ __run_exit_handlers (int status, struct exit_function_list **listp,
 	      break;
 	    case ef_at:
 	      atfct = f->func.at;
-#ifdef PTR_DEMANGLE
 	      PTR_DEMANGLE (atfct);
-#endif
+
 	      /* Unlock the list while we call a foreign function.  */
 	      __libc_lock_unlock (__exit_funcs_lock);
 	      atfct ();
@@ -105,9 +101,8 @@ __run_exit_handlers (int status, struct exit_function_list **listp,
 	      f->flavor = ef_free;
 	      cxafct = f->func.cxa.fn;
 	      arg = f->func.cxa.arg;
-#ifdef PTR_DEMANGLE
 	      PTR_DEMANGLE (cxafct);
-#endif
+
 	      /* Unlock the list while we call a foreign function.  */
 	      __libc_lock_unlock (__exit_funcs_lock);
 	      cxafct (arg, status);
@@ -131,7 +126,7 @@ __run_exit_handlers (int status, struct exit_function_list **listp,
   __libc_lock_unlock (__exit_funcs_lock);
 
   if (run_list_atexit)
-    RUN_HOOK (__libc_atexit, ());
+    call_function_static_weak (_IO_cleanup);
 
   _exit (status);
 }

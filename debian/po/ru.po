@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: eglibc 2.13-23\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2017-08-26 13:35+0200\n"
+"POT-Creation-Date: 2023-01-03 21:34+0100\n"
 "PO-Revision-Date: 2019-01-30 19:31+0500\n"
 "Last-Translator: Lev Lamberov <dogsleg@debian.org>\n"
 "Language-Team: Russian <debian-l10n-russian@lists.debian.org>\n"
@@ -20,8 +20,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 2.2.1\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #. Type: multiselect
 #. Choices
@@ -256,9 +256,14 @@ msgstr "Следует обновить ядро"
 #. Type: error
 #. Description
 #: ../debhelper.in/libc.templates:6001
+#, fuzzy
+#| msgid ""
+#| "This version of the GNU libc requires kernel version ${kernel_ver} or "
+#| "later.  Please upgrade your kernel before installing glibc."
 msgid ""
 "This version of the GNU libc requires kernel version ${kernel_ver} or "
-"later.  Please upgrade your kernel before installing glibc."
+"later.  Please upgrade your kernel and reboot before installing glibc. You "
+"may need to use \"apt -f install\" after reboot to solve dependencies."
 msgstr ""
 "Для данной версии GNU libc требуется ядро версии ${kernel_ver} или новее. "
 "Обновите ядро до выполнения установки glibc."

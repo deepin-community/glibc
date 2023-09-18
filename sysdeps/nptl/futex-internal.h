@@ -1,6 +1,6 @@
 /* futex operations for glibc-internal use.  Stub version; do not include
    this file directly.
-   Copyright (C) 2014-2022 Free Software Foundation, Inc.
+   Copyright (C) 2014-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -319,7 +319,7 @@ __futex_clocklock64 (int *futex, clockid_t clockid,
 {
   if (__glibc_unlikely (atomic_compare_and_exchange_bool_acq (futex, 1, 0)))
     {
-      while (atomic_exchange_acq (futex, 2) != 0)
+      while (atomic_exchange_acquire (futex, 2) != 0)
         {
 	  int err = 0;
           err = __futex_abstimed_wait64 ((unsigned int *) futex, 2, clockid,

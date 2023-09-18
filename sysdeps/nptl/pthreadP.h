@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@
 #include <kernel-features.h>
 #include <errno.h>
 #include <internal-signals.h>
+#include <pthread_mutex_backoff.h>
 #include "pthread_mutex_conf.h"
 
 
@@ -41,12 +42,6 @@
 # define THREAD_ATOMIC_CMPXCHG_VAL(descr, member, new, old) \
   atomic_compare_and_exchange_val_acq (&(descr)->member, new, old)
 #endif
-
-#ifndef THREAD_ATOMIC_BIT_SET
-# define THREAD_ATOMIC_BIT_SET(descr, member, bit) \
-  atomic_bit_set (&(descr)->member, bit)
-#endif
-
 
 static inline short max_adaptive_count (void)
 {
@@ -275,7 +270,7 @@ __do_cancel (void)
   struct pthread *self = THREAD_SELF;
 
   /* Make sure we get no more cancellations.  */
-  THREAD_ATOMIC_BIT_SET (self, cancelhandling, EXITING_BIT);
+  atomic_fetch_or_relaxed (&self->cancelhandling, EXITING_BITMASK);
 
   __pthread_unwind ((__pthread_unwind_buf_t *)
 		    THREAD_GETMEM (self, cleanup_jmp_buf));

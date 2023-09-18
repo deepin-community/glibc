@@ -1,5 +1,5 @@
 /* Test and measure mempcpy functions.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,11 +22,9 @@
 #define TEST_NAME "mempcpy"
 #include "test-string.h"
 
-char *simple_mempcpy (char *, const char *, size_t);
-
-IMPL (simple_mempcpy, 0)
 IMPL (mempcpy, 1)
 
+/* Naive implementation to verify results.  */
 char *
 simple_mempcpy (char *dst, const char *src, size_t n)
 {

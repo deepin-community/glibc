@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2015-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -54,7 +54,7 @@ setsockopt32 (int fd, int level, int optname, const void *optval,
 	  }
 
 	struct __timeval64 *tv64 = (struct __timeval64 *) optval;
-	if (! in_time_t_range (tv64->tv_sec))
+	if (! in_int32_t_range (tv64->tv_sec))
 	  {
 	    __set_errno (EOVERFLOW);
 	    break;

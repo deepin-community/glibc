@@ -1,5 +1,5 @@
 /* Processor capability information handling macros.  PowerPC version.
-   Copyright (C) 2005-2022 Free Software Foundation, Inc.
+   Copyright (C) 2005-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -67,16 +67,6 @@ __attribute__ ((unused))
 _dl_hwcap_string (int idx)
 {
   return GLRO(dl_powerpc_cap_flags)[idx];
-}
-
-static inline int
-__attribute__ ((unused))
-_dl_string_hwcap (const char *str)
-{
-  for (int i = 0; i < _DL_HWCAP_COUNT; ++i)
-    if (strcmp (str, _dl_hwcap_string (i)) == 0)
-      return i;
-  return -1;
 }
 
 static inline int

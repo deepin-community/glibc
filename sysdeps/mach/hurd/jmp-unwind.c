@@ -1,5 +1,5 @@
 /* _longjmp_unwind -- Clean up stack frames unwound by longjmp.  Hurd version.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
 #include <hurd/sigpreempt.h>
 #include <assert.h>
 #include <stdint.h>
-
+#include <pointer_guard.h>
 
 #ifndef _JMPBUF_UNWINDS
 #error "<jmpbuf-unwind.h> fails to define _JMPBUF_UNWINDS"
@@ -31,9 +31,7 @@
 static inline uintptr_t
 demangle_ptr (uintptr_t x)
 {
-# ifdef PTR_DEMANGLE
   PTR_DEMANGLE (x);
-# endif
   return x;
 }
 

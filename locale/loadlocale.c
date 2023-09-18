@@ -1,5 +1,5 @@
 /* Functions to read locale data files.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -62,6 +62,61 @@ static const enum value_type *const _nl_value_types[] =
 #undef DEFINE_CATEGORY
 };
 
+/* Fill in LOCDATA->private for the LC_CTYPE category.  */
+static void
+_nl_intern_locale_data_fill_cache_ctype (struct __locale_data *locdata)
+{
+  struct lc_ctype_data *data = locdata->private;
+
+  /* Default to no translation.  Assumes zero initialization of *data.  */
+  memset (data->outdigit_bytes, 1, sizeof (data->outdigit_bytes));
+
+  for (int i = 0; i <= 9; ++i)
+    {
+      const char *digit
+	= locdata->values[_NL_ITEM_INDEX (_NL_CTYPE_OUTDIGIT0_MB + i)].string;
+      unsigned char len;
+      if (digit[0] != '0' + i || digit[1] != '\0')
+	 {
+	   data->outdigit_translation_needed = true;
+	   len = strlen (locdata->values[_NL_ITEM_INDEX
+					 (_NL_CTYPE_OUTDIGIT0_MB + i)].string);
+	 }
+      else
+	len = 1;
+      data->outdigit_bytes[i] = len;
+      if (i == 0)
+	data->outdigit_bytes_all_equal = len;
+      else if (data->outdigit_bytes_all_equal != len)
+	data->outdigit_bytes_all_equal = 0;
+    }
+}
+
+/* Updates data in LOCDATA->private for CATEGORY.  */
+static void
+_nl_intern_locale_data_fill_cache (int category, struct __locale_data *locdata)
+{
+  switch (category)
+    {
+    case LC_CTYPE:
+      _nl_intern_locale_data_fill_cache_ctype (locdata);
+      break;
+    }
+}
+
+/* Returns the number of bytes allocated of struct __locale_data for
+   CATEGORY.  */
+static size_t
+_nl_intern_locale_data_extra_size (int category)
+{
+  switch (category)
+    {
+    case LC_CTYPE:
+      return sizeof (struct lc_ctype_data);
+    default:
+      return 0;
+    }
+}
 
 struct __locale_data *
 _nl_intern_locale_data (int category, const void *data, size_t datasize)
@@ -94,15 +149,23 @@ _nl_intern_locale_data (int category, const void *data, size_t datasize)
       return NULL;
     }
 
-  newdata = malloc (sizeof *newdata
-		    + filedata->nstrings * sizeof (union locale_data_value));
+  size_t base_size = (sizeof *newdata
+		      + filedata->nstrings * sizeof (union locale_data_value));
+  size_t extra_size = _nl_intern_locale_data_extra_size (category);
+
+  newdata = malloc (base_size + extra_size);
   if (newdata == NULL)
     return NULL;
 
   newdata->filedata = (void *) filedata;
   newdata->filesize = datasize;
-  newdata->private.data = NULL;
-  newdata->private.cleanup = NULL;
+  if (extra_size == 0)
+    newdata->private = NULL;
+  else
+    {
+      newdata->private = (char *) newdata + base_size;
+      memset (newdata->private, 0, extra_size);
+    }
   newdata->usage_count = 0;
   newdata->use_translit = 0;
   newdata->nstrings = filedata->nstrings;
@@ -157,6 +220,9 @@ _nl_intern_locale_data (int category, const void *data, size_t datasize)
 	    *((const uint32_t *) (newdata->filedata + idx));
 	}
     }
+
+  if (extra_size > 0)
+    _nl_intern_locale_data_fill_cache (category, newdata);
 
   return newdata;
 }
@@ -282,10 +348,18 @@ _nl_load_locale (struct loaded_l10nfile *file, int category)
 }
 
 void
-_nl_unload_locale (struct __locale_data *locale)
+_nl_unload_locale (int category, struct __locale_data *locale)
 {
-  if (locale->private.cleanup)
-    (*locale->private.cleanup) (locale);
+  /* Deallocate locale->private.  */
+  switch (category)
+    {
+    case LC_CTYPE:
+      _nl_cleanup_ctype (locale);
+      break;
+    case LC_TIME:
+      _nl_cleanup_time (locale);
+      break;
+    }
 
   switch (__builtin_expect (locale->alloc, ld_mapped))
     {

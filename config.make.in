@@ -53,7 +53,6 @@ c++-bits-std_abs-h = @CXX_BITS_STD_ABS_H@
 all-warnings = @all_warnings@
 enable-werror = @enable_werror@
 
-have-z-combreloc = @libc_cv_z_combreloc@
 have-z-execstack = @libc_cv_z_execstack@
 have-protected-data = @libc_cv_protected_data@
 have-insert = @libc_cv_insert@
@@ -69,9 +68,7 @@ have-selinux = @have_selinux@
 have-libaudit = @have_libaudit@
 have-libcap = @have_libcap@
 have-cc-with-libunwind = @libc_cv_cc_with_libunwind@
-fno-unit-at-a-time = @fno_unit_at_a_time@
 bind-now = @bindnow@
-have-hash-style = @libc_cv_hashstyle@
 use-default-link = @use_default_link@
 have-cxx-thread_local = @libc_cv_cxx_thread_local@
 have-loop-to-function = @libc_cv_cc_loop_to_function@

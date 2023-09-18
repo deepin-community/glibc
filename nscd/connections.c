@@ -1,5 +1,5 @@
 /* Inner loops of cache daemon.
-   Copyright (C) 1998-2022 Free Software Foundation, Inc.
+   Copyright (C) 1998-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -2284,7 +2284,8 @@ main_loop_epoll (int efd)
 					     sizeof (buf))) != -1)
 	      ;
 
-	    __bump_nl_timestamp ();
+	    dbs[hstdb].head->extra_data[NSCD_HST_IDX_CONF_TIMESTAMP]
+	      = __bump_nl_timestamp ();
 	  }
 # endif
 	else

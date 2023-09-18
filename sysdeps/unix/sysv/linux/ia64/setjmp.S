@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -63,6 +63,7 @@
 	0x1c0	f31 */
 
 #include <sysdep.h>
+#include <pointer_guard.h>
 #include <features.h>
 
 	/* The following two entry points are the traditional entry points: */

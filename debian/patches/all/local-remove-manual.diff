@@ -5,8 +5,9 @@ so that no target depends on manual/*.texi files.
 
 ---
  manual/Makefile            |  182 +++++++++++++++++++++++++++++++++++++++++++++
+ stdio-common/Makefile      |    2 
  sysdeps/mach/hurd/Makefile |    2 
- 2 files changed, 183 insertions(+), 1 deletion(-)
+ 3 files changed, 184 insertions(+), 2 deletions(-)
 
 --- /dev/null
 +++ b/manual/Makefile
@@ -195,9 +196,9 @@ so that no target depends on manual/*.texi files.
 +	$(ETAGS) -o $@ $^
 --- a/stdio-common/Makefile
 +++ b/stdio-common/Makefile
-@@ -92,7 +92,7 @@ generated += tst-printf-bz18872.c tst-printf-bz18872.mtrace \
- 	     tst-printf-fp-leak.mtrace tst-printf-fp-leak-mem.out
- endif
+@@ -251,7 +251,7 @@
+   # generated
+ endif # $(run-built-tests)
  
 -tests-special += $(objpfx)tst-errno-manual.out
 +# tests-special += $(objpfx)tst-errno-manual.out

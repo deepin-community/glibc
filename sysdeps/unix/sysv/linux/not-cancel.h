@@ -1,5 +1,5 @@
 /* Uncancelable versions of cancelable interfaces.  Linux/NPTL version.
-   Copyright (C) 2003-2022 Free Software Foundation, Inc.
+   Copyright (C) 2003-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 #include <sysdep.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/poll.h>
 #include <sys/syscall.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -51,6 +52,21 @@ __typeof (__write) __write_nocancel;
 /* Uncancelable close.  */
 __typeof (__close) __close_nocancel;
 
+/* Uncancelable fcntl.  */
+__typeof (__fcntl) __fcntl64_nocancel;
+
+#if IS_IN (libc) || IS_IN (rtld)
+hidden_proto (__open_nocancel)
+hidden_proto (__open64_nocancel)
+hidden_proto (__openat_nocancel)
+hidden_proto (__openat64_nocancel)
+hidden_proto (__read_nocancel)
+hidden_proto (__pread64_nocancel)
+hidden_proto (__write_nocancel)
+hidden_proto (__close_nocancel)
+hidden_proto (__fcntl64_nocancel)
+#endif
+
 /* Non cancellable close syscall that does not also set errno in case of
    failure.  */
 static inline void
@@ -67,19 +83,16 @@ __writev_nocancel_nostatus (int fd, const struct iovec *iov, int iovcnt)
   INTERNAL_SYSCALL_CALL (writev, fd, iov, iovcnt);
 }
 
-/* Uncancelable fcntl.  */
-__typeof (__fcntl) __fcntl64_nocancel;
+static inline ssize_t
+__getrandom_nocancel (void *buf, size_t buflen, unsigned int flags)
+{
+  return INTERNAL_SYSCALL_CALL (getrandom, buf, buflen, flags);
+}
 
-#if IS_IN (libc) || IS_IN (rtld)
-hidden_proto (__open_nocancel)
-hidden_proto (__open64_nocancel)
-hidden_proto (__openat_nocancel)
-hidden_proto (__openat64_nocancel)
-hidden_proto (__read_nocancel)
-hidden_proto (__pread64_nocancel)
-hidden_proto (__write_nocancel)
-hidden_proto (__close_nocancel)
-hidden_proto (__fcntl64_nocancel)
-#endif
+static inline int
+__poll_infinity_nocancel (struct pollfd *fds, nfds_t nfds)
+{
+  return INLINE_SYSCALL_CALL (ppoll, fds, nfds, NULL, NULL, 0);
+}
 
 #endif /* NOT_CANCEL_H  */

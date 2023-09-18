@@ -1,5 +1,5 @@
 /* Set a block of memory to some byte value.  For SUN4V M7.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -98,13 +98,6 @@
 
 	.text
 	.align		32
-
-ENTRY(__bzero_niagara7)
-	/* bzero (dst, size)  */
-	mov	%o1, %o2
-	mov	0, %o1
-	/* fall through into memset code */
-END(__bzero_niagara7)
 
 ENTRY(__memset_niagara7)
 	/* memset (src, c, size)  */

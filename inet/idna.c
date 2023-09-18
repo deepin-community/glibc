@@ -1,5 +1,5 @@
 /* IDNA functions, forwarding to implementations in libidn2.
-   Copyright (C) 2018-2022 Free Software Foundation, Inc.
+   Copyright (C) 2018-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 #include <inet/net-internal.h>
 #include <netdb.h>
 #include <stdbool.h>
+#include <pointer_guard.h>
 
 /* Use the soname and version to locate libidn2, to ensure a
    compatible ABI.  */
@@ -72,10 +73,8 @@ functions_allocate (void *closure)
   result->handle = handle;
   result->lookup_ul = ptr_lookup_ul;
   result->to_unicode_lzlz = ptr_to_unicode_lzlz;
-#ifdef PTR_MANGLE
   PTR_MANGLE (result->lookup_ul);
   PTR_MANGLE (result->to_unicode_lzlz);
-#endif
 
   return result;
 }
@@ -137,9 +136,7 @@ __idna_to_dns_encoding (const char *name, char **result)
     return EAI_IDN_ENCODE;
   char *ptr = NULL;
   __typeof__ (functions->lookup_ul) fptr = functions->lookup_ul;
-#ifdef PTR_DEMANGLE
   PTR_DEMANGLE (fptr);
-#endif
   int ret = fptr (name, &ptr, 0);
   if (ret == 0)
     {
@@ -164,9 +161,7 @@ __idna_from_dns_encoding (const char *name, char **result)
     return gai_strdup (name, result);
   char *ptr = NULL;
   __typeof__ (functions->to_unicode_lzlz) fptr = functions->to_unicode_lzlz;
-#ifdef PTR_DEMANGLE
   PTR_DEMANGLE (fptr);
-#endif
   int ret = fptr (name, &ptr, 0);
   if (ret == 0)
     {

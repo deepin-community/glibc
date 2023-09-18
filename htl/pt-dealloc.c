@@ -1,5 +1,5 @@
 /* Deallocate a thread structure.
-   Copyright (C) 2000-2022 Free Software Foundation, Inc.
+   Copyright (C) 2000-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ extern pthread_mutex_t __pthread_free_threads_lock;
 void
 __pthread_dealloc (struct __pthread *pthread)
 {
-  if (!atomic_decrement_and_test (&pthread->nr_refs))
+  if (atomic_fetch_add_relaxed (&pthread->nr_refs, -1) != 1)
     return;
 
   /* Withdraw this thread from the thread ID lookup table.  */

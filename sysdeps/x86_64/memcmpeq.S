@@ -1,5 +1,5 @@
-/* __memcmpeq optimized with SSE2.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+/* __memcmpeq hook for non-multiarch and RTLD build.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,12 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#define memcmp	__memcmpeq
-#define USE_AS_MEMCMPEQ	1
-#include "multiarch/memcmp-sse2.S"
+#define MEMCMPEQ	__memcmpeq
+
+#define DEFAULT_IMPL_V1	"multiarch/memcmpeq-sse2.S"
+#define DEFAULT_IMPL_V3	"multiarch/memcmpeq-avx2.S"
+#define DEFAULT_IMPL_V4	"multiarch/memcmpeq-evex.S"
+
+#include "isa-default-impl.h"
+
+libc_hidden_def(__memcmpeq)

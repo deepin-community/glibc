@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "exit.h"
-#include <sysdep.h>
+#include <pointer_guard.h>
 
 /* Register a function to be called by exit.  */
 int
@@ -39,9 +39,7 @@ __on_exit (void (*func) (int status, void *arg), void *arg)
       return -1;
     }
 
-#ifdef PTR_MANGLE
   PTR_MANGLE (func);
-#endif
   new->func.on.fn = func;
   new->func.on.arg = arg;
   new->flavor = ef_on;

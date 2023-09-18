@@ -1,5 +1,5 @@
 /* Run-time dynamic linker data structures for loaded ELF shared objects.
-   Copyright (C) 2001-2022 Free Software Foundation, Inc.
+   Copyright (C) 2001-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,17 +23,5 @@
 
 /* Get the real definitions.  */
 #include_next <ldsodefs.h>
-
-/* We can assume that the kernel always provides the AT_UID, AT_EUID,
-   AT_GID, and AT_EGID values in the auxiliary vector from 2.4.0 or so on.  */
-#define HAVE_AUX_XID
-
-/* We can assume that the kernel always provides the AT_SECURE value
-   in the auxiliary vector from 2.5.74 or so on.  */
-#define HAVE_AUX_SECURE
-
-/* Starting with one of the 2.4.0 pre-releases the Linux kernel passes
-   up the page size information.  */
-#define HAVE_AUX_PAGESIZE
 
 #endif /* ldsodefs.h */

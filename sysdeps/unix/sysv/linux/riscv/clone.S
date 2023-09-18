@@ -1,5 +1,5 @@
 /* Wrapper around clone system call.  RISC-V version.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -63,7 +63,7 @@ L (invalid):
 	li		a0, -EINVAL
 	/* Something bad happened -- no child created.  */
 L (error):
-	j		__syscall_error
+	tail		__syscall_error
 	END (__clone)
 
 /* Load up the arguments to the function.  Put this block of code in

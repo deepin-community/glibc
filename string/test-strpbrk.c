@@ -1,5 +1,5 @@
 /* Test and measure strpbrk functions.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -47,22 +47,17 @@
 # ifndef WIDE
 #  define STRPBRK strpbrk
 #  define SIMPLE_STRPBRK simple_strpbrk
-#  define STUPID_STRPBRK stupid_strpbrk
 # else
 #  include <wchar.h>
 #  define STRPBRK wcspbrk
 #  define SIMPLE_STRPBRK simple_wcspbrk
-#  define STUPID_STRPBRK stupid_wcspbrk
 # endif /* WIDE */
 
 typedef CHAR *(*proto_t) (const CHAR *, const CHAR *);
-CHAR *SIMPLE_STRPBRK (const CHAR *, const CHAR *);
-CHAR *STUPID_STRPBRK (const CHAR *, const CHAR *);
 
-IMPL (STUPID_STRPBRK, 0)
-IMPL (SIMPLE_STRPBRK, 0)
 IMPL (STRPBRK, 1)
 
+/* Naive implementation to verify results.  */
 CHAR *
 SIMPLE_STRPBRK (const CHAR *s, const CHAR *rej)
 {
@@ -72,22 +67,10 @@ SIMPLE_STRPBRK (const CHAR *s, const CHAR *rej)
   while ((c = *s++) != '\0')
     for (r = rej; *r != '\0'; ++r)
       if (*r == c)
-	return (CHAR *) s - 1;
+       return (CHAR *) s - 1;
   return NULL;
 }
 
-CHAR *
-STUPID_STRPBRK (const CHAR *s, const CHAR *rej)
-{
-  size_t ns = STRLEN (s), nrej = STRLEN (rej);
-  size_t i, j;
-
-  for (i = 0; i < ns; ++i)
-    for (j = 0; j < nrej; ++j)
-      if (s[i] == rej[j])
-	return (CHAR *) s + i;
-  return NULL;
-}
 #endif /* !STRPBRK_RESULT */
 
 static void

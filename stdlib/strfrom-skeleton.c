@@ -1,5 +1,5 @@
 /* Convert a floating-point number to string.
-   Copyright (C) 2016-2022 Free Software Foundation, Inc.
+   Copyright (C) 2016-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,6 +27,8 @@
 #include <printf.h>
 #include <string.h>
 #include <locale/localeinfo.h>
+#include <fix-float-double-convert-nan.h>
+#include <printf_buffer.h>
 
 #define UCHAR_T char
 #define L_(Str) Str
@@ -36,12 +38,7 @@
 int
 STRFROM (char *dest, size_t size, const char *format, FLOAT f)
 {
-  _IO_strnfile sfile;
-#ifdef _IO_MTSAFE_IO
-  sfile.f._sbf._f._lock = NULL;
-#endif
-
-  int done;
+  struct __printf_buffer_snprintf buf;
 
   /* Single-precision values need to be stored in a double type, because
      __printf_fp_l and __printf_fphex do not accept the float type.  */
@@ -61,7 +58,7 @@ STRFROM (char *dest, size_t size, const char *format, FLOAT f)
      because __printf_fp and __printf_fphex only accept double and long double
      as the floating-point argument.  */
   if (__builtin_types_compatible_p (FLOAT, float))
-    fpnum.flt = f;
+    fpnum.flt = keep_sign_conversion (f);
   else
     fpnum.value = f;
 
@@ -105,23 +102,8 @@ STRFROM (char *dest, size_t size, const char *format, FLOAT f)
       abort ();
     }
 
-  /* The following code to prepare the virtual file has been adapted from the
-     function __vsnprintf_internal from libio.  */
-
-  if (size == 0)
-    {
-    /* When size is zero, nothing is written and dest may be a null pointer.
-       This is specified for snprintf in ISO/IEC 9899:2011, Section 7.21.6.5,
-       in the second paragraph.  Thus, if size is zero, prepare to use the
-       overflow buffer right from the start.  */
-      dest = sfile.overflow_buf;
-      size = sizeof (sfile.overflow_buf);
-    }
-
-  /* Prepare the virtual string file.  */
-  _IO_no_init (&sfile.f._sbf._f, _IO_USER_LOCK, -1, NULL, NULL);
-  _IO_JUMPS (&sfile.f._sbf) = &_IO_strn_jumps;
-  _IO_str_init_static_internal (&sfile.f, dest, size - 1, dest);
+  /* Prepare the string buffer.  */
+  __printf_buffer_snprintf_init (&buf, dest, size);
 
   /* Prepare the format specification for printf_fp.  */
   memset (&info, '\0', sizeof (info));
@@ -143,13 +125,8 @@ STRFROM (char *dest, size_t size, const char *format, FLOAT f)
   info.spec = specifier;
 
   if (info.spec != 'a' && info.spec != 'A')
-    done = __printf_fp_l (&sfile.f._sbf._f, _NL_CURRENT_LOCALE, &info, &fpptr);
+    __printf_fp_l_buffer (&buf.base, _NL_CURRENT_LOCALE, &info, &fpptr);
   else
-    done = __printf_fphex (&sfile.f._sbf._f, &info, &fpptr);
-
-  /* Terminate the string.  */
-  if (sfile.f._sbf._f._IO_buf_base != sfile.overflow_buf)
-    *sfile.f._sbf._f._IO_write_ptr = '\0';
-
-  return done;
+    __printf_fphex_l_buffer (&buf.base, _NL_CURRENT_LOCALE, &info, &fpptr);
+  return __printf_buffer_snprintf_done (&buf);
 }

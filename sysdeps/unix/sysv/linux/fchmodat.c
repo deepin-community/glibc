@@ -1,5 +1,5 @@
 /* Change the protections of file relative to open directory.  Linux version.
-   Copyright (C) 2006-2022 Free Software Foundation, Inc.
+   Copyright (C) 2006-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -48,8 +48,8 @@ fchmodat (int fd, const char *file, mode_t mode, int flag)
 
       /* Use fstatat because fstat does not work on O_PATH descriptors
 	 before Linux 3.6.  */
-      struct stat64 st;
-      if (__fstatat64 (pathfd, "", &st, AT_EMPTY_PATH) != 0)
+      struct __stat64_t64 st;
+      if (__fstatat64_time64 (pathfd, "", &st, AT_EMPTY_PATH) != 0)
 	{
 	  __close_nocancel (pathfd);
 	  return -1;

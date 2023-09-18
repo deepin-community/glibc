@@ -1,5 +1,5 @@
 /* Get file-specific information about a file.  Linux version.
-   Copyright (C) 1991-2022 Free Software Foundation, Inc.
+   Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -110,8 +110,8 @@ distinguish_extX (const struct statfs *fsbuf, const char *file, int fd)
 	      && strcmp (mntbuf.mnt_type, "ext4") != 0)
 	    continue;
 
-	  struct stat64 fsst;
-	  if (__stat64 (mntbuf.mnt_dir, &fsst) >= 0
+	  struct __stat64_t64 fsst;
+	  if (__stat64_time64 (mntbuf.mnt_dir, &fsst) >= 0
 	      && st.st_dev == fsst.st_dev)
 	    {
 	      if (strcmp (mntbuf.mnt_type, "ext4") == 0)

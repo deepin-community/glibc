@@ -1,4 +1,4 @@
-/* Copyright (C) 1994-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1994-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ ssize_t
 __send (int fd, const void *buf, size_t n, int flags)
 {
   error_t err;
-  size_t wrote;
+  vm_size_t wrote;
   int cancel_oldtype;
 
   cancel_oldtype = LIBC_CANCEL_ASYNC();

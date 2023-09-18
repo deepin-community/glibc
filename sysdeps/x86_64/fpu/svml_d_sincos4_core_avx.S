@@ -1,5 +1,5 @@
 /* Function sincos vectorized in AVX ISA as wrapper to SSE4 ISA version.
-   Copyright (C) 2014-2022 Free Software Foundation, Inc.
+   Copyright (C) 2014-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 #include <sysdep.h>
 #include "svml_d_wrapper_impl.h"
 
-	.text
+	.section .text.avx2, "ax", @progbits
 ENTRY (_ZGVcN4vl8l8_sincos)
 WRAPPER_IMPL_AVX_fFF _ZGVbN2vl8l8_sincos
 END (_ZGVcN4vl8l8_sincos)

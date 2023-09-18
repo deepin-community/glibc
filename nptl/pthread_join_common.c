@@ -1,5 +1,5 @@
 /* Common definition for pthread_{timed,try}join{_np}.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -57,12 +57,9 @@ __pthread_clockjoin_ex (pthread_t threadid, void **thread_return,
   if ((pd == self
        || (self->joinid == pd
 	   && (pd->cancelhandling
-	       & (CANCELED_BITMASK | EXITING_BITMASK
+	       & (CANCELING_BITMASK | CANCELED_BITMASK | EXITING_BITMASK
 		  | TERMINATED_BITMASK)) == 0))
-      && !(self->cancelstate == PTHREAD_CANCEL_ENABLE
-	   && (pd->cancelhandling & (CANCELED_BITMASK | EXITING_BITMASK
-				     | TERMINATED_BITMASK))
-	       == CANCELED_BITMASK))
+      && !cancel_enabled_and_canceled (self->cancelhandling))
     /* This is a deadlock situation.  The threads are waiting for each
        other to finish.  Note that this is a "may" error.  To be 100%
        sure we catch this error we would have to lock the data

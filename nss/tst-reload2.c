@@ -1,5 +1,5 @@
 /* Test that reloading is disabled after a chroot.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -94,6 +94,8 @@ do_test (void)
   struct hostent *he;
   char buf1[PATH_MAX];
   char buf2[PATH_MAX];
+
+  support_need_proc ("Our xmkdirp fails if we can't map our uid, which requires /proc.");
 
   sprintf (buf1, "/subdir%s", support_slibdir_prefix);
   xmkdirp (buf1, 0777);

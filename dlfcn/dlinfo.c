@@ -1,5 +1,5 @@
 /* dlinfo -- Get information from the dynamic linker.
-   Copyright (C) 2003-2022 Free Software Foundation, Inc.
+   Copyright (C) 2003-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,6 +28,10 @@ struct dlinfo_args
   void *handle;
   int request;
   void *arg;
+
+  /* This is the value that is returned from dlinfo if no error is
+     signaled.  */
+  int result;
 };
 
 static void
@@ -40,6 +44,7 @@ dlinfo_doit (void *argsblock)
     {
     case RTLD_DI_CONFIGADDR:
     default:
+      args->result = -1;
       _dl_signal_error (0, NULL, NULL, N_("unsupported dlinfo request"));
       break;
 
@@ -75,6 +80,11 @@ dlinfo_doit (void *argsblock)
 	*(void **) args->arg = data;
 	break;
       }
+
+    case RTLD_DI_PHDR:
+      *(const ElfW(Phdr) **) args->arg = l->l_phdr;
+      args->result = l->l_phnum;
+      break;
     }
 }
 
@@ -82,14 +92,15 @@ static int
 dlinfo_implementation (void *handle, int request, void *arg)
 {
   struct dlinfo_args args = { handle, request, arg };
-  return _dlerror_run (&dlinfo_doit, &args) ? -1 : 0;
+  _dlerror_run (&dlinfo_doit, &args);
+  return args.result;
 }
 
 #ifdef SHARED
 int
 ___dlinfo (void *handle, int request, void *arg)
 {
-  if (!rtld_active ())
+  if (GLRO (dl_dlfcn_hook) != NULL)
     return GLRO (dl_dlfcn_hook)->dlinfo (handle, request, arg);
   else
     return dlinfo_implementation (handle, request, arg);

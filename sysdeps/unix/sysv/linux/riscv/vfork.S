@@ -1,5 +1,5 @@
 /* vfork for Linux, RISC-V version.
-   Copyright (C) 2005-2022 Free Software Foundation, Inc.
+   Copyright (C) 2005-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@ LEAF (__libc_vfork)
 	bltz	a0, 1f
 	ret
 
-1:	j		__syscall_error
+1:	tail	__syscall_error
 END (__libc_vfork)
 
 weak_alias (__libc_vfork, vfork)

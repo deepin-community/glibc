@@ -1,5 +1,5 @@
 /* powerpc HWCAP/HWCAP2 and AT_PLATFORM data pre-processing.
-   Copyright (C) 2015-2022 Free Software Foundation, Inc.
+   Copyright (C) 2015-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,8 +21,7 @@
 #ifndef HWCAPINFO_H
 # define HWCAPINFO_H
 
-extern uint64_t __tcb_hwcap  attribute_hidden;
-extern uint32_t __tcb_platform attribute_hidden;
+extern tcbhead_t __tcb attribute_hidden;
 
 extern void __tcb_parse_hwcap_and_convert_at_platform (void);
 

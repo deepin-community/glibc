@@ -56,9 +56,6 @@
 #undef	STACK_PROTECTOR_LEVEL
 #endif
 
-/* Define if the linker supports the -z combreloc option.  */
-#undef	HAVE_Z_COMBRELOC
-
 /* Define if _rtld_local structure should be forced into .sdata section.  */
 #undef	HAVE_SDATA_SECTION
 
@@ -87,9 +84,9 @@
 /* Define if the compiler\'s exception support is based on libunwind.  */
 #undef	HAVE_CC_WITH_LIBUNWIND
 
-/* Define if the access to static and hidden variables is position independent
-   and does not need relocations.  */
-#undef	PI_STATIC_AND_HIDDEN
+/* Define if the accesses to static and hidden variables in a shared object
+   need dynamic relocations.  */
+#undef	HIDDEN_VAR_NEEDS_DYNAMIC_RELOC
 
 /* Define this to disable the 'hidden_proto' et al macros in
    include/libc-symbols.h that avoid PLT slots in PIE.  */
@@ -135,8 +132,17 @@
 /* RISC-V floating-point ABI for ld.so.  */
 #undef RISCV_ABI_FLEN
 
+/* LOONGARCH integer ABI for ld.so.  */
+#undef LOONGARCH_ABI_GRLEN
+
+/* LOONGARCH floating-point ABI for ld.so.  */
+#undef LOONGARCH_ABI_FRLEN
+
 /* Linux specific: minimum supported kernel version.  */
 #undef	__LINUX_KERNEL_VERSION
+
+/* Linux specific: __LINUX_KERNEL_VERSION as a string.  */
+#undef  __LINUX_KERNEL_VERSION_STR
 
 /* Override abi-tags ABI version if necessary.  */
 #undef  __ABI_TAG_VERSION
@@ -155,9 +161,6 @@
 
 /* Define if inlined system calls are available.  */
 #undef HAVE_INLINED_SYSCALLS
-
-/* Define if your compiler defaults to -msecure-plt mode on ppc.  */
-#undef HAVE_PPC_SECURE_PLT
 
 /* Define if memory tagging support should be enabled.  */
 #undef USE_MTAG

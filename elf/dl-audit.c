@@ -1,5 +1,5 @@
 /* Audit common functions.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@
 #include <dl-machine.h>
 #include <dl-runtime.h>
 #include <dl-fixup-attribute.h>
+#include <sys/param.h>
 
 void
 _dl_audit_activity_map (struct link_map *l, int action)
@@ -257,7 +258,8 @@ _dl_audit_symbind (struct link_map *l, struct reloc_result *reloc_result,
       reloc_result->flags = flags;
     }
 
-  DL_FIXUP_BINDNOW_RELOC (value, new_value, sym.st_value);
+  if (flags & LA_SYMB_ALTVALUE)
+    DL_FIXUP_BINDNOW_RELOC (value, new_value, sym.st_value);
 }
 
 void

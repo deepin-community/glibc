@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2022 Free Software Foundation, Inc.
+# Copyright (C) 1991-2023 Free Software Foundation, Inc.
 # Copyright The GNU Toolchain Authors.
 # This file is part of the GNU C Library.
 
@@ -41,6 +41,22 @@ common-objpfx = $(objdir)/
 common-objdir = $(objdir)
 else
 $(error objdir must be defined by the build-directory Makefile)
+endif
+
+# Did we request 'make -s' run? "yes" or "no".
+# Starting from make-4.4 MAKEFLAGS now contains long
+# options like '--shuffle'. To detect presence of 's'
+# we pick first word with short options. Long options
+# are guaranteed to come after whitespace. We use '-'
+# prefix to always have a word before long options
+# even if no short options were passed.
+# Typical MAKEFLAGS values to watch for:
+#   "rs --shuffle=42" (silent)
+#   " --shuffle" (not silent)
+ifeq ($(findstring s, $(firstword -$(MAKEFLAGS))),)
+silent-make := no
+else
+silent-make := yes
 endif
 
 # Root of the sysdeps tree.
@@ -358,23 +374,17 @@ else
 real-static-start-installed-name = $(static-start-installed-name)
 endif
 
-ifeq (yesyes,$(build-shared)$(have-z-combreloc))
-combreloc-LDFLAGS = -Wl,-z,combreloc
-LDFLAGS.so += $(combreloc-LDFLAGS)
-LDFLAGS-rtld += $(combreloc-LDFLAGS)
-endif
-
 relro-LDFLAGS = -Wl,-z,relro
 LDFLAGS.so += $(relro-LDFLAGS)
 LDFLAGS-rtld += $(relro-LDFLAGS)
 
-ifeq (yes,$(have-hash-style))
-# For the time being we unconditionally use 'both'.  At some time we
-# should declare statically linked code as 'out of luck' and compile
-# with --hash-style=gnu only.
-hashstyle-LDFLAGS = -Wl,--hash-style=both
-LDFLAGS.so += $(hashstyle-LDFLAGS)
-LDFLAGS-rtld += $(hashstyle-LDFLAGS)
+# Linker options to enable and disable DT_RELR.
+ifeq ($(have-dt-relr),yes)
+dt-relr-ldflag = -Wl,-z,pack-relative-relocs
+no-dt-relr-ldflag = -Wl,-z,nopack-relative-relocs
+else
+dt-relr-ldflag =
+no-dt-relr-ldflag =
 endif
 
 ifeq (no,$(build-pie-default))
@@ -385,6 +395,7 @@ pic-default = -DPIC
 pie-default = $(pie-ccflag)
 
 ifeq (yes,$(enable-static-pie))
+static-pie-dt-relr-ldflag = $(dt-relr-ldflag)
 ifeq (yes,$(have-static-pie))
 static-pie-ldflag = -static-pie
 else
@@ -419,9 +430,10 @@ link-extra-libs-tests = $(libsupport)
 # Command for linking PIE programs with the C library.
 ifndef +link-pie
 +link-pie-before-inputs = $(if $($(@F)-no-pie),$(no-pie-ldflag),-pie) \
+	     $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(dt-relr-ldflag)) \
 	     -Wl,-O1 -nostdlib -nostartfiles \
 	     $(sysdep-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F)) \
-	     $(combreloc-LDFLAGS) $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
+	     $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
 	     $(firstword $(CRT-$(@F)) $(csu-objpfx)S$(start-installed-name)) \
 	     $(+preinit) $(+prectorS)
 +link-pie-before-libc = -o $@ $(+link-pie-before-inputs) \
@@ -451,6 +463,7 @@ endif
 ifndef +link-static
 +link-static-before-inputs = -nostdlib -nostartfiles -static \
 	      $(if $($(@F)-no-pie),$(no-pie-ldflag),$(static-pie-ldflag)) \
+	      $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(static-pie-dt-relr-ldflag)) \
 	      $(sysdep-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F))  \
 	      $(firstword $(CRT-$(@F)) $(csu-objpfx)$(real-static-start-installed-name)) \
 	      $(+preinit) $(+prectorT)
@@ -487,7 +500,7 @@ ifeq (yes,$(build-pie-default))
 else  # not build-pie-default
 +link-before-inputs = -nostdlib -nostartfiles $(no-pie-ldflag) \
 	      $(sysdep-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F)) \
-	      $(combreloc-LDFLAGS) $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
+	      $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
 	      $(firstword $(CRT-$(@F)) $(csu-objpfx)$(start-installed-name)) \
 	      $(+preinit) $(+prector)
 +link-before-libc = -o $@ $(+link-before-inputs) \
@@ -869,9 +882,9 @@ endif
 +extra-math-flags = $(if $(filter libm,$(in-module)),-fno-math-errno,-fmath-errno)
 
 # Use 64 bit time_t support for installed programs
-installed-modules = nonlib nscd lddlibc4 ldconfig locale_programs \
+installed-modules = nonlib nscd ldconfig locale_programs \
 		    iconvprogs libnss_files libnss_compat libnss_db libnss_hesiod \
-		    libutil libpcprofile libSegFault
+		    libutil libpcprofile libnsl
 +extra-time-flags = $(if $(filter $(installed-modules),\
                            $(in-module)),-D_TIME_BITS=64 -D_FILE_OFFSET_BITS=64)
 
@@ -920,7 +933,7 @@ endif
 # umpteen zillion filenames along with it (we use `...' instead)
 # but we don't want this echoing done when the user has said
 # he doesn't want to see commands echoed by using -s.
-ifneq	"$(findstring s,$(MAKEFLAGS))" ""	# if -s
+ifeq ($(silent-make),yes)			# if -s
 +cmdecho	:= echo >/dev/null
 else						# not -s
 +cmdecho	:= echo
@@ -969,8 +982,8 @@ endif	# $(+cflags) == ""
 libio-include = -I$(..)libio
 
 # List of non-library modules that we build.
-built-modules = iconvprogs iconvdata ldconfig lddlibc4 libmemusage \
-		libSegFault libpcprofile librpcsvc locale-programs \
+built-modules = iconvprogs iconvdata ldconfig libmemusage \
+		libpcprofile librpcsvc locale-programs \
 		memusagestat nonlib nscd extramodules libnldbl libsupport \
 		testsuite testsuite-internal
 
@@ -1045,7 +1058,8 @@ ifeq (yes,$(build-shared))
 # Under --enable-shared, we will build a shared library of PIC objects.
 # The PIC object files are named foo.os.
 object-suffixes += .os
-CPPFLAGS-.os = -DPIC -DSHARED
+pic-cppflags = -DPIC -DSHARED
+CPPFLAGS-.os = $(pic-cppflags)
 CFLAGS-.os = $(filter %frame-pointer,$(+cflags)) $(pic-ccflag)
 libtype.os := lib%_pic.a
 # This can be changed by a sysdep makefile
@@ -1054,7 +1068,7 @@ pic-ccflag = -fPIC
 PIC-ccflag = -fPIC
 endif
 # This can be changed by a sysdep makefile
-pie-ccflag = -fpie
+pie-ccflag = -fPIE
 no-pie-ccflag = -fno-pie
 # This one should always stay like this unless there is a very good reason.
 PIE-ccflag = -fPIE

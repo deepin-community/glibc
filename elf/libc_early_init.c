@@ -1,5 +1,5 @@
 /* Early initialization of libc.so, libc.so side.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ __libc_early_init (_Bool initial)
   __libc_single_threaded = initial;
 
 #ifdef SHARED
-  __libc_initial = initial;
+  __libc_single_threaded_internal = __libc_initial = initial;
 #endif
 
   __pthread_early_init ();

@@ -1,5 +1,5 @@
 /* pthread_getcpuclockid -- Get POSIX clockid_t for a pthread_t.  Linux version
-   Copyright (C) 2000-2022 Free Software Foundation, Inc.
+   Copyright (C) 2000-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ __pthread_getcpuclockid (pthread_t threadid, clockid_t *clockid)
 
   /* The clockid_t value is a simple computation from the TID.  */
 
-  const clockid_t tidclock = MAKE_THREAD_CPUCLOCK (pd->tid, CPUCLOCK_SCHED);
+  const clockid_t tidclock = make_thread_cpuclock (pd->tid, CPUCLOCK_SCHED);
 
   *clockid = tidclock;
   return 0;

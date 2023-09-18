@@ -1,5 +1,5 @@
 /* Test and measure strcpy functions.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -54,11 +54,9 @@
 #  define STRCPY wcscpy
 # endif
 
-CHAR *SIMPLE_STRCPY (CHAR *, const CHAR *);
-
-IMPL (SIMPLE_STRCPY, 0)
 IMPL (STRCPY, 1)
 
+/* Naive implementation to verify results.  */
 CHAR *
 SIMPLE_STRCPY (CHAR *dst, const CHAR *src)
 {

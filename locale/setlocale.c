@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -489,7 +489,7 @@ free_category (int category,
       struct __locale_data *data = (struct __locale_data *) runp->data;
 
       if (data != NULL && data != c_data)
-	_nl_unload_locale (data);
+	_nl_unload_locale (category, data);
       runp = runp->next;
       free ((char *) curr->filename);
       free (curr);

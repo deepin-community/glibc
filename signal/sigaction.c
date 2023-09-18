@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@
 int
 __sigaction (int sig, const struct sigaction *act, struct sigaction *oact)
 {
-  if (sig <= 0 || sig >= NSIG || __is_internal_signal (sig))
+  if (sig <= 0 || sig >= NSIG || is_internal_signal (sig))
     {
       __set_errno (EINVAL);
       return -1;

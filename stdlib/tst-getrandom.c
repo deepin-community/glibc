@@ -1,5 +1,5 @@
 /* Tests for the getentropy, getrandom functions.
-   Copyright (C) 2016-2022 Free Software Foundation, Inc.
+   Copyright (C) 2016-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -189,7 +189,7 @@ test_getentropy (void)
 
   /* The probability that these two buffers are equal is very
      small. */
-  if (memcmp (buf, buf2, sizeof (buf) == 0))
+  if (memcmp (buf, buf2, sizeof (buf)) == 0)
     {
       printf ("error: getentropy appears to return constant bytes\n");
       errors = true;

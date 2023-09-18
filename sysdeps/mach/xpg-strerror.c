@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -51,7 +51,11 @@ __xpg_strerror_r (int errnum, char *buf, size_t buflen)
   code = err_get_code (errnum);
 
   if (system > err_max_system || ! __mach_error_systems[system].bad_sub)
-    return EINVAL;
+    {
+      __snprintf (buf, buflen, "%s%X", _("Error in unknown error system: "),
+		  errnum);
+      return EINVAL;
+    }
 
   es = &__mach_error_systems[system];
 
@@ -62,11 +66,11 @@ __xpg_strerror_r (int errnum, char *buf, size_t buflen)
   else
     estr = (const char *) _(es->subsystem[sub].codes[code]);
 
-  size_t estrlen = strlen (estr) + 1;
+  size_t estrlen = strlen (estr);
 
-  if (buflen < estrlen)
-    return ERANGE;
+  /* Terminate the string in any case.  */
+  if (buflen > 0)
+    *((char *) __mempcpy (buf, estr, MIN (buflen - 1, estrlen))) = '\0';
 
-  memcpy (buf, estr, estrlen);
-  return 0;
+  return buflen <= estrlen ? ERANGE : 0;
 }

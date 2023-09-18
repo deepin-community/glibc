@@ -1,4 +1,4 @@
-/* Copyright (C) 2005-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -75,7 +75,7 @@ typedef struct
 /* Code to initially initialize the thread pointer.
    r21 is reserved for thread pointer.  */
 # define TLS_INIT_TP(tcbp) \
-  ({ __asm __volatile ("or r21,r0,%0" : : "r" ((void *)tcbp)); NULL; })
+  ({ __asm __volatile ("or r21,r0,%0" : : "r" ((void *)tcbp)); true; })
 
 # define TLS_DEFINE_INIT_TP(tp, pd) void *tp = (pd) + 1
 
@@ -100,7 +100,7 @@ typedef struct
 # define THREAD_GSCOPE_RESET_FLAG()                                         \
   do                                                                        \
     { int __res                                                             \
-      = atomic_exchange_rel (&THREAD_SELF->header.gscope_flag,              \
+      = atomic_exchange_release (&THREAD_SELF->header.gscope_flag,          \
                              THREAD_GSCOPE_FLAG_UNUSED);                    \
       if (__res == THREAD_GSCOPE_FLAG_WAIT)                                 \
         lll_futex_wake (&THREAD_SELF->header.gscope_flag, 1, LLL_PRIVATE);  \

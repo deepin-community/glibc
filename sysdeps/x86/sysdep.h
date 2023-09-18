@@ -1,5 +1,5 @@
 /* Assembler macros for x86.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -111,7 +111,8 @@ enum cf_protection_level
 /* Local label name for asm code. */
 #ifndef L
 /* ELF-like local names start with `.L'.  */
-# define L(name)	.L##name
+# define LOCAL_LABEL(name) .L##name
+# define L(name)	LOCAL_LABEL(name)
 #endif
 
 #define atom_text_section .section ".text.atom", "ax"

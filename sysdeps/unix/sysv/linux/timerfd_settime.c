@@ -1,5 +1,5 @@
 /* timerfd_settime -- start or stop the timer referred to by file descriptor.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,8 +33,8 @@ __timerfd_settime64 (int fd, int flags, const struct __itimerspec64 *value,
 #ifdef __ASSUME_TIME64_SYSCALLS
   return INLINE_SYSCALL_CALL (timerfd_settime64, fd, flags, value, ovalue);
 #else
-  bool need_time64 = !in_time_t_range (value->it_value.tv_sec)
-		     || !in_time_t_range (value->it_interval.tv_sec);
+  bool need_time64 = !in_int32_t_range (value->it_value.tv_sec)
+		     || !in_int32_t_range (value->it_interval.tv_sec);
   if (need_time64)
     {
       int r = INLINE_SYSCALL_CALL (timerfd_settime64, fd, flags, value,

@@ -1,4 +1,4 @@
-/* Copyright (c) 1997-2022 Free Software Foundation, Inc.
+/* Copyright (c) 1997-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -49,6 +49,32 @@ nis_nstype2str (const nstype type)
       return "CDS";
     default:
       return N_("UNKNOWN");
+    }
+}
+
+static const char *
+nis_objtype (const zotypes type)
+{
+  switch (type)
+    {
+    case NIS_BOGUS_OBJ:
+      return _("BOGUS OBJECT");
+    case NIS_NO_OBJ:
+      return _("NO OBJECT");
+    case NIS_DIRECTORY_OBJ:
+      return _("DIRECTORY");
+    case NIS_GROUP_OBJ:
+      return _("GROUP");
+    case NIS_TABLE_OBJ:
+      return _("TABLE");
+    case NIS_ENTRY_OBJ:
+      return _("ENTRY");
+    case NIS_LINK_OBJ:
+      return _("LINK");
+    case NIS_PRIVATE_OBJ:
+      return _("PRIVATE\n");
+    default:
+      return _("(Unknown object");
     }
 }
 
@@ -103,36 +129,7 @@ print_flags (const unsigned int flags)
 static void
 nis_print_objtype (enum zotypes type)
 {
-  switch (type)
-    {
-    case NIS_BOGUS_OBJ:
-      fputs (_("BOGUS OBJECT\n"), stdout);
-      break;
-    case NIS_NO_OBJ:
-      fputs (_("NO OBJECT\n"), stdout);
-      break;
-    case NIS_DIRECTORY_OBJ:
-      fputs (_("DIRECTORY\n"), stdout);
-      break;
-    case NIS_GROUP_OBJ:
-      fputs (_("GROUP\n"), stdout);
-      break;
-    case NIS_TABLE_OBJ:
-      fputs (_("TABLE\n"), stdout);
-      break;
-    case NIS_ENTRY_OBJ:
-      fputs (_("ENTRY\n"), stdout);
-      break;
-    case NIS_LINK_OBJ:
-      fputs (_("LINK\n"), stdout);
-      break;
-    case NIS_PRIVATE_OBJ:
-      fputs (_("PRIVATE\n"), stdout);
-      break;
-    default:
-      fputs (_("(Unknown object)\n"), stdout);
-      break;
-    }
+  printf ("%s\n", nis_objtype (type));
 }
 
 void
@@ -236,7 +233,7 @@ nis_print_directory (const directory_obj *dir)
       for (i = 0; i < dir->do_armask.do_armask_len; i++)
 	{
 	  nis_print_rights (ptr->oa_rights);
-	  printf (_("\tType         : %s\n"), nis_nstype2str (ptr->oa_otype));
+	  printf (_("\tType         : %s\n"), nis_objtype (ptr->oa_otype));
 	  fputs (_("\tAccess rights: "), stdout);
 	  nis_print_rights (ptr->oa_rights);
 	  fputs ("\n", stdout);

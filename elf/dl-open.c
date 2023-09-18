@@ -1,5 +1,5 @@
 /* Load a shared object at runtime, relocate it, and run its initializer.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -850,6 +850,7 @@ no more namespaces available for dlmopen()"));
 	  ++GL(dl_nns);
 	}
 
+      GL(dl_ns)[nsid].libc_map = NULL;
       _dl_debug_update (nsid)->r_state = RT_CONSISTENT;
     }
   /* Never allow loading a DSO in a namespace which is empty.  Such

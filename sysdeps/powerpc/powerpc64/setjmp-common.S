@@ -1,5 +1,5 @@
 /* setjmp for PowerPC64.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
+#include <pointer_guard.h>
 #include <stap-probe.h>
 #define _ASM
 #ifdef __NO_VMX__
@@ -132,12 +133,14 @@ JUMPTARGET(GLUE(__sigsetjmp_symbol,_ent)):
 	std  r31,((JB_GPRS+17)*8)(3)
 	stfd fp31,((JB_FPRS+17)*8)(3)
 #ifndef __NO_VMX__
-	ld    r6,.LC__dl_hwcap@toc(r2)
+	addis	r6,r2,.LC__dl_hwcap@toc@ha
+	ld	r6,.LC__dl_hwcap@toc@l(r6)
 # ifdef SHARED
 	/* Load _rtld-global._dl_hwcap.  */
-	ld    r6,RTLD_GLOBAL_RO_DL_HWCAP_OFFSET(r6)
+	ld	r6,RTLD_GLOBAL_RO_DL_HWCAP_OFFSET(r6)
 # else
-	ld    r6,0(r6) /* Load extern _dl_hwcap.  */
+	/* Load extern _dl_hwcap.  */
+	ld	r6,0(r6)
 # endif
 	andis.  r6,r6,(PPC_FEATURE_HAS_ALTIVEC >> 16)
 	beq	L(no_vmx)

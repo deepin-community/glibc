@@ -1,5 +1,5 @@
 /* Getopt for GNU.
-   Copyright (C) 1987-2022 Free Software Foundation, Inc.
+   Copyright (C) 1987-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library and is also part of gnulib.
    Patches to this file should be submitted to both projects.
 
@@ -45,7 +45,8 @@
 # define _(msgid) gettext (msgid)
 /* When used standalone, flockfile and funlockfile might not be
    available.  */
-# ifndef _POSIX_THREAD_SAFE_FUNCTIONS
+# if (!defined _POSIX_THREAD_SAFE_FUNCTIONS \
+      || (defined _WIN32 && ! defined __CYGWIN__))
 #  define flockfile(fp) /* nop */
 #  define funlockfile(fp) /* nop */
 # endif
@@ -377,8 +378,8 @@ process_long_option (int argc, char **argv, const char *optstring,
 /* Initialize internal data upon the first call to getopt.  */
 
 static const char *
-_getopt_initialize (int argc _GL_UNUSED,
-		    char **argv _GL_UNUSED, const char *optstring,
+_getopt_initialize (_GL_UNUSED int argc,
+		    _GL_UNUSED char **argv, const char *optstring,
 		    struct _getopt_data *d, int posixly_correct)
 {
   /* Start processing options with ARGV-element 1 (since ARGV-element 0

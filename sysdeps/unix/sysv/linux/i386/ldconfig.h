@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,9 +16,3 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sysdeps/generic/ldconfig.h>
-
-#define SYSDEP_KNOWN_INTERPRETER_NAMES \
-  { "/lib/ld-linux.so.1", FLAG_ELF_LIBC5 },
-#define SYSDEP_KNOWN_LIBRARY_NAMES \
-  { "libc.so.5", FLAG_ELF_LIBC5 },	\
-  { "libm.so.5", FLAG_ELF_LIBC5 },

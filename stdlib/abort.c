@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sigsetops.h>
+#include <internal-signals.h>
 
 /* Try to get a machine dependent instruction which will make the
    program crash.  This is used in case everything else fails.  */
@@ -48,7 +48,6 @@ void
 abort (void)
 {
   struct sigaction act;
-  sigset_t sigs;
 
   /* First acquire the lock.  */
   __libc_lock_lock_recursive (lock);
@@ -59,9 +58,10 @@ abort (void)
   if (stage == 0)
     {
       ++stage;
-      __sigemptyset (&sigs);
-      __sigaddset (&sigs, SIGABRT);
-      __sigprocmask (SIG_UNBLOCK, &sigs, 0);
+      internal_sigset_t sigs;
+      internal_sigemptyset (&sigs);
+      internal_sigaddset (&sigs, SIGABRT);
+      internal_sigprocmask (SIG_UNBLOCK, &sigs, NULL);
     }
 
   /* Send signal which possibly calls a user handler.  */

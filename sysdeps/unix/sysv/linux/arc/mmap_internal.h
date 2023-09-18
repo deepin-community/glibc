@@ -1,5 +1,5 @@
 /* mmap - map files or devices into memory.  Linux/ARC version.
-   Copyright (C) 2020-2022 Free Software Foundation, Inc.
+   Copyright (C) 2020-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 #define MMAP_ARC_INTERNAL_H
 
 /* 8K is default but determine the shift dynamically with getpagesize.  */
-#define MMAP2_PAGE_UNIT -1
+#define MMAP2_PAGE_UNIT -1ULL
 
 #include_next <mmap_internal.h>
 

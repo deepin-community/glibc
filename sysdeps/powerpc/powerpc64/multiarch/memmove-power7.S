@@ -1,5 +1,5 @@
 /* Optimized memmove implementation for PowerPC64/POWER7.
-   Copyright (C) 2014-2022 Free Software Foundation, Inc.
+   Copyright (C) 2014-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,8 +20,5 @@
 
 #undef libc_hidden_builtin_def
 #define libc_hidden_builtin_def(name)
-
-#undef __bcopy
-#define __bcopy __bcopy_power7
 
 #include <sysdeps/powerpc/powerpc64/power7/memmove.S>

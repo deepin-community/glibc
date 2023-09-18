@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2022 Free Software Foundation, Inc.
+# Copyright (C) 1991-2023 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -116,3 +116,5 @@ include $(patsubst %,$(..)libof-iterator.mk,$(cpp-srcs-left))
 $(objpfx)tst-locale-locpath.out : tst-locale-locpath.sh $(objpfx)locale
 	$(SHELL) $< '$(common-objpfx)' '$(test-wrapper-env)' '$(run-program-env)' > $@; \
 	$(evaluate-test)
+
+$(objpfx)tst-localedef-path-norm: $(shared-thread-library)

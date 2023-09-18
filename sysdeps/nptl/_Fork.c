@@ -1,5 +1,5 @@
 /* _Fork implementation.  Linux version.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,9 +18,6 @@
 
 #include <arch-fork.h>
 #include <pthreadP.h>
-
-/* Pointer to the fork generation counter in the thread library.  */
-extern unsigned long int *__fork_generation_pointer attribute_hidden;
 
 pid_t
 _Fork (void)

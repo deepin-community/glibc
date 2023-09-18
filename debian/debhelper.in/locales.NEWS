@@ -1,3 +1,12 @@
+locales (2.37-6) unstable; urgency=low
+
+  * Starting with locales 2.37-6, locale variables are now stored in
+    /etc/locale.conf and /etc/default/locale will be converted to a symlink
+    to the former. This is to harmonize locale support configuration across
+    distributions.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Fri, 14 Jul 2023 17:04:23 +0200
+
 locales (2.31-14) unstable; urgency=low
 
   * Starting with locales 2.31-14, non UTF-8 locales are deprecated and not

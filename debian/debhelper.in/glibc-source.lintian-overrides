@@ -8,8 +8,6 @@ script-not-executable usr/src/glibc/debian/debhelper.in/libc-bin.postinst
 script-not-executable usr/src/glibc/debian/debhelper.in/libc-dev-alt.preinst
 script-not-executable usr/src/glibc/debian/debhelper.in/libc-dev-alt.preinst.i386
 script-not-executable usr/src/glibc/debian/debhelper.in/libc-dev-alt.postinst
-script-not-executable usr/src/glibc/debian/debhelper.in/libc-otherbuild.postinst
-script-not-executable usr/src/glibc/debian/debhelper.in/libc-otherbuild.postrm
 script-not-executable usr/src/glibc/debian/debhelper.in/libc.postinst
 script-not-executable usr/src/glibc/debian/debhelper.in/libc.postrm
 script-not-executable usr/src/glibc/debian/debhelper.in/libc.preinst

@@ -33,6 +33,7 @@ tst-audit27-ENV = LD_AUDIT=$(objpfx)tst-auditmod27.so
 endif
 
 ifeq ($(subdir),elf)
+sysdep-rtld-routines += dl-start
 sysdep-dl-routines += tlsdesc dl-tlsdesc
 gen-as-const-headers += dl-link.sym
 
@@ -56,6 +57,7 @@ endif
 
 ifeq ($(subdir),math)
 CPPFLAGS += -I../soft-fp
+CFLAGS-feupdateenv.c += $(config-cflags-wno-ignored-attributes)
 endif
 
 ifeq ($(subdir),misc)

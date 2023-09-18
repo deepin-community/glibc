@@ -1,5 +1,5 @@
 /* Map in a shared object's segments.  Generic version.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    Copyright The GNU Toolchain Authors.
    This file is part of the GNU C Library.
 
@@ -94,8 +94,7 @@ _dl_map_segments (struct link_map *l, int fd,
          prefer to map such objects at; but this is only a preference,
          the OS can do whatever it likes. */
       ElfW(Addr) mappref
-        = (ELF_PREFERRED_ADDRESS (loader, maplength,
-                                  c->mapstart & GLRO(dl_use_load_bias))
+        = (ELF_PREFERRED_ADDRESS (loader, maplength, c->mapstart)
            - MAP_BASE_ADDR (l));
 
       /* Remember which part of the address space this object uses.  */
@@ -113,6 +112,9 @@ _dl_map_segments (struct link_map *l, int fd,
              unallocated.  Then jump into the normal segment-mapping loop to
              handle the portion of the segment past the end of the file
              mapping.  */
+	  if (__glibc_unlikely (loadcmds[nloadcmds - 1].mapstart <
+				c->mapend))
+	    return N_("ELF load command address/offset not page-aligned");
           if (__glibc_unlikely
               (__mprotect ((caddr_t) (l->l_addr + c->mapend),
                            loadcmds[nloadcmds - 1].mapstart - c->mapend,

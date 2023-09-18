@@ -32,16 +32,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glibc 2.13-24\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2017-08-26 13:35+0200\n"
-"PO-Revision-Date: 2012-01-14 11:44+0100\n"
-"Last-Translator: Omar Campagne <ocampagne@gmail.com>\n"
+"POT-Creation-Date: 2023-01-03 21:34+0100\n"
+"PO-Revision-Date: 2023-01-04 08:08+0100\n"
+"Last-Translator: Camaleón <noelamac@gmail.com>\n"
 "Language-Team: Debian L10n Spanish <debian-l10n-spanish@lists.debian.org>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Virtaal 0.7.1-rc1\n"
+"X-Generator: Poedit 2.4.2\n"
 
 #. Type: multiselect
 #. Choices
@@ -278,21 +278,26 @@ msgstr ""
 #. Description
 #: ../debhelper.in/libc.templates:6001
 msgid "Kernel must be upgraded"
-msgstr ""
+msgstr "Es necesario actualizar el núcleo"
 
 #. Type: error
 #. Description
 #: ../debhelper.in/libc.templates:6001
 msgid ""
 "This version of the GNU libc requires kernel version ${kernel_ver} or "
-"later.  Please upgrade your kernel before installing glibc."
+"later.  Please upgrade your kernel and reboot before installing glibc. You "
+"may need to use \"apt -f install\" after reboot to solve dependencies."
 msgstr ""
+"Esta versión de la biblioteca C de GNU (libc) requiere como mínimo la "
+"versión ${kernel_ver} del núcleo. Actualice el núcleo antes de instalar "
+"glibc. Es posible que tenga que ejecutar «apt -f install» después de "
+"reiniciar para resolver dependencias."
 
 #. Type: note
 #. Description
 #: ../debhelper.in/libc.templates:7001
 msgid "Kernel version not supported"
-msgstr ""
+msgstr "Versión del núcleo incompatible"
 
 #. Type: note
 #. Description
@@ -302,3 +307,7 @@ msgid ""
 "later.  Older versions might work but are not officially supported by "
 "Debian.  Please consider upgrading your kernel."
 msgstr ""
+"Esta versión de la biblioteca C de GNU (libc) requiere como mínimo la "
+"versión ${kernel_ver} del núcleo. Las versiones anteriores pueden funcionar "
+"pero no están soportadas oficialmente por Debian. Considere actualizar el "
+"núcleo."

@@ -1,5 +1,5 @@
 /* Run-time dynamic linker data structures for loaded ELF shared objects.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -105,6 +105,9 @@ typedef struct link_map *lookup_t;
    DT_PREINIT_ARRAY.  */
 typedef void (*dl_init_t) (int, char **, char **);
 
+/* Type of a constructor function, in DT_FINI, DT_FINI_ARRAY.  */
+typedef void (*fini_t) (void);
+
 /* On some architectures a pointer to a function is not just a pointer
    to the actual code of the function but rather an architecture
    specific descriptor. */
@@ -149,22 +152,12 @@ dl_symbol_visibility_binds_local_p (const ElfW(Sym) *sym)
    satisfied by any symbol in the executable.  Some architectures do
    not support copy relocations.  In this case we define the macro to
    zero so that the code for handling them gets automatically optimized
-   out.  ELF_RTYPE_CLASS_EXTERN_PROTECTED_DATA means address of protected
-   data defined in the shared library may be external, i.e., due to copy
-   relocation.  */
+   out.  */
 #define ELF_RTYPE_CLASS_PLT 1
 #ifndef DL_NO_COPY_RELOCS
 # define ELF_RTYPE_CLASS_COPY 2
 #else
 # define ELF_RTYPE_CLASS_COPY 0
-#endif
-/* If DL_EXTERN_PROTECTED_DATA is defined, address of protected data
-   defined in the shared library may be external, i.e., due to copy
-   relocation.   */
-#ifdef DL_EXTERN_PROTECTED_DATA
-# define ELF_RTYPE_CLASS_EXTERN_PROTECTED_DATA 4
-#else
-# define ELF_RTYPE_CLASS_EXTERN_PROTECTED_DATA 0
 #endif
 
 /* ELF uses the PF_x macros to specify the segment permissions, mmap
@@ -232,17 +225,6 @@ struct libname_list
     struct libname_list *next;	/* Link to next name for this object.  */
     int dont_free;		/* Flag whether this element should be freed
 				   if the object is not entirely unloaded.  */
-  };
-
-
-/* Bit masks for the objects which valid callers can come from to
-   functions with restricted interface.  */
-enum allowmask
-  {
-    allow_libc = 1,
-    allow_libdl = 2,
-    allow_libpthread = 4,
-    allow_ldso = 8
   };
 
 
@@ -562,10 +544,7 @@ struct rtld_global_ro
 #define DL_DEBUG_SCOPES	    (1 << 9)
 /* These two are used only internally.  */
 #define DL_DEBUG_HELP       (1 << 10)
-#define DL_DEBUG_PRELINK    (1 << 11)
 
-  /* OS version.  */
-  EXTERN unsigned int _dl_osversion;
   /* Platform name.  */
   EXTERN const char *_dl_platform;
   EXTERN size_t _dl_platformlen;
@@ -604,9 +583,6 @@ struct rtld_global_ro
   /* Default floating-point control word.  */
   EXTERN fpu_control_t _dl_fpu_control;
 
-  /* Expected cache ID.  */
-  EXTERN int _dl_correct_cache_id;
-
   /* Mask for hardware capabilities that are available.  */
   EXTERN uint64_t _dl_hwcap;
 
@@ -629,11 +605,6 @@ struct rtld_global_ro
   /* Location of the binary.  */
   EXTERN const char *_dl_origin_path;
 
-  /* -1 if the dynamic linker should honor library load bias,
-     0 if not, -2 use the default (honor biases for normal
-     binaries, don't honor for PIEs).  */
-  EXTERN ElfW(Addr) _dl_use_load_bias;
-
   /* Size of the static TLS block.  */
   EXTERN size_t _dl_tls_static_size;
 
@@ -649,10 +620,6 @@ struct rtld_global_ro
   EXTERN const char *_dl_profile;
   /* Filename of the output file.  */
   EXTERN const char *_dl_profile_output;
-  /* Name of the object we want to trace the prelinking.  */
-  EXTERN const char *_dl_trace_prelink;
-  /* Map of shared object to be prelink traced.  */
-  EXTERN struct link_map *_dl_trace_prelink_map;
 
   /* All search directories defined at startup.  This is assigned a
      non-NULL pointer by the ld.so startup code (after initialization
@@ -722,10 +689,6 @@ struct rtld_global_ro
      dlopen.  */
   int (*_dl_find_object) (void *, struct dl_find_object *);
 
-#ifdef HAVE_DL_DISCOVER_OSVERSION
-  int (*_dl_discover_osversion) (void);
-#endif
-
   /* Dynamic linker operations used after static dlopen.  */
   const struct dlfcn_hook *_dl_dlfcn_hook;
 
@@ -783,24 +746,8 @@ rtld_hidden_proto (__libc_stack_end)
 
 /* Parameters passed to the dynamic linker.  */
 extern int _dl_argc attribute_hidden attribute_relro;
-extern char **_dl_argv
-#ifndef DL_ARGV_NOT_RELRO
-     attribute_relro
-#endif
-     ;
+extern char **_dl_argv attribute_relro;
 rtld_hidden_proto (_dl_argv)
-#if IS_IN (rtld)
-extern unsigned int _dl_skip_args attribute_hidden
-# ifndef DL_ARGV_NOT_RELRO
-     attribute_relro
-# endif
-     ;
-extern unsigned int _dl_skip_args_internal attribute_hidden
-# ifndef DL_ARGV_NOT_RELRO
-     attribute_relro
-# endif
-     ;
-#endif
 #define rtld_progname _dl_argv[0]
 
 /* Flag set at startup and cleared when the last initializer has run.  */
@@ -826,20 +773,9 @@ extern void _dl_debug_printf_c (const char *fmt, ...)
 
 /* Write a message on the specified descriptor FD.  The parameters are
    interpreted as for a `printf' call.  */
-#if IS_IN (rtld) || !defined (SHARED)
 extern void _dl_dprintf (int fd, const char *fmt, ...)
      __attribute__ ((__format__ (__printf__, 2, 3)))
      attribute_hidden;
-#else
-__attribute__ ((always_inline, __format__ (__printf__, 2, 3)))
-static inline void
-_dl_dprintf (int fd, const char *fmt, ...)
-{
-  /* Use local declaration to avoid includign <stdio.h>.  */
-  extern int __dprintf(int fd, const char *format, ...) attribute_hidden;
-  __dprintf (fd, fmt, __builtin_va_arg_pack ());
-}
-#endif
 
 /* Write LENGTH bytes at BUFFER to FD, like write.  Returns the number
    of bytes written on success, or a negative error constant on
@@ -912,13 +848,13 @@ rtld_hidden_proto (_dl_exception_free)
 void _dl_signal_exception (int errcode, struct dl_exception *,
 			   const char *occasion)
   __attribute__ ((__noreturn__));
-libc_hidden_proto (_dl_signal_exception)
+rtld_hidden_proto (_dl_signal_exception)
 
 /* Like _dl_signal_exception, but creates the exception first.  */
 extern void _dl_signal_error (int errcode, const char *object,
 			      const char *occasion, const char *errstring)
      __attribute__ ((__noreturn__));
-libc_hidden_proto (_dl_signal_error)
+rtld_hidden_proto (_dl_signal_error)
 
 /* Like _dl_signal_exception, but may return when called in the
    context of _dl_receive_error.  This is only used during ld.so
@@ -970,11 +906,7 @@ extern void _dl_receive_error (receiver_fct fct, void (*operate) (void *),
    the returned string is allocated using the libc's malloc.  */
 extern int _dl_catch_error (const char **objname, const char **errstring,
 			    bool *mallocedp, void (*operate) (void *),
-			    void *args);
-libc_hidden_proto (_dl_catch_error)
-
-/* Used for initializing GLRO (_dl_catch_error).  */
-extern __typeof__ (_dl_catch_error) _rtld_catch_error attribute_hidden;
+			    void *args) attribute_hidden;
 
 /* Call OPERATE (ARGS).  If no error occurs, set *EXCEPTION to zero.
    Otherwise, store a copy of the raised exception in *EXCEPTION,
@@ -983,7 +915,7 @@ extern __typeof__ (_dl_catch_error) _rtld_catch_error attribute_hidden;
    disabled (so that exceptions are fatal).  */
 int _dl_catch_exception (struct dl_exception *exception,
 			 void (*operate) (void *), void *args);
-libc_hidden_proto (_dl_catch_exception)
+rtld_hidden_proto (_dl_catch_exception)
 
 /* Open the shared object NAME and map in its segments.
    LOADER's DT_RPATH is used in searching for NAME.
@@ -1096,12 +1028,6 @@ extern void _dl_reloc_bad_type (struct link_map *map,
 				unsigned int type, int plt)
      attribute_hidden __attribute__ ((__noreturn__));
 
-/* Resolve conflicts if prelinking.  */
-extern void _dl_resolve_conflicts (struct link_map *l,
-				   ElfW(Rela) *conflict,
-				   ElfW(Rela) *conflictend)
-     attribute_hidden;
-
 /* Check the version dependencies of all objects available through
    MAP.  If VERBOSE print some more diagnostics.  */
 extern int _dl_check_all_versions (struct link_map *map, int verbose,
@@ -1121,9 +1047,16 @@ extern void _dl_init (struct link_map *main_map, int argc, char **argv,
    initializer functions have completed.  */
 extern void _dl_fini (void) attribute_hidden;
 
-/* Sort array MAPS according to dependencies of the contained objects.  */
+/* Invoke the DT_FINI_ARRAY and DT_FINI destructors for MAP, which
+   must be a struct link_map *.  Can be used as an argument to
+   _dl_catch_exception.  */
+void _dl_call_fini (void *map) attribute_hidden;
+
+/* Sort array MAPS according to dependencies of the contained objects.
+   If FORCE_FIRST, MAPS[0] keeps its place even if the dependencies
+   say otherwise.  */
 extern void _dl_sort_maps (struct link_map **maps, unsigned int nmaps,
-			   unsigned int skip, bool for_fini) attribute_hidden;
+			   bool force_first, bool for_fini) attribute_hidden;
 
 /* The dynamic linker calls this function before and having changing
    any shared object mappings.  The `r_state' member of `struct r_debug'
@@ -1254,6 +1187,11 @@ extern struct link_map * _dl_get_dl_main_map (void)
 # endif
 #endif
 
+/* Perform early memory allocation, avoding a TCB dependency.
+   Terminate the process if allocation fails.  May attempt to use
+   brk.  */
+void *_dl_early_allocate (size_t size) attribute_hidden;
+
 /* Initialize the DSO sort algorithm to use.  */
 #if !HAVE_TUNABLES
 static inline void
@@ -1284,6 +1222,9 @@ extern void _dl_allocate_static_tls (struct link_map *map) attribute_hidden;
 extern void *_dl_allocate_tls_storage (void) attribute_hidden;
 extern void *_dl_allocate_tls_init (void *, bool);
 rtld_hidden_proto (_dl_allocate_tls_init)
+
+/* True if the TCB has been set up.  */
+extern bool __rtld_tls_init_tp_called attribute_hidden;
 
 /* Deallocate memory allocated with _dl_allocate_tls.  */
 extern void _dl_deallocate_tls (void *tcb, bool dealloc_tcb);

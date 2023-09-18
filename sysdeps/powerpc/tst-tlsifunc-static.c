@@ -1,5 +1,5 @@
 /* Test if an executable can read from the TLS from an STT_GNU_IFUNC resolver.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,4 +16,5 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#define TST_TLSIFUNC_STATIC 1
 #include "tst-tlsifunc.c"

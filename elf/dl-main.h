@@ -1,5 +1,5 @@
 /* Information collection during ld.so startup.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -93,6 +93,9 @@ struct dl_main_state
   const char *glibc_hwcaps_mask;
 
   enum rtld_mode mode;
+
+  /* True if program should be also printed for rtld_mode_trace.  */
+  bool mode_trace_program;
 
   /* True if any of the debugging options is enabled.  */
   bool any_debug;

@@ -1,5 +1,5 @@
 /* Internal header for proving correct grouping in strings of numbers.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -52,21 +52,19 @@ __correctly_grouped_prefixmb (const STRING_TYPE *begin, const STRING_TYPE *end,
 #endif
 			      const char *grouping)
 {
-#ifndef USE_WIDE_CHAR
-  size_t thousands_len;
-  int cnt;
-#endif
-
   if (grouping == NULL)
     return end;
 
-#ifndef USE_WIDE_CHAR
-  thousands_len = strlen (thousands);
+#ifdef USE_WIDE_CHAR
+  size_t thousands_len = 1;
+#else
+  size_t thousands_len = strlen (thousands);
+  int cnt;
 #endif
 
-  while (end > begin)
+  while (end - begin >= thousands_len)
     {
-      const STRING_TYPE *cp = end - 1;
+      const STRING_TYPE *cp = end - thousands_len;
       const char *gp = grouping;
 
       /* Check first group.  */

@@ -1,5 +1,5 @@
 /* Free resources stored in thread-local variables on thread exit.
-   Copyright (C) 2003-2022 Free Software Foundation, Inc.
+   Copyright (C) 2003-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -36,7 +36,7 @@ __libc_thread_freeres (void)
   __rpc_thread_destroy ();
 #endif
   call_function_static_weak (__res_thread_freeres);
-  __glibc_tls_internal_free ();
+  call_function_static_weak (__glibc_tls_internal_free);
   call_function_static_weak (__libc_dlerror_result_free);
 
   /* This should come last because it shuts down malloc for this

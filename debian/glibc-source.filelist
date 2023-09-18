@@ -1,16 +1,11 @@
 debian/changelog
 debian/changelog.upstream
-debian/compat
 debian/control
 debian/control.in
 debian/copyright
 debian/debhelper.in
 debian/generate-supported.mk
 debian/glibc-source.filelist
-debian/libc0.1-i386.symbols.kfreebsd-amd64
-debian/libc0.1.symbols.common
-debian/libc0.1.symbols.kfreebsd-amd64
-debian/libc0.1.symbols.kfreebsd-i386
 debian/libc0.3.symbols.hurd-i386
 debian/libc6.1.symbols.alpha
 debian/libc6-amd64.symbols.i386
@@ -46,7 +41,6 @@ debian/libc6-s390.symbols.s390x
 debian/libc6-sparc64.symbols.sparc
 debian/libc6-sparc.symbols.sparc64
 debian/libc6.symbols.amd64
-debian/libc6.symbols.arm
 debian/libc6.symbols.arm64
 debian/libc6.symbols.armel
 debian/libc6.symbols.armhf
@@ -69,6 +63,7 @@ debian/libc6.symbols.mipsr6el
 debian/libc6.symbols.powerpc
 debian/libc6.symbols.ppc64
 debian/libc6.symbols.ppc64el
+debian/libc6.symbols.riscv64
 debian/libc6.symbols.s390x
 debian/libc6.symbols.sparc
 debian/libc6.symbols.sparc64
@@ -87,5 +82,6 @@ debian/source
 debian/symbols.wildcards
 debian/sysdeps
 debian/tests
+debian/testsuite-mips-nan2008.c
 debian/testsuite-xfail-debian.mk
 debian/watch
