@@ -97,7 +97,7 @@ BASE_CC = gcc
 BASE_CXX = g++
 BASE_MIG = mig
 # If you override DEB_GCC_VERSION, consider adding DEB_CFLAGS_APPEND=-Wno-error.
-DEB_GCC_VERSION ?= -12
+DEB_GCC_VERSION ?= -13
 
 RUN_TESTSUITE = yes
 TIMEOUTFACTOR = 25
