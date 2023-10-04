@@ -1,3 +1,9 @@
+glibc (2.37-12deepin1) unstable; urgency=medium
+
+  * build-depends on gcc-13.
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Wed, 04 Oct 2023 17:10:06 +0800
+
 glibc (2.37-12) unstable; urgency=critical
 
   [ Samuel Thibault ]
