@@ -1,3 +1,9 @@
+glibc (2.35-deepin3) unstable; urgency=medium
+
+  * Apply CVE-2023-4911 patch from tree.
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Sat, 07 Oct 2023 14:22:55 +0800
+
 glibc (2.35-deepin2) unstable; urgency=medium
 
   * d/changelog: do not downgrade.

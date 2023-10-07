@@ -116,3 +116,5 @@ any/submitted-resolv-unaligned.diff
 any/local-cudacc-float128.diff
 any/local-test-install.diff
 any/local-cross.patch
+
+any/local-CVE-2023-4911.patch
