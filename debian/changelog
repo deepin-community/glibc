@@ -1,3 +1,9 @@
+glibc (2.37-12deepin2) unstable; urgency=medium
+
+  * enable build on loong64
+
+ -- Chang Yang <yangchang@deepin.org>  Wed, 25 Oct 2023 17:49:22 +0800
+
 glibc (2.37-12deepin1) unstable; urgency=medium
 
   * build-depends on gcc-13.
