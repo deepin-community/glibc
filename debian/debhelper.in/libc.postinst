@@ -35,7 +35,8 @@ then
 	    check="$check smail sendmail snmpd spamassassin vsftpd"
 	    check="$check wu-ftpd wu-ftpd-academ wwwoffle"
 	    check="$check webmin dropbear gdm"
-	    # NSS services check: 
+	    check="$check deepin-authenticate"
+	    # NSS services check:
 	    __NSS_CHECK__
 	    if [ -n "$services" ]; then
 
