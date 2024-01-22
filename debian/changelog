@@ -1,3 +1,9 @@
+glibc (2.37-12deepin3) unstable; urgency=medium
+
+  * fix: deepin-authenticate load abnormal
+
+ -- dengbo <dengbo@deepin.org>  Mon, 22 Jan 2024 17:18:16 +0800
+
 glibc (2.37-12deepin2) unstable; urgency=medium
 
   * enable build on loong64
