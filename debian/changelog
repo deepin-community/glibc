@@ -1,3 +1,12 @@
+glibc (2.38-6deepin1) unstable; urgency=medium
+
+  * build-depends on gcc-13.
+
+  [ dengbo ]
+  * fix: deepin-authenticate load abnormal
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Mon, 08 Apr 2024 14:14:42 +0800
+
 glibc (2.38-6) experimental; urgency=medium
 
   * Merge from unstable.
