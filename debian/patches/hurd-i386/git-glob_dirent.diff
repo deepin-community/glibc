@@ -1,0 +1,37 @@
+commit 5e4435f960bb681cbea853fb41043fabeeaea1b4
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Aug 3 21:15:39 2023 +0200
+
+    tst-*glob*: Do not check d_name size
+    
+    Posix says that d_name is of unspecified size, and sizeof(d_name)
+    should not be used. It is indeed only 1-byte long in bits/dirent.h. We
+    can instead explictly provide the actual allocated size to
+    __strcpy_chk.
+
+diff --git a/posix/tst-glob_lstat_compat.c b/posix/tst-glob_lstat_compat.c
+index 937ad77da3..6559954247 100644
+--- a/posix/tst-glob_lstat_compat.c
++++ b/posix/tst-glob_lstat_compat.c
+@@ -173,7 +173,7 @@ my_readdir (void *gdir)
+ 
+   dir->d.d_type = filesystem[dir->idx].type;
+ 
+-  strcpy (dir->d.d_name, filesystem[dir->idx].name);
++  __strcpy_chk (dir->d.d_name, filesystem[dir->idx].name, NAME_MAX);
+ 
+   ++dir->idx;
+ 
+diff --git a/posix/tst-gnuglob-skeleton.c b/posix/tst-gnuglob-skeleton.c
+index 557cfcbd2a..998fc2d94d 100644
+--- a/posix/tst-gnuglob-skeleton.c
++++ b/posix/tst-gnuglob-skeleton.c
+@@ -222,7 +222,7 @@ my_readdir (void *gdir)
+ 
+   dir->d.d_type = filesystem[dir->idx].type;
+ 
+-  strcpy (dir->d.d_name, filesystem[dir->idx].name);
++  __strcpy_chk (dir->d.d_name, filesystem[dir->idx].name, NAME_MAX);
+ 
+   if (test_verbose > 0)
+     printf ("info: my_readdir ({ level: %d, idx: %ld })"

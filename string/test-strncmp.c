@@ -44,7 +44,7 @@
 # define CHAR__MIN WCHAR_MIN
 
 /* Wcsncmp uses signed semantics for comparison, not unsigned.
-   Avoid using substraction since possible overflow */
+   Avoid using subtraction since possible overflow */
 int
 simple_wcsncmp (const CHAR *s1, const CHAR *s2, size_t n)
 {
@@ -90,6 +90,22 @@ typedef int (*proto_t) (const CHAR *, const CHAR *, size_t);
 
 IMPL (STRNCMP, 1)
 
+/* Also check the default implementation.  */
+#undef STRNCMP
+#undef libc_hidden_builtin_def
+#define libc_hidden_builtin_def(a)
+#undef attribute_hidden
+#define attribute_hidden
+#ifndef WIDE
+# define STRNCMP __strncmp_default
+# include "string/strncmp.c"
+# define STRNCMP_DEFAULT STRNCMP
+#else
+# define WCSNCMP __wcsncmp_default
+# include "wcsmbs/wcsncmp.c"
+# define STRNCMP_DEFAULT WCSNCMP
+#endif
+IMPL (STRNCMP_DEFAULT, 1)
 
 static int
 check_result (impl_t *impl, const CHAR *s1, const CHAR *s2, size_t n,

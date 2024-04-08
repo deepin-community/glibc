@@ -32,17 +32,18 @@ typedef struct
 {
   void *tcb;			/* Points to this structure.  */
   dtv_t *dtv;			/* Vector of pointers to TLS data.  */
-  thread_t self;		/* This thread's control port.  */
+  thread_t self_do_not_use;	/* This thread's control port.  */
   int multiple_threads;
   uintptr_t sysinfo;
   uintptr_t stack_guard;
   uintptr_t pointer_guard;
   int gscope_flag;
-  int private_futex;
+  unsigned int feature_1;
   /* Reservation of some values for the TM ABI.  */
-  void *__private_tm[4];
+  void *__private_tm[3];
   /* GCC split stack support.  */
   void *__private_ss;
+  void *__glibc_padding1;
 
   /* Keep these fields last, so offsets of fields above can continue being
      compatible with the i386 Linux version.  */
@@ -53,6 +54,13 @@ typedef struct
   struct rtld_catch *rtld_catch;
 } tcbhead_t;
 
+/* GCC generates %gs:0x14 to access the stack guard.  */
+_Static_assert (offsetof (tcbhead_t, stack_guard) == 0x14,
+                "stack guard offset");
+/* libgcc uses %gs:0x30 to access the split stack pointer.  */
+_Static_assert (offsetof (tcbhead_t, __private_ss) == 0x30,
+                "split stack pointer offset");
+
 /* Return tcbhead_t from a TLS segment descriptor.  */
 # define HURD_DESC_TLS(desc)						      \
   ({									      \
@@ -61,18 +69,6 @@ typedef struct
                   |  (desc->high_word & 0xff000000));			      \
   })
 
-/* Return 1 if TLS is not initialized yet.  */
-#ifndef SHARED
-extern unsigned short __init1_desc;
-#define __HURD_DESC_INITIAL(gs, ds) ((gs) == (ds) || (gs) == __init1_desc)
-#else
-#define __HURD_DESC_INITIAL(gs, ds) ((gs) == (ds))
-#endif
-
-#define __LIBC_NO_TLS()							      \
-  ({ unsigned short ds, gs;						      \
-     asm ("movw %%ds,%w0; movw %%gs,%w1" : "=q" (ds), "=q" (gs));	      \
-     __builtin_expect(__HURD_DESC_INITIAL(gs, ds), 0); })
 #endif
 
 /* The TCB can have any size and the memory following the address the
@@ -117,18 +113,44 @@ extern unsigned short __init1_desc;
 
 # define HURD_SEL_LDT(sel) (__builtin_expect ((sel) & 4, 0))
 
+#ifndef SHARED
+extern unsigned short __init1_desc;
+# define __HURD_DESC_INITIAL(gs, ds) ((gs) == (ds) || (gs) == __init1_desc)
+#else
+# define __HURD_DESC_INITIAL(gs, ds) ((gs) == (ds))
+#endif
+
+#if !defined (SHARED) || IS_IN (rtld)
+/* Return 1 if TLS is not initialized yet.  */
+extern inline bool __attribute__ ((unused))
+__LIBC_NO_TLS (void)
+{
+  unsigned short ds, gs;
+  asm ("movw %%ds, %w0\n"
+       "movw %%gs, %w1"
+       : "=q" (ds), "=q" (gs));
+  return __glibc_unlikely (__HURD_DESC_INITIAL (gs, ds));
+}
+
+/* Code to initially initialize the thread pointer.  This might need
+   special attention since 'errno' is not yet available and if the
+   operation can cause a failure 'errno' must not be touched.  */
 static inline bool __attribute__ ((unused))
-_hurd_tls_init (tcbhead_t *tcb)
+_hurd_tls_init (tcbhead_t *tcb, bool full)
 {
   HURD_TLS_DESC_DECL (desc, tcb);
   thread_t self = __mach_thread_self ();
   bool success = true;
+  extern mach_port_t __hurd_reply_port0;
 
   /* This field is used by TLS accesses to get our "thread pointer"
      from the TLS point of view.  */
   tcb->tcb = tcb;
   /* We always at least start the sigthread anyway.  */
   tcb->multiple_threads = 1;
+  if (full)
+    /* Take over the reply port we've been using.  */
+    tcb->reply_port = __hurd_reply_port0;
 
   /* Get the first available selector.  */
   int sel = -1;
@@ -154,20 +176,43 @@ _hurd_tls_init (tcbhead_t *tcb)
 
   /* Now install the new selector.  */
   asm volatile ("mov %w0, %%gs" :: "q" (sel));
+  if (full)
+    /* This port is now owned by the TCB.  */
+    __hurd_reply_port0 = MACH_PORT_NULL;
+#ifndef SHARED
+  else
+    __init1_desc = sel;
+#endif
 
 out:
   __mach_port_deallocate (__mach_task_self (), self);
   return success;
 }
 
-/* Code to initially initialize the thread pointer.  This might need
-   special attention since 'errno' is not yet available and if the
-   operation can cause a failure 'errno' must not be touched.  */
-# define TLS_INIT_TP(descr) \
-    _hurd_tls_init ((tcbhead_t *) (descr))
+# define TLS_INIT_TP(descr) _hurd_tls_init ((tcbhead_t *) (descr), 1)
+#else /* defined (SHARED) && !IS_IN (rtld) */
+# define __LIBC_NO_TLS() 0
+#endif
+
+# if __GNUC_PREREQ (6, 0)
+
+#  define THREAD_SELF							      \
+  (*(tcbhead_t * __seg_gs *) offsetof (tcbhead_t, tcb))
+#  define THREAD_GETMEM(descr, member)					      \
+  (*(__typeof (descr->member) __seg_gs *) offsetof (tcbhead_t, member))
+#  define THREAD_GETMEM_NC(descr, member, idx)				      \
+  (*(__typeof (descr->member[0]) __seg_gs *)				      \
+   (offsetof (tcbhead_t, member) + (idx) * sizeof (descr->member[0])))
+#  define THREAD_SETMEM(descr, member, value)				      \
+  (*(__typeof (descr->member) __seg_gs *) offsetof (tcbhead_t, member) = value)
+#  define THREAD_SETMEM_NC(descr, member, index, value)			      \
+  (*(__typeof (descr->member[0]) __seg_gs *)				      \
+   (offsetof (tcbhead_t, member) + (idx) * sizeof (descr->member[0])))
+
+# else
 
 /* Return the TCB address of the current thread.  */
-# define THREAD_SELF							      \
+#  define THREAD_SELF							      \
   ({ tcbhead_t *__tcb;							      \
      __asm__ ("movl %%gs:%c1,%0" : "=r" (__tcb)				      \
 	      : "i" (offsetof (tcbhead_t, tcb)));			      \
@@ -200,7 +245,7 @@ out:
 
 
 /* Same as THREAD_GETMEM, but the member offset can be non-constant.  */
-# define THREAD_GETMEM_NC(descr, member, idx) \
+#  define THREAD_GETMEM_NC(descr, member, idx) \
   ({ __typeof (descr->member[0]) __value;				      \
      _Static_assert (sizeof (__value) == 1				      \
 		     || sizeof (__value) == 4				      \
@@ -229,7 +274,7 @@ out:
 
 
 /* Set member of the thread descriptor directly.  */
-# define THREAD_SETMEM(descr, member, value) \
+#  define THREAD_SETMEM(descr, member, value) \
   ({									      \
      _Static_assert (sizeof (descr->member) == 1			      \
 		     || sizeof (descr->member) == 4			      \
@@ -254,7 +299,7 @@ out:
 
 
 /* Same as THREAD_SETMEM, but the member offset can be non-constant.  */
-# define THREAD_SETMEM_NC(descr, member, idx, value) \
+#  define THREAD_SETMEM_NC(descr, member, idx, value) \
   ({									      \
      _Static_assert (sizeof (descr->member[0]) == 1			      \
 		     || sizeof (descr->member[0]) == 4			      \
@@ -279,6 +324,8 @@ out:
 			 "r" (idx));					      \
        }})
 
+# endif /* __GNUC_PREREQ (6, 0) */
+
 /* Return the TCB address of a thread given its state.
    Note: this is expensive.  */
 # define THREAD_TCB(thread, thread_state)				      \
@@ -295,15 +342,10 @@ out:
      HURD_DESC_TLS (___desc);})
 
 /* Install new dtv for current thread.  */
-# define INSTALL_NEW_DTV(dtvp)						      \
-  ({ asm volatile ("movl %0,%%gs:%P1"					      \
-		   : : "ir" (dtvp), "i" (offsetof (tcbhead_t, dtv))); })
+# define INSTALL_NEW_DTV(dtvp) THREAD_SETMEM (THREAD_SELF, dtv, dtvp)
 
 /* Return the address of the dtv for the current thread.  */
-# define THREAD_DTV()							      \
-  ({ dtv_t *_dtv;							      \
-     asm ("movl %%gs:%P1,%0" : "=q" (_dtv) : "i" (offsetof (tcbhead_t, dtv)));\
-     _dtv; })
+# define THREAD_DTV() THREAD_GETMEM (THREAD_SELF, dtv)
 
 
 /* Set the stack guard field in TCB head.  */
@@ -356,27 +398,41 @@ _hurd_tls_fork (thread_t child, thread_t orig, struct i386_thread_state *state)
 }
 
 static inline kern_return_t __attribute__ ((unused))
-_hurd_tls_new (thread_t child, struct i386_thread_state *state, tcbhead_t *tcb)
+_hurd_tls_new (thread_t child, tcbhead_t *tcb)
 {
+  error_t err;
+  /* Fetch the target thread's state.  */
+  struct i386_thread_state state;
+  mach_msg_type_number_t state_count = i386_THREAD_STATE_COUNT;
+  err = __thread_get_state (child, i386_REGS_SEGS_STATE,
+                            (thread_state_t) &state,
+                            &state_count);
+  if (err)
+    return err;
+  assert (state_count == i386_THREAD_STATE_COUNT);
   /* Fetch the selector set by _hurd_tls_init.  */
   int sel;
   asm ("mov %%gs, %w0" : "=q" (sel) : "0" (0));
-  if (sel == state->ds)		/* _hurd_tls_init was never called.  */
+  if (sel == state.ds)		/* _hurd_tls_init was never called.  */
     return 0;
 
   HURD_TLS_DESC_DECL (desc, tcb);
-  error_t err;
 
   tcb->tcb = tcb;
-  tcb->self = child;
 
   if (HURD_SEL_LDT (sel))
     err = __i386_set_ldt (child, sel, &desc, 1);
   else
     err = __i386_set_gdt (child, &sel, desc);
 
-  state->gs = sel;
-  return err;
+  if (err)
+    return err;
+
+  /* Update gs to use the selector.  */
+  state.gs = sel;
+  return __thread_set_state (child, i386_REGS_SEGS_STATE,
+                             (thread_state_t) &state,
+                             state_count);
 }
 
 /* Global scope switch support.  */

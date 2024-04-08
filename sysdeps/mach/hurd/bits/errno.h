@@ -4,12 +4,27 @@
      libc-symbols.h
      mach/message.h
      mach/kern_return.h
-     mach/i386/kern_return.h
      mach/port.h
      mach/boolean.h
-     mach/i386/boolean.h
-     mach/i386/vm_types.h
-     mach/i386/stdint.h
+     stdint.h
+     ../stdlib/stdint.h
+     ../bits/libc-header-start.h
+     features.h
+     features-time64.h
+     ../sysdeps/generic/features-time64.h
+     sys/cdefs.h
+     ../misc/sys/cdefs.h
+     ../sysdeps/x86/bits/wordsize.h
+     ../sysdeps/ieee754/ldbl-96/bits/long-double.h
+     gnu/stubs.h
+     bits/types.h
+     ../posix/bits/types.h
+     ../sysdeps/mach/hurd/bits/timesize.h
+     ../sysdeps/mach/hurd/bits/typesizes.h
+     ../bits/time64.h
+     ../bits/wchar.h
+     ../bits/stdint-intn.h
+     ../bits/stdint-uintn.h
      mach/mig_errors.h
      device/device_types.h
      mach/std_types.h

@@ -153,7 +153,7 @@ static void
 add_alias (char *rp)
 {
   /* We now expect two more string.  The strings are normalized
-     (converted to UPPER case) and strored in the alias database.  */
+     (converted to UPPER case) and stored in the alias database.  */
   char *from, *to, *wp;
 
   while (__isspace_l (*rp, _nl_C_locobj_ptr))
@@ -502,8 +502,8 @@ __gconv_read_conf (void)
   do
     {
       const char *from = cp;
-      const char *to = __rawmemchr (from, '\0') + 1;
-      cp = __rawmemchr (to, '\0') + 1;
+      const char *to = strchr (from, '\0') + 1;
+      cp = strchr (to, '\0') + 1;
 
       add_alias2 (from, to, cp);
     }
@@ -530,7 +530,8 @@ __gconv_load_conf (void)
 
 
 /* Free all resources if necessary.  */
-libc_freeres_fn (free_mem)
+void
+__gconv_conf_freemem (void)
 {
   if (__gconv_path_elem != NULL && __gconv_path_elem != &empty_path_elem)
     free ((void *) __gconv_path_elem);

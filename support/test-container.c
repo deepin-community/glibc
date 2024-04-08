@@ -16,8 +16,6 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#define _FILE_OFFSET_BITS 64
-
 #include <array_length.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -281,7 +279,7 @@ devmount (const char *new_root_path, const char *which)
 	    concat (new_root_path, "/dev/", which, NULL));
 }
 
-/* Returns true if the string "looks like" an environement variable
+/* Returns true if the string "looks like" an environment variable
    being set.  */
 static int
 is_env_setting (const char *a)
@@ -716,8 +714,8 @@ check_for_unshare_hints (int require_pidns)
         continue;
 
       val = -1; /* Sentinel.  */
-      fscanf (f, "%d", &val);
-      if (val != files[i].bad_value)
+      int cnt = fscanf (f, "%d", &val);
+      if (cnt == 1 && val != files[i].bad_value)
 	continue;
 
       printf ("To enable test-container, please run this as root:\n");
@@ -802,7 +800,7 @@ main (int argc, char **argv)
       --argc;
       while (is_env_setting (argv[1]))
 	{
-	  /* If there are variables we do NOT want to propogate, this
+	  /* If there are variables we do NOT want to propagate, this
 	     is where the test for them goes.  */
 	    {
 	      /* Need to keep these.  Note that putenv stores a
@@ -1177,7 +1175,7 @@ main (int argc, char **argv)
 
   /* To complete the containerization, we need to fork () at least
      once.  We can't exec, nor can we somehow link the new child to
-     our parent.  So we run the child and propogate it's exit status
+     our parent.  So we run the child and propagate it's exit status
      up.  */
   child = fork ();
   if (child < 0)
@@ -1188,7 +1186,7 @@ main (int argc, char **argv)
       int status;
 
       /* Send the child's "outside" pid to it.  */
-      write (pipes[1], &child, sizeof(child));
+      xwrite (pipes[1], &child, sizeof(child));
       close (pipes[0]);
       close (pipes[1]);
 
@@ -1219,7 +1217,8 @@ main (int argc, char **argv)
 
   /* Get our "outside" pid from our parent.  We use this to help with
      debugging from outside the container.  */
-  read (pipes[0], &child, sizeof(child));
+  xread (pipes[0], &child, sizeof(child));
+
   close (pipes[0]);
   close (pipes[1]);
   sprintf (pid_buf, "%lu", (long unsigned)child);
@@ -1235,11 +1234,11 @@ main (int argc, char **argv)
 	{
 	  /* This happens if we're trying to create a nested container,
 	     like if the build is running under podman, and we lack
-	     priviledges.
+	     privileges.
 
 	     Ideally we would WARN here, but that would just add noise to
 	     *every* test-container test, and the ones that care should
-	     have their own relevent diagnostics.
+	     have their own relevant diagnostics.
 
 	     FAIL_EXIT1 ("Unable to mount /proc: ");  */
 	}
@@ -1257,7 +1256,7 @@ main (int argc, char **argv)
 
       sprintf (tmp, "%lld %lld 1\n",
 	       (long long) (be_su ? 0 : original_uid), (long long) original_uid);
-      write (UMAP, tmp, strlen (tmp));
+      xwrite (UMAP, tmp, strlen (tmp));
       xclose (UMAP);
 
       /* We must disable setgroups () before we can map our groups, else we
@@ -1266,7 +1265,7 @@ main (int argc, char **argv)
       if (GMAP >= 0)
 	{
 	  /* We support kernels old enough to not have this.  */
-	  write (GMAP, "deny\n", 5);
+	  xwrite (GMAP, "deny\n", 5);
 	  xclose (GMAP);
 	}
 
@@ -1278,7 +1277,7 @@ main (int argc, char **argv)
 
       sprintf (tmp, "%lld %lld 1\n",
 	       (long long) (be_su ? 0 : original_gid), (long long) original_gid);
-      write (GMAP, tmp, strlen (tmp));
+      xwrite (GMAP, tmp, strlen (tmp));
       xclose (GMAP);
     }
 

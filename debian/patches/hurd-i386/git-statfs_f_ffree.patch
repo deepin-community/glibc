@@ -1,0 +1,18 @@
+commit 091ee2190dd5f30ca5eb4549f531ab7b75a1fd6e
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Nov 7 12:51:25 2023 +0100
+
+    hurd: statfsconv: Add missing f_ffree conversion
+
+diff --git a/sysdeps/mach/hurd/statfsconv.c b/sysdeps/mach/hurd/statfsconv.c
+index 8a2051c269..87c9688e08 100644
+--- a/sysdeps/mach/hurd/statfsconv.c
++++ b/sysdeps/mach/hurd/statfsconv.c
+@@ -34,6 +34,7 @@ statfs64_conv (struct statfs *buf, const struct statfs64 *buf64)
+   DO (f_bfree);
+   DO (f_bavail);
+   DO (f_files);
++  DO (f_ffree);
+   DO (f_fsid);
+   DO (f_namelen);
+   DO (f_favail);

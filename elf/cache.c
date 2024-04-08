@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2022-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -66,7 +66,7 @@ glibc_hwcaps_subdirectory_name (const struct glibc_hwcaps_subdirectory *dir)
   return dir->name->string;
 }
 
-/* Linked list of known hwcaps subdirecty names.  */
+/* Linked list of known hwcaps subdirectory names.  */
 static struct glibc_hwcaps_subdirectory *hwcaps;
 
 struct glibc_hwcaps_subdirectory *
@@ -223,6 +223,12 @@ print_entry (const char *lib, int flag, uint64_t hwcap,
       fputs (",soft-float", stdout);
       break;
     case FLAG_RISCV_FLOAT_ABI_DOUBLE:
+      fputs (",double-float", stdout);
+      break;
+    case FLAG_LARCH_FLOAT_ABI_SOFT:
+      fputs (",soft-float", stdout);
+      break;
+    case FLAG_LARCH_FLOAT_ABI_DOUBLE:
       fputs (",double-float", stdout);
       break;
     case 0:

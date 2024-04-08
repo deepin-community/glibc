@@ -12,9 +12,9 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/736932
 
 --- a/elf/ldconfig.c
 +++ b/elf/ldconfig.c
-@@ -59,6 +59,17 @@
- #define PATH_MAX 1024
- #endif
+@@ -55,6 +55,17 @@
+ 
+ #define PACKAGE _libc_intl_domainname
  
 +/* Get the generated information about the trusted/standard directories.  */
 +#include "trusted-dirs.h"
@@ -30,7 +30,7 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/736932
  /* List of directories to handle.  */
  struct dir_entry
  {
-@@ -1361,12 +1372,19 @@
+@@ -1270,12 +1281,19 @@
  
    if (!opt_only_cline)
      {

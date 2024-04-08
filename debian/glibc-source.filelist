@@ -7,6 +7,7 @@ debian/debhelper.in
 debian/generate-supported.mk
 debian/glibc-source.filelist
 debian/libc0.3.symbols.hurd-i386
+debian/libc0.3.symbols.hurd-amd64
 debian/libc6.1.symbols.alpha
 debian/libc6-amd64.symbols.i386
 debian/libc6-amd64.symbols.x32

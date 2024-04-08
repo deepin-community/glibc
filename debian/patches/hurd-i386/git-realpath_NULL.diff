@@ -1,0 +1,38 @@
+commit 2345bc44bb34f3eb6b49f4db3f0369573b892c3d
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Aug 3 21:15:58 2023 +0200
+
+    Subject: hurd: Make __realpath return EINVAL on NULL buf
+    
+    As Posix and stdlib/test-canon.c expects it, and rather than letting
+    pathconf crash.
+
+diff --git a/debug/realpath_chk.c b/debug/realpath_chk.c
+index adfc09237c..8e734b534e 100644
+--- a/debug/realpath_chk.c
++++ b/debug/realpath_chk.c
+@@ -19,6 +19,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <unistd.h>
++#include <errno.h>
+ 
+ 
+ char *
+@@ -30,7 +31,15 @@ __realpath_chk (const char *buf, char *resolved, size_t resolvedlen)
+ 
+   return __realpath (buf, resolved);
+ #else
+-  long int pathmax =__pathconf (buf, _PC_PATH_MAX);
++  long int pathmax;
++
++  if (buf == NULL)
++    {
++      __set_errno (EINVAL);
++      return NULL;
++    }
++
++  pathmax = __pathconf (buf, _PC_PATH_MAX);
+   if (pathmax != -1)
+     {
+       /* We do have a fixed limit.  */

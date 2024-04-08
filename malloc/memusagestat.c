@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <unistd_ext.h>
 #include <stdint.h>
 #include <sys/param.h>
 #include <sys/stat.h>
@@ -188,7 +189,7 @@ main (int argc, char *argv[])
   total = st.st_size / sizeof (struct entry) - 2;
 
   /* Read the administrative information.  */
-  read (fd, headent, sizeof (headent));
+  read_all (fd, headent, sizeof (headent));
   maxsize_heap = headent[1].heap;
   maxsize_stack = headent[1].stack;
   maxsize_total = headent[0].stack;
@@ -220,7 +221,8 @@ main (int argc, char *argv[])
 
       /* Write the computed values in the file.  */
       lseek (fd, 0, SEEK_SET);
-      write (fd, headent, 2 * sizeof (struct entry));
+      write_all (fd, headent, sizeof (headent));
+
     }
 
   if (also_total)
@@ -372,7 +374,7 @@ main (int argc, char *argv[])
           size_t new[2];
           uint64_t now;
 
-          read (fd, &entry, sizeof (entry));
+          read_all (fd, &entry, sizeof (entry));
 
           now = ((uint64_t) entry.time_high) << 32 | entry.time_low;
 
@@ -455,7 +457,7 @@ main (int argc, char *argv[])
           size_t xpos;
           uint64_t now;
 
-          read (fd, &entry, sizeof (entry));
+          read_all (fd, &entry, sizeof (entry));
 
           now = ((uint64_t) entry.time_high) << 32 | entry.time_low;
           xpos = 40 + ((xsize - 80) * (now - start_time)) / total_time;

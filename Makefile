@@ -518,7 +518,10 @@ mostlyclean: parent-mostlyclean
 	@$(MAKE) subdir_mostlyclean no_deps=t
 	-rm -f $(postclean)
 
-tests-clean:
+# Remove test artifacts from the whole glibc build.
+# do-tests-clean removes test artifacts from top-level directory, and
+# subdir_testclean removes them from individual sub-directories.
+tests-clean: do-tests-clean
 	@$(MAKE) subdir_testclean no_deps=t
 
 ifneq (,$(CXX))
@@ -542,7 +545,7 @@ tests-special += $(objpfx)check-installed-headers-c.out
 libof-check-installed-headers-c := testsuite
 $(objpfx)check-installed-headers-c.out: \
     scripts/check-installed-headers.sh $(headers)
-	$(SHELL) $(..)scripts/check-installed-headers.sh c \
+	$(SHELL) $(..)scripts/check-installed-headers.sh c $(supported-fortify) \
 	  "$(CC) $(filter-out -std=%,$(CFLAGS)) -D_ISOMAC $(+includes)" \
 	  $(headers) > $@; \
 	$(evaluate-test)
@@ -552,7 +555,7 @@ tests-special += $(objpfx)check-installed-headers-cxx.out
 libof-check-installed-headers-cxx := testsuite
 $(objpfx)check-installed-headers-cxx.out: \
     scripts/check-installed-headers.sh $(headers)
-	$(SHELL) $(..)scripts/check-installed-headers.sh c++ \
+	$(SHELL) $(..)scripts/check-installed-headers.sh c++ $(supported-fortify) \
 	  "$(CXX) $(filter-out -std=%,$(CXXFLAGS)) -D_ISOMAC $(+includes)" \
 	  $(headers) > $@; \
 	$(evaluate-test)
@@ -563,6 +566,16 @@ $(objpfx)check-wrapper-headers.out: scripts/check-wrapper-headers.py $(headers)
 	$(PYTHON) $< --root=. --subdir=. $(headers) \
 	  --generated $(common-generated) > $@; $(evaluate-test)
 endif # $(headers)
+
+# Lint all Makefiles; including this one.  Pass `pwd` as the source
+# directory since the top-level Makefile is in the root of the source
+# tree and these tests are run from there.  We add light-weight linting
+# to the 'check' target to support the existing developer workflow of:
+# edit -> make -> make check; without needing an additional step.
+tests-special += $(objpfx)lint-makefiles.out
+$(objpfx)lint-makefiles.out: scripts/lint-makefiles.sh
+	$(SHELL) $< "$(PYTHON)" `pwd` > $@ ; \
+	$(evaluate-test)
 
 define summarize-tests
 @grep -E -v '^(PASS|XFAIL):' $(objpfx)$1 || true

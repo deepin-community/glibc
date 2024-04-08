@@ -211,7 +211,7 @@ gconv_end (struct __gconv_step *data)
       if (__glibc_unlikely (outbuf + 2 > outend))			\
 	return __GCONV_FULL_OUTPUT;					\
 									\
-      put16u (outbuf, BOM_UTF16);					\
+      put16 (outbuf, BOM_UTF16);					\
       outbuf += 2;							\
     }
 
@@ -293,7 +293,7 @@ gconv_end (struct __gconv_step *data)
 		  "    slgr %[R_OUTLEN],%[R_TMP3]\n\t"			\
 		  /* Handle multibyte utf8-char with convert instruction. */ \
 		  "20: cu12 %[R_OUT],%[R_IN],1\n\t"			\
-		  "    jo 0b\n\t" /* Try vector implemenation again.  */ \
+		  "    jo 0b\n\t" /* Try vector implementation again.  */ \
 		  "    lochil %[R_RES],%[RES_OUT_FULL]\n\t" /* cc == 1.  */ \
 		  "    lochih %[R_RES],%[RES_IN_ILL]\n\t" /* cc == 2.  */ \
 		  ".machine pop"					\
@@ -873,7 +873,7 @@ gconv_end (struct __gconv_step *data)
 		  "    slgr %[R_OUTLEN],%[R_TMP3]\n\t"			\
 		  /* Handles UTF16 surrogates with convert instruction.  */ \
 		  "20: cu21 %[R_OUT],%[R_IN],1\n\t"			\
-		  "    jo 0b\n\t" /* Try vector implemenation again.  */ \
+		  "    jo 0b\n\t" /* Try vector implementation again.  */ \
 		  "    lochil %[R_RES],%[RES_OUT_FULL]\n\t" /* cc == 1.  */ \
 		  "    lochih %[R_RES],%[RES_IN_ILL]\n\t" /* cc == 2.  */ \
 		  ".machine pop"					\

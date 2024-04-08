@@ -31,10 +31,11 @@ _S_catch_exception_raise (mach_port_t port,
 			  mach_msg_type_number_t codeCnt
 #else				/* Vanilla Mach 3.0 interface.  */
 			  integer_t exception,
-			  integer_t code, integer_t subcode
+			  integer_t code, long_integer_t subcode
 #endif
 			  )
 {
+  error_t err;
   struct hurd_sigstate *ss;
   int signo;
   struct hurd_signal_detail d;
@@ -58,13 +59,7 @@ _S_catch_exception_raise (mach_port_t port,
   _hurd_exception2signal (&d, &signo);
 
   /* Find the sigstate structure for the faulting thread.  */
-  __mutex_lock (&_hurd_siglock);
-  for (ss = _hurd_sigstates; ss != NULL; ss = ss->next)
-    if (ss->thread == thread)
-      break;
-  __mutex_unlock (&_hurd_siglock);
-  if (ss == NULL)
-    ss = _hurd_thread_sigstate (thread); /* Allocate a fresh one.  */
+  ss = _hurd_thread_sigstate (thread);
 
   if (__spin_lock_locked (&ss->lock))
     {
@@ -88,6 +83,11 @@ _S_catch_exception_raise (mach_port_t port,
   _hurd_internal_post_signal (ss, signo, &d,
 			      MACH_PORT_NULL, MACH_MSG_TYPE_PORT_SEND,
 			      0);
+
+  err = __mach_port_deallocate (__mach_task_self (), task);
+  assert_perror (err);
+  err = __mach_port_deallocate (__mach_task_self (), thread);
+  assert_perror (err);
 
   return KERN_SUCCESS;
 }

@@ -27,6 +27,9 @@
 #include <tls.h>
 #include <unistd.h>
 
+#include <support/xunistd.h>
+#include <support/xstdlib.h>
+
 static const char *command;
 static bool child;
 static uintptr_t stack_chk_guard_copy;
@@ -96,7 +99,7 @@ do_test (void)
 	else if (ret != NULL)
 	  return 1;
 
-      write (2, &stack_chk_guard_copy, sizeof (stack_chk_guard_copy));
+      xwrite (2, &stack_chk_guard_copy, sizeof (stack_chk_guard_copy));
       return 0;
     }
 
@@ -138,7 +141,8 @@ do_test (void)
 	  dup2 (fds[1], 2);
 	  close (fds[1]);
 
-	  system (command);
+	  xsystem (command);
+
 	  exit (0);
 	}
 

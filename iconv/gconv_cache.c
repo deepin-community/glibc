@@ -58,7 +58,7 @@ __gconv_load_cache (void)
     return -1;
 
   /* See whether the cache file exists.  */
-  fd = __open_nocancel (GCONV_MODULES_CACHE, O_RDONLY, 0);
+  fd = __open_nocancel (GCONV_MODULES_CACHE, O_RDONLY | O_CLOEXEC, 0);
   if (__builtin_expect (fd, 0) == -1)
     /* Not available.  */
     return -1;
@@ -449,7 +449,8 @@ __gconv_release_cache (struct __gconv_step *steps, size_t nsteps)
 
 
 /* Free all resources if necessary.  */
-libc_freeres_fn (free_mem)
+void
+__gconv_cache_freemem (void)
 {
   if (cache_malloced)
     free (gconv_cache);

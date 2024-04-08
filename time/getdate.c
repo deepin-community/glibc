@@ -26,7 +26,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <ctype.h>
-#include <alloca.h>
 
 #define TM_YEAR_BASE 1900
 
@@ -115,6 +114,7 @@ __getdate_r (const char *string, struct tm *tp)
   struct tm tm;
   struct __stat64_t64 st;
   bool mday_ok = false;
+  bool found = false;
 
   datemsk = getenv ("DATEMSK");
   if (datemsk == NULL || *datemsk == '\0')
@@ -153,26 +153,14 @@ __getdate_r (const char *string, struct tm *tp)
 
   if (inlen < oldlen)
     {
-      bool using_malloc = false;
-
-      if (__libc_use_alloca (inlen + 1))
-	instr = alloca (inlen + 1);
-      else
+      instr = __strndup(string, inlen);
+      if (instr == NULL)
 	{
-	  instr = malloc (inlen + 1);
-	  if (instr == NULL)
-	    {
-	      fclose (fp);
-	      return 6;
-	    }
-	  using_malloc = true;
+	  fclose(fp);
+	  return 6;
 	}
-      memcpy (instr, string, inlen);
-      instr[inlen] = '\0';
-      string = instr;
 
-      if (!using_malloc)
-	instr = NULL;
+      string = instr;
     }
 
   line = NULL;
@@ -194,7 +182,7 @@ __getdate_r (const char *string, struct tm *tp)
       tp->tm_gmtoff = 0;
       tp->tm_zone = NULL;
       result = strptime (string, line, tp);
-      if (result && *result == '\0')
+      if ((found = (result && *result == '\0')))
 	break;
     }
   while (!__feof_unlocked (fp));
@@ -214,7 +202,7 @@ __getdate_r (const char *string, struct tm *tp)
   /* Close template file.  */
   fclose (fp);
 
-  if (result == NULL || *result != '\0')
+  if (!found)
     return 7;
 
   /* Get current time.  */

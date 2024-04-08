@@ -123,8 +123,11 @@
 /* C-SKY ABI version.  */
 #undef CSKYABI
 
-/* C-SKY floating-point ABI.  */
+/* C-SKY floating-point instructions.  */
 #undef CSKY_HARD_FLOAT
+
+/* C-SKY floating-point ABI.  */
+#undef CSKY_HARD_FLOAT_ABI
 
 /* RISC-V integer ABI for ld.so.  */
 #undef RISCV_ABI_XLEN
@@ -138,6 +141,11 @@
 /* LOONGARCH floating-point ABI for ld.so.  */
 #undef LOONGARCH_ABI_FRLEN
 
+/* Assembler support LoongArch LASX/LSX vector instructions.
+   This macro becomes obsolete when glibc increased the minimum
+   required version of GNU 'binutils' to 2.41 or later. */
+#define HAVE_LOONGARCH_VEC_ASM 0
+
 /* Linux specific: minimum supported kernel version.  */
 #undef	__LINUX_KERNEL_VERSION
 
@@ -146,9 +154,6 @@
 
 /* Override abi-tags ABI version if necessary.  */
 #undef  __ABI_TAG_VERSION
-
-/* Mach/Hurd specific: define if mig supports the `retcode' keyword.  */
-#undef	HAVE_MIG_RETCODE
 
 /* Mach specific: define if the `host_page_size' RPC is available.  */
 #undef	HAVE_HOST_PAGE_SIZE
@@ -267,9 +272,6 @@
 
 /* PowerPC32 uses fctidz for floating point to long long conversions.  */
 #define HAVE_PPC_FCTIDZ 0
-
-/* Build glibc with tunables support.  */
-#define HAVE_TUNABLES 0
 
 /* Define if PIE is unsupported.  */
 #undef PIE_UNSUPPORTED

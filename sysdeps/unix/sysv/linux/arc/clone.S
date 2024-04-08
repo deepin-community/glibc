@@ -20,9 +20,6 @@
 #include <sysdep.h>
 #define _ERRNO_H	1
 #include <bits/errno.h>
-#include <tcb-offsets.h>
-
-#define CLONE_SETTLS		0x00080000
 
 /* int clone(int (*fn)(void *), void *child_stack,
            int flags, void *arg, ...
@@ -41,11 +38,12 @@
 
 ENTRY (__clone)
 	cmp	r0, 0		/* @fn can't be NULL.  */
+	and	r1,r1,-4	/* @child_stack be 4 bytes aligned per ABI.  */
 	cmp.ne	r1, 0		/* @child_stack can't be NULL.  */
 	bz	L (__sys_err)
 
 	/* save some of the orig args
-	   r0 containg @fn will be clobbered AFTER syscall (with ret val)
+	   r0 containing @fn will be clobbered AFTER syscall (with ret val)
 	   rest are clobbered BEFORE syscall due to different arg ordering.  */
 	mov	r10, r0		/* @fn.  */
 	mov	r11, r3		/* @args.  */
@@ -62,19 +60,9 @@ ENTRY (__clone)
 	ARC_TRAP_INSN
 
 	cmp	r0, 0		/* return code : 0 new process, !0 parent.  */
+	beq	thread_start_clone
 	blt	L (__sys_err2)	/* < 0 (signed) error.  */
-	jnz	[blink]		/* Parent returns.  */
-
-	/* child jumps off to @fn with @arg as argument
-           TP register already set by kernel.  */
-	jl.d	[r10]
-	mov	r0, r11
-
-	/* exit() with result from @fn (already in r0).  */
-	mov	r8, __NR_exit
-	ARC_TRAP_INSN
-	/* In case it ever came back.  */
-	flag	1
+	j	[blink]		/* Parent returns.  */
 
 L (__sys_err):
 	mov	r0, -EINVAL
@@ -88,5 +76,28 @@ L (__sys_err2):
 	       position independent.  */
 	b   __syscall_error
 PSEUDO_END (__clone)
+
+
+	.align 4
+	.type thread_start_clone, %function
+thread_start_clone:
+	cfi_startproc
+	/* Terminate call stack by noting ra is undefined.  */
+	cfi_undefined (blink)
+
+	/* Child jumps off to @fn with @arg as argument.  */
+	jl.d	[r10]
+	mov	r0, r11
+
+	/* exit() with result from @fn (already in r0).  */
+	mov	r8, __NR_exit
+	ARC_TRAP_INSN
+
+	/* In case it ever came back.  */
+	flag	1
+
+	cfi_endproc
+	.size thread_start_clone, .-thread_start_clone
+
 libc_hidden_def (__clone)
 weak_alias (__clone, clone)

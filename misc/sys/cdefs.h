@@ -81,7 +81,7 @@
 #  define __NTH(fct)	__attribute__ ((__nothrow__ __LEAF)) fct
 #  define __NTHNL(fct)  __attribute__ ((__nothrow__)) fct
 # else
-#  if defined __cplusplus && (__GNUC_PREREQ (2,8) || __clang_major >= 4)
+#  if defined __cplusplus && (__GNUC_PREREQ (2,8) || __clang_major__ >= 4)
 #   if __cplusplus >= 201103L
 #    define __THROW	noexcept (true)
 #   else
@@ -98,6 +98,12 @@
 #  endif
 # endif
 
+# if __GNUC_PREREQ (4, 3) || __glibc_has_attribute (__cold__)
+#  define __COLD	__attribute__ ((__cold__))
+# else
+#  define __COLD
+# endif
+
 #else	/* Not GCC or clang.  */
 
 # if (defined __cplusplus						\
@@ -110,6 +116,7 @@
 # define __THROW
 # define __THROWNL
 # define __NTH(fct)	fct
+# define __COLD
 
 #endif	/* GCC || clang.  */
 
@@ -152,6 +159,7 @@
 # define __glibc_objsize(__o) __bos (__o)
 #endif
 
+#if __USE_FORTIFY_LEVEL > 0
 /* Compile time conditions to choose between the regular, _chk and _chk_warn
    variants.  These conditions should get evaluated to constant and optimized
    away.  */
@@ -187,7 +195,7 @@
    ? __ ## f ## _alias (__VA_ARGS__)					      \
    : (__glibc_unsafe_len (__l, __s, __osz)				      \
       ? __ ## f ## _chk_warn (__VA_ARGS__, __osz)			      \
-      : __ ## f ## _chk (__VA_ARGS__, __osz)))			      \
+      : __ ## f ## _chk (__VA_ARGS__, __osz)))
 
 /* Fortify function f, where object size argument passed to f is the number of
    elements and not total size.  */
@@ -197,7 +205,8 @@
    ? __ ## f ## _alias (__VA_ARGS__)					      \
    : (__glibc_unsafe_len (__l, __s, __osz)				      \
       ? __ ## f ## _chk_warn (__VA_ARGS__, (__osz) / (__s))		      \
-      : __ ## f ## _chk (__VA_ARGS__, (__osz) / (__s))))		      \
+      : __ ## f ## _chk (__VA_ARGS__, (__osz) / (__s))))
+#endif
 
 #if __GNUC_PREREQ (4,3)
 # define __warnattr(msg) __attribute__((__warning__ (msg)))
@@ -258,6 +267,14 @@
 # endif
 # define __ASMNAME(cname)  __ASMNAME2 (__USER_LABEL_PREFIX__, cname)
 # define __ASMNAME2(prefix, cname) __STRING (prefix) cname
+
+#ifndef __REDIRECT_FORTIFY
+#define __REDIRECT_FORTIFY __REDIRECT
+#endif
+
+#ifndef __REDIRECT_FORTIFY_NTH
+#define __REDIRECT_FORTIFY_NTH __REDIRECT_NTH
+#endif
 
 /*
 #elif __SOME_OTHER_COMPILER__
@@ -567,6 +584,8 @@
 #  define __LDBL_REDIR(name, proto) ... unused__ldbl_redir
 #  define __LDBL_REDIR_DECL(name) \
   extern __typeof (name) name __asm (__ASMNAME ("__" #name "ieee128"));
+#  define __REDIRECT_LDBL(name, proto, alias) \
+  name proto __asm (__ASMNAME ("__" #alias "ieee128"))
 
 /* Alias name defined automatically, with leading underscores.  */
 #  define __LDBL_REDIR2_DECL(name) \
@@ -584,7 +603,6 @@
   __LDBL_REDIR1_NTH (name, proto, __##alias##ieee128)
 
 /* Unused.  */
-#  define __REDIRECT_LDBL(name, proto, alias) ... unused__redirect_ldbl
 #  define __LDBL_REDIR_NTH(name, proto) ... unused__ldbl_redir_nth
 
 # else

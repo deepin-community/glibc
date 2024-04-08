@@ -1,0 +1,44 @@
+commit cbf4aa422c82b895ab56ef5e9acda37947ad4184
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Aug 3 21:16:16 2023 +0200
+
+    tst-realpath-toolong: return "unsupported" when PATH_MAX is undefined
+    
+    When PATH_MAX is undefined, realpath cannot ever ENAMETOOLONG, so
+    this test is unsupported.
+
+diff --git a/stdlib/tst-realpath-toolong.c b/stdlib/tst-realpath-toolong.c
+index 4388890294..a071fe7544 100644
+--- a/stdlib/tst-realpath-toolong.c
++++ b/stdlib/tst-realpath-toolong.c
+@@ -24,18 +24,18 @@
+ #include <unistd.h>
+ #include <support/check.h>
+ #include <support/temp_file.h>
++#include <support/test-driver.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ 
+ #define BASENAME "tst-realpath-toolong."
+ 
+-#ifndef PATH_MAX
+-# define PATH_MAX 1024
+-#endif
+-
+ int
+ do_test (void)
+ {
++#ifndef PATH_MAX
++  return EXIT_UNSUPPORTED;
++#else
+   char *base = support_create_and_chdir_toolong_temp_directory (BASENAME);
+ 
+   char buf[PATH_MAX + 1];
+@@ -48,6 +48,7 @@ do_test (void)
+ 
+   free (base);
+   return 0;
++#endif
+ }
+ 
+ #include <support/test-driver.c>

@@ -1,0 +1,86 @@
+commit 04bf7d2d8a79bf8d06ca811518688ccda190b376
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Aug 3 21:16:41 2023 +0200
+
+    chk: Add and fix hidden builtin definitions for *_chk
+    
+    Otherwise on gnu-i686 there are unwanted PLT entries in libc.so when
+    fortification is enabled.
+    
+    Tested for i686-gnu, x86_64-gnu, i686-linux-gnu and x86_64-linux-gnu
+
+diff --git a/debug/longjmp_chk.c b/debug/longjmp_chk.c
+index 1bc33c5769..c527e22db6 100644
+--- a/debug/longjmp_chk.c
++++ b/debug/longjmp_chk.c
+@@ -21,3 +21,4 @@
+ #define __libc_siglongjmp __longjmp_chk
+ 
+ #include <setjmp/longjmp.c>
++libc_hidden_def (__longjmp_chk)
+diff --git a/debug/strncpy_chk.c b/debug/strncpy_chk.c
+index cb142b820f..966df2739b 100644
+--- a/debug/strncpy_chk.c
++++ b/debug/strncpy_chk.c
+@@ -27,3 +27,4 @@ __strncpy_chk (char *s1, const char *s2, size_t n, size_t s1len)
+ 
+   return strncpy (s1, s2, n);
+ }
++libc_hidden_builtin_def (__strncpy_chk)
+diff --git a/include/setjmp.h b/include/setjmp.h
+index 26c6775d08..d2353be71b 100644
+--- a/include/setjmp.h
++++ b/include/setjmp.h
+@@ -11,6 +11,14 @@ extern void __longjmp (__jmp_buf __env, int __val)
+ extern void ____longjmp_chk (__jmp_buf __env, int __val)
+      __attribute__ ((__noreturn__)) attribute_hidden;
+ 
++extern void __longjmp_chk (sigjmp_buf env, int val)
++	  __attribute__ ((noreturn)) attribute_hidden;
++/* The redirection in the installed header does not work with
++   libc_hidden_proto.  */
++#define longjmp __longjmp_chk
++#define siglongjmp __longjmp_chk
++libc_hidden_proto (__longjmp_chk)
++
+ /* Internal function to possibly save the current mask of blocked signals
+    in ENV, and always set the flag saying whether or not it was saved.
+    This is used by the machine-dependent definition of `__sigsetjmp'.
+diff --git a/include/stdlib.h b/include/stdlib.h
+index 7deb8193d7..d1d00c0f6f 100644
+--- a/include/stdlib.h
++++ b/include/stdlib.h
+@@ -59,6 +59,8 @@ libc_hidden_proto (__isoc23_strtoull_l)
+    libc_hidden_proto.  */
+ # undef strtol
+ # define strtol __isoc23_strtol
++# undef atoi
++# define atoi(nptr) __isoc23_strtol(nptr, NULL, 10)
+ # undef strtoul
+ # define strtoul __isoc23_strtoul
+ # undef strtoll
+diff --git a/include/string.h b/include/string.h
+index 659530d1aa..86d1fa4abe 100644
+--- a/include/string.h
++++ b/include/string.h
+@@ -214,6 +214,7 @@ libc_hidden_builtin_proto (__memmove_chk)
+ libc_hidden_builtin_proto (__mempcpy_chk)
+ libc_hidden_builtin_proto (__memset_chk)
+ libc_hidden_builtin_proto (__stpcpy_chk)
++libc_hidden_builtin_proto (__strncpy_chk)
+ 
+ #endif
+ 
+diff --git a/setjmp/longjmp.c b/setjmp/longjmp.c
+index 69f540ea22..24795ecbb5 100644
+--- a/setjmp/longjmp.c
++++ b/setjmp/longjmp.c
+@@ -19,6 +19,8 @@
+ #include <setjmpP.h>
+ #include <signal.h>
+ 
++#undef longjmp
++#undef siglongjmp
+ 
+ /* Set the signal mask to the one specified in ENV, and jump
+    to the position specified in ENV, causing the setjmp

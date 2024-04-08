@@ -1,0 +1,81 @@
+commit ad26c25137086b6e001ce1a7f82b4656724200da
+Author: Flavio Cruz <flaviocruz@gmail.com>
+Date:   Thu Dec 14 01:02:28 2023 -0500
+
+    Update code to handle the new ABI for sending inlined port rights.
+    
+    For i686, this change is no op but for x86_64 it forces all inlined port
+    rights to be 8 bytes long.
+
+diff --git a/hurd/intr-msg.c b/hurd/intr-msg.c
+index 24184f827f..9912f4f1f3 100644
+--- a/hurd/intr-msg.c
++++ b/hurd/intr-msg.c
+@@ -199,6 +199,28 @@ _hurd_intr_rpc_mach_msg (mach_msg_header_t *msg,
+ 		    __vm_deallocate (__mach_task_self (), (vm_address_t) data, length);
+ 		}
+ 
++	      inline void clean_inlined_ports (mach_port_name_inlined_t *ports)
++		{
++		  mach_msg_type_number_t i;
++		  switch (name)
++		    {
++		    case MACH_MSG_TYPE_MOVE_SEND:
++		      for (i = 0; i < number; i++)
++			__mach_port_deallocate (__mach_task_self (), ports[i].name);
++		      if (ty->msgtl_header.msgt_longform)
++			ty->msgtl_name = MACH_MSG_TYPE_COPY_SEND;
++		      else
++			ty->msgtl_header.msgt_name = MACH_MSG_TYPE_COPY_SEND;
++		      break;
++		    case MACH_MSG_TYPE_COPY_SEND:
++		    case MACH_MSG_TYPE_MOVE_RECEIVE:
++		      break;
++		    default:
++		      if (MACH_MSG_TYPE_PORT_ANY (name))
++			assert (! "unexpected port type in interruptible RPC");
++		    }
++		}
++
+ 	      char *data;
+ 	      if (ty->msgtl_header.msgt_longform)
+ 		{
+@@ -215,11 +237,11 @@ _hurd_intr_rpc_mach_msg (mach_msg_header_t *msg,
+ 		  data = (char *) ty + sizeof (mach_msg_type_t);
+ 		}
+ 
++	      /* Calculate length of data in bytes.  */
+ 	      const vm_size_t length = ((number * size) + 7) >> 3;
+ 	      if (ty->msgtl_header.msgt_inline)
+ 		{
+-		  /* Calculate length of data in bytes.  */
+-		  clean_ports_and_memory (data, length, 0);
++		  clean_inlined_ports ((mach_port_name_inlined_t *) data);
+ 		  /* Move to the next argument.  */
+ 		  ty = (void *) PTR_ALIGN_UP (data + length, __alignof__ (uintptr_t));
+ 		}
+diff --git a/mach/msg-destroy.c b/mach/msg-destroy.c
+index 19137baa62..8640c965bd 100644
+--- a/mach/msg-destroy.c
++++ b/mach/msg-destroy.c
+@@ -108,11 +108,17 @@ __mach_msg_destroy (mach_msg_header_t *msg)
+ 	    addr = is_inline ? saddr : * (vm_offset_t *) saddr;
+ 
+ 	    if (MACH_MSG_TYPE_PORT_ANY(name)) {
+-		mach_port_t *ports = (mach_port_t *) addr;
+ 		mach_msg_type_number_t i;
+ 
+-		for (i = 0; i < number; i++)
+-		    mach_msg_destroy_port(*ports++, name);
++		if (is_inline) {
++		    mach_port_name_inlined_t *inlined_ports = (mach_port_name_inlined_t *)addr;
++		    for (i = 0; i < number; i++)
++			mach_msg_destroy_port(inlined_ports[i].name, name);
++		} else {
++		    mach_port_t *ports = (mach_port_t *) addr;
++		    for (i = 0; i < number; i++)
++			mach_msg_destroy_port(ports[i], name);
++		}
+ 	    }
+ 
+ 	    if (is_inline) {

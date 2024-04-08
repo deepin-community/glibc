@@ -93,7 +93,7 @@ $(common-objpfx)stamp-errnos: $(hurd)/errnos.awk $(errno.texinfo) \
 			      $(mach-errnos-deps) $(common-objpfx)errnos.d
 	mkdir -p $(hurd-objpfx)bits
 	$(AWK) -f $^ > $(hurd-objpfx)bits/errno.h-tmp
-# Make it unwritable so noone will edit it by mistake.
+# Make it unwritable so no one will edit it by mistake.
 	-chmod a-w $(hurd-objpfx)bits/errno.h-tmp
 	$(move-if-change) $(hurd-objpfx)bits/errno.h-tmp $(hurd)/bits/errno.h
 	touch $@
@@ -197,6 +197,10 @@ ifeq (hurd, $(subdir))
 sysdep_routines += cthreads
 endif
 
+ifeq (elf, $(subdir))
+sysdep-dl-routines += dl-tls-initialized
+endif
+
 ifeq (io, $(subdir))
 sysdep_routines += f_setlk close_nocancel close_nocancel_nostatus \
 		   fcntl_nocancel open_nocancel openat_nocancel read_nocancel \
@@ -205,6 +209,8 @@ sysdep_routines += f_setlk close_nocancel close_nocancel_nostatus \
 		   xstat fxstat lxstat xstat64 fxstat64 lxstat64 \
 		   xmknod xmknodat \
 		   fxstatat fxstatat64
+
+sysdep_headers += bits/types/struct_flock.h
 endif
 
 ifeq (misc, $(subdir))
@@ -227,3 +233,102 @@ LDLIBS-pthread.so += $(objdir)/hurd/libhurduser.so
 LDLIBS-c_malloc_debug.so += $(link-rpcuserlibs)
 
 endif	# in-Makerules
+
+# For bug 23286
+ifeq ($(subdir),hurd)
+test-xfail-check-abi-libhurduser = yes
+endif
+ifeq ($(subdir),mach)
+test-xfail-check-abi-libmachuser = yes
+endif
+
+# For bug 25521
+# (setpshared support)
+ifeq ($(subdir),malloc)
+test-xfail-tst-mallocfork2 = yes
+test-xfail-tst-mallocfork2-mcheck = yes
+test-xfail-tst-mallocfork2-malloc-check = yes
+test-xfail-tst-mallocfork2-malloc-hugetlb1 = yes
+test-xfail-tst-mallocfork2-malloc-hugetlb2 = yes
+endif
+ifeq ($(subdir),htl)
+test-xfail-tst-mutex4 = yes
+test-xfail-tst-cancel16 = yes
+test-xfail-tst-cancelx16 = yes
+test-xfail-tst-cond4 = yes
+test-xfail-tst-cond6 = yes
+test-xfail-tst-cond12 = yes
+test-xfail-tst-cond13 = yes
+test-xfail-tst-cond23 = yes
+test-xfail-tst-rwlock4 = yes
+test-xfail-tst-rwlock12 = yes
+test-xfail-tst-barrier2 = yes
+test-xfail-tst-pututxline-cache = yes
+test-xfail-tst-pututxline-lockfail = yes
+test-xfail-tst-flock2 = yes
+test-xfail-tst-signal1 = yes
+test-xfail-tst-signal2 = yes
+endif
+
+ifeq ($(subdir),htl)
+# For bug 25522
+# (setprotocol support)
+test-xfail-tst-cond24 = yes
+test-xfail-tst-cond25 = yes
+
+# For bug 25563
+# (robust support against dead threads)
+test-xfail-tst-robust1 = yes
+test-xfail-tst-robust2 = yes
+test-xfail-tst-robust3 = yes
+test-xfail-tst-robust4 = yes
+test-xfail-tst-robust5 = yes
+test-xfail-tst-robust6 = yes
+test-xfail-tst-robust7 = yes
+test-xfail-tst-robust9 = yes
+endif
+
+ifeq ($(subdir),elf)
+# We do use nested functions involving creation of trampolines, notably for
+# callbacks whose parameters don't permit to get the context parameters.
+check-execstack-xfail += ld.so libc.so libpthread.so
+# We always create a thread for signals
+test-xfail-tst-single_threaded-pthread-static = yes
+endif
+
+# For bug 30166
+# (missing RLIMIT_AS support)
+ifeq ($(subdir),malloc)
+tests-unsupported += tst-malloc-thread-fail
+tests-unsupported += tst-malloc-thread-fail-malloc-check
+tests-unsupported += tst-malloc-thread-fail-mcheck
+tests-unsupported += tst-malloc-thread-fail-malloc-hugetlb1
+tests-unsupported += tst-malloc-thread-fail-malloc-hugetlb2
+tests-unsupported += tst-dynarray-fail
+endif
+
+# For bug 30167
+# (select requests overflow)
+ifeq ($(subdir),htl)
+tests-unsupported += tst-pthread_cancel-select-loop
+endif
+
+# For bug 30168
+# (audit tests hang)
+ifeq ($(subdir),elf)
+tests-unsupported += tst-audit14
+tests-unsupported += tst-audit14a
+tests-unsupported += tst-audit15
+tests-unsupported += tst-audit16
+tests-unsupported += tst-audit17
+endif
+
+# For bug 30341
+ifeq ($(subdir),posix)
+tests-unsupported += tst-spawn6
+endif
+
+# For bug 30342
+ifeq ($(subdir),io)
+tests-unsupported += test-lfs
+endif

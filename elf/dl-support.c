@@ -168,16 +168,6 @@ enum dso_sort_algorithm _dl_dso_sort_algo;
 /* The value of the FPU control word the kernel will preset in hardware.  */
 fpu_control_t _dl_fpu_control = _FPU_DEFAULT;
 
-#if !HAVE_TUNABLES
-/* This is not initialized to HWCAP_IMPORTANT, matching the definition
-   of _dl_important_hwcaps, below, where no hwcap strings are ever
-   used.  This mask is still used to mediate the lookups in the cache
-   file.  Since there is no way to set this nonzero (we don't grok the
-   LD_HWCAP_MASK environment variable here), there is no real point in
-   setting _dl_hwcap nonzero below, but we do anyway.  */
-uint64_t _dl_hwcap_mask;
-#endif
-
 /* Prevailing state of the stack.  Generally this includes PF_X, indicating it's
  * executable but this isn't true for all platforms.  */
 ElfW(Word) _dl_stack_flags = DEFAULT_STACK_PERMS;
@@ -216,7 +206,7 @@ struct link_map *_dl_sysinfo_map;
 #include <dl-vdso-setup.c>
 
 /* During the program run we must not modify the global data of
-   loaded shared object simultanously in two threads.  Therefore we
+   loaded shared object simultaneously in two threads.  Therefore we
    protect `_dl_open' and `_dl_close' in dl-close.c.
 
    This must be a recursive lock since the initializer function of
@@ -326,13 +316,8 @@ _dl_non_dynamic_init (void)
       while (cp < unsecure_envvars + sizeof (unsecure_envvars))
 	{
 	  __unsetenv (cp);
-	  cp = (const char *) __rawmemchr (cp, '\0') + 1;
+	  cp = strchr (cp, '\0') + 1;
 	}
-
-#if !HAVE_TUNABLES
-      if (__access ("/etc/suid-debug", F_OK) != 0)
-	__unsetenv ("MALLOC_CHECK_");
-#endif
     }
 
 #ifdef DL_PLATFORM_INIT

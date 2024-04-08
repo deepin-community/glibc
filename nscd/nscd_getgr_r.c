@@ -68,7 +68,8 @@ libc_locked_map_ptr (,__gr_map_handle) attribute_hidden;
 /* Note that we only free the structure if necessary.  The memory
    mapping is not removed since it is not visible to the malloc
    handling.  */
-libc_freeres_fn (gr_map_free)
+void
+__nscd_gr_map_freemem (void)
 {
   if (__gr_map_handle.mapped != NO_MAPPING)
     {
@@ -159,7 +160,7 @@ nscd_getgr_r (const char *key, size_t keylen, request_type type,
 
       /* Now allocate the buffer the array for the group members.  We must
 	 align the pointer.  */
-      align = ((__alignof__ (char *) - (p - ((char *) 0)))
+      align = ((__alignof__ (char *) - ((uintptr_t) p))
 	       & (__alignof__ (char *) - 1));
       total_len = (align + (1 + gr_resp.gr_mem_cnt) * sizeof (char *)
 		   + gr_resp.gr_name_len + gr_resp.gr_passwd_len);

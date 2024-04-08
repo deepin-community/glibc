@@ -43,6 +43,24 @@
 # define TOINT_INTRINSICS 0
 #endif
 
+static inline int
+clz_uint64 (uint64_t x)
+{
+  if (sizeof (uint64_t) == sizeof (unsigned long))
+    return __builtin_clzl (x);
+  else
+    return __builtin_clzll (x);
+}
+
+static inline int
+ctz_uint64 (uint64_t x)
+{
+  if (sizeof (uint64_t) == sizeof (unsigned long))
+    return __builtin_ctzl (x);
+  else
+    return __builtin_ctzll (x);
+}
+
 #if TOINT_INTRINSICS
 /* Round x to nearest int in all rounding modes, ties have to be rounded
    consistently with converttoint so the results match.  If the result
@@ -88,7 +106,47 @@ issignaling_inline (double x)
   return 2 * (ix ^ 0x0008000000000000) > 2 * 0x7ff8000000000000ULL;
 }
 
-#define NOINLINE __attribute__ ((noinline))
+#define BIT_WIDTH       64
+#define MANTISSA_WIDTH  52
+#define EXPONENT_WIDTH  11
+#define MANTISSA_MASK   UINT64_C(0x000fffffffffffff)
+#define EXPONENT_MASK   UINT64_C(0x7ff0000000000000)
+#define EXP_MANT_MASK   UINT64_C(0x7fffffffffffffff)
+#define QUIET_NAN_MASK  UINT64_C(0x0008000000000000)
+#define SIGN_MASK	UINT64_C(0x8000000000000000)
+
+static inline bool
+is_nan (uint64_t x)
+{
+  return (x & EXP_MANT_MASK) > EXPONENT_MASK;
+}
+
+static inline uint64_t
+get_mantissa (uint64_t x)
+{
+  return x & MANTISSA_MASK;
+}
+
+/* Convert integer number X, unbiased exponent EP, and sign S to double:
+
+   result = X * 2^(EP+1 - exponent_bias)
+
+   NB: zero is not supported.  */
+static inline double
+make_double (uint64_t x, int64_t ep, uint64_t s)
+{
+  int lz = clz_uint64 (x) - EXPONENT_WIDTH;
+  x <<= lz;
+  ep -= lz;
+
+  if (__glibc_unlikely (ep < 0 || x == 0))
+    {
+      x >>= -ep;
+      ep = 0;
+    }
+
+  return asdouble (s + x + (ep << MANTISSA_WIDTH));
+}
 
 /* Error handling tail calls for special cases, with a sign argument.
    The sign of the return value is set if the argument is non-zero.  */
@@ -108,6 +166,9 @@ attribute_hidden double __math_divzero (uint32_t);
 attribute_hidden double __math_invalid (double);
 
 /* Error handling using output checking, only for errno setting.  */
+
+/* Check if the result generated a demain error.  */
+attribute_hidden double __math_edom (double x);
 
 /* Check if the result overflowed to infinity.  */
 attribute_hidden double __math_check_oflow (double);

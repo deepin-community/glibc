@@ -46,7 +46,7 @@ _dl_find_object_slow (void *pc, struct dl_find_object *result)
           struct dl_find_object_internal internal;
           _dl_find_object_from_map (l, &internal);
           _dl_find_object_to_external (&internal, result);
-          return 1;
+          return 0;
         }
 
   /* Object not found.  */
@@ -312,7 +312,7 @@ _dlfo_mappings_active_segment (uint64_t start_version)
   return _dlfo_loaded_mappings[start_version & 1];
 }
 
-/* Searches PC amoung the address-sorted array [FIRST1, FIRST1 +
+/* Searches PC among the address-sorted array [FIRST1, FIRST1 +
    SIZE).  Assumes PC >= FIRST1->map_start.  Returns a pointer to the
    element that contains PC, or NULL if there is no such element.  */
 static inline struct dl_find_object_internal *

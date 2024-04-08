@@ -51,9 +51,10 @@ struct hurd_signal_preemptor;	/* <hurd/sigpreempt.h> */
 struct hurd_signal_detail
   {
     /* Codes from origination Mach exception_raise message.  */
-    integer_t exc, exc_code, exc_subcode;
+    integer_t exc, exc_code;
+    long_integer_t exc_subcode;
     /* Sigcode as passed or computed from exception codes.  */
-    integer_t code;
+    long_integer_t code;
     /* Error code as passed or extracted from exception codes.  */
     error_t error;
   };
@@ -145,7 +146,7 @@ extern struct hurd_sigstate *_hurd_global_sigstate;
 extern void _hurd_sigstate_set_global_rcv (struct hurd_sigstate *ss);
 
 /* A thread can either use its own action vector and pending signal set
-   or use the global ones, depending on wether it has been marked as a
+   or use the global ones, depending on whether it has been marked as a
    global receiver. The accessors below take that into account.  */
 
 extern void _hurd_sigstate_lock (struct hurd_sigstate *ss);
@@ -165,13 +166,20 @@ extern void _hurd_sigstate_delete (thread_t thread);
 _HURD_SIGNAL_H_EXTERN_INLINE struct hurd_sigstate *
 _hurd_self_sigstate (void)
 {
-  if (THREAD_GETMEM (THREAD_SELF, _hurd_sigstate) == NULL)
+  struct hurd_sigstate *ss = THREAD_GETMEM (THREAD_SELF, _hurd_sigstate);
+  if (__glibc_unlikely (ss == NULL))
     {
       thread_t self = __mach_thread_self ();
-      THREAD_SETMEM (THREAD_SELF, _hurd_sigstate, _hurd_thread_sigstate (self));
+
+      /* The thread variable is unset; this must be the first time we've
+        asked for it.  In this case, the critical section flag cannot
+        possible already be set.  Look up our sigstate structure the slow
+        way.  */
+      ss = _hurd_thread_sigstate (self);
+      THREAD_SETMEM (THREAD_SELF, _hurd_sigstate, ss);
       __mach_port_deallocate (__mach_task_self (), self);
     }
-  return THREAD_GETMEM (THREAD_SELF, _hurd_sigstate);
+  return ss;
 }
 # endif
 #endif
@@ -215,19 +223,7 @@ _hurd_critical_section_lock (void)
     return NULL;
 #endif
 
-  ss = THREAD_GETMEM (THREAD_SELF, _hurd_sigstate);
-  if (ss == NULL)
-    {
-      thread_t self = __mach_thread_self ();
-
-      /* The thread variable is unset; this must be the first time we've
-	 asked for it.  In this case, the critical section flag cannot
-	 possible already be set.  Look up our sigstate structure the slow
-	 way.  */
-      ss = _hurd_thread_sigstate (self);
-      THREAD_SETMEM (THREAD_SELF, _hurd_sigstate, ss);
-      __mach_port_deallocate (__mach_task_self (), self);
-    }
+  ss = _hurd_self_sigstate ();
 
   if (! __spin_try_lock (&ss->critical_section_lock))
     /* We are already in a critical section, so do nothing.  */
@@ -258,9 +254,9 @@ _hurd_critical_section_unlock (void *our_lock)
       sigset_t pending;
       _hurd_sigstate_lock (ss);
       __spin_unlock (&ss->critical_section_lock);
-      pending = _hurd_sigstate_pending(ss) & ~ss->blocked;
+      pending = _hurd_sigstate_pending (ss) & ~ss->blocked;
       _hurd_sigstate_unlock (ss);
-      if (! __sigisemptyset (&pending))
+      if (__glibc_unlikely (!__sigisemptyset (&pending)))
 	/* There are unblocked signals pending, which weren't
 	   delivered because we were in the critical section.
 	   Tell the signal thread to deliver them now.  */

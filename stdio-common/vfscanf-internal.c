@@ -668,7 +668,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 	      /* We have a severe problem here.  The ISO C standard
 		 contradicts itself in explaining the effect of the %n
 		 format in `scanf'.  While in ISO C:1990 and the ISO C
-		 Amendement 1:1995 the result is described as
+		 Amendment 1:1995 the result is described as
 
 		   Execution of a %n directive does not effect the
 		   assignment count returned at the completion of
@@ -1381,6 +1381,10 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 	  base = 8;
 	  goto number;
 
+	case L_('b'):	/* Binary integer.  */
+	  base = 2;
+	  goto number;
+
 	case L_('u'):	/* Unsigned decimal integer.  */
 	  base = 10;
 	  goto number;
@@ -1428,6 +1432,17 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 		      c = inchar ();
 		    }
 		}
+	      else if (width != 0
+		       && TOLOWER (c) == L_('b')
+		       && (base == 2
+			   || ((mode_flags & SCANF_ISOC23_BIN_CST) != 0
+			       && base == 0)))
+		{
+		  base = 2;
+		  if (width > 0)
+		    --width;
+		  c = inchar ();
+		}
 	      else if (base == 0)
 		base = 8;
 	    }
@@ -1440,13 +1455,14 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 	      int from_level;
 	      int to_level;
 	      int level;
+	      enum { num_digits_len = 10 };
 #ifdef COMPILE_WSCANF
-	      const wchar_t *wcdigits[10];
-	      const wchar_t *wcdigits_extended[10];
+	      const wchar_t *wcdigits[num_digits_len];
 #else
-	      const char *mbdigits[10];
-	      const char *mbdigits_extended[10];
+	      const char *mbdigits[num_digits_len];
 #endif
+	      CHAR_T *digits_extended[num_digits_len] = { NULL };
+
 	      /*  "to_inpunct" is a map from ASCII digits to their
 		  equivalent in locale. This is defined for locales
 		  which use an extra digits set.  */
@@ -1467,18 +1483,23 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 		  /*  Adding new level for extra digits set in locale file.  */
 		  ++to_level;
 
-		  for (n = 0; n < 10; ++n)
+		  for (n = 0; n < num_digits_len; ++n)
 		    {
 #ifdef COMPILE_WSCANF
 		      wcdigits[n] = (const wchar_t *)
 			_NL_CURRENT (LC_CTYPE, _NL_CTYPE_INDIGITS0_WC + n);
 
 		      wchar_t *wc_extended = (wchar_t *)
-			alloca ((to_level + 2) * sizeof (wchar_t));
+			malloc ((to_level + 2) * sizeof (wchar_t));
+		      if (wc_extended == NULL)
+			{
+			  done = EOF;
+			  goto digits_extended_fail;
+			}
 		      __wmemcpy (wc_extended, wcdigits[n], to_level);
 		      wc_extended[to_level] = __towctrans (L'0' + n, map);
 		      wc_extended[to_level + 1] = '\0';
-		      wcdigits_extended[n] = wc_extended;
+		      digits_extended[n] = wc_extended;
 #else
 		      mbdigits[n]
 			= curctype->values[_NL_CTYPE_INDIGITS0_MB + n].string;
@@ -1509,14 +1530,18 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 		      size_t mbdigits_len = last_char - mbdigits[n];
 
 		      /*  Allocate memory for extended multibyte digit.  */
-		      char *mb_extended;
-		      mb_extended = (char *) alloca (mbdigits_len + mblen + 1);
+		      char *mb_extended = malloc (mbdigits_len + mblen + 1);
+		      if (mb_extended == NULL)
+			{
+			  done = EOF;
+			  goto digits_extended_fail;
+			}
 
 		      /*  And get the mbdigits + extra_digit string.  */
 		      *(char *) __mempcpy (__mempcpy (mb_extended, mbdigits[n],
 						      mbdigits_len),
 					   extra_mbdigit, mblen) = '\0';
-		      mbdigits_extended[n] = mb_extended;
+		      digits_extended[n] = mb_extended;
 #endif
 		    }
 		}
@@ -1526,7 +1551,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 		{
 		  /* In this round we get the pointer to the digit strings
 		     and also perform the first round of comparisons.  */
-		  for (n = 0; n < 10; ++n)
+		  for (n = 0; n < num_digits_len; ++n)
 		    {
 		      /* Get the string for the digits with value N.  */
 #ifdef COMPILE_WSCANF
@@ -1538,7 +1563,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 		      DIAG_IGNORE_NEEDS_COMMENT (4.7, "-Wmaybe-uninitialized");
 
 		      if (__glibc_unlikely (map != NULL))
-			wcdigits[n] = wcdigits_extended[n];
+			wcdigits[n] = digits_extended[n];
 		      else
 			wcdigits[n] = (const wchar_t *)
 			  _NL_CURRENT (LC_CTYPE, _NL_CTYPE_INDIGITS0_WC + n);
@@ -1559,7 +1584,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 		      int avail = width > 0 ? width : INT_MAX;
 
 		      if (__glibc_unlikely (map != NULL))
-			mbdigits[n] = mbdigits_extended[n];
+			mbdigits[n] = digits_extended[n];
 		      else
 			mbdigits[n]
 			  = curctype->values[_NL_CTYPE_INDIGITS0_MB + n].string;
@@ -1602,13 +1627,13 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 #endif
 		    }
 
-		  if (n == 10)
+		  if (n == num_digits_len)
 		    {
 		      /* Have not yet found the digit.  */
 		      for (level = from_level + 1; level <= to_level; ++level)
 			{
 			  /* Search all ten digits of this level.  */
-			  for (n = 0; n < 10; ++n)
+			  for (n = 0; n < num_digits_len; ++n)
 			    {
 #ifdef COMPILE_WSCANF
 			      if (c == (wint_t) *wcdigits[n])
@@ -1664,7 +1689,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 			}
 		    }
 
-		  if (n < 10)
+		  if (n < num_digits_len)
 		    c = L_('0') + n;
 		  else if (flags & GROUP)
 		    {
@@ -1693,7 +1718,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 			{
 			  __set_errno (ENOMEM);
 			  done = EOF;
-			  goto errout;
+			  break;
 			}
 
 		      if (*cmpp != '\0')
@@ -1727,6 +1752,13 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 
 		  c = inchar ();
 		}
+
+digits_extended_fail:
+	      for (n = 0; n < num_digits_len; n++)
+		free (digits_extended[n]);
+
+	      if (done == EOF)
+		goto errout;
 	    }
 	  else
 	    /* Read the number into workspace.  */
@@ -2739,7 +2771,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 #endif
 
 	      if (__glibc_unlikely (now == read_in))
-		/* We haven't succesfully read any character.  */
+		/* We haven't successfully read any character.  */
 		conv_error ();
 
 	      if (!(flags & SUPPRESS))
@@ -2937,7 +2969,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 #endif
 
 	      if (__glibc_unlikely (now == read_in))
-		/* We haven't succesfully read any character.  */
+		/* We haven't successfully read any character.  */
 		conv_error ();
 
 	      if (!(flags & SUPPRESS))

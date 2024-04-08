@@ -66,6 +66,7 @@ struct posix_spawn_args
   ptrdiff_t argc;
   char *const *envp;
   int xflags;
+  bool use_clone3;
   int err;
 };
 
@@ -104,12 +105,11 @@ __spawni_child (void *arguments)
   const posix_spawnattr_t *restrict attr = args->attr;
   const posix_spawn_file_actions_t *file_actions = args->fa;
 
-  /* The child must ensure that no signal handler are enabled because it shared
-     memory with parent, so the signal disposition must be either SIG_DFL or
-     SIG_IGN.  It does by iterating over all signals and although it could
-     possibly be more optimized (by tracking which signal potentially have a
-     signal handler), it might requires system specific solutions (since the
-     sigset_t data type can be very different on different architectures).  */
+  /* The child must ensure that no signal handler is enabled because it
+     shares memory with parent, so all signal dispositions must be either
+     SIG_DFL or SIG_IGN.  If clone3/CLONE_CLEAR_SIGHAND is used, there is
+     only the need to set the defined signals POSIX_SPAWN_SETSIGDEF to
+     SIG_DFL; otherwise, the code iterates over all signals.  */
   struct sigaction sa;
   memset (&sa, '\0', sizeof (sa));
 
@@ -122,14 +122,14 @@ __spawni_child (void *arguments)
 	{
 	  sa.sa_handler = SIG_DFL;
 	}
-      else if (__sigismember (&hset, sig))
+      else if (!args->use_clone3 && __sigismember (&hset, sig))
 	{
 	  if (is_internal_signal (sig))
 	    sa.sa_handler = SIG_IGN;
 	  else
 	    {
 	      __libc_sigaction (sig, 0, &sa);
-	      if (sa.sa_handler == SIG_IGN)
+	      if (sa.sa_handler == SIG_IGN || sa.sa_handler == SIG_DFL)
 		continue;
 	      sa.sa_handler = SIG_DFL;
 	    }
@@ -203,7 +203,7 @@ __spawni_child (void *arguments)
 	      {
 		/* POSIX states that if fildes was already an open file descriptor,
 		   it shall be closed before the new file is opened.  This avoid
-		   pontential issues when posix_spawn plus addopen action is called
+		   potential issues when posix_spawn plus addopen action is called
 		   with the process already at maximum number of file descriptor
 		   opened and also for multiple actions on single-open special
 		   paths (like /dev/watchdog).  */
@@ -325,7 +325,7 @@ __spawnix (pid_t * pid, const char *file,
   ptrdiff_t argc = 0;
   /* Linux allows at most max (0x7FFFFFFF, 1/4 stack size) arguments
      to be used in a execve call.  We limit to INT_MAX minus one due the
-     compatiblity code that may execute a shell script (maybe_script_execute)
+     compatibility code that may execute a shell script (maybe_script_execute)
      where it will construct another argument list with an additional
      argument.  */
   ptrdiff_t limit = INT_MAX - 1;
@@ -382,12 +382,25 @@ __spawnix (pid_t * pid, const char *file,
      for instance).  */
   struct clone_args clone_args =
     {
-      .flags = CLONE_VM | CLONE_VFORK,
+      /* Unsupported flags like CLONE_CLEAR_SIGHAND will be cleared up by
+	 __clone_internal_fallback.  */
+      .flags = CLONE_CLEAR_SIGHAND | CLONE_VM | CLONE_VFORK,
       .exit_signal = SIGCHLD,
       .stack = (uintptr_t) stack,
       .stack_size = stack_size,
     };
-  new_pid = __clone_internal (&clone_args, __spawni_child, &args);
+#ifdef HAVE_CLONE3_WRAPPER
+  args.use_clone3 = true;
+  new_pid = __clone3 (&clone_args, sizeof (clone_args), __spawni_child,
+		      &args);
+  /* clone3 was added in 5.3 and CLONE_CLEAR_SIGHAND in 5.5.  */
+  if (new_pid == -1 && (errno == ENOSYS || errno == EINVAL))
+#endif
+    {
+      args.use_clone3 = false;
+      new_pid = __clone_internal_fallback (&clone_args, __spawni_child,
+					   &args);
+    }
 
   /* It needs to collect the case where the auxiliary process was created
      but failed to execute the file (due either any preparation step or

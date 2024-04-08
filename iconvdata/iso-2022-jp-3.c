@@ -91,7 +91,7 @@ enum
 	      if (__glibc_likely (outbuf + 4 <= outend))		      \
 		{							      \
 		  /* Write out the last character.  */			      \
-		  put32u (outbuf, ch);					      \
+		  put32 (outbuf, ch);					      \
 		  outbuf += 4;						      \
 		  data->__statep->__count &= 7;				      \
 		  data->__statep->__count |= ASCII_set;			      \
@@ -156,7 +156,7 @@ enum
 
 
 /* Since we might have to reset input pointer we must be able to save
-   and retore the state.  */
+   and restore the state.  */
 #define SAVE_RESET_STATE(Save) \
   if (Save)								      \
     saved_state = *statep;						      \

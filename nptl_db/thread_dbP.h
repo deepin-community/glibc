@@ -32,7 +32,7 @@
 #include <gnu/lib-names.h>
 #include <libc-diag.h>
 
-/* Indeces for the symbol names.  */
+/* Indices for the symbol names.  */
 enum
   {
 # define DB_STRUCT(type)		SYM_SIZEOF_##type,
@@ -61,7 +61,9 @@ enum
 
 /* Comment out the following for less verbose output.  */
 #ifndef NDEBUG
-# define LOG(c) if (__td_debug) write (2, c "\n", strlen (c "\n"))
+# define LOG(c) \
+  if (__td_debug) \
+    assert (write (2, c "\n", strlen (c "\n")) == strlen (c "\n"))
 extern int __td_debug attribute_hidden;
 #else
 # define LOG(c)

@@ -1,6 +1,8 @@
 We could perhaps rather make _hurd_check_ids' __USEPORT call use _hurd_ports_use
 to nicely fail here.
 
+To be dropped in 2.39
+
 Index: glibc-2.36/elf/dl-tunables.c
 ===================================================================
 --- glibc-2.36.orig/elf/dl-tunables.c

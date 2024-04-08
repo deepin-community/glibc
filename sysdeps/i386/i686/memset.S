@@ -27,12 +27,13 @@
 #define LEN	CHR+4
 
         .text
-#if defined SHARED && IS_IN (libc)
+#if defined PIC && IS_IN (libc)
 ENTRY_CHK (__memset_chk)
 	movl	12(%esp), %eax
 	cmpl	%eax, 16(%esp)
 	jb	HIDDEN_JUMPTARGET (__chk_fail)
 END_CHK (__memset_chk)
+libc_hidden_builtin_def (__memset_chk)
 #endif
 ENTRY (memset)
 

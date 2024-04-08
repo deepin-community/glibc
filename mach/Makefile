@@ -25,7 +25,7 @@ headers = mach_init.h mach.h mach_error.h mach-shortcuts.h mach/mach_traps.h \
 lock = spin-solid spin-lock mutex-init mutex-solid
 lock-headers = lock-intern.h spin-lock.h
 routines = $(mach-syscalls) $(mach-shortcuts) \
-	   mach_init mig_strncpy mig_memcpy msg \
+	   mach_init mig_strncpy mig_strlen mig_memcpy msg \
 	   mig-alloc mig-dealloc mig-reply \
 	   msg-destroy msgserver \
 	   mach_error errstring error_compat errsystems \
@@ -62,6 +62,7 @@ CFLAGS-RPC_vm_protect.o = $(no-stack-protector)
 CFLAGS-RPC_i386_set_gdt.o = $(no-stack-protector)
 CFLAGS-RPC_i386_set_ldt.o = $(no-stack-protector)
 CFLAGS-RPC_task_get_special_port.o = $(no-stack-protector)
+CFLAGS-RPC_thread_set_state.o = $(no-stack-protector)
 
 # Translate GNU names for CPUs into the names used in Mach header files.
 mach-machine = $(patsubst powerpc,ppc,$(base-machine))
@@ -123,7 +124,8 @@ user-interfaces := $(filter-out $(mach-interface-list:%=mach/%) \
 endif
 
 # For some reason, the calls in this file are `protected' by an ifdef.
-MIGFLAGS-mach/mach4=-DMACH_PCSAMPLE
+MIGFLAGS-mach/mach4 = -DMACH_PCSAMPLE
+MIGFLAGS-device/device = -DDEVICE_ENABLE_DEVICE_OPEN_NEW
 
 # Make the MiG stubs for $(mach-shortcuts) be CALL_rpc.
 migdefines += $(foreach call,$(mach-shortcuts),-D$(call)=$(call)_rpc)

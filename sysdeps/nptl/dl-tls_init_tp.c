@@ -102,9 +102,7 @@ __tls_init_tp (void)
 
   {
     bool do_rseq = true;
-#if HAVE_TUNABLES
     do_rseq = TUNABLE_GET (rseq, int, NULL);
-#endif
     if (rseq_register_current_thread (pd, do_rseq))
       {
         /* We need a writable view of the variables.  They are in
@@ -117,7 +115,7 @@ __tls_init_tp (void)
     /* This should be a compile-time constant, but the current
        infrastructure makes it difficult to determine its value.  Not
        all targets support __thread_pointer, so set __rseq_offset only
-       if thre rseq registration may have happened because RSEQ_SIG is
+       if the rseq registration may have happened because RSEQ_SIG is
        defined.  */
     extern ptrdiff_t offset __asm__ ("__rseq_offset");
     offset = (char *) &pd->rseq_area - (char *) __thread_pointer ();

@@ -24,7 +24,7 @@
 #include <sysdep-cancel.h>
 
 /* Read N bytes into BUF through socket FD.
-   If ADDR is not NULL, fill in *ADDR_LEN bytes of it with tha address of
+   If ADDR is not NULL, fill in *ADDR_LEN bytes of it with the address of
    the sender, and store the actual size of the address in *ADDR_LEN.
    Returns the number of bytes read or -1 for errors.  */
 ssize_t
@@ -94,7 +94,8 @@ __recvfrom (int fd, void *buf, size_t n, int flags, __SOCKADDR_ARG addrarg,
   else if (addr_len != NULL)
     *addr_len = 0;
 
-  __mach_port_deallocate (__mach_task_self (), addrport);
+  if (MACH_PORT_VALID (addrport))
+    __mach_port_deallocate (__mach_task_self (), addrport);
 
   /* Toss control data; we don't care.  */
   __vm_deallocate (__mach_task_self (), (vm_address_t) cdata, clen);

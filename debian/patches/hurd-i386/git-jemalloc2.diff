@@ -63,9 +63,9 @@ Index: glibc-2.37/sysdeps/mach/hurd/htl/pt-sysdep.c
 ===================================================================
 --- glibc-2.37.orig/sysdeps/mach/hurd/htl/pt-sysdep.c
 +++ glibc-2.37/sysdeps/mach/hurd/htl/pt-sysdep.c
-@@ -28,6 +28,10 @@
- 
- __thread struct __pthread *___pthread_self;
+@@ -26,6 +26,10 @@
+ #include <pt-internal.h>
+ #include <pthreadP.h>
  
 +/* Initial thread structure used temporarily during initialization, so various
 + * functions can already work at least basically.  */

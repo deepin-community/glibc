@@ -1,4 +1,4 @@
-/* Internal defenitions for pthreads library.
+/* Internal definitions for pthreads library.
    Copyright (C) 2000-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -165,6 +165,7 @@ __pthread_dequeue (struct __pthread *thread)
 
 /* The total number of threads currently active.  */
 extern unsigned int __pthread_total;
+libc_hidden_proto (__pthread_total)
 
 /* Concurrency hint.  */
 extern int __pthread_concurrency;
@@ -302,7 +303,7 @@ extern void __pthread_destroy_specific (struct __pthread *thread);
    structures.  */
 extern error_t __pthread_sigstate_init (struct __pthread *thread);
 
-/* Destroy the signal state data structures associcated with thread
+/* Destroy the signal state data structures associated with thread
    *THREAD.  */
 extern void __pthread_sigstate_destroy (struct __pthread *thread);
 

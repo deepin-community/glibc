@@ -110,7 +110,7 @@ __md5_crypt_r (const char *key, const char *salt, char *buffer, int buflen)
   salt_len = MIN (strcspn (salt, "$"), 8);
   key_len = strlen (key);
 
-  if ((key - (char *) 0) % __alignof__ (md5_uint32) != 0)
+  if (((uintptr_t) key) % __alignof__ (md5_uint32) != 0)
     {
       char *tmp;
 
@@ -125,19 +125,19 @@ __md5_crypt_r (const char *key, const char *salt, char *buffer, int buflen)
 
       key = copied_key =
 	memcpy (tmp + __alignof__ (md5_uint32)
-		- (tmp - (char *) 0) % __alignof__ (md5_uint32),
+		- ((uintptr_t) tmp) % __alignof__ (md5_uint32),
 		key, key_len);
-      assert ((key - (char *) 0) % __alignof__ (md5_uint32) == 0);
+      assert (((uintptr_t) key) % __alignof__ (md5_uint32) == 0);
     }
 
-  if ((salt - (char *) 0) % __alignof__ (md5_uint32) != 0)
+  if (((uintptr_t) salt) % __alignof__ (md5_uint32) != 0)
     {
       char *tmp = (char *) alloca (salt_len + __alignof__ (md5_uint32));
       salt = copied_salt =
 	memcpy (tmp + __alignof__ (md5_uint32)
-		- (tmp - (char *) 0) % __alignof__ (md5_uint32),
+		- ((uintptr_t) tmp) % __alignof__ (md5_uint32),
 		salt, salt_len);
-      assert ((salt - (char *) 0) % __alignof__ (md5_uint32) == 0);
+      assert (((uintptr_t) salt) % __alignof__ (md5_uint32) == 0);
     }
 
 #ifdef USE_NSS
@@ -299,10 +299,7 @@ __md5_crypt_r (const char *key, const char *salt, char *buffer, int buflen)
   return buffer;
 }
 
-#ifndef _LIBC
-# define libc_freeres_ptr(decl) decl
-#endif
-libc_freeres_ptr (static char *buffer);
+static char *buffer;
 
 char *
 __md5_crypt (const char *key, const char *salt)
@@ -326,11 +323,9 @@ __md5_crypt (const char *key, const char *salt)
   return __md5_crypt_r (key, salt, buffer, buflen);
 }
 
-#ifndef _LIBC
 static void
 __attribute__ ((__destructor__))
 free_mem (void)
 {
   free (buffer);
 }
-#endif

@@ -1,0 +1,292 @@
+commit 6b32696116e0097f5dd578ec087bcbef483f2a07
+Author: Aurelien Jarno <aurelien@aurel32.net>
+Date:   Sat Dec 30 11:00:10 2023 +0100
+
+    RISC-V: Add support for dl_runtime_profile (BZ #31151)
+    
+    Code is mostly inspired from the LoongArch one, which has a similar ABI,
+    with minor changes to support riscv32 and register differences.
+    
+    This fixes elf/tst-sprof-basic. This also fixes elf/tst-audit1,
+    elf/tst-audit2 and elf/tst-audit8 with recent binutils snapshots when
+    --enable-bind-now is used.
+    
+    Resolves: BZ #31151
+    
+    Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
+
+diff --git a/sysdeps/riscv/Makefile b/sysdeps/riscv/Makefile
+index 8fb10b164f..c08753ae8a 100644
+--- a/sysdeps/riscv/Makefile
++++ b/sysdeps/riscv/Makefile
+@@ -2,6 +2,10 @@ ifeq ($(subdir),misc)
+ sysdep_headers += sys/asm.h
+ endif
+ 
++ifeq ($(subdir),elf)
++gen-as-const-headers += dl-link.sym
++endif
++
+ # RISC-V's assembler also needs to know about PIC as it changes the definition
+ # of some assembler macros.
+ ASFLAGS-.os += $(pic-ccflag)
+diff --git a/sysdeps/riscv/dl-link.sym b/sysdeps/riscv/dl-link.sym
+new file mode 100644
+index 0000000000..b430a064c9
+--- /dev/null
++++ b/sysdeps/riscv/dl-link.sym
+@@ -0,0 +1,18 @@
++#include <stddef.h>
++#include <sysdep.h>
++#include <link.h>
++
++DL_SIZEOF_RG            sizeof(struct La_riscv_regs)
++DL_SIZEOF_RV            sizeof(struct La_riscv_retval)
++
++DL_OFFSET_RG_A0         offsetof(struct La_riscv_regs, lr_reg)
++#ifndef __riscv_float_abi_soft
++DL_OFFSET_RG_FA0        offsetof(struct La_riscv_regs, lr_fpreg)
++#endif
++DL_OFFSET_RG_RA         offsetof(struct La_riscv_regs, lr_ra)
++DL_OFFSET_RG_SP         offsetof(struct La_riscv_regs, lr_sp)
++
++DL_OFFSET_RV_A0         offsetof(struct La_riscv_retval, lrv_a0)
++#ifndef __riscv_float_abi_soft
++DL_OFFSET_RV_FA0        offsetof(struct La_riscv_retval, lrv_fa0)
++#endif
+diff --git a/sysdeps/riscv/dl-machine.h b/sysdeps/riscv/dl-machine.h
+index c0c9bd93ad..48aee81aa9 100644
+--- a/sysdeps/riscv/dl-machine.h
++++ b/sysdeps/riscv/dl-machine.h
+@@ -313,13 +313,38 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
+   if (l->l_info[DT_JMPREL])
+     {
+       extern void _dl_runtime_resolve (void) __attribute__ ((visibility ("hidden")));
++      extern void _dl_runtime_profile (void) __attribute__ ((visibility ("hidden")));
+       ElfW(Addr) *gotplt = (ElfW(Addr) *) D_PTR (l, l_info[DT_PLTGOT]);
+       /* If a library is prelinked but we have to relocate anyway,
+ 	 we have to be able to undo the prelinking of .got.plt.
+ 	 The prelinker saved the address of .plt for us here.  */
+       if (gotplt[1])
+ 	l->l_mach.plt = gotplt[1] + l->l_addr;
+-      gotplt[0] = (ElfW(Addr)) &_dl_runtime_resolve;
++      /* The gotplt[0] entry contains the address of a function which gets
++	 called to get the address of a so far unresolved function and
++	 jump to it.  The profiling extension of the dynamic linker allows
++	 to intercept the calls to collect information.  In this case we
++	 don't store the address in the GOT so that all future calls also
++	 end in this function.  */
++#ifdef SHARED
++      if (profile != 0)
++	{
++	  gotplt[0] = (ElfW(Addr)) &_dl_runtime_profile;
++
++	  if (GLRO(dl_profile) != NULL
++	      && _dl_name_match_p (GLRO(dl_profile), l))
++	    /* Say that we really want profiling and the timers are
++	       started.  */
++	    GL(dl_profile_map) = l;
++	}
++      else
++#endif
++	{
++	  /* This function will get called to fix up the GOT entry
++	     indicated by the offset on the stack, and then jump to
++	     the resolved address.  */
++	  gotplt[0] = (ElfW(Addr)) &_dl_runtime_resolve;
++	}
+       gotplt[1] = (ElfW(Addr)) l;
+     }
+ 
+diff --git a/sysdeps/riscv/dl-trampoline.S b/sysdeps/riscv/dl-trampoline.S
+index dec304180b..ecaee0540e 100644
+--- a/sysdeps/riscv/dl-trampoline.S
++++ b/sysdeps/riscv/dl-trampoline.S
+@@ -20,6 +20,8 @@
+ #include <sysdep.h>
+ #include <sys/asm.h>
+ 
++#include "dl-link.h"
++
+ /* Assembler veneer called from the PLT header code for lazy loading.
+    The PLT header passes its own args in t0-t2.  */
+ 
+@@ -88,3 +90,178 @@ ENTRY (_dl_runtime_resolve)
+   # Invoke the callee.
+   jr t1
+ END (_dl_runtime_resolve)
++
++#if !defined PROF && defined SHARED
++ENTRY (_dl_runtime_profile)
++  /* RISC-V we get called with:
++  t0          linkr_map pointer
++  t1          the scaled offset stored in t0, which can be used
++              to calculate the offset of the current symbol in .rela.plt
++  t2          %hi(%pcrel(.got.plt)) stored in t2, no use in this function
++  t3          dl resolver entry point, no use in this function
++
++  Stack frame layout with hard float:
++     RV64      RV32
++  [sp, #96] [sp, #48]  La_riscv_regs
++  [sp, #48] [sp, #24]  La_riscv_retval
++  [sp, #40] [sp, #20]  frame size return from pltenter
++  [sp, #32] [sp, #16]  dl_profile_call saved a1
++  [sp, #24] [sp, #12]  dl_profile_call saved a0
++  [sp, #16] [sp,  #8]  T1
++  [sp,  #0] [sp,  #0]  ra, fp   <- fp
++   */
++
++# define OFFSET_T1              2*SZREG
++# define OFFSET_SAVED_CALL_A0   OFFSET_T1 + SZREG
++# define OFFSET_SAVED_CALL_A1   OFFSET_SAVED_CALL_A0 + SZREG
++# define OFFSET_FS              OFFSET_SAVED_CALL_A1 + SZREG
++# define OFFSET_RV              OFFSET_FS + SZREG
++# define OFFSET_RG              OFFSET_RV + DL_SIZEOF_RV
++
++# define SF_SIZE                (-(-(OFFSET_RG + DL_SIZEOF_RG) & ALMASK))
++
++  # Save arguments to stack.
++  add sp, sp, -SF_SIZE
++  REG_S ra, 0(sp)
++  REG_S fp, SZREG(sp)
++
++  mv fp, sp
++
++  REG_S a0, OFFSET_RG + DL_OFFSET_RG_A0 + 0*SZREG(fp)
++  REG_S a1, OFFSET_RG + DL_OFFSET_RG_A0 + 1*SZREG(fp)
++  REG_S a2, OFFSET_RG + DL_OFFSET_RG_A0 + 2*SZREG(fp)
++  REG_S a3, OFFSET_RG + DL_OFFSET_RG_A0 + 3*SZREG(fp)
++  REG_S a4, OFFSET_RG + DL_OFFSET_RG_A0 + 4*SZREG(fp)
++  REG_S a5, OFFSET_RG + DL_OFFSET_RG_A0 + 5*SZREG(fp)
++  REG_S a6, OFFSET_RG + DL_OFFSET_RG_A0 + 6*SZREG(fp)
++  REG_S a7, OFFSET_RG + DL_OFFSET_RG_A0 + 7*SZREG(fp)
++
++#ifndef __riscv_float_abi_soft
++  FREG_S fa0, OFFSET_RG + DL_OFFSET_RG_FA0 + 0*SZFREG(fp)
++  FREG_S fa1, OFFSET_RG + DL_OFFSET_RG_FA0 + 1*SZFREG(fp)
++  FREG_S fa2, OFFSET_RG + DL_OFFSET_RG_FA0 + 2*SZFREG(fp)
++  FREG_S fa3, OFFSET_RG + DL_OFFSET_RG_FA0 + 3*SZFREG(fp)
++  FREG_S fa4, OFFSET_RG + DL_OFFSET_RG_FA0 + 4*SZFREG(fp)
++  FREG_S fa5, OFFSET_RG + DL_OFFSET_RG_FA0 + 5*SZFREG(fp)
++  FREG_S fa6, OFFSET_RG + DL_OFFSET_RG_FA0 + 6*SZFREG(fp)
++  FREG_S fa7, OFFSET_RG + DL_OFFSET_RG_FA0 + 7*SZFREG(fp)
++#endif
++
++  # Update .got.plt and obtain runtime address of callee.
++  slli a1, t1, 1
++  mv a0, t0
++  add a1, a1, t1          # link map
++  mv a2, ra               # return addr
++  addi a3, fp, OFFSET_RG  # La_riscv_regs pointer
++  addi a4, fp, OFFSET_FS  # frame size return from pltenter
++
++  REG_S a0, OFFSET_SAVED_CALL_A0(fp)
++  REG_S a1, OFFSET_SAVED_CALL_A1(fp)
++
++  la t2, _dl_profile_fixup
++  jalr t2
++
++  REG_L t3, OFFSET_FS(fp)
++  bgez t3, 1f
++
++  # Save the return.
++  mv t4, a0
++
++  # Restore arguments from stack.
++  REG_L a0, OFFSET_RG + DL_OFFSET_RG_A0 + 0*SZREG(fp)
++  REG_L a1, OFFSET_RG + DL_OFFSET_RG_A0 + 1*SZREG(fp)
++  REG_L a2, OFFSET_RG + DL_OFFSET_RG_A0 + 2*SZREG(fp)
++  REG_L a3, OFFSET_RG + DL_OFFSET_RG_A0 + 3*SZREG(fp)
++  REG_L a4, OFFSET_RG + DL_OFFSET_RG_A0 + 4*SZREG(fp)
++  REG_L a5, OFFSET_RG + DL_OFFSET_RG_A0 + 5*SZREG(fp)
++  REG_L a6, OFFSET_RG + DL_OFFSET_RG_A0 + 6*SZREG(fp)
++  REG_L a7, OFFSET_RG + DL_OFFSET_RG_A0 + 7*SZREG(fp)
++
++#ifndef __riscv_float_abi_soft
++  FREG_L fa0, OFFSET_RG + DL_OFFSET_RG_FA0 + 0*SZFREG(fp)
++  FREG_L fa1, OFFSET_RG + DL_OFFSET_RG_FA0 + 1*SZFREG(fp)
++  FREG_L fa2, OFFSET_RG + DL_OFFSET_RG_FA0 + 2*SZFREG(fp)
++  FREG_L fa3, OFFSET_RG + DL_OFFSET_RG_FA0 + 3*SZFREG(fp)
++  FREG_L fa4, OFFSET_RG + DL_OFFSET_RG_FA0 + 4*SZFREG(fp)
++  FREG_L fa5, OFFSET_RG + DL_OFFSET_RG_FA0 + 5*SZFREG(fp)
++  FREG_L fa6, OFFSET_RG + DL_OFFSET_RG_FA0 + 6*SZFREG(fp)
++  FREG_L fa7, OFFSET_RG + DL_OFFSET_RG_FA0 + 7*SZFREG(fp)
++#endif
++
++  REG_L ra, 0(fp)
++  REG_L fp, SZREG(fp)
++
++  addi sp, sp, SF_SIZE
++  jr t4
++
++1:
++  # The new frame size is in t3.
++  sub sp, fp, t3
++  andi sp, sp, ALMASK
++
++  REG_S a0, OFFSET_T1(fp)
++
++  mv a0, sp
++  addi a1, fp, SF_SIZE
++  mv a2, t3
++  la t4, memcpy
++  jalr t4
++
++  REG_L t4, OFFSET_T1(fp)
++
++  # Call the function.
++  REG_L a0, OFFSET_RG + DL_OFFSET_RG_A0 + 0*SZREG(fp)
++  REG_L a1, OFFSET_RG + DL_OFFSET_RG_A0 + 1*SZREG(fp)
++  REG_L a2, OFFSET_RG + DL_OFFSET_RG_A0 + 2*SZREG(fp)
++  REG_L a3, OFFSET_RG + DL_OFFSET_RG_A0 + 3*SZREG(fp)
++  REG_L a4, OFFSET_RG + DL_OFFSET_RG_A0 + 4*SZREG(fp)
++  REG_L a5, OFFSET_RG + DL_OFFSET_RG_A0 + 5*SZREG(fp)
++  REG_L a6, OFFSET_RG + DL_OFFSET_RG_A0 + 6*SZREG(fp)
++  REG_L a7, OFFSET_RG + DL_OFFSET_RG_A0 + 7*SZREG(fp)
++
++#ifndef __riscv_float_abi_soft
++  FREG_L fa0, OFFSET_RG + DL_OFFSET_RG_FA0 + 0*SZFREG(fp)
++  FREG_L fa1, OFFSET_RG + DL_OFFSET_RG_FA0 + 1*SZFREG(fp)
++  FREG_L fa2, OFFSET_RG + DL_OFFSET_RG_FA0 + 2*SZFREG(fp)
++  FREG_L fa3, OFFSET_RG + DL_OFFSET_RG_FA0 + 3*SZFREG(fp)
++  FREG_L fa4, OFFSET_RG + DL_OFFSET_RG_FA0 + 4*SZFREG(fp)
++  FREG_L fa5, OFFSET_RG + DL_OFFSET_RG_FA0 + 5*SZFREG(fp)
++  FREG_L fa6, OFFSET_RG + DL_OFFSET_RG_FA0 + 6*SZFREG(fp)
++  FREG_L fa7, OFFSET_RG + DL_OFFSET_RG_FA0 + 7*SZFREG(fp)
++#endif
++  jalr t4
++
++  REG_S a0, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_A0(fp)
++  REG_S a1, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_A0 + SZREG(fp)
++
++#ifndef __riscv_float_abi_soft
++  FREG_S fa0, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_FA0(fp)
++  FREG_S fa1, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_FA0 + SZFREG(fp)
++#endif
++
++  # Setup call to pltexit.
++  REG_L a0, OFFSET_SAVED_CALL_A0(fp)
++  REG_L a1, OFFSET_SAVED_CALL_A0 + SZREG(fp)
++  addi a2, fp, OFFSET_RG
++  addi a3, fp, OFFSET_RV
++  la t4, _dl_audit_pltexit
++  jalr t4
++
++  REG_L a0, OFFSET_RV + DL_OFFSET_RV_A0(fp)
++  REG_L a1, OFFSET_RV + DL_OFFSET_RV_A0 + SZREG(fp)
++
++#ifndef __riscv_float_abi_soft
++  FREG_L fa0, OFFSET_RV + DL_OFFSET_RV_FA0(fp)
++  FREG_L fa1, OFFSET_RV + DL_OFFSET_RV_FA0 + SZFREG(fp)
++#endif
++
++  # RA from within La_riscv_reg.
++  REG_L ra, OFFSET_RG + DL_OFFSET_RG_RA(fp)
++  mv sp, fp
++  ADDI sp, sp, SF_SIZE
++  REG_S fp, SZREG(fp)
++
++  jr ra
++
++END (_dl_runtime_profile)
++#endif /* SHARED */

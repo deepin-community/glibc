@@ -299,7 +299,14 @@ __debug_memalign (size_t alignment, size_t bytes)
   return _debug_mid_memalign (alignment, bytes, RETURN_ADDRESS (0));
 }
 strong_alias (__debug_memalign, memalign)
-strong_alias (__debug_memalign, aligned_alloc)
+static void *
+__debug_aligned_alloc (size_t alignment, size_t bytes)
+{
+  if (!powerof2 (alignment) || alignment == 0)
+    return NULL;
+  return _debug_mid_memalign (alignment, bytes, RETURN_ADDRESS (0));
+}
+strong_alias (__debug_aligned_alloc, aligned_alloc)
 
 static void *
 __debug_pvalloc (size_t bytes)
@@ -581,7 +588,7 @@ malloc_set_state (void *msptr)
   __malloc_debug_disable (MALLOC_CHECK_HOOK);
 
   /* We do not need to perform locking here because malloc_set_state
-     must be called before the first call into the malloc subsytem (usually via
+     must be called before the first call into the malloc subsystem (usually via
      __malloc_initialize_hook).  pthread_create always calls calloc and thus
      must be called only afterwards, so there cannot be more than one thread
      when we reach this point.  Also handle initialization if either we ended

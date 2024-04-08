@@ -43,10 +43,14 @@ tests := mallocbug tst-malloc tst-valloc tst-calloc tst-obstack \
 	 tst-tcfree1 tst-tcfree2 tst-tcfree3 \
 	 tst-safe-linking \
 	 tst-mallocalign1 \
+	 tst-memalign-2 \
+	 tst-memalign-3 \
+	 tst-aligned-alloc
 
 tests-static := \
 	 tst-interpose-static-nothread \
-	 tst-interpose-static-thread
+	 tst-interpose-static-thread \
+	 tst-aligned-alloc-static
 
 # Test for the malloc_set_state symbol removed in glibc 2.25.
 ifeq ($(have-GLIBC_2.23)$(build-shared),yesyes)
@@ -61,9 +65,7 @@ tests-internal += \
 	 tst-dynarray-fail \
 	 tst-dynarray-at-fail \
 
-ifneq (no,$(have-tunables))
 tests += tst-malloc-usable-tunables tst-mxfast
-endif
 
 tests += $(tests-static)
 test-srcs = tst-mtrace
@@ -72,7 +74,10 @@ test-srcs = tst-mtrace
 # with MALLOC_CHECK_=3 because they expect a specific failure.
 tests-exclude-malloc-check = tst-malloc-check tst-malloc-usable \
 	tst-mxfast tst-safe-linking \
-	tst-compathooks-off tst-compathooks-on
+	tst-compathooks-off tst-compathooks-on tst-memalign-2 tst-memalign-3 \
+	tst-mallocfork2 \
+	tst-mallocfork3 \
+	tst-malloc-tcache-leak
 
 # Run all tests with MALLOC_CHECK_=3
 tests-malloc-check = $(filter-out $(tests-exclude-malloc-check) \
@@ -90,7 +95,10 @@ tests-exclude-hugetlb1 = \
 	tst-interpose-static-thread \
 	tst-malloc-usable \
 	tst-malloc-usable-tunables \
-	tst-mallocstate
+	tst-mallocstate \
+	tst-malloc-tcache-leak \
+	tst-mallocfork2 \
+	tst-mallocfork3
 # The tst-free-errno relies on the used malloc page size to mmap an
 # overlapping region.
 tests-exclude-hugetlb2 = \
@@ -117,7 +125,11 @@ tests-exclude-mcheck = tst-mallocstate \
 	tst-malloc-usable-tunables \
 	tst-malloc_info \
 	tst-compathooks-off tst-compathooks-on \
-	tst-mxfast
+	tst-memalign-2 \
+	tst-memalign-3 \
+	tst-mxfast \
+	tst-mallocfork2 \
+	tst-mallocfork3
 
 tests-mcheck = $(filter-out $(tests-exclude-mcheck) $(tests-static), $(tests))
 endif
@@ -178,14 +190,10 @@ $(objpfx)tst-malloc-fork-deadlock-malloc-check: $(shared-thread-library)
 $(objpfx)tst-malloc-stats-cancellation-malloc-check: $(shared-thread-library)
 $(objpfx)tst-malloc-thread-exit-malloc-hugetlb1: $(shared-thread-library)
 $(objpfx)tst-malloc-thread-fail-malloc-hugetlb1: $(shared-thread-library)
-$(objpfx)tst-mallocfork2-malloc-hugetlb1: $(shared-thread-library)
-$(objpfx)tst-mallocfork3-malloc-hugetlb1: $(shared-thread-library)
 $(objpfx)tst-malloc-fork-deadlock-malloc-hugetlb1: $(shared-thread-library)
 $(objpfx)tst-malloc-stats-cancellation-malloc-hugetlb1: $(shared-thread-library)
 $(objpfx)tst-malloc-thread-exit-malloc-hugetlb2: $(shared-thread-library)
 $(objpfx)tst-malloc-thread-fail-malloc-hugetlb2: $(shared-thread-library)
-$(objpfx)tst-mallocfork2-malloc-hugetlb2: $(shared-thread-library)
-$(objpfx)tst-mallocfork3-malloc-hugetlb2: $(shared-thread-library)
 $(objpfx)tst-malloc-fork-deadlock-malloc-hugetlb2: $(shared-thread-library)
 $(objpfx)tst-malloc-stats-cancellation-malloc-hugetlb2: $(shared-thread-library)
 
@@ -286,11 +294,7 @@ tst-malloc-usable-tunables-ENV = GLIBC_TUNABLES=glibc.malloc.check=3 \
 tst-mxfast-ENV = GLIBC_TUNABLES=glibc.malloc.tcache_count=0:glibc.malloc.mxfast=0
 
 CPPFLAGS-malloc-debug.c += -DUSE_TCACHE=0
-ifeq ($(experimental-malloc),yes)
 CPPFLAGS-malloc.c += -DUSE_TCACHE=1
-else
-CPPFLAGS-malloc.c += -DUSE_TCACHE=0
-endif
 # Uncomment this for test releases.  For public releases it is too expensive.
 #CPPFLAGS-malloc.o += -DMALLOC_DEBUG=1
 
@@ -344,16 +348,14 @@ $(objpfx)tst-dynarray-fail-mem.out: $(objpfx)tst-dynarray-fail.out
 $(objpfx)tst-malloc-tcache-leak: $(shared-thread-library)
 $(objpfx)tst-malloc_info: $(shared-thread-library)
 $(objpfx)tst-mallocfork2: $(shared-thread-library)
-$(objpfx)tst-malloc-tcache-leak-mcheck: $(shared-thread-library)
 $(objpfx)tst-malloc_info-mcheck: $(shared-thread-library)
-$(objpfx)tst-mallocfork2-mcheck: $(shared-thread-library)
-$(objpfx)tst-malloc-tcache-leak-malloc-check: $(shared-thread-library)
 $(objpfx)tst-malloc_info-malloc-check: $(shared-thread-library)
 $(objpfx)tst-mallocfork2-malloc-check: $(shared-thread-library)
-$(objpfx)tst-malloc-tcache-leak-malloc-hugetlb1: $(shared-thread-library)
-$(objpfx)tst-malloc-tcache-leak-malloc-hugetlb2: $(shared-thread-library)
 $(objpfx)tst-malloc_info-malloc-hugetlb1: $(shared-thread-library)
 $(objpfx)tst-malloc_info-malloc-hugetlb2: $(shared-thread-library)
+$(objpfx)tst-memalign-3: $(shared-thread-library)
+$(objpfx)tst-memalign-3-malloc-hugetlb1: $(shared-thread-library)
+$(objpfx)tst-memalign-3-malloc-hugetlb2: $(shared-thread-library)
 
 tst-compathooks-on-ENV = LD_PRELOAD=$(objpfx)libc_malloc_debug.so
 tst-compathooks-on-mcheck-ENV = LD_PRELOAD=$(objpfx)libc_malloc_debug.so

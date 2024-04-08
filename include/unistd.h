@@ -5,6 +5,7 @@
 
 #  include <stdbool.h>
 #  include <kernel-features.h>
+#  include <bits/unistd-decl.h>
 
 libc_hidden_proto (_exit, __noreturn__)
 #  ifndef NO_RTLD_HIDDEN
@@ -30,6 +31,10 @@ libc_hidden_proto (tcgetpgrp)
 libc_hidden_proto (readlinkat)
 libc_hidden_proto (fsync)
 libc_hidden_proto (fdatasync)
+
+libc_hidden_proto (__read_chk)
+libc_hidden_proto (__getdomainname_chk)
+libc_hidden_proto (__getlogin_r_chk)
 
 /* Now define the internal interfaces.  */
 extern int __access (const char *__name, int __type);

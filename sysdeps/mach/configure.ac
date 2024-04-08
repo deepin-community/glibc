@@ -63,8 +63,7 @@ mach_interface_list=
 for ifc in mach mach4 gnumach \
 	   clock clock_priv host_priv host_security ledger lock_set \
 	   processor processor_set task task_notify thread_act vm_map \
-	   memory_object memory_object_default default_pager \
-	   i386/mach_i386 \
+	   memory_object memory_object_default i386/mach_i386 x86_64/mach_i386 \
 	   ; do
   AC_CHECK_HEADER(mach/${ifc}.defs, [dnl
   mach_interface_list="$mach_interface_list $ifc"],, -)
@@ -89,7 +88,7 @@ AC_CHECK_HEADER(machine/ndr_def.h, [dnl
 
 AC_CACHE_CHECK(for i386_io_perm_modify in mach_i386.defs,
 	       libc_cv_mach_i386_ioports, [dnl
-AC_EGREP_HEADER(i386_io_perm_modify, mach/i386/mach_i386.defs,
+AC_EGREP_HEADER(i386_io_perm_modify, mach/machine/mach_i386.defs,
 		libc_cv_mach_i386_ioports=yes,
 		libc_cv_mach_i386_ioports=no)])
 if test $libc_cv_mach_i386_ioports = yes; then
@@ -98,37 +97,11 @@ fi
 
 AC_CACHE_CHECK(for i386_set_gdt in mach_i386.defs,
 	       libc_cv_mach_i386_gdt, [dnl
-AC_EGREP_HEADER(i386_set_gdt, mach/i386/mach_i386.defs,
+AC_EGREP_HEADER(i386_set_gdt, mach/machine/mach_i386.defs,
 		libc_cv_mach_i386_gdt=yes,
 		libc_cv_mach_i386_gdt=no)])
 if test $libc_cv_mach_i386_gdt = yes; then
   AC_DEFINE([HAVE_I386_SET_GDT])
 fi
-
-dnl Swiped from hurd/aclocal.m4
-AC_DEFUN([hurd_MIG_RETCODE], [dnl
-# See if mig groks `retcode'.
-AC_CACHE_CHECK(whether $MIG supports the retcode keyword, hurd_cv_mig_retcode,
-[cat > conftest.defs <<\EOF
-#include <mach/std_types.defs>
-#include <mach/mach_types.defs>
-subsystem foobar 1000;
-type reply_port_t = polymorphic | MACH_MSG_TYPE_PORT_SEND_ONCE
-	ctype: mach_port_t;
-simpleroutine foobar_reply (
-	reply_port: reply_port_t;
-	err: kern_return_t, RetCode);
-EOF
-if AC_TRY_COMMAND([CC="${CC}" ${MIG-false} -n conftest.defs 1>&AS_MESSAGE_LOG_FD]); then
-  hurd_cv_mig_retcode=yes
-else
-  hurd_cv_mig_retcode=no
-fi
-rm -f conftest*])
-if test $hurd_cv_mig_retcode = yes; then
-  AC_DEFINE(HAVE_MIG_RETCODE)
-fi])
-
-hurd_MIG_RETCODE
 
 CPPFLAGS=$OLD_CPPFLAGS
