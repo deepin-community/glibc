@@ -93,11 +93,8 @@ _hurd_set_brk (vm_address_t addr)
   __mutex_unlock (&_hurd_rlimit_lock);
 
   if (addr - brk_start > rlimit)
-    {
-      /* Need to increase the resource limit.  */
-      errno = ENOMEM;
-      return -1;
-    }
+    /* Need to increase the resource limit.  */
+    return __hurd_fail (ENOMEM);
 
   if (pagend > _hurd_data_end)
     {
@@ -109,7 +106,7 @@ _hurd_set_brk (vm_address_t addr)
 	/* First finish allocation.  */
 	err = __vm_protect (__mach_task_self (), pagebrk,
 			    alloc_start - pagebrk, 0,
-			    VM_PROT_READ|VM_PROT_WRITE|VM_PROT_EXECUTE);
+			    VM_PROT_READ|VM_PROT_WRITE);
       if (! err)
 	_hurd_brk = alloc_start;
 
@@ -123,7 +120,7 @@ _hurd_set_brk (vm_address_t addr)
   else
     /* Make the memory accessible.  */
     err = __vm_protect (__mach_task_self (), pagebrk, pagend - pagebrk,
-			0, VM_PROT_READ|VM_PROT_WRITE|VM_PROT_EXECUTE);
+			0, VM_PROT_READ|VM_PROT_WRITE);
 
   if (err)
     return __hurd_fail (err);

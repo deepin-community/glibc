@@ -23,19 +23,25 @@
 #include <shlib-compat.h>
 #include <shm-directory.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
 /* Open shared memory object.  */
 int
 __shm_open (const char *name, int oflag, mode_t mode)
 {
   struct shmdir_name dirname;
-  if (__shm_get_name (&dirname, name, false) != 0)
+  int ret =__shm_get_name (&dirname, name, false);
+  if (ret != 0)
     {
-      __set_errno (EINVAL);
+      __set_errno (ret);
       return -1;
     }
 
   oflag |= O_NOFOLLOW | O_CLOEXEC;
+#if defined (SHM_ANON) && defined (O_TMPFILE)
+  if (name == SHM_ANON)
+    oflag |= O_TMPFILE;
+#endif
 
   int fd = __open64_nocancel (dirname.name, oflag, mode);
   if (fd == -1 && __glibc_unlikely (errno == EISDIR))

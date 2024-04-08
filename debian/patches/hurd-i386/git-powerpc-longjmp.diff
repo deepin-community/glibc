@@ -1,0 +1,28 @@
+commit 41d8c3bc33bcae1ebb8077b0442caef4917f763a
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Fri Aug 4 10:01:11 2023 +0200
+
+    powerpc longjmp: Fix build after chk hidden builtin fix
+    
+    04bf7d2d8a79 ("chk: Add and fix hidden builtin definitions for *_chk")
+    added an #undef for longjmp and siglongjmp to compensate for the
+    definition in include/setjmp.h, but missed doing so for the powerpc
+    version too.
+    
+    Fixes: 04bf7d2d8a79 ("chk: Add and fix hidden builtin definitions for
+    *_chk")
+
+diff --git a/sysdeps/powerpc/longjmp.c b/sysdeps/powerpc/longjmp.c
+index 94addccf52..438a541b96 100644
+--- a/sysdeps/powerpc/longjmp.c
++++ b/sysdeps/powerpc/longjmp.c
+@@ -22,6 +22,9 @@
+ #include <setjmp.h>
+ #include <signal.h>
+ 
++#undef longjmp
++#undef siglongjmp
++
+ extern void __vmx__longjmp (__jmp_buf __env, int __val)
+      __attribute__ ((noreturn));
+ extern void __vmx__libc_longjmp (sigjmp_buf env, int val)

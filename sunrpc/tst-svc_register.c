@@ -241,7 +241,7 @@ do_test (void)
                                (NULL, test_server_thread, &args));
               else
                 test_server_thread (&args);
-              /* We cannnot use _exit here because we want to test the
+              /* We cannot use _exit here because we want to test the
                  process cleanup.  */
               exit (0);
             }
@@ -276,9 +276,9 @@ do_test (void)
               else
                 /* This is arguably a bug: Regular process termination
                    does not unregister the service with rpcbind.  The
-                   unset rpcbind call happens from a __libc_subfreeres
-                   callback, and this only happens when running under
-                   memory debuggers such as valgrind.  */
+                   unset rpcbind call happens from a __libc_freeres,
+                   and this only happens when running under memory debuggers
+		   such as valgrind.  */
                 TEST_VERIFY (!state.unset_called);
             }
           else

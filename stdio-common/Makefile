@@ -22,7 +22,12 @@ subdir	:= stdio-common
 
 include ../Makeconfig
 
-headers	:= stdio_ext.h printf.h bits/printf-ldbl.h bits/stdio_lim.h
+headers := \
+  bits/printf-ldbl.h \
+  bits/stdio_lim.h \
+  printf.h \
+  stdio_ext.h \
+  # headers
 
 routines := \
   _itoa \
@@ -41,6 +46,12 @@ routines := \
   getw \
   grouping_iterator \
   iovfscanf \
+  isoc23_fscanf \
+  isoc23_scanf \
+  isoc23_sscanf \
+  isoc23_vfscanf \
+  isoc23_vscanf \
+  isoc23_vsscanf \
   isoc99_fscanf \
   isoc99_scanf \
   isoc99_sscanf \
@@ -106,6 +117,19 @@ routines := \
   wprintf_function_invoke \
   # routines
 
+# Exclude fortified routines from being built with _FORTIFY_SOURCE
+routines_no_fortify += \
+  asprintf \
+  dprintf \
+  fprintf \
+  printf \
+  snprintf \
+  sprintf \
+  vfprintf \
+  vfwprintf \
+  vprintf \
+  # routines_no_fortify
+
 aux := \
   errlist \
   errlist-data \
@@ -119,6 +143,13 @@ aux := \
 tests := \
   bug-vfprintf-nargs \
   bug1 \
+  bug3 \
+  bug4 \
+  bug5 \
+  bug6 \
+  bug7 \
+  bug8 \
+  bug9 \
   bug10 \
   bug11 \
   bug12 \
@@ -135,31 +166,14 @@ tests := \
   bug21 \
   bug22 \
   bug23 \
-  bug23-2 \
-  bug23-3 \
-  bug23-4 \
   bug24 \
   bug25 \
   bug26 \
-  bug3 \
-  bug4 \
-  bug5 \
-  bug6 \
-  bug7 \
-  bug8 \
-  bug9 \
+  bug27 \
+  bug28 \
+  bug29 \
   errnobug \
   scanf1 \
-  scanf10 \
-  scanf11 \
-  scanf12 \
-  scanf13 \
-  scanf14 \
-  scanf14a \
-  scanf15 \
-  scanf16 \
-  scanf16a \
-  scanf17 \
   scanf2 \
   scanf3 \
   scanf4 \
@@ -167,6 +181,16 @@ tests := \
   scanf7 \
   scanf8 \
   scanf9 \
+  scanf10 \
+  scanf11 \
+  scanf12 \
+  scanf13 \
+  scanf14 \
+  scanf15 \
+  scanf16 \
+  scanf17 \
+  scanf18 \
+  scanf19 \
   temptest \
   test-fseek \
   test-fwrite \
@@ -196,6 +220,7 @@ tests := \
   tst-gets \
   tst-grouping \
   tst-grouping2 \
+  tst-grouping3 \
   tst-long-dbl-fphex \
   tst-memstream-string \
   tst-obprintf \
@@ -207,13 +232,19 @@ tests := \
   tst-printf-bz25691 \
   tst-printf-fp-free \
   tst-printf-fp-leak \
+  tst-printf-intn \
   tst-printf-oct \
   tst-printf-round \
   tst-printfsz \
   tst-put-error \
   tst-renameat2 \
   tst-rndseek \
+  tst-scanf-binary-c11 \
+  tst-scanf-binary-c2x \
+  tst-scanf-binary-gnu11 \
+  tst-scanf-binary-gnu89 \
   tst-scanf-round \
+  tst-scanf-to_inpunct \
   tst-setvbuf1 \
   tst-sprintf \
   tst-sprintf-errno \
@@ -227,15 +258,19 @@ tests := \
   tst-unlockedio \
   tst-vfprintf-mbs-prec \
   tst-vfprintf-user-type \
+  tst-vfprintf-width-i18n \
   tst-vfprintf-width-prec \
   tst-vfprintf-width-prec-alloc \
-  tst-vfprintf-width-i18n \
   tst-wc-printf \
   tstdiomisc \
   tstgetln \
   tstscanf \
   xbug \
   # tests
+
+tests-container += \
+  tst-popen3
+  # tests-container
 
 generated += \
   errlist-data-aux-shared.S \
@@ -248,7 +283,11 @@ tests-internal = \
   tst-grouping_iterator \
   # tests-internal
 
-test-srcs = tst-unbputc tst-printf tst-printfsz-islongdouble
+test-srcs = \
+  tst-printf \
+  tst-printfsz-islongdouble \
+  tst-unbputc \
+  # test-srcs
 
 ifeq ($(run-built-tests),yes)
 tests-special += \
@@ -322,11 +361,12 @@ LOCALES := \
   de_DE.ISO-8859-1 \
   de_DE.UTF-8 \
   en_US.ISO-8859-1 \
+  fa_IR.UTF-8 \
   hi_IN.UTF-8 \
   ja_JP.EUC-JP \
   ps_AF.UTF-8 \
   tg_TJ.UTF-8 \
- # LOCALES
+  # LOCALES
 include ../gen-locales.mk
 
 $(objpfx)bug14.out: $(gen-locales)
@@ -340,6 +380,8 @@ $(objpfx)tst-sscanf.out: $(gen-locales)
 $(objpfx)tst-swprintf.out: $(gen-locales)
 $(objpfx)tst-vfprintf-mbs-prec.out: $(gen-locales)
 $(objpfx)tst-vfprintf-width-i18n.out: $(gen-locales)
+$(objpfx)tst-grouping3.out: $(gen-locales)
+$(objpfx)tst-scanf-to_inpunct.out: $(gen-locales)
 endif
 
 tst-printf-bz18872-ENV = MALLOC_TRACE=$(objpfx)tst-printf-bz18872.mtrace \
@@ -410,14 +452,18 @@ CFLAGS-isoc99_vfscanf.c += -fexceptions
 CFLAGS-isoc99_vscanf.c += -fexceptions
 CFLAGS-isoc99_fscanf.c += -fexceptions
 CFLAGS-isoc99_scanf.c += -fexceptions
+CFLAGS-isoc23_vfscanf.c += -fexceptions
+CFLAGS-isoc23_vscanf.c += -fexceptions
+CFLAGS-isoc23_fscanf.c += -fexceptions
+CFLAGS-isoc23_scanf.c += -fexceptions
 
 CFLAGS-dprintf.c += $(config-cflags-wno-ignored-attributes)
 
-# scanf14a.c and scanf16a.c test a deprecated extension which is no
+# scanf18.c and scanf19.c test a deprecated extension which is no
 # longer visible under most conformance levels; see the source files
 # for more detail.
-CFLAGS-scanf14a.c += -std=gnu89
-CFLAGS-scanf16a.c += -std=gnu89
+CFLAGS-scanf18.c += -std=gnu89
+CFLAGS-scanf19.c += -std=gnu89
 
 CFLAGS-bug3.c += -DOBJPFX=\"$(objpfx)\"
 CFLAGS-bug4.c += -DOBJPFX=\"$(objpfx)\"
@@ -431,9 +477,17 @@ CFLAGS-tst-gets.c += -Wno-deprecated-declarations
 
 # BZ #11319 was first fixed for regular vdprintf, then reopened because
 # the fortified version had the same bug.
-CFLAGS-tst-bz11319-fortify2.c += -D_FORTIFY_SOURCE=2
+CFLAGS-tst-bz11319-fortify2.c += $(no-fortify-source),-D_FORTIFY_SOURCE=2
 
 CFLAGS-tst-memstream-string.c += -fno-builtin-fprintf
+
+# Some versions of GCC supported for building glibc do not support -std=c2x, so
+# the test for that version uses -std=c11 and then _ISOC2X_SOURCE is defined in
+# the test as needed.
+CFLAGS-tst-scanf-binary-c11.c += -std=c11 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-scanf-binary-c2x.c += -std=c11 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-scanf-binary-gnu11.c += -std=gnu11 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-scanf-binary-gnu89.c += -std=gnu89 -DOBJPFX=\"$(objpfx)\"
 
 CPPFLAGS += $(libio-mtsafe)
 

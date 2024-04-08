@@ -357,9 +357,6 @@ struct rtld_global_ro _rtld_global_ro attribute_relro =
     ._dl_sysinfo = DL_SYSINFO_DEFAULT,
 #endif
     ._dl_debug_fd = STDERR_FILENO,
-#if !HAVE_TUNABLES
-    ._dl_hwcap_mask = HWCAP_IMPORTANT,
-#endif
     ._dl_lazy = 1,
     ._dl_fpu_control = _FPU_DEFAULT,
     ._dl_pagesize = EXEC_PAGESIZE,
@@ -457,7 +454,7 @@ _dl_start_final (void *arg, struct dl_start_final_info *info)
   ElfW(Addr) start_addr;
 
   /* Do not use an initializer for these members because it would
-     intefere with __rtld_static_init.  */
+     interfere with __rtld_static_init.  */
   GLRO (dl_find_object) = &_dl_find_object;
 
   /* If it hasn't happen yet record the startup time.  */
@@ -1024,7 +1021,7 @@ ERROR: audit interface '%s' requires version %d (maximum supported version %d); 
 	newp->fptr[cnt] = NULL;
       ++cnt;
 
-      cp = rawmemchr (cp, '\0') + 1;
+      cp = strchr (cp, '\0') + 1;
     }
   while (*cp != '\0');
   assert (cnt == naudit_ifaces);
@@ -1070,7 +1067,7 @@ load_audit_modules (struct link_map *main_map, struct audit_list *audit_list)
     }
 }
 
-/* Check if the executable is not actualy dynamically linked, and
+/* Check if the executable is not actually dynamically linked, and
    invoke it directly in that case.  */
 static void
 rtld_chain_load (struct link_map *main_map, char *argv0)
@@ -1170,7 +1167,7 @@ rtld_setup_main_map (struct link_map *main_map)
 	/* _dl_rtld_libname.next = NULL;	Already zero.  */
 	GL(dl_rtld_map).l_libname = &_dl_rtld_libname;
 
-	/* Ordinarilly, we would get additional names for the loader from
+	/* Ordinarily, we would get additional names for the loader from
 	   our DT_SONAME.  This can't happen if we were actually linked as
 	   a static executable (detect this case when we have no DYNAMIC).
 	   If so, assume the filename component of the interpreter path to
@@ -1483,7 +1480,6 @@ dl_main (const ElfW(Phdr) *phdr,
 	    _dl_argc -= 2;
 	    _dl_argv += 2;
 	  }
-#if HAVE_TUNABLES
 	else if (! strcmp (_dl_argv[1], "--list-tunables"))
 	  {
 	    state.mode = rtld_mode_list_tunables;
@@ -1491,7 +1487,6 @@ dl_main (const ElfW(Phdr) *phdr,
 	    --_dl_argc;
 	    ++_dl_argv;
 	  }
-#endif
 	else if (! strcmp (_dl_argv[1], "--list-diagnostics"))
 	  {
 	    state.mode = rtld_mode_list_diagnostics;
@@ -1519,13 +1514,11 @@ dl_main (const ElfW(Phdr) *phdr,
 	else
 	  break;
 
-#if HAVE_TUNABLES
       if (__glibc_unlikely (state.mode == rtld_mode_list_tunables))
 	{
 	  __tunables_print ();
 	  _exit (0);
 	}
-#endif
 
       if (state.mode == rtld_mode_list_diagnostics)
 	_dl_print_diagnostics (_environ);
@@ -2393,10 +2386,8 @@ dl_main (const ElfW(Phdr) *phdr,
      _dl_relocate_object might need to call `mprotect' for DT_TEXTREL.  */
   _dl_sysdep_start_cleanup ();
 
-#ifdef SHARED
   /* Auditing checkpoint: we have added all objects.  */
   _dl_audit_activity_nsid (LM_ID_BASE, LA_ACT_CONSISTENT);
-#endif
 
   /* Notify the debugger all new objects are now ready to go.  We must re-get
      the address since by now the variable might be in another object.  */
@@ -2624,15 +2615,6 @@ process_envvars (struct dl_main_state *state)
 	    _dl_show_auxv ();
 	  break;
 
-#if !HAVE_TUNABLES
-	case 10:
-	  /* Mask for the important hardware capabilities.  */
-	  if (!__libc_enable_secure
-	      && memcmp (envline, "HWCAP_MASK", 10) == 0)
-	    GLRO(dl_hwcap_mask) = _dl_strtoul (&envline[11], NULL);
-	  break;
-#endif
-
 	case 11:
 	  /* Path where the binary is found.  */
 	  if (!__libc_enable_secure
@@ -2690,18 +2672,12 @@ process_envvars (struct dl_main_state *state)
       do
 	{
 	  unsetenv (nextp);
-	  /* We could use rawmemchr but this need not be fast.  */
-	  nextp = (char *) (strchr) (nextp, '\0') + 1;
+	  nextp = strchr (nextp, '\0') + 1;
 	}
       while (*nextp != '\0');
 
       if (__access ("/etc/suid-debug", F_OK) != 0)
-	{
-#if !HAVE_TUNABLES
-	  unsetenv ("MALLOC_CHECK_");
-#endif
-	  GLRO(dl_debug_mask) = 0;
-	}
+	GLRO(dl_debug_mask) = 0;
 
       if (state->mode != rtld_mode_normal)
 	_exit (5);

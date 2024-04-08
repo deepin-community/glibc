@@ -535,6 +535,20 @@ do_test (void)
   strncpy (a.buf1 + (O + 6), "X", l0 + 4);
   CHK_FAIL_END
 
+  CHK_FAIL_START
+  strlcpy (a.buf1 + (O + 6), "X", 4);
+  CHK_FAIL_END
+
+  CHK_FAIL_START
+  strlcpy (a.buf1 + (O + 6), "X", l0 + 4);
+  CHK_FAIL_END
+
+  {
+    char *volatile buf2 = buf;
+    if (strlcpy (buf2, "a", sizeof (buf) + 1) != 1)
+      FAIL ();
+  }
+
 # if !defined __cplusplus || defined __va_arg_pack
   CHK_FAIL_START
   sprintf (a.buf1 + (O + 7), "%d", num1);
@@ -558,6 +572,23 @@ do_test (void)
   CHK_FAIL_START
   strncat (a.buf1, "ZYXWV", l0 + 3);
   CHK_FAIL_END
+
+  memset (a.buf1, 0, sizeof (a.buf1));
+  CHK_FAIL_START
+  strlcat (a.buf1 + (O + 6), "X", 4);
+  CHK_FAIL_END
+
+  memset (a.buf1, 0, sizeof (a.buf1));
+  CHK_FAIL_START
+  strlcat (a.buf1 + (O + 6), "X", l0 + 4);
+  CHK_FAIL_END
+
+  {
+    buf[0] = '\0';
+    char *volatile buf2 = buf;
+    if (strlcat (buf2, "a", sizeof (buf) + 1) != 1)
+      FAIL ();
+  }
 #endif
 
 
@@ -752,6 +783,18 @@ do_test (void)
   CHK_FAIL_END
 
   CHK_FAIL_START
+  wcslcpy (wbuf + 7, L"X", 4);
+  CHK_FAIL_END
+
+  CHK_FAIL_START
+  wcslcpy (wbuf + 7, L"X", l0 + 4);
+  CHK_FAIL_END
+
+  CHK_FAIL_START
+  wcslcpy (wbuf + 9, L"XABCDEFGH", 8);
+  CHK_FAIL_END
+
+  CHK_FAIL_START
   wcpncpy (wbuf + 9, L"XABCDEFGH", 8);
   CHK_FAIL_END
 
@@ -771,6 +814,11 @@ do_test (void)
   wmemcpy (wbuf, wstr1 + 3, 8);
   CHK_FAIL_START
   wcsncat (wbuf, L"ZYXWV", l0 + 3);
+  CHK_FAIL_END
+
+  wmemcpy (wbuf, wstr1 + 4, 7);
+  CHK_FAIL_START
+  wcslcat (wbuf, L"ZYXWV", l0 + 11);
   CHK_FAIL_END
 
   CHK_FAIL_START
@@ -1509,7 +1557,7 @@ do_test (void)
       CHK_FAIL_END
 #endif
 
-      /* Bug 29030 regresion check */
+      /* Bug 29030 regression check */
       cp = "HelloWorld";
       if (mbsrtowcs (NULL, &cp, (size_t)-1, &s) != 10)
         FAIL ();

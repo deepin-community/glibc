@@ -141,6 +141,8 @@ hidden_proto (__syscall_error)
 
 # define ARC_TRAP_INSN	"trap_s 0	\n\t"
 
+# define HAVE_CLONE3_WRAPPER	1
+
 # undef INTERNAL_SYSCALL_NCS
 # define INTERNAL_SYSCALL_NCS(number, nr_args, args...)	\
   ({								\
@@ -180,11 +182,11 @@ hidden_proto (__syscall_error)
   __ret = (long int) (arg1);					\
   LOAD_ARGS_0 (nm, arg1)
 
-/* Note that the use of _tmpX might look superflous, however it is needed
+/* Note that the use of _tmpX might look superfluous, however it is needed
    to ensure that register variables are not clobbered if arg happens to be
    a function call itself. e.g. sched_setaffinity() calling getpid() for arg2
    Also this specific order of recursive calling is important to segregate
-   the tmp args evaluation (function call case described above) and assigment
+   the tmp args evaluation (function call case described above) and assignment
    of register variables.  */
 
 # define LOAD_ARGS_2(nm, arg1, arg2)			\

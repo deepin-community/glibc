@@ -44,7 +44,7 @@
    long respectively.  I.e., even with a file which has 10 program
    header entries we only have to read 372B/624B respectively.  Add to
    this a bit of margin for program notes and reading 512B and 832B
-   for 32-bit and 64-bit files respecitvely is enough.  If this
+   for 32-bit and 64-bit files respectively is enough.  If this
    heuristic should really fail for some file the code in
    `_dl_map_object_from_fd' knows how to recover.  */
 struct filebuf
@@ -270,7 +270,7 @@ _dl_dst_count (const char *input)
    least equal to the value returned by DL_DST_REQUIRED.  Note that it
    is possible for a DT_NEEDED, DT_AUXILIARY, and DT_FILTER entries to
    have colons, but we treat those as literal colons here, not as path
-   list delimeters.  */
+   list delimiters.  */
 char *
 _dl_dst_substitute (struct link_map *l, const char *input, char *result)
 {
@@ -951,8 +951,6 @@ _dl_map_object_from_fd (const char *name, const char *origname, int fd,
   /* Initialize to keep the compiler happy.  */
   const char *errstring = NULL;
   int errval = 0;
-  struct r_debug *r = _dl_debug_update (nsid);
-  bool make_consistent = false;
 
   /* Get file information.  To match the kernel behavior, do not fill
      in this information for the executable in case of an explicit
@@ -984,14 +982,6 @@ _dl_map_object_from_fd (const char *name, const char *origname, int fd,
 	    free ((void *) l->l_phdr);
 	  free (l);
 	  free (realname);
-
-	  if (make_consistent && r != NULL)
-	    {
-	      r->r_state = RT_CONSISTENT;
-	      _dl_debug_state ();
-	      LIBC_PROBE (map_failed, 2, nsid, r);
-	    }
-
 	  _dl_signal_error (errval, name, NULL, errstring);
 	}
 
@@ -1493,7 +1483,12 @@ cannot enable executable stack as shared object requires");
   /* Now that the object is fully initialized add it to the object list.  */
   _dl_add_to_namespace_list (l, nsid);
 
+  /* Skip auditing and debugger notification when called from 'sprof'.  */
+  if (mode & __RTLD_SPROF)
+    return l;
+
   /* Signal that we are going to add new objects.  */
+  struct r_debug *r = _dl_debug_update (nsid);
   if (r->r_state == RT_CONSISTENT)
     {
 #ifdef SHARED
@@ -1510,7 +1505,6 @@ cannot enable executable stack as shared object requires");
       r->r_state = RT_ADD;
       _dl_debug_state ();
       LIBC_PROBE (map_start, 2, nsid, r);
-      make_consistent = true;
     }
   else
     assert (r->r_state == RT_ADD);
@@ -1785,12 +1779,11 @@ open_verify (const char *name, int fd,
   return fd;
 }
 
-/* Try to open NAME in one of the directories in *DIRSP.
-   Return the fd, or -1.  If successful, fill in *REALNAME
-   with the malloc'd full directory name.  If it turns out
-   that none of the directories in *DIRSP exists, *DIRSP is
-   replaced with (void *) -1, and the old value is free()d
-   if MAY_FREE_DIRS is true.  */
+/* Try to open NAME in one of the directories in SPS.  Return the fd, or -1.
+   If successful, fill in *REALNAME with the malloc'd full directory name.  If
+   it turns out that none of the directories in SPS exists, SPS->DIRS is
+   replaced with (void *) -1, and the old value is free()d if SPS->MALLOCED is
+   true.  */
 
 static int
 open_path (const char *name, size_t namelen, int mode,
@@ -1865,7 +1858,7 @@ open_path (const char *name, size_t namelen, int mode,
 		     test whether there is any directory at all.  */
 		  struct __stat64_t64 st;
 
-		  buf[buflen - namelen - 1] = '\0';
+		  buf[buflen - namelen] = '\0';
 
 		  if (__stat64_time64 (buf, &st) != 0
 		      || ! S_ISDIR (st.st_mode))

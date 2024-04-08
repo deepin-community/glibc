@@ -82,10 +82,7 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
 	{
 	  err = __vm_allocate (__mach_task_self (), &data.addr, len, 1);
 	  if (err)
-	    {
-	      __set_errno (err);
-	      return -1;
-	    }
+	    return __hurd_fail (err);
 	  dealloc = 1;
 	}
       else
@@ -138,8 +135,8 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
 					     0, 0, 0, 0);
 		   if (! err)
 		     nports++;
-		   /* We pass the flags in the control data.  */
-		   fds[i] = descriptor->flags;
+		   /* We do not currently have flags to pass.  */
+		   fds[i] = 0;
 		   err;
 		 }));
 
@@ -195,8 +192,9 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
 						   message->msg_controllen,
 						   &amount);
 			      LIBC_CANCEL_RESET (cancel_oldtype);
-			      __mach_port_deallocate (__mach_task_self (),
-						      aport);
+			      if (MACH_PORT_VALID (aport))
+				__mach_port_deallocate (__mach_task_self (),
+							aport);
 			    }
 			  err;
 			}));

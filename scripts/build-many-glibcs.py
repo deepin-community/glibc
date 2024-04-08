@@ -431,7 +431,9 @@ class Context(object):
                                       {'variant': 'disable-multi-arch',
                                        'arch': 'sparcv9',
                                        'ccopts': '-m32 -mlong-double-128 -mcpu=v9',
-                                       'cfg': ['--disable-multi-arch']}])
+                                       'cfg': ['--disable-multi-arch']},
+                                      {'variant': 'enable-crypt',
+                                       'cfg': ['--enable-crypt']}])
         self.add_config(arch='x86_64',
                         os_name='linux-gnu',
                         gcc_cfg=['--with-multilib-list=m64,m32,mx32'],
@@ -445,9 +447,7 @@ class Context(object):
                                                '--disable-profile',
                                                '--disable-timezone-tools',
                                                '--disable-mathvec',
-                                               '--disable-tunables',
                                                '--disable-crypt',
-                                               '--disable-experimental-malloc',
                                                '--disable-build-nscd',
                                                '--disable-nscd']},
                                       {'variant': 'no-pie',
@@ -466,7 +466,14 @@ class Context(object):
                                       {'arch': 'i486',
                                        'ccopts': '-m32 -march=i486'},
                                       {'arch': 'i586',
-                                       'ccopts': '-m32 -march=i586'}])
+                                       'ccopts': '-m32 -march=i586'},
+                                      {'variant': 'enable-fortify-source',
+                                       'cfg': ['--enable-fortify-source']},
+                                      {'variant': 'enable-crypt',
+                                       'cfg': ['--enable-crypt']}])
+        self.add_config(arch='x86_64',
+                        os_name='gnu',
+                        gcc_cfg=['--disable-multilib'])
 
     def add_config(self, **args):
         """Add an individual build configuration."""
@@ -794,10 +801,10 @@ class Context(object):
     def checkout(self, versions):
         """Check out the desired component versions."""
         default_versions = {'binutils': 'vcs-2.40',
-                            'gcc': 'vcs-12',
+                            'gcc': 'vcs-13',
                             'glibc': 'vcs-mainline',
                             'gmp': '6.2.1',
-                            'linux': '6.1',
+                            'linux': '6.4',
                             'mpc': '1.3.1',
                             'mpfr': '4.2.0',
                             'mig': 'vcs-mainline',
@@ -1430,6 +1437,7 @@ class Config(object):
                              '--build=%s' % self.ctx.build_triplet,
                              '--host=%s' % self.triplet,
                              '--prefix=',
+                             '--disable-user32',
                              'CC=%s-gcc -nostdlib' % self.triplet])
         cmdlist.add_command('install', ['make', 'DESTDIR=%s' % self.sysroot,
                                         'install-data'])
@@ -1483,6 +1491,7 @@ class Config(object):
                          '--disable-threads',
                          '--disable-libatomic',
                          '--disable-decimal-float',
+                         '--disable-gcov',
                          '--disable-libffi',
                          '--disable-libgomp',
                          '--disable-libitm',

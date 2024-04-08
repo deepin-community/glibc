@@ -481,29 +481,11 @@ retry:
 				    MACHINE_THREAD_STATE_FLAVOR,
 				    (natural_t *) &state, &statecount))
 	LOSE;
-#ifdef STACK_GROWTH_UP
-      if (__hurd_sigthread_stack_base == 0)
-	{
-	  state.SP &= __hurd_threadvar_stack_mask;
-	  state.SP += __hurd_threadvar_stack_offset;
-	}
-      else
-	state.SP = __hurd_sigthread_stack_base;
-#else
-      if (__hurd_sigthread_stack_end == 0)
-	{
-	  /* The signal thread has a stack assigned by pthread.
-	     The threadvar_stack variables conveniently tell us how
-	     to get to the highest address in the stack, just below
-	     the per-thread variables.  */
-	  state.SP &= __hurd_threadvar_stack_mask;
-	  state.SP += __hurd_threadvar_stack_offset;
-	}
-      else
-	state.SP = __hurd_sigthread_stack_end;
-#endif
-      MACHINE_THREAD_STATE_SET_PC (&state,
-				   (unsigned long int) _hurd_msgport_receive);
+
+      MACHINE_THREAD_STATE_SETUP_CALL(&state,
+	  __hurd_sigthread_stack_base,
+	  __hurd_sigthread_stack_end - __hurd_sigthread_stack_base,
+	  (uintptr_t) _hurd_msgport_receive);
 
       /* Do special signal thread setup for TLS if needed.  */
       if (err = _hurd_tls_fork (sigthread, _hurd_msgport_thread, &state))

@@ -80,6 +80,7 @@
 #include <sys/uio.h>
 #include <sigsetops.h>
 #include <shlib-compat.h>
+#include <set-freeres.h>
 
 
 int __ivaliduser (FILE *, uint32_t, const char *, const char *);
@@ -98,7 +99,7 @@ int iruserok (uint32_t raddr, int superuser, const char *ruser,
 
 libc_hidden_proto (iruserok_af)
 
-libc_freeres_ptr(static char *ahostbuf);
+static char *ahostbuf;
 
 int
 rcmd_af (char **ahost, u_short rport, const char *locuser, const char *remuser,
@@ -560,7 +561,9 @@ ruserok2_sa (struct sockaddr *ra, size_t ralen, int superuser,
 	  reading an NFS mounted file system, can't read files that
 	  are protected read/write owner only.  */
        uid = __geteuid ();
-       seteuid (pwd->pw_uid);
+       if (seteuid (pwd->pw_uid) < 0)
+	 return -1;
+
        hostf = iruserfopen (pbuf, pwd->pw_uid);
 
        if (hostf != NULL)
@@ -569,7 +572,8 @@ ruserok2_sa (struct sockaddr *ra, size_t ralen, int superuser,
 	   fclose (hostf);
 	 }
 
-       seteuid (uid);
+       if (seteuid (uid) < 0)
+	 return -1;
        return isbad;
     }
   return -1;
@@ -817,3 +821,5 @@ __validuser2_sa (FILE *hostf, struct sockaddr *ra, size_t ralen,
 
     return retval;
 }
+
+weak_alias (ahostbuf, __libc_rcmd_freemem_ptr)

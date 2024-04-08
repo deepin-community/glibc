@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <stdint.h>
 #include <alloc_buffer.h>
+#include <set-freeres.h>
 
 #include <timezone/tzfile.h>
 
@@ -50,7 +51,7 @@ struct leap
   };
 
 static size_t num_transitions;
-libc_freeres_ptr (static __time64_t *transitions);
+static __time64_t *transitions;
 static unsigned char *type_idxs;
 static size_t num_types;
 static struct ttinfo *types;
@@ -129,7 +130,7 @@ __tzfile_read (const char *file, size_t extra, char **extrap)
     {
       /* We must not allow to read an arbitrary file in a setuid
 	 program.  So we fail for any file which is not in the
-	 directory hierachy starting at TZDIR
+	 directory hierarchy starting at TZDIR
 	 and which is not the system wide default TZDEFAULT.  */
       if (__libc_enable_secure
 	  && ((*file == '/'
@@ -407,7 +408,7 @@ __tzfile_read (const char *file, size_t extra, char **extrap)
 
   fclose (f);
 
-  /* First "register" all timezone names.  */
+  /* First "register" all time zone abbreviations.  */
   for (i = 0; i < num_types; ++i)
     if (__tzstring (&zone_names[types[i].idx]) == NULL)
       goto ret_free_transitions;
@@ -564,7 +565,7 @@ __tzfile_default (const char *std, const char *dst,
   types[1].offset = dstoff;
   types[1].isdst = 1;
 
-  /* Reset the zone names to point to the user's names.  */
+  /* Reset time zone abbreviations to point to the user's abbreviations.  */
   __tzname[0] = (char *) std;
   __tzname[1] = (char *) dst;
 
@@ -780,3 +781,5 @@ __tzfile_compute (__time64_t timer, int use_localtime,
 	}
     }
 }
+
+weak_alias (transitions, __libc_tzfile_freemem_ptr)

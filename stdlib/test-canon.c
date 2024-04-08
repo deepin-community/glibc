@@ -27,6 +27,8 @@
 #include <sys/param.h>
 #include <sys/stat.h>
 
+#include <support/xunistd.h>
+
 /* Prototype for our test function.  */
 extern int do_test (int argc, char *argv[]);
 #include <test-skeleton.c>
@@ -123,8 +125,13 @@ do_test (int argc, char ** argv)
   int i, errors = 0;
   char buf[PATH_MAX];
 
-  getcwd (cwd, sizeof (buf));
-  cwd_len = strlen (cwd);
+  if (getcwd (cwd, sizeof (buf)))
+    cwd_len = strlen (cwd);
+  else
+    {
+      printf ("%s: current working directory couldn't be retrieved\n", argv[0]);
+      ++errors;
+    }
 
   errno = 0;
   if (realpath (NULL, buf) != NULL || errno != EINVAL)
@@ -154,7 +161,7 @@ do_test (int argc, char ** argv)
     }
 
   for (i = 0; i < (int) (sizeof (symlinks) / sizeof (symlinks[0])); ++i)
-    symlink (symlinks[i].value, symlinks[i].name);
+    xsymlink (symlinks[i].value, symlinks[i].name);
 
   int has_dir = mkdir ("doesExist", 0777) == 0;
 
@@ -205,7 +212,12 @@ do_test (int argc, char ** argv)
       free (result2);
     }
 
-  getcwd (buf, sizeof (buf));
+  if (!getcwd (buf, sizeof (buf)))
+    {
+      printf ("%s: current working directory couldn't be retrieved\n", argv[0]);
+      ++errors;
+    }
+
   if (strcmp (buf, cwd))
     {
       printf ("%s: current working directory changed from %s to %s\n",

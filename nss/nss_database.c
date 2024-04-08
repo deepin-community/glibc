@@ -331,7 +331,7 @@ nss_database_reload (struct nss_database_data *staging,
   if (fp != NULL)
     ok = nss_database_reload_1 (staging, fp);
 
-  /* Now we have non-NULL entries where the user explictly listed the
+  /* Now we have non-NULL entries where the user explicitly listed the
      service in nsswitch.conf.  */
 
   /* Apply defaults.  */
@@ -495,7 +495,7 @@ __nss_database_get_noreload (enum nss_database db)
   return result;
 }
 
-void __libc_freeres_fn_section
+void
 __nss_database_freeres (void)
 {
   free (global_database_state);

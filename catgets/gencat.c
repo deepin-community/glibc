@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <unistd_ext.h>
 #include <wchar.h>
 
 #include "version.h"
@@ -838,7 +839,6 @@ invalid character: message ignored"));
   return current;
 }
 
-
 static void
 write_out (struct catalog *catalog, const char *output_name,
 	   const char *header_name)
@@ -927,12 +927,11 @@ write_out (struct catalog *catalog, const char *output_name,
   obj.plane_size = best_size;
   obj.plane_depth = best_depth;
 
+  uint32_t array_size = best_size * best_depth * sizeof (uint32_t) * 3;
   /* Allocate room for all needed arrays.  */
-  array1 =
-    (uint32_t *) alloca (best_size * best_depth * sizeof (uint32_t) * 3);
-  memset (array1, '\0', best_size * best_depth * sizeof (uint32_t) * 3);
-  array2
-    = (uint32_t *) alloca (best_size * best_depth * sizeof (uint32_t) * 3);
+  array1 = (uint32_t *) alloca (array_size);
+  memset (array1, '\0', array_size);
+  array2 = (uint32_t *) alloca (array_size);
   obstack_init (&string_pool);
 
   set_run = catalog->all_sets;
@@ -985,22 +984,22 @@ write_out (struct catalog *catalog, const char *output_name,
     }
 
   /* Write out header.  */
-  write (fd, &obj, sizeof (obj));
+  write_all(fd, &obj, sizeof (obj));
 
   /* We always write out the little endian version of the index
      arrays.  */
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-  write (fd, array1, best_size * best_depth * sizeof (uint32_t) * 3);
-  write (fd, array2, best_size * best_depth * sizeof (uint32_t) * 3);
+  write_all(fd, array1, array_size);
+  write_all(fd, array2, array_size);
 #elif __BYTE_ORDER == __BIG_ENDIAN
-  write (fd, array2, best_size * best_depth * sizeof (uint32_t) * 3);
-  write (fd, array1, best_size * best_depth * sizeof (uint32_t) * 3);
+  write_all(fd, array2, array_size);
+  write_all(fd, array1, array_size);
 #else
 # error Cannot handle __BYTE_ORDER byte order
 #endif
 
   /* Finally write the strings.  */
-  write (fd, strings, strings_size);
+  write_all(fd, strings, strings_size);
 
   if (fd != STDOUT_FILENO)
     close (fd);

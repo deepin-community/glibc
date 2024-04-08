@@ -1,4 +1,4 @@
-/* The wrapper of clone3.
+/* The clone3 kernel interface definitions.
    Copyright (C) 2021-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -23,7 +23,12 @@
 #include <stddef.h>
 #include <bits/types.h>
 
-__BEGIN_DECLS
+
+/* Flags for the clone3 syscall.  */
+#define CLONE_CLEAR_SIGHAND 0x100000000ULL /* Clear any signal handler and
+					      reset to SIG_DFL.  */
+#define CLONE_INTO_CGROUP 0x200000000ULL /* Clone into a specific cgroup given
+					    the right permissions.  */
 
 /* The unsigned 64-bit and 8-byte aligned integer type.  */
 typedef __U64_TYPE __aligned_uint64_t __attribute__ ((__aligned__ (8)));
@@ -57,11 +62,5 @@ struct clone_args
   /* File descriptor for target cgroup of child (since Linux 5.7).  */
   __aligned_uint64_t cgroup;
 };
-
-/* The wrapper of clone3.  */
-extern int clone3 (struct clone_args *__cl_args, size_t __size,
-		   int (*__func) (void *__arg), void *__arg);
-
-__END_DECLS
 
 #endif /* clone3.h */

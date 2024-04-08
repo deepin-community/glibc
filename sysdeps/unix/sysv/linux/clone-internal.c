@@ -44,27 +44,15 @@ _Static_assert (sizeof (struct clone_args) == CLONE_ARGS_SIZE_VER2,
 		"sizeof (struct clone_args) != CLONE_ARGS_SIZE_VER2");
 
 int
-__clone_internal (struct clone_args *cl_args,
-		  int (*func) (void *arg), void *arg)
+__clone_internal_fallback (struct clone_args *cl_args,
+			   int (*func) (void *arg), void *arg)
 {
-  int ret;
-#ifdef HAVE_CLONE3_WRAPPER
-  /* Try clone3 first.  */
-  int saved_errno = errno;
-  ret = __clone3 (cl_args, sizeof (*cl_args), func, arg);
-  if (ret != -1 || errno != ENOSYS)
-    return ret;
-
-  /* NB: Restore errno since errno may be checked against non-zero
-     return value.  */
-  __set_errno (saved_errno);
-#endif
-
   /* Map clone3 arguments to clone arguments.  NB: No need to check
      invalid clone3 specific bits in flags nor exit_signal since this
      is an internal function.  */
   int flags = cl_args->flags | cl_args->exit_signal;
   void *stack = cast_to_pointer (cl_args->stack);
+  int ret;
 
 #ifdef __ia64__
   ret = __clone2 (func, stack, cl_args->stack_size,
@@ -86,6 +74,47 @@ __clone_internal (struct clone_args *cl_args,
 		 cast_to_pointer (cl_args->child_tid));
 #endif
   return ret;
+}
+
+int
+__clone3_internal (struct clone_args *cl_args, int (*func) (void *args),
+		   void *arg)
+{
+#ifdef HAVE_CLONE3_WRAPPER
+# if __ASSUME_CLONE3
+  return __clone3 (cl_args, sizeof (*cl_args), func, arg);
+# else
+  static int clone3_supported = 1;
+  if (atomic_load_relaxed (&clone3_supported) == 1)
+    {
+      int ret = __clone3 (cl_args, sizeof (*cl_args), func, arg);
+      if (ret != -1 || errno != ENOSYS)
+	return ret;
+
+      atomic_store_relaxed (&clone3_supported, 0);
+    }
+# endif
+#endif
+  __set_errno (ENOSYS);
+  return -1;
+}
+
+int
+__clone_internal (struct clone_args *cl_args,
+		  int (*func) (void *arg), void *arg)
+{
+#ifdef HAVE_CLONE3_WRAPPER
+  int saved_errno = errno;
+  int ret = __clone3_internal (cl_args, func, arg);
+  if (ret != -1 || errno != ENOSYS)
+    return ret;
+
+  /* NB: Restore errno since errno may be checked against non-zero
+     return value.  */
+  __set_errno (saved_errno);
+#endif
+
+  return __clone_internal_fallback (cl_args, func, arg);
 }
 
 libc_hidden_def (__clone_internal)

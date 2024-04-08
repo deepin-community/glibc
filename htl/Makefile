@@ -52,7 +52,6 @@ libpthread-routines := pt-attr pt-attr-destroy pt-attr-getdetachstate	    \
 	pt-exit								    \
 	pt-initialize							    \
 	pt-join								    \
-	pt-self								    \
 	pt-sigmask							    \
 	pt-spin-inlines							    \
 	pt-cleanup							    \
@@ -160,11 +159,13 @@ headers :=				\
               bits/types/struct___pthread_mutexattr.h	\
               bits/types/struct___pthread_rwlock.h	\
               bits/types/struct___pthread_rwlockattr.h	\
+              bits/types/__pthread_t.h		\
+              bits/types/__thrd_t.h		\
 	      bits/semaphore.h
 
 distribute :=
 
-routines := forward libc_pthread_init alloca_cutoff htlfreeres
+routines := forward libc_pthread_init alloca_cutoff htlfreeres pt-nthreads pt-pthread_self pt-self
 shared-only-routines = forward
 
 extra-libs := libpthread
@@ -187,7 +188,7 @@ subdir_install: $(inst_libdir)/libpthread2.a $(inst_libdir)/libpthread_syms.a
 # XXX: These rules are a hack.  But it is better than messing with
 # ../Makeconf at the moment.  Note that the linker scripts
 # $(srcdir)/libpthread.a and $(srcdir)/libpthread_pic.a get overwritten
-# when building in $(srcdir) and not a seperate build directory.
+# when building in $(srcdir) and not a separate build directory.
 $(inst_libdir)/libpthread2.a: $(inst_libdir)/libpthread.a
 	mv $< $@
 	$(INSTALL_DATA) $(srcdir)/libpthread.a $<

@@ -110,13 +110,53 @@ issignalingf_inline (float x)
   return 2 * (ix ^ 0x00400000) > 2 * 0x7fc00000UL;
 }
 
-#define NOINLINE __attribute__ ((noinline))
+#define BIT_WIDTH       32
+#define MANTISSA_WIDTH  23
+#define EXPONENT_WIDTH  8
+#define MANTISSA_MASK   0x007fffff
+#define EXPONENT_MASK   0x7f800000
+#define EXP_MANT_MASK   0x7fffffff
+#define QUIET_NAN_MASK  0x00400000
+#define SIGN_MASK       0x80000000
+
+static inline bool
+is_nan (uint32_t x)
+{
+  return (x & EXP_MANT_MASK) > EXPONENT_MASK;
+}
+
+static inline uint32_t
+get_mantissa (uint32_t x)
+{
+  return x & MANTISSA_MASK;
+}
+
+/* Convert integer number X, unbiased exponent EP, and sign S to double:
+
+   result = X * 2^(EP+1 - exponent_bias)
+
+   NB: zero is not supported.  */
+static inline double
+make_float (uint32_t x, int ep, uint32_t s)
+{
+  int lz = __builtin_clz (x) - EXPONENT_WIDTH;
+  x <<= lz;
+  ep -= lz;
+
+  if (__glibc_unlikely (ep < 0 || x == 0))
+    {
+      x >>= -ep;
+      ep = 0;
+    }
+  return asfloat (s + x + (ep << MANTISSA_WIDTH));
+}
 
 attribute_hidden float __math_oflowf (uint32_t);
 attribute_hidden float __math_uflowf (uint32_t);
 attribute_hidden float __math_may_uflowf (uint32_t);
 attribute_hidden float __math_divzerof (uint32_t);
 attribute_hidden float __math_invalidf (float);
+attribute_hidden float __math_edomf (float x);
 
 /* Shared between expf, exp2f, exp10f, and powf.  */
 #define EXP2F_TABLE_BITS 5

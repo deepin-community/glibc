@@ -8,18 +8,16 @@
 # DP: Date: 08 Apr 2003
   
 ---
- elf/ldconfig.c                 |    4 ++++
  sysdeps/mach/hurd/configure    |    2 ++
  sysdeps/mach/hurd/configure.ac |    2 ++
  3 files changed, 8 insertions(+)
 
 --- a/sysdeps/mach/hurd/configure
 +++ b/sysdeps/mach/hurd/configure
-@@ -49,3 +49,5 @@
- 
+@@ -52,3 +52,4 @@
  # Hurd has libpthread as a separate library.
  pthread_in_libc=no
-+
+ 
 +use_ldconfig=yes
 --- a/sysdeps/mach/hurd/configure.ac
 +++ b/sysdeps/mach/hurd/configure.ac
@@ -29,16 +27,3 @@
  pthread_in_libc=no
 +
 +use_ldconfig=yes
---- a/elf/ldconfig.c
-+++ b/elf/ldconfig.c
-@@ -55,6 +55,10 @@
- 
- #define PACKAGE _libc_intl_domainname
- 
-+#ifndef PATH_MAX
-+#define PATH_MAX 1024
-+#endif
-+
- /* List of directories to handle.  */
- struct dir_entry
- {

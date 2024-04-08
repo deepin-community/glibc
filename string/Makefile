@@ -92,6 +92,8 @@ routines := \
   strerrorname_np \
   strfry \
   string-inlines \
+  strlcat \
+  strlcpy \
   strlen \
   strncase \
   strncase_l \
@@ -115,6 +117,23 @@ routines := \
   wordcopy \
   xpg-strerror \
 # routines
+
+# Exclude fortified routines from being built with _FORTIFY_SOURCE
+routines_no_fortify += \
+  explicit_bzero \
+  memcpy \
+  memmove \
+  mempcpy \
+  memset \
+  stpcpy \
+  stpncpy \
+  strcat \
+  strcpy \
+  strlcat \
+  strlcpy \
+  strncat \
+  strncpy \
+  # routines_no_fortify
 
 tests := \
   bug-envz1 \
@@ -157,11 +176,13 @@ tests := \
   test-strcmp \
   test-strcpy \
   test-strcspn \
+  test-strdup \
   test-strlen \
   test-strncasecmp \
   test-strncat \
   test-strncmp \
   test-strncpy \
+  test-strndup \
   test-strnlen \
   test-strpbrk \
   test-strrchr \
@@ -174,7 +195,10 @@ tests := \
   tst-endian \
   tst-inlcall \
   tst-memmove-overflow \
+  tst-strerror-fail \
   tst-strfry \
+  tst-strlcat \
+  tst-strlcpy \
   tst-strlen \
   tst-strtok \
   tst-strtok_r \
@@ -230,6 +254,8 @@ LDFLAGS-tst-xbzero-opt = -z now
 # Called during TLS initialization.
 CFLAGS-memcpy.c += $(no-stack-protector)
 CFLAGS-wordcopy.c += $(no-stack-protector)
+# Called during static initialization
+CFLAGS-strncmp.c += $(no-stack-protector)
 
 CFLAGS-argz-next.c += $(config-cflags-wno-ignored-attributes)
 CFLAGS-basename.c += $(config-cflags-wno-ignored-attributes)

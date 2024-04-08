@@ -218,9 +218,9 @@ endif
 
 
 ######################################################################
-# hurd-i386 (including optimized flavours)
+# hurd-i386 and hurd-amd64 (including optimized flavours)
 ######################################################################
-ifeq ($(config-machine)-$(config-os),i686-gnu-gnu)
+ifeq ($(config-os),gnu-gnu)
 # sysdeps/mach/hurd/dl-sysdep.c's open_file does not support the linker
 # creating files.
 test-xfail-tst-null-argv = yes
@@ -312,7 +312,6 @@ test-xfail-tst-waitid = yes
 test-xfail-tst-wait4 = yes
 
 # new in 2.25
-test-xfail-tst-posix_fallocate64 = yes
 test-xfail-tst-posix_fadvise = yes
 test-xfail-tst-posix_fadvise64 = yes
 
@@ -357,7 +356,6 @@ test-xfail-test-cxa_atexit-race2 = yes
 test-xfail-tst-itimer = yes
 test-xfail-tst-wait3 = yes
 test-xfail-tst-nss-compat1 = yes
-test-xfail-test-fesetexcept-traps = yes
 test-xfail-tst-dlinfo-phdr = yes
 test-xfail-tst-tls-allocation-failure-static-patched = yes
 
@@ -383,22 +381,7 @@ test-xfail-tst-vfprintf-width-prec = yes
 
 # new in 2.38
 test-xfail-tst-sprof-basic = yes
-
-# upstreamed in 2.38
-tests-unsupported += tst-malloc-thread-fail
-tests-unsupported += tst-malloc-thread-fail-malloc-check
-tests-unsupported += tst-malloc-thread-fail-mcheck
-tests-unsupported += tst-malloc-thread-fail-malloc-hugetlb1
-tests-unsupported += tst-malloc-thread-fail-malloc-hugetlb2
-tests-unsupported += tst-dynarray-fail
-tests-unsupported += tst-pthread_cancel-select-loop
-tests-unsupported += tst-audit14
-tests-unsupported += tst-audit14a
-tests-unsupported += tst-audit15
-tests-unsupported += tst-audit16
-tests-unsupported += tst-audit17
-tests-unsupported += test-lfs
-tests-unsupported += tst-spawn6
+test-xfail-tst-nss-files-hosts-v4mapped = yes
 
 # actually never succeded
 test-xfail-tst-create_format1 = yes
@@ -411,6 +394,82 @@ test-xfail-tst-lockf = yes
 # assumes that all st_mode flags (32bit) can exist in stx_mode flags (16bit)
 test-xfail-tst-statx = yes
 
+endif
+
+
+######################################################################
+# hurd-amd64
+######################################################################
+ifeq ($(config-machine)-$(config-os),x86_64-gnu-gnu)
+# TODO: fix default FPU config
+test-xfail-test-fenv = yes
+test-xfail-test-float64x-acos = yes
+test-xfail-test-float64x-log10 = yes
+test-xfail-test-float64x-log2 = yes
+test-xfail-test-float64x-y0 = yes
+test-xfail-test-float64x-y1 = yes
+test-xfail-test-ldouble-acos = yes
+test-xfail-test-ldouble-log10 = yes
+test-xfail-test-ldouble-log2 = yes
+test-xfail-test-ldouble-y0 = yes
+test-xfail-test-ldouble-y1 = yes
+
+# TODO context support
+test-xfail-bug-getcontext = yes
+test-xfail-tst-setcontext2 = yes
+test-xfail-tst-setcontext4 = yes
+test-xfail-tst-setcontext5 = yes
+test-xfail-tst-setcontext6 = yes
+test-xfail-tst-setcontext7 = yes
+test-xfail-tst-setcontext8 = yes
+test-xfail-tst-setcontext9 = yes
+test-xfail-tst-swapcontext1 = yes
+test-xfail-tst-xbzero-opt = yes
+
+# Bus error
+test-xfail-test-bz22786 = yes
+
+# memory leak
+test-xfail-tst-vfprintf-width-prec-mem = yes
+test-xfail-tst-vfprintf-width-prec = yes
+
+# timeout
+test-xfail-tst-basic7 = yes
+
+# timeout
+test-xfail-tst-malloc-too-large = yes
+test-xfail-tst-malloc-too-large-malloc-check = yes
+test-xfail-tst-malloc-too-large-hugetlb1 = yes
+test-xfail-tst-malloc-too-large-hugetlb2 = yes
+
+# Bus error
+test-xfail-bug18240 = yes
+
+# cmsg bug
+test-xfail-tst-cmsghdr = yes
+
+# TODO support (for signals I guess)
+test-xfail-tst-backtrace4 = yes
+test-xfail-tst-backtrace5 = yes
+test-xfail-tst-backtrace6 = yes
+
+test-xfail-tst-dlopen-nodelete-reloc = yes
+test-xfail-tst-platform-1 = yes
+test-xfail-tst-audit4 = yes
+test-xfail-tst-audit5 = yes
+test-xfail-tst-audit6 = yes
+test-xfail-tst-audit7 = yes
+test-xfail-tst-audit10 = yes
+endif
+
+
+######################################################################
+# hurd-i386
+######################################################################
+ifeq ($(config-machine)-$(config-os),i686-gnu-gnu)
+test-xfail-tst-posix_fallocate64 = yes
+test-xfail-test-fesetexcept-traps = yes
+test-xfail-test-canon = yes
 endif
 
 
@@ -496,6 +555,9 @@ test-xfail-tst-audit24c = yes
 test-xfail-tst-audit24d = yes
 test-xfail-tst-audit25a = yes
 test-xfail-tst-audit25b = yes
+
+# dl_profile is not supported on mips*
+test-xfail-tst-sprof-basic = yes
 endif
 
 

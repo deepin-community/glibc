@@ -135,7 +135,8 @@ __libc_recvmsg (int fd, struct msghdr *message, int flags)
   else if (message->msg_name != NULL)
     message->msg_namelen = 0;
 
-  __mach_port_deallocate (__mach_task_self (), aport);
+  if (MACH_PORT_VALID (aport))
+    __mach_port_deallocate (__mach_task_self (), aport);
 
   if (buf == data)
     buf += len;
@@ -196,11 +197,15 @@ __libc_recvmsg (int fd, struct msghdr *message, int flags)
 
 	for (j = 0; j < nfds; j++)
 	  {
+	    int fd_flags = (flags & MSG_CMSG_CLOEXEC) ? O_CLOEXEC : 0;
 	    err = reauthenticate (ports[i], &newports[newfds]);
 	    if (err)
 	      goto cleanup;
+	    /* We do not currently take any flag from the sender.  */
 	    fds[j] = opened_fds[newfds] = _hurd_intern_fd (newports[newfds],
-							   fds[j], 0);
+							   (fds[j] & 0)
+							   | fd_flags,
+							   0);
 	    if (fds[j] == -1)
 	      {
 		err = errno;

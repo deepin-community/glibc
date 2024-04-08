@@ -31,8 +31,8 @@ headers := \
   bits/stdint-uintn.h \
   bits/stdlib-bsearch.h \
   bits/stdlib-float.h \
-  bits/stdlib.h \
   bits/stdlib-ldbl.h \
+  bits/stdlib.h \
   bits/time64.h \
   bits/timesize.h \
   bits/types/error_t.h \
@@ -59,7 +59,7 @@ routines := \
   atof \
   atoi \
   atol\
-  atoll	\
+  atoll \
   bsearch \
   canonicalize \
   cxa_at_quick_exit \
@@ -145,6 +145,13 @@ routines := \
   xpg_basename \
   # routines
 
+# Exclude fortified routines from being built with _FORTIFY_SOURCE
+routines_no_fortify += \
+  mbstowcs \
+  wcstombs \
+  wctomb \
+  # routines_no_fortify
+
 aux = \
   grouping \
   groupingwc \
@@ -155,8 +162,8 @@ aux = \
 # Instead the static object files will be included in a special archive
 # linked against when the shared library will be used.
 static-only-routines = \
-  atexit \
   at_quick_exit \
+  atexit \
   # static-only-routines
 
 test-srcs := \
@@ -171,6 +178,7 @@ tests := \
   test-a64l \
   test-at_quick_exit-race \
   test-atexit-race \
+  test-atexit-recursive \
   test-bz22786 \
   test-canon \
   test-canon2 \
@@ -183,6 +191,7 @@ tests := \
   testmb2 \
   testrand \
   testsort \
+  tst-abs \
   tst-arc4random-fork \
   tst-arc4random-stats \
   tst-arc4random-thread \
@@ -196,7 +205,9 @@ tests := \
   tst-cxa_atexit \
   tst-environ \
   tst-getrandom \
+  tst-labs \
   tst-limits \
+  tst-llabs \
   tst-makecontext \
   tst-makecontext-align \
   tst-makecontext2 \
@@ -234,6 +245,10 @@ tests := \
   tst-strtod5 \
   tst-strtod6 \
   tst-strtol \
+  tst-strtol-binary-c11 \
+  tst-strtol-binary-c2x \
+  tst-strtol-binary-gnu11 \
+  tst-strtol-binary-gnu2x \
   tst-strtol-locale \
   tst-strtoll \
   tst-swapcontext1 \
@@ -276,10 +291,15 @@ LDLIBS-test-on_exit-race = $(shared-thread-library)
 LDLIBS-tst-canon-bz26341 = $(shared-thread-library)
 LDLIBS-tst-arc4random-fork = $(shared-thread-library)
 LDLIBS-tst-arc4random-thread = $(shared-thread-library)
+LDLIBS-tst-system = $(shared-thread-library)
 
 LDLIBS-test-dlclose-exit-race = $(shared-thread-library)
 LDFLAGS-test-dlclose-exit-race = $(LDFLAGS-rdynamic)
 LDLIBS-test-dlclose-exit-race-helper.so = $(libsupport) $(shared-thread-library)
+
+CFLAGS-tst-abs.c += -fno-builtin
+CFLAGS-tst-labs.c += -fno-builtin
+CFLAGS-tst-llabs.c += -fno-builtin
 
 ifeq ($(have-cxx-thread_local),yes)
 CFLAGS-tst-quick_exit.o = -std=c++11
@@ -392,7 +412,15 @@ CFLAGS-tst-qsort.c += $(stack-align-test-flags)
 CFLAGS-tst-makecontext.c += -funwind-tables
 CFLAGS-tst-makecontext2.c += $(stack-align-test-flags)
 
-CFLAGS-testmb.c += -D_FORTIFY_SOURCE=2 -Wall -Werror
+CFLAGS-testmb.c += -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -Wall -Werror
+
+# Some versions of GCC supported for building glibc do not support -std=c2x
+# or -std=gnu2x, so the tests for those versions use -std=c11 and -std=gnu11
+# and then _ISOC2X_SOURCE is defined in the test as needed.
+CFLAGS-tst-strtol-binary-c11.c += -std=c11
+CFLAGS-tst-strtol-binary-c2x.c += -std=c11
+CFLAGS-tst-strtol-binary-gnu11.c += -std=gnu11
+CFLAGS-tst-strtol-binary-gnu2x.c += -std=gnu11
 
 
 # Run a test on the header files we use.

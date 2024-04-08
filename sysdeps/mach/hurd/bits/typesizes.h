@@ -26,7 +26,7 @@
 /* See <bits/types.h> for the meaning of these macros.  This file exists so
    that <bits/types.h> need not vary across different GNU platforms.  */
 
-#define __DEV_T_TYPE		__U32_TYPE
+#define __DEV_T_TYPE		__UWORD_TYPE
 #define __UID_T_TYPE		__U32_TYPE
 #define __GID_T_TYPE		__U32_TYPE
 #define __INO_T_TYPE		__ULONGWORD_TYPE
@@ -54,7 +54,7 @@
 #define __DADDR_T_TYPE		__S32_TYPE
 #define __KEY_T_TYPE		__S32_TYPE
 #define __CLOCKID_T_TYPE	__S32_TYPE
-#define __TIMER_T_TYPE		__S32_TYPE
+#define __TIMER_T_TYPE		__UWORD_TYPE
 #define __BLKSIZE_T_TYPE	__SLONGWORD_TYPE
 #define __FSID_T_TYPE		__UQUAD_TYPE
 #define __SSIZE_T_TYPE		__SWORD_TYPE

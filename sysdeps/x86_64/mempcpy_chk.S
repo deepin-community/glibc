@@ -28,6 +28,7 @@
 ENTRY (__mempcpy_chk)
 	cmpq	%rdx, %rcx
 	jb	__chk_fail
-	jmp	mempcpy
+	jmp	__mempcpy
 END (__mempcpy_chk)
+libc_hidden_builtin_def (__mempcpy_chk)
 #endif

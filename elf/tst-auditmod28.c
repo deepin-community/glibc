@@ -71,6 +71,24 @@ la_version (unsigned int current)
   TEST_VERIFY (dladdr1 (&_exit, &info, &extra_info, RTLD_DL_LINKMAP) != 0);
   TEST_VERIFY (extra_info == handle);
 
+  /* Check _dl_find_object.  */
+  struct dl_find_object dlfo;
+  void *ret_addr = __builtin_extract_return_addr (__builtin_return_address (0));
+  int ret_dl_find_object =_dl_find_object (ret_addr, &dlfo);
+  TEST_COMPARE (ret_dl_find_object, 0);
+  if (ret_dl_find_object == 0)
+    {
+      /* "ld.so" is seen with --enable-hardcoded-path-in-tests.  */
+      if (strcmp (basename (dlfo.dlfo_link_map->l_name), "ld.so") != 0)
+	TEST_COMPARE_STRING (basename (dlfo.dlfo_link_map->l_name), LD_SO);
+    }
+  ret_dl_find_object = _dl_find_object (dlsym (handle, "environ"), &dlfo);
+  TEST_COMPARE (ret_dl_find_object, 0);
+  if (ret_dl_find_object == 0)
+    TEST_COMPARE_STRING (basename (dlfo.dlfo_link_map->l_name), LIBC_SO);
+  TEST_COMPARE (_dl_find_object ((void *) 1, &dlfo), -1);
+  TEST_COMPARE (_dl_find_object ((void *) -1, &dlfo), -1);
+
   /* Verify that dlmopen creates a new namespace.  */
   void *dlmopen_handle = xdlmopen (LM_ID_NEWLM, LIBC_SO, RTLD_NOW);
   TEST_VERIFY (dlmopen_handle != handle);

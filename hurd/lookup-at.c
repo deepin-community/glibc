@@ -29,15 +29,13 @@ __file_name_lookup_at (int fd, int at_flags,
   error_t err;
   file_t result;
   int empty = at_flags & AT_EMPTY_PATH;
+  int orig_flags;
 
   at_flags &= ~AT_EMPTY_PATH;
 
   err = __hurd_at_flags (&at_flags, &flags);
   if (err)
     return (__hurd_fail (err), MACH_PORT_NULL);
-
-  if (fd == AT_FDCWD || file_name[0] == '/')
-    return __file_name_lookup (file_name, flags, mode);
 
   if (empty != 0 && file_name[0] == '\0')
     {
@@ -56,22 +54,64 @@ __file_name_lookup_at (int fd, int at_flags,
       return err ? (__hurd_dfail (fd, err), MACH_PORT_NULL) : result;
     }
 
-  file_t startdir;
-  error_t use_init_port (int which, error_t (*operate) (mach_port_t))
+  orig_flags = flags;
+  if (flags & O_TMPFILE)
+    flags = O_DIRECTORY;
+
+  if (fd == AT_FDCWD || file_name[0] == '/')
     {
-      return (which == INIT_PORT_CWDIR ? (*operate) (startdir)
-	      : _hurd_ports_use (which, operate));
+      err = __hurd_file_name_lookup (&_hurd_ports_use, &__getdport, 0,
+                                     file_name, flags, mode & ~_hurd_umask,
+                                     &result);
+      if (err)
+        {
+          __hurd_fail (err);
+          return MACH_PORT_NULL;
+        }
+    }
+  else
+    {
+      file_t startdir;
+      /* We need to look the file up relative to the given directory (and
+         not our cwd).  For this to work, we supply our own wrapper for
+         _hurd_ports_use, which replaces cwd with our startdir.  */
+      error_t use_init_port (int which, error_t (*operate) (mach_port_t))
+        {
+          return (which == INIT_PORT_CWDIR ? (*operate) (startdir)
+	          : _hurd_ports_use (which, operate));
+        }
+
+      err = HURD_DPORT_USE (fd, (startdir = port,
+                                 __hurd_file_name_lookup (&use_init_port,
+                                                          &__getdport, NULL,
+                                                          file_name,
+                                                          flags,
+                                                          mode & ~_hurd_umask,
+                                                          &result)));
+      if (err)
+        {
+          __hurd_dfail (fd, err);
+          return MACH_PORT_NULL;
+        }
     }
 
-  err = HURD_DPORT_USE (fd, (startdir = port,
-			     __hurd_file_name_lookup (&use_init_port,
-						      &__getdport, NULL,
-						      file_name,
-						      flags,
-						      mode & ~_hurd_umask,
-						      &result)));
+  if (orig_flags & O_TMPFILE)
+    {
+      /* What we have looked up is not the file itself, but actually
+         the directory to create the file in.  Do that now.  */
+      file_t dir = result;
 
-  return err ? (__hurd_dfail (fd, err), MACH_PORT_NULL) : result;
+      err = __dir_mkfile (dir, orig_flags & ~(O_TMPFILE | O_DIRECTORY),
+                          mode, &result);
+      __mach_port_deallocate (__mach_task_self (), dir);
+      if (err)
+        {
+          __hurd_fail (err);
+          return MACH_PORT_NULL;
+        }
+    }
+
+  return result;
 }
 
 file_t

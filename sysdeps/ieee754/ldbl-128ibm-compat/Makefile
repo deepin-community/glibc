@@ -24,7 +24,13 @@ ldbl-extra-routines += isoc99_fwscanf \
 		       isoc99_wscanf \
 		       isoc99_vfwscanf \
 		       isoc99_vswscanf \
-		       isoc99_vwscanf
+		       isoc99_vwscanf \
+		       isoc23_fwscanf \
+		       isoc23_swscanf \
+		       isoc23_wscanf \
+		       isoc23_vfwscanf \
+		       isoc23_vswscanf \
+		       isoc23_vwscanf
 
 tests-internal += test-wcstold-ibm128 test-wcstold-ieee128
 CFLAGS-test-wcstold-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi
@@ -53,7 +59,13 @@ ldbl-extra-routines += printf_size \
 		       isoc99_sscanf \
 		       isoc99_vfscanf \
 		       isoc99_vscanf \
-		       isoc99_vsscanf
+		       isoc99_vsscanf \
+		       isoc23_fscanf \
+		       isoc23_scanf \
+		       isoc23_sscanf \
+		       isoc23_vfscanf \
+		       isoc23_vscanf \
+		       isoc23_vsscanf
 
 # Printing long double values with IEEE binary128 format reuses part
 # of the internal float128 implementation (__printf_fp, __printf_fphex,
@@ -76,13 +88,19 @@ tests-internal += test-wprintf-ieee128 test-wprintf-ibm128
 CFLAGS-test-wprintf-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi
 CFLAGS-test-wprintf-ibm128.c += -mabi=ibmlongdouble -Wno-psabi
 
+# The following tests are setting _FORTIFY_SOURCE internally
 tests-internal += test-obstack-ieee128 test-obstack-ibm128
-CFLAGS-test-obstack-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi
-CFLAGS-test-obstack-ibm128.c += -mabi=ibmlongdouble -Wno-psabi
+CFLAGS-test-obstack-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi \
+				 $(no-fortify-source)
+CFLAGS-test-obstack-ibm128.c += -mabi=ibmlongdouble -Wno-psabi \
+				$(no-fortify-source)
 
+# The following tests are setting _FORTIFY_SOURCE internally
 tests-internal += test-obstack-chk-ieee128 test-obstack-chk-ibm128
-CFLAGS-test-obstack-chk-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi
-CFLAGS-test-obstack-chk-ibm128.c += -mabi=ibmlongdouble -Wno-psabi
+CFLAGS-test-obstack-chk-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi \
+				     $(no-fortify-source)
+CFLAGS-test-obstack-chk-ibm128.c += -mabi=ibmlongdouble -Wno-psabi \
+				    $(no-fortify-source)
 
 tests-internal += test-scanf-ieee128 test-scanf-ibm128
 CFLAGS-test-scanf-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi -std=c89 -D_GNU_SOURCE
@@ -204,25 +222,37 @@ ldbl-extra-routines += asprintf_chk \
 		       obstack_chk \
 		       vobstack_chk
 
+# The following tests are setting _FORTIFY_SOURCE internally
 tests-internal += test-printf-chk-ieee128 test-printf-chk-ibm128
-CFLAGS-test-printf-chk-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi
-CFLAGS-test-printf-chk-ibm128.c += -mabi=ibmlongdouble -Wno-psabi
+CFLAGS-test-printf-chk-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi \
+				    $(no-fortify-source)
+CFLAGS-test-printf-chk-ibm128.c += -mabi=ibmlongdouble -Wno-psabi \
+				   $(no-fortify-source)
 
+# The following tests are setting _FORTIFY_SOURCE internally
 tests-internal += test-printf-chk-redir-ieee128 test-printf-chk-redir-ibm128
 CFLAGS-test-printf-chk-redir-ieee128.c += -mfloat128 -mabi=ieeelongdouble \
-					  -Wno-psabi -Wno-unused-result
+					  -Wno-psabi -Wno-unused-result \
+					  $(no-fortify-source)
 CFLAGS-test-printf-chk-redir-ibm128.c += -mabi=ibmlongdouble -Wno-psabi \
-					 -Wno-unused-result
+					 -Wno-unused-result \
+					 $(no-fortify-source)
 
+# The following tests are setting _FORTIFY_SOURCE internally
 tests-internal += test-wprintf-chk-ieee128 test-wprintf-chk-ibm128
-CFLAGS-test-wprintf-chk-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi
-CFLAGS-test-wprintf-chk-ibm128.c += -mabi=ibmlongdouble -Wno-psabi
+CFLAGS-test-wprintf-chk-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi \
+				     $(no-fortify-source)
+CFLAGS-test-wprintf-chk-ibm128.c += -mabi=ibmlongdouble -Wno-psabi \
+				    $(no-fortify-source)
 
+# The following tests are setting _FORTIFY_SOURCE internally
 tests-internal += test-wprintf-chk-redir-ieee128 test-wprintf-chk-redir-ibm128
 CFLAGS-test-wprintf-chk-redir-ieee128.c += -mfloat128 -mabi=ieeelongdouble \
-					   -Wno-psabi -Wno-unused-result
+					   -Wno-psabi -Wno-unused-result \
+					   $(no-fortify-source)
 CFLAGS-test-wprintf-chk-redir-ibm128.c += -mabi=ibmlongdouble -Wno-psabi \
-					  -Wno-unused-result
+					  -Wno-unused-result \
+					  $(no-fortify-source)
 endif
 
 ifeq ($(subdir),argp)
@@ -252,6 +282,7 @@ CFLAGS-ieee128-qefgcvt_r.c += -mabi=ieeelongdouble -Wno-psabi -mno-gnu-attribute
 tests-internal += tst-ibm128-warn tst-ieee128-warn
 tests-internal += tst-ibm128-error tst-ieee128-error
 tests-internal += tst-ibm128-efgcvt tst-ieee128-efgcvt
+tests-internal += tst-ieee128-errorfptr
 
 $(objpfx)tst-ibm128-%.c: tst-ldbl-%.c
 	cp $< $@
@@ -266,14 +297,21 @@ CFLAGS-tst-ibm128-efgcvt.c += -mabi=ibmlongdouble -Wno-psabi
 CFLAGS-tst-ieee128-warn.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi
 CFLAGS-tst-ieee128-error.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi
 CFLAGS-tst-ieee128-efgcvt.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi
+CFLAGS-tst-ieee128-errorfptr.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi
 
+# The following tests are setting _FORTIFY_SOURCE internally
 tests-container += test-syslog-ieee128 test-syslog-ibm128
-CFLAGS-test-syslog-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi
-CFLAGS-test-syslog-ibm128.c += -mabi=ibmlongdouble -Wno-psabi
+CFLAGS-test-syslog-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi \
+				$(no-fortify-source)
+CFLAGS-test-syslog-ibm128.c += -mabi=ibmlongdouble -Wno-psabi \
+			       $(no-fortify-source)
 
+# The following tests are setting _FORTIFY_SOURCE internally
 tests-container += test-syslog-chk-ieee128 test-syslog-chk-ibm128
-CFLAGS-test-syslog-chk-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi
-CFLAGS-test-syslog-chk-ibm128.c += -mabi=ibmlongdouble -Wno-psabi
+CFLAGS-test-syslog-chk-ieee128.c += -mfloat128 -mabi=ieeelongdouble -Wno-psabi \
+				    $(no-fortify-source)
+CFLAGS-test-syslog-chk-ibm128.c += -mabi=ibmlongdouble -Wno-psabi \
+				   $(no-fortify-source)
 endif
 
 ifeq ($(subdir),stdlib)
@@ -306,8 +344,105 @@ CFLAGS-test-ldouble-compat_totalorder.c += -mabi=ibmlongdouble
 CFLAGS-test-ldouble-compat_totalordermag.c += -mabi=ibmlongdouble
 endif
 
+ifeq ($(subdir), stdio-common)
+tests += tst-ibm128-scanf-binary-c11 \
+	 tst-ibm128-scanf-binary-c2x \
+	 tst-ibm128-scanf-binary-gnu11 \
+	 tst-ibm128-scanf-binary-gnu89 \
+	 tst-ieee128-scanf-binary-c11 \
+	 tst-ieee128-scanf-binary-c2x \
+	 tst-ieee128-scanf-binary-gnu11 \
+	 tst-ieee128-scanf-binary-gnu89
+
+# Some versions of GCC supported for building glibc do not support -std=c2x, so
+# the test for that version uses -std=c11 and then _ISOC2X_SOURCE is defined in
+# the test as needed.
+CFLAGS-tst-ibm128-scanf-binary-c11.c += -mabi=ibmlongdouble -Wno-psabi \
+					-std=c11 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ibm128-scanf-binary-c2x.c += -mabi=ibmlongdouble -Wno-psabi \
+					-std=c11 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ibm128-scanf-binary-gnu11.c += -mabi=ibmlongdouble -Wno-psabi \
+					  -std=gnu11 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ibm128-scanf-binary-gnu89.c += -mabi=ibmlongdouble -Wno-psabi \
+					  -std=gnu89 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ieee128-scanf-binary-c11.c += -mfloat128 -mabi=ieeelongdouble \
+					 -Wno-psabi -std=c11 \
+					 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ieee128-scanf-binary-c2x.c += -mfloat128 -mabi=ieeelongdouble \
+					 -Wno-psabi -std=c11 \
+					 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ieee128-scanf-binary-gnu11.c += -mfloat128 -mabi=ieeelongdouble \
+					   -Wno-psabi -std=gnu11 \
+					   -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ieee128-scanf-binary-gnu89.c += -mfloat128 -mabi=ieeelongdouble \
+					   -Wno-psabi -std=gnu89 \
+					   -DOBJPFX=\"$(objpfx)\"
+
+endif
+
+ifeq ($(subdir), wcsmbs)
+tests += tst-ibm128-wscanf-binary-c11 \
+	 tst-ibm128-wscanf-binary-c2x \
+	 tst-ibm128-wscanf-binary-gnu11 \
+	 tst-ibm128-wscanf-binary-gnu89 \
+	 tst-ieee128-wscanf-binary-c11 \
+	 tst-ieee128-wscanf-binary-c2x \
+	 tst-ieee128-wscanf-binary-gnu11 \
+	 tst-ieee128-wscanf-binary-gnu89
+
+# Some versions of GCC supported for building glibc do not support -std=c2x, so
+# the test for that version uses -std=c11 and then _ISOC2X_SOURCE is defined in
+# the test as needed.
+CFLAGS-tst-ibm128-wscanf-binary-c11.c += -mabi=ibmlongdouble -Wno-psabi \
+					 -std=c11 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ibm128-wscanf-binary-c2x.c += -mabi=ibmlongdouble -Wno-psabi \
+					 -std=c11 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ibm128-wscanf-binary-gnu11.c += -mabi=ibmlongdouble -Wno-psabi \
+					   -std=gnu11 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ibm128-wscanf-binary-gnu89.c += -mabi=ibmlongdouble -Wno-psabi \
+					   -std=gnu89 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ieee128-wscanf-binary-c11.c += -mfloat128 -mabi=ieeelongdouble \
+					  -Wno-psabi -std=c11 \
+					  -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ieee128-wscanf-binary-c2x.c += -mfloat128 -mabi=ieeelongdouble \
+					  -Wno-psabi -std=c11 \
+					  -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ieee128-wscanf-binary-gnu11.c += -mfloat128 -mabi=ieeelongdouble \
+					    -Wno-psabi -std=gnu11 \
+					    -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-ieee128-wscanf-binary-gnu89.c += -mfloat128 -mabi=ieeelongdouble \
+					    -Wno-psabi -std=gnu89 \
+					    -DOBJPFX=\"$(objpfx)\"
+
+endif
+
 # Add IEEE binary128 files as make targets.
 routines += $(foreach r,$(ldbl-extra-routines),ieee128-$(r))
+
+routines_no_fortify += \
+  ieee128-asprintf \
+  ieee128-dprintf \
+  ieee128-fprintf \
+  ieee128-fwprintf \
+  ieee128-obstack \
+  ieee128-printf \
+  ieee128-snprintf \
+  ieee128-sprintf \
+  ieee128-swprintf \
+  ieee128-syslog \
+  ieee128-vasprintf \
+  ieee128-vdprintf \
+  ieee128-vfprintf \
+  ieee128-vfwprintf \
+  ieee128-vobstack \
+  ieee128-vprintf \
+  ieee128-vsnprintf \
+  ieee128-vsprintf \
+  ieee128-vswprintf \
+  ieee128-vsyslog \
+  ieee128-vwprintf \
+  ieee128-wprintf \
+  # routines_no_fortify
 
 # On powerpc64le, the routines responsible for converting between long
 # double and string (e.g.: printf, scanf, strtold, strfroml) default to

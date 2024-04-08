@@ -22,6 +22,7 @@
 #include <lock-intern.h>	/* For `struct mutex'.  */
 #include <pthreadP.h>
 #include <mach.h>
+#include <mach/setup-thread.h>
 #include <mach/thread_switch.h>
 #include <mach/mig_support.h>
 #include <mach/vm_param.h>
@@ -174,6 +175,7 @@ _hurd_sigstate_set_global_rcv (struct hurd_sigstate *ss)
   assert (ss->thread != MACH_PORT_NULL);
   ss->actions[0].sa_handler = SIG_IGN;
 }
+libc_hidden_def (_hurd_sigstate_set_global_rcv)
 
 /* Check whether SS is a global receiver.  */
 static int
@@ -193,6 +195,8 @@ _hurd_sigstate_lock (struct hurd_sigstate *ss)
     __spin_lock (&_hurd_global_sigstate->lock);
   __spin_lock (&ss->lock);
 }
+libc_hidden_def (_hurd_sigstate_lock)
+
 void
 _hurd_sigstate_unlock (struct hurd_sigstate *ss)
 {
@@ -200,9 +204,9 @@ _hurd_sigstate_unlock (struct hurd_sigstate *ss)
   if (sigstate_is_global_rcv (ss))
     __spin_unlock (&_hurd_global_sigstate->lock);
 }
-libc_hidden_def (_hurd_sigstate_set_global_rcv)
+libc_hidden_def (_hurd_sigstate_unlock)
 
-/* Retreive a thread's full set of pending signals, including the global
+/* Retrieve a thread's full set of pending signals, including the global
    ones if appropriate.  SS must be locked.  */
 sigset_t
 _hurd_sigstate_pending (const struct hurd_sigstate *ss)
@@ -212,6 +216,7 @@ _hurd_sigstate_pending (const struct hurd_sigstate *ss)
     __sigorset (&pending, &pending, &_hurd_global_sigstate->pending);
   return pending;
 }
+libc_hidden_def (_hurd_sigstate_pending)
 
 /* Clear a pending signal and return the associated detailed
    signal information. SS must be locked, and must have signal SIGNO
@@ -230,10 +235,8 @@ sigstate_clear_pending (struct hurd_sigstate *ss, int signo)
   __sigdelset (&ss->pending, signo);
   return ss->pending_data[signo];
 }
-libc_hidden_def (_hurd_sigstate_lock)
-libc_hidden_def (_hurd_sigstate_unlock)
 
-/* Retreive a thread's action vector.  SS must be locked.  */
+/* Retrieve a thread's action vector.  SS must be locked.  */
 struct sigaction *
 _hurd_sigstate_actions (struct hurd_sigstate *ss)
 {
@@ -242,7 +245,6 @@ _hurd_sigstate_actions (struct hurd_sigstate *ss)
   else
     return ss->actions;
 }
-libc_hidden_def (_hurd_sigstate_pending)
 
 
 /* Signal delivery itself is on this page.  */
@@ -415,6 +417,7 @@ _hurdsig_abort_rpcs (struct hurd_sigstate *ss, int signo, int sigthread,
 		     void (*reply) (void))
 {
   extern const void _hurd_intr_rpc_msg_about_to;
+  extern const void _hurd_intr_rpc_msg_setup_done;
   extern const void _hurd_intr_rpc_msg_in_trap;
   mach_port_t rcv_port = MACH_PORT_NULL;
   mach_port_t intr_port;
@@ -430,67 +433,84 @@ _hurdsig_abort_rpcs (struct hurd_sigstate *ss, int signo, int sigthread,
      receive completes immediately or aborts.  */
   abort_thread (ss, state, reply);
 
-  if (state->basic.PC >= (natural_t) &_hurd_intr_rpc_msg_about_to
-      && state->basic.PC < (natural_t) &_hurd_intr_rpc_msg_in_trap)
+  if (state->basic.PC >= (uintptr_t) &_hurd_intr_rpc_msg_about_to
+      && state->basic.PC < (uintptr_t) &_hurd_intr_rpc_msg_in_trap)
     {
       /* The thread is about to do the RPC, but hasn't yet entered
-	 mach_msg.  Mutate the thread's state so it knows not to try
-	 the RPC.  */
-      INTR_MSG_BACK_OUT (&state->basic);
-      MACHINE_THREAD_STATE_SET_PC (&state->basic,
-				   &_hurd_intr_rpc_msg_in_trap);
+         mach_msg.  Importantly, it may have already checked ss->cancel for
+         the last time before doing the RPC, so setting that is not enough
+         to make it not enter mach_msg.  Instead, mutate the thread's state
+         so it knows not to try the RPC.
+
+         If the thread is past _hurd_intr_rpc_msg_setup_done, just make it
+         jump to after the trap, since we know it's safe to do so.  Otherwise,
+         we know that the thread is yet to check for the MACH_SEND_INTERRUPTED
+         value we set below, and will skip the trap by itself.  */
+      if (state->basic.PC >= (uintptr_t) &_hurd_intr_rpc_msg_setup_done)
+        MACHINE_THREAD_STATE_SET_PC (&state->basic,
+                                     &_hurd_intr_rpc_msg_in_trap);
       state->basic.SYSRETURN = MACH_SEND_INTERRUPTED;
       *state_change = 1;
     }
-  else if (state->basic.PC == (natural_t) &_hurd_intr_rpc_msg_in_trap
-	   /* The thread was blocked in the system call.  After thread_abort,
-	      the return value register indicates what state the RPC was in
-	      when interrupted.  */
-	   && state->basic.SYSRETURN == MACH_RCV_INTERRUPTED)
-      {
-	/* The RPC request message was sent and the thread was waiting for
-	   the reply message; now the message receive has been aborted, so
-	   the mach_msg call will return MACH_RCV_INTERRUPTED.  We must tell
-	   the server to interrupt the pending operation.  The thread must
-	   wait for the reply message before running the signal handler (to
-	   guarantee that the operation has finished being interrupted), so
-	   our nonzero return tells the trampoline code to finish the message
-	   receive operation before running the handler.  */
+  else if (state->basic.PC == (uintptr_t) &_hurd_intr_rpc_msg_in_trap
+           /* The thread was blocked in the system call.  After thread_abort,
+              the return value register indicates what state the RPC was in
+              when interrupted.  */
+           && state->basic.SYSRETURN == MACH_RCV_INTERRUPTED)
+    {
+      /* The RPC request message was sent and the thread was waiting for the
+         reply message; now the message receive has been aborted, so the
+         mach_msg call will return MACH_RCV_INTERRUPTED.  We must tell the
+         server to interrupt the pending operation.  The thread must wait for
+         the reply message before running the signal handler (to guarantee that
+         the operation has finished being interrupted), so our nonzero return
+         tells the trampoline code to finish the message receive operation
+         before running the handler.  */
 
-	mach_port_t *reply = interrupted_reply_port_location (ss->thread,
-							      state,
-							      sigthread);
-	error_t err = __interrupt_operation (intr_port, _hurdsig_interrupt_timeout);
+      mach_port_t *reply = interrupted_reply_port_location (ss->thread,
+                                                            state,
+                                                            sigthread);
+      error_t err = __interrupt_operation (intr_port,
+                                           _hurdsig_interrupt_timeout);
 
-	if (err)
-	  {
-	    if (reply)
-	      {
-		/* The interrupt didn't work.
-		   Destroy the receive right the thread is blocked on.  */
-		__mach_port_destroy (__mach_task_self (), *reply);
-		*reply = MACH_PORT_NULL;
-	      }
+      if (err)
+        {
+          if (reply)
+            {
+              /* The interrupt didn't work.
+                 Destroy the receive right the thread is blocked on, and
+                 replace it with a dead name to keep the name from reuse until
+                 the therad is done with it.  To do this atomically, first
+                 insert a send right, and then destroy the receive right,
+                 turning the send right into a dead name.  */
+              err = __mach_port_insert_right (__mach_task_self (),
+                                              *reply, *reply,
+                                              MACH_MSG_TYPE_MAKE_SEND);
+              assert_perror (err);
+              err = __mach_port_mod_refs (__mach_task_self (), *reply,
+                                          MACH_PORT_RIGHT_RECEIVE, -1);
+              assert_perror (err);
+            }
 
-	    /* The system call return value register now contains
-	       MACH_RCV_INTERRUPTED; when mach_msg resumes, it will retry the
-	       call.  Since we have just destroyed the receive right, the
-	       retry will fail with MACH_RCV_INVALID_NAME.  Instead, just
-	       change the return value here to EINTR so mach_msg will not
-	       retry and the EINTR error code will propagate up.  */
-	    state->basic.SYSRETURN = EINTR;
-	    *state_change = 1;
-	  }
-	else if (reply)
-	  rcv_port = *reply;
+          /* The system call return value register now contains
+             MACH_RCV_INTERRUPTED; when mach_msg resumes, it will retry the
+             call.  Since we have just destroyed the receive right, the retry
+             will fail with MACH_RCV_INVALID_NAME.  Instead, just change the
+             return value here to EINTR so mach_msg will not retry and the
+             EINTR error code will propagate up.  */
+          state->basic.SYSRETURN = EINTR;
+          *state_change = 1;
+	}
+      else if (reply)
+        rcv_port = *reply;
 
-	/* All threads whose RPCs were interrupted by the interrupt_operation
-	   call above will retry their RPCs unless we clear SS->intr_port.
-	   So we clear it for the thread taking a signal when SA_RESTART is
-	   clear, so that its call returns EINTR.  */
-	if (! signo || !(_hurd_sigstate_actions (ss) [signo].sa_flags & SA_RESTART))
-	  ss->intr_port = MACH_PORT_NULL;
-      }
+      /* All threads whose RPCs were interrupted by the interrupt_operation
+         call above will retry their RPCs unless we clear SS->intr_port.  So we
+         clear it for the thread taking a signal when SA_RESTART is clear, so
+         that its call returns EINTR.  */
+      if (! signo || !(_hurd_sigstate_actions (ss) [signo].sa_flags & SA_RESTART))
+        ss->intr_port = MACH_PORT_NULL;
+    }
 
   return rcv_port;
 }
@@ -897,7 +917,7 @@ post_signal (struct hurd_sigstate *ss,
 			       | __sigmask (SIGTSTP))))
     {
       /* If we would ordinarily stop for a job control signal, but we are
-	 orphaned so noone would ever notice and continue us again, we just
+	 orphaned so no one would ever notice and continue us again, we just
 	 quietly die, alone and in the dark.  */
       detail->code = signo;
       signo = SIGKILL;
@@ -1506,10 +1526,11 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
       assert_perror (err);
 
       stacksize = __vm_page_size * 8; /* Small stack for signal thread.  */
-      err = __mach_setup_thread (__mach_task_self (), _hurd_msgport_thread,
-				 _hurd_msgport_receive,
-				 (vm_address_t *) &__hurd_sigthread_stack_base,
-				 &stacksize);
+      err = __mach_setup_thread_call (__mach_task_self (),
+				      _hurd_msgport_thread,
+				      _hurd_msgport_receive,
+				      (vm_address_t *) &__hurd_sigthread_stack_base,
+				      &stacksize);
       assert_perror (err);
       err = __mach_setup_tls (_hurd_msgport_thread);
       assert_perror (err);

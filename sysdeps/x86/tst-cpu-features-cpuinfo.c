@@ -96,6 +96,11 @@ check_proc (const char *proc_name, const char *search_name, int flag,
 	      CPU_FEATURE_USABLE (name), \
 	      "HAS_CPU_FEATURE (" #name ")")
 
+#define CHECK_PROC_ACTIVE(str, name) \
+  check_proc (#str, " "#str" ", CPU_FEATURE_USABLE (name), \
+	      CPU_FEATURE_USABLE (name), \
+	      "CPU_FEATURE_USABLE (" #name ")")
+
 static int
 do_test (int argc, char **argv)
 {
@@ -217,7 +222,10 @@ do_test (int argc, char **argv)
   fails += CHECK_PROC (pku, PKU);
   fails += CHECK_PROC (popcnt, POPCNT);
   fails += CHECK_PROC (3dnowprefetch, PREFETCHW);
+#if 0
+  /* NB: /proc/cpuinfo doesn't report this feature.  */
   fails += CHECK_PROC (prefetchwt1, PREFETCHWT1);
+#endif
 #if 0
   /* NB: /proc/cpuinfo doesn't report this feature.  */
   fails += CHECK_PROC (ptwrite, PTWRITE);
@@ -294,6 +302,8 @@ do_test (int argc, char **argv)
   fails += CHECK_PROC (xsaveopt, XSAVEOPT);
   fails += CHECK_PROC (xsaves, XSAVES);
   fails += CHECK_PROC (xtpr, XTPRUPDCTRL);
+
+  fails += CHECK_PROC_ACTIVE (fsgsbase, FSGSBASE);
 
   printf ("%d differences between /proc/cpuinfo and glibc code.\n", fails);
 

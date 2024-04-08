@@ -22,6 +22,7 @@
 #include <hurd.h>
 #include <hurd/fd.h>
 #include <hurd/io_request.h>
+#include <mach_rpc.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -69,19 +70,8 @@ _hurd_select (int nfds,
   sigset_t oset;
   struct hurd_sigstate *ss = NULL;
 
-  union typeword		/* Use this to avoid unkosher casts.  */
-    {
-      mach_msg_type_t type;
-      uint32_t word;
-    };
-  assert (sizeof (union typeword) == sizeof (mach_msg_type_t));
-  assert (sizeof (uint32_t) == sizeof (mach_msg_type_t));
-
   if (nfds < 0 || (pollfds == NULL && nfds > FD_SETSIZE))
-    {
-      errno = EINVAL;
-      return -1;
-    }
+    return __hurd_fail (EINVAL);
 
 #define IO_SELECT_REPLY_MSGID (21012 + 100) /* XXX */
 #define IO_SELECT_TIMEOUT_REPLY_MSGID (21031 + 100) /* XXX */
@@ -93,10 +83,7 @@ _hurd_select (int nfds,
       struct timespec now;
 
       if (timeout->tv_sec < 0 || ! valid_nanoseconds (timeout->tv_nsec))
-	{
-	  errno = EINVAL;
-	  return -1;
-	}
+	return __hurd_fail (EINVAL);
 
       err = __clock_gettime (CLOCK_REALTIME, &now);
       if (err)
@@ -288,8 +275,7 @@ _hurd_select (int nfds,
 	{
 	  if (sigmask)
 	    __sigprocmask (SIG_SETMASK, &oset, NULL);
-	  errno = EBADF;
-	  return -1;
+	  return __hurd_fail (EBADF);
 	}
 
       if (nfds > _hurd_dtablesize)
@@ -404,15 +390,15 @@ _hurd_select (int nfds,
 	  struct
 	    {
 	      mach_msg_header_t head;
-	      union typeword err_type;
+	      mach_msg_type_t err_type;
 	      error_t err;
 	    } error;
 	  struct
 	    {
 	      mach_msg_header_t head;
-	      union typeword err_type;
+	      mach_msg_type_t err_type;
 	      error_t err;
-	      union typeword result_type;
+	      mach_msg_type_t result_type;
 	      int result;
 	    } success;
 #endif
@@ -443,9 +429,14 @@ _hurd_select (int nfds,
 
 	  /* We got a message.  Decode it.  */
 #ifdef MACH_MSG_TYPE_BIT
-	  const union typeword inttype =
-	  { type:
-	    { MACH_MSG_TYPE_INTEGER_T, sizeof (integer_t) * 8, 1, 1, 0, 0 }
+	  static const mach_msg_type_t inttype = {
+	    .msgt_name = MACH_MSG_TYPE_INTEGER_T,
+	    .msgt_size = sizeof (integer_t) * 8,
+	    .msgt_number = 1,
+	    .msgt_inline = TRUE,
+	    .msgt_longform = FALSE,
+	    .msgt_deallocate = FALSE,
+	    .msgt_unused = 0
 	  };
 #endif
 
@@ -462,7 +453,7 @@ _hurd_select (int nfds,
 	      && msg.head.msgh_size >= sizeof msg.error
 	      && !(msg.head.msgh_bits & MACH_MSGH_BITS_COMPLEX)
 #ifdef MACH_MSG_TYPE_BIT
-	      && msg.error.err_type.word == inttype.word
+	      && !BAD_TYPECHECK (&msg.error.err_type, &inttype)
 #endif
 	      )
 	    {
@@ -480,7 +471,7 @@ _hurd_select (int nfds,
 		 occurred.  */
 	      if (msg.error.err
 #ifdef MACH_MSG_TYPE_BIT
-		  || msg.success.result_type.word != inttype.word
+		  || BAD_TYPECHECK (&msg.success.result_type, &inttype)
 #endif
 		  || msg.head.msgh_size != sizeof msg.success)
 		{

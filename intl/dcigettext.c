@@ -1420,11 +1420,7 @@ plural_lookup (struct loaded_l10nfile *domain, unsigned long int n,
   p = translation;
   while (index-- > 0)
     {
-#ifdef _LIBC
-      p = __rawmemchr (p, '\0');
-#else
       p = strchr (p, '\0');
-#endif
       /* And skip over the NUL byte.  */
       p++;
 
@@ -1671,7 +1667,8 @@ mempcpy (void *dest, const void *src, size_t n)
 #ifdef _LIBC
 /* If we want to free all resources we have to do some work at
    program's end.  */
-libc_freeres_fn (free_mem)
+void
+__intl_freemem (void)
 {
   void *old;
 

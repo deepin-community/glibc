@@ -31,10 +31,7 @@ __readdir64_r (DIR *dirp, struct dirent64 *entry, struct dirent64 **result)
   error_t err = 0;
 
   if (dirp == NULL)
-    {
-      errno = EINVAL;
-      return errno;
-    }
+    return __hurd_fail (EINVAL), EINVAL;
 
   __libc_lock_lock (dirp->__lock);
 
@@ -45,11 +42,12 @@ __readdir64_r (DIR *dirp, struct dirent64 *entry, struct dirent64 **result)
 	  /* We've emptied out our buffer.  Refill it.  */
 
 	  char *data = dirp->__data;
+	  mach_msg_type_number_t data_size = dirp->__size;
 	  int nentries;
 
 	  if (err = HURD_FD_PORT_USE (dirp->__fd,
 				      __dir_readdir (port,
-						     &data, &dirp->__size,
+						     &data, &data_size,
 						     dirp->__entry_ptr,
 						     -1, 0, &nentries)))
 	    {
@@ -58,6 +56,7 @@ __readdir64_r (DIR *dirp, struct dirent64 *entry, struct dirent64 **result)
 	      break;
 	    }
 
+	  dirp->__size = data_size;
 	  /* DATA now corresponds to entry index DIRP->__entry_ptr.  */
 	  dirp->__entry_data = dirp->__entry_ptr;
 

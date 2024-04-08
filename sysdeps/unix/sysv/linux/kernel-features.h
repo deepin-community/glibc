@@ -84,6 +84,8 @@
 #define __ASSUME_SOCKETPAIR_SYSCALL	1
 #define __ASSUME_LISTEN_SYSCALL		1
 #define __ASSUME_SHUTDOWN_SYSCALL	1
+#define __ASSUME_GETSOCKNAME_SYSCALL	1
+#define __ASSUME_GETPEERNAME_SYSCALL	1
 
 /* Support for SysV IPC through wired syscalls.  All supported architectures
    either support ipc syscall and/or all the ipc correspondent syscalls.  */
@@ -239,6 +241,15 @@
 # define __ASSUME_FUTEX_LOCK_PI2 1
 #else
 # define __ASSUME_FUTEX_LOCK_PI2 0
+#endif
+
+/* The clone3 system call was introduced across on most architectures in
+   Linux 5.3.  Not all ports implements it, so it should be used along
+   HAVE_CLONE3_WRAPPER define.  */
+#if __LINUX_KERNEL_VERSION >= 0x050300
+# define __ASSUME_CLONE3 1
+#else
+# define __ASSUME_CLONE3 0
 #endif
 
 #endif /* kernel-features.h */

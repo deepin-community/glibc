@@ -142,7 +142,7 @@ __sha256_crypt_r (const char *key, const char *salt, char *buffer, int buflen)
   salt_len = MIN (strcspn (salt, "$"), SALT_LEN_MAX);
   key_len = strlen (key);
 
-  if ((key - (char *) 0) % __alignof__ (uint32_t) != 0)
+  if (((uintptr_t) key) % __alignof__ (uint32_t) != 0)
     {
       char *tmp;
 
@@ -157,20 +157,20 @@ __sha256_crypt_r (const char *key, const char *salt, char *buffer, int buflen)
 
       key = copied_key =
 	memcpy (tmp + __alignof__ (uint32_t)
-		- (tmp - (char *) 0) % __alignof__ (uint32_t),
+		- ((uintptr_t) tmp) % __alignof__ (uint32_t),
 		key, key_len);
-      assert ((key - (char *) 0) % __alignof__ (uint32_t) == 0);
+      assert (((uintptr_t) key) % __alignof__ (uint32_t) == 0);
     }
 
-  if ((salt - (char *) 0) % __alignof__ (uint32_t) != 0)
+  if (((uintptr_t) salt) % __alignof__ (uint32_t) != 0)
     {
       char *tmp = (char *) alloca (salt_len + __alignof__ (uint32_t));
       alloca_used += salt_len + __alignof__ (uint32_t);
       salt = copied_salt =
 	memcpy (tmp + __alignof__ (uint32_t)
-		- (tmp - (char *) 0) % __alignof__ (uint32_t),
+		- ((uintptr_t) tmp) % __alignof__ (uint32_t),
 		salt, salt_len);
-      assert ((salt - (char *) 0) % __alignof__ (uint32_t) == 0);
+      assert (((uintptr_t) salt) % __alignof__ (uint32_t) == 0);
     }
 
 #ifdef USE_NSS
@@ -386,10 +386,7 @@ __sha256_crypt_r (const char *key, const char *salt, char *buffer, int buflen)
   return buffer;
 }
 
-#ifndef _LIBC
-# define libc_freeres_ptr(decl) decl
-#endif
-libc_freeres_ptr (static char *buffer);
+static char *buffer;
 
 /* This entry point is equivalent to the `crypt' function in Unix
    libcs.  */
@@ -418,11 +415,9 @@ __sha256_crypt (const char *key, const char *salt)
   return __sha256_crypt_r (key, salt, buffer, buflen);
 }
 
-#ifndef _LIBC
 static void
 __attribute__ ((__destructor__))
 free_mem (void)
 {
   free (buffer);
 }
-#endif

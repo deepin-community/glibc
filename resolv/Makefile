@@ -88,6 +88,7 @@ routines += gai_sigqueue
 tests += \
   tst-bug18665 \
   tst-bug18665-tcp \
+  tst-inet_addr-binary \
   tst-ns_name \
   tst-ns_name_compress \
   tst-ns_name_pton \
@@ -185,7 +186,7 @@ libresolv-routines := \
   resolv-deprecated \
   # libresolv-routines
 
-ifeq ($(have-GLIBC_2.34)$(have-thread-library),yesyes)
+ifeq ($(have-anl-library),yes)
 # Empty compatibility library for old binaries.
 extra-libs += libanl
 libanl-routines += libanl-compat

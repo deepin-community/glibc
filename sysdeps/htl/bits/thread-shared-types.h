@@ -21,9 +21,9 @@
 
 #include <bits/pthreadtypes-arch.h>
 #include <bits/types/struct___pthread_once.h>
+#include <bits/types/__thrd_t.h>
 
 typedef int __tss_t;
-typedef int __thrd_t;
 
 typedef union
 {

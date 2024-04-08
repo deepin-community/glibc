@@ -117,6 +117,8 @@ struct test_case_struct
     { 0, NULL, "$((010+0x10))", 0, 1, { "24" }, IFS },
     { 0, NULL, "$((-010+0x10))", 0, 1, { "8" }, IFS },
     { 0, NULL, "$((-0x10+010))", 0, 1, { "-8" }, IFS },
+    { 0, NULL, "$(())", 0, 1, { "0", }, IFS },
+    { 0, NULL, "$[]", 0, 1, { "0", }, IFS },
 
     /* Advanced parameter expansion */
     { 0, NULL, "${var:-bar}", 0, 1, { "bar", }, IFS },
@@ -138,6 +140,8 @@ struct test_case_struct
     { 0, "12345", "${#var}", 0, 1, { "5", }, IFS },
     { 0, NULL, "${var:-'}'}", 0, 1, { "}", }, IFS },
     { 0, NULL, "${var-}", 0, 0, { NULL }, IFS },
+    { 0, NULL, "${a?}", 0, 0, { NULL, }, IFS },
+    { 0, NULL, "${#a=}", 0, 1, { "0", }, IFS },
 
     { 0, "pizza", "${var#${var}}", 0, 0, { NULL }, IFS },
     { 0, "pepperoni", "${var%$(echo oni)}", 0, 1, { "pepper" }, IFS },
@@ -249,7 +253,11 @@ do_test (int argc, char *argv[])
   cwd = getcwd (NULL, 0);
 
   /* Set up arena for pathname expansion */
-  tmpnam (tmpdir);
+  if (!tmpnam (tmpdir))
+    {
+      printf ("Failed to create a temporary directory with a unique name: %m");
+      return 1;
+    }
   xmkdir (tmpdir, S_IRWXU);
   TEST_VERIFY_EXIT (chdir (tmpdir) == 0);
 
@@ -328,7 +336,7 @@ do_test (int argc, char *argv[])
   if (cwd == NULL)
     cwd = "..";
 
-  chdir (cwd);
+  xchdir (cwd);
   rmdir (tmpdir);
 
   return 0;

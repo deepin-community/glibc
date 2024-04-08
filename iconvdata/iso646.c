@@ -21,7 +21,7 @@
    zillions of ISO 646 derivates and supporting them all in a separate
    module is overkill since these coded character sets are hardly ever
    used anymore (except ANSI_X3.4-1968 == ASCII, which is compatible
-   with ISO 8859-1).  The European variants are superceded by the
+   with ISO 8859-1).  The European variants are superseded by the
    various ISO 8859-? standards and the Asian variants are embedded in
    larger character sets.  Therefore this implementation is simply
    here to make it possible to do the conversion if it is necessary.
@@ -133,7 +133,7 @@ gconv_init (struct __gconv_step *step)
 
   enum variant var = 0;
   for (const char *name = names; *name != '\0';
-       name = __rawmemchr (name, '\0') + 1)
+       name = strchr (name, '\0') + 1)
     {
       if (__strcasecmp (step->__from_name, name) == 0)
 	{

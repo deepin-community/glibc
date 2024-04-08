@@ -1,5 +1,5 @@
---- a/sysdeps/unix/sysv/linux/x86/readelflib.c
-+++ b/sysdeps/unix/sysv/linux/x86/readelflib.c
+--- a/sysdeps/x86/readelflib.c
++++ b/sysdeps/x86/readelflib.c
 @@ -63,8 +63,11 @@
  #ifndef __x86_64__
  failed:

@@ -1,23 +1,17 @@
-GIT update of https://sourceware.org/git/glibc.git/release/2.37/master from glibc-2.37
+GIT update of https://sourceware.org/git/glibc.git/release/2.38/master from glibc-2.38
 
 diff --git a/NEWS b/NEWS
-index ad5196a5f1..b351537a78 100644
+index 872bc8907b..6768c2da6f 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,55 @@ See the end for copying conditions.
+@@ -4,6 +4,49 @@ See the end for copying conditions.
+ 
  Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
- 
-+Version 2.37.1
++
++Version 2.38.1
 +
 +Security related changes:
-+
-+  CVE-2023-25139: When the printf family of functions is called with a
-+  format specifier that uses an <apostrophe> (enable grouping) and a
-+  minimum width specifier, the resulting output could be larger than
-+  reasonably expected by a caller that computed a tight bound on the
-+  buffer size.  The resulting larger than expected output could result
-+  in a buffer overflow in the printf family of functions.
 +
 +  CVE-2023-4527: If the system is configured in no-aaaa mode via
 +  /etc/resolv.conf, getaddrinfo is called for the AF_UNSPEC address
@@ -41,505 +35,67 @@ index ad5196a5f1..b351537a78 100644
 +
 +The following bugs are resolved with this release:
 +
-+  [20975] Deferred cancellation triggers in __check_pf and looses lock leading to deadlock
-+  [27576] gmon: improve mcount overflow handling
-+  [29444] gmon: Fix allocated buffer overflow (bug 29444)
-+  [30053] time: strftime %s returns -1 after 2038 on 32 bits systems
-+  [30101] gmon: fix memory corruption issues
-+  [30125] dynamic-link: [regression, bisected] glibc-2.37 creates new
-+    symlink for libraries without soname
-+  [30151] gshadow: Matching sgetsgent, sgetsgent_r ERANGE handling
-+  [30163] posix: Fix system blocks SIGCHLD erroneously
-+  [30305] x86_64: Fix asm constraints in feraiseexcept
-+  [30428] AMD cache size computation does not work for some CPUs, hypervisors
-+  [30477] libc: [RISCV]: time64 does not work on riscv32
-+  [30515] _dl_find_object incorrectly returns 1 during early startup
-+  [30785] Always call destructors in reverse constructor order
-+  [30842] Stack read overflow in getaddrinfo in no-aaaa mode (CVE-2023-4527)
-+
- Version 2.37
- 
- Major new features:
-@@ -105,6 +154,8 @@ The following bugs are resolved with this release:
-     coincides with offset change
-   [30039] stdio: __vsprintf_internal does not handle unspecified buffer
-     length in fortify mode
++  [29039] Corrupt DTV after reuse of a TLS module ID following dlclose with unused TLS
++  [30694] The iconv program no longer tells the user which given encoding name was wrong
++  [30709] nscd fails to build with cleanup handler if built with -fexceptions
++  [30721] x86_64: Fix build with --disable-multiarch
++  [30723] posix_memalign repeatedly scans long bin lists
++  [30745] Slight bug in cache info codes for x86
++  [30789] sem_open will fail on multithreaded scenarios when semaphore
++    file doesn't exist (O_CREAT)
 +  [30804] F_GETLK, F_SETLK, and F_SETLKW value change for powerpc64 with
 +    -D_FILE_OFFSET_BITS=64
++  [30842] Stack read overflow in getaddrinfo in no-aaaa mode (CVE-2023-4527)
++  [30843] potential use-after-free in getcanonname (CVE-2023-4806)
++  [31183] Wide stream buffer size reduced MB_LEN_MAX bytes after bug 17522 fix
++  [31184] FAIL: elf/tst-tlsgap
++  [31185] Incorrect thread point access in _dl_tlsdesc_undefweak and _dl_tlsdesc_dynamic
++
  
- Version 2.36
+ Version 2.38
  
 diff --git a/elf/Makefile b/elf/Makefile
-index b509b3eada..0d19964d42 100644
+index c00e2ccfc5..1a05a6aaca 100644
 --- a/elf/Makefile
 +++ b/elf/Makefile
-@@ -626,6 +626,8 @@ ifeq ($(run-built-tests),yes)
- tests-special += \
-   $(objpfx)noload-mem.out \
-   $(objpfx)tst-ldconfig-X.out \
-+  $(objpfx)tst-ldconfig-p.out \
-+  $(objpfx)tst-ldconfig-soname.out \
-   $(objpfx)tst-leaks1-mem.out \
-   $(objpfx)tst-rtld-help.out \
-   # tests-special
-@@ -858,6 +860,8 @@ modules-names += \
-   tst-initorderb2 \
-   tst-latepthreadmod \
-   tst-ldconfig-ld-mod \
-+  tst-ldconfig-soname-lib-with-soname \
-+  tst-ldconfig-soname-lib-without-soname \
-   tst-main1mod \
-   tst-nodelete2mod \
-   tst-nodelete-dlclose-dso \
-@@ -2396,6 +2400,22 @@ $(objpfx)tst-ldconfig-X.out : tst-ldconfig-X.sh $(objpfx)ldconfig
- 		 '$(run-program-env)' > $@; \
- 	$(evaluate-test)
- 
-+$(objpfx)tst-ldconfig-p.out : tst-ldconfig-p.sh $(objpfx)ldconfig
-+	$(SHELL) $< '$(common-objpfx)' '$(test-wrapper-env)' \
-+		 '$(run-program-env)' > $@; \
-+	$(evaluate-test)
+@@ -459,6 +459,7 @@ tests += \
+   tst-tls21 \
+   tst-tlsalign \
+   tst-tlsalign-extern \
++  tst-tlsgap \
+   tst-unique1 \
+   tst-unique2 \
+   tst-unwind-ctor \
+@@ -883,6 +884,9 @@ modules-names += \
+   tst-tls20mod-bad \
+   tst-tls21mod \
+   tst-tlsalign-lib \
++  tst-tlsgap-mod0 \
++  tst-tlsgap-mod1 \
++  tst-tlsgap-mod2 \
+   tst-tlsmod1 \
+   tst-tlsmod10 \
+   tst-tlsmod11 \
+@@ -3009,3 +3013,14 @@ LDFLAGS-tst-dlclose-lazy-mod1.so = -Wl,-z,lazy,--no-as-needed
+ $(objpfx)tst-dlclose-lazy-mod1.so: $(objpfx)tst-dlclose-lazy-mod2.so
+ $(objpfx)tst-dlclose-lazy.out: \
+   $(objpfx)tst-dlclose-lazy-mod1.so $(objpfx)tst-dlclose-lazy-mod2.so
 +
-+LDFLAGS-tst-ldconfig-soname-lib-with-soname.so = \
-+  -Wl,-soname,libtst-ldconfig-soname-lib-with-soname.so.1
-+
-+$(objpfx)tst-ldconfig-soname.out : tst-ldconfig-soname.sh \
-+  $(objpfx)ldconfig \
-+  $(objpfx)tst-ldconfig-soname-lib-with-soname.so \
-+  $(objpfx)tst-ldconfig-soname-lib-without-soname.so
-+	$(SHELL) $< '$(common-objpfx)' '$(test-wrapper-env)' \
-+		 '$(run-program-env)' > $@; \
-+	$(evaluate-test)
-+
- # Test static linking of all the libraries we can possibly link
- # together.  Note that in some configurations this may be less than the
- # complete list of libraries we build but we try to maxmimize this list.
-diff --git a/elf/dl-audit.c b/elf/dl-audit.c
-index 00e794aa26..81543f85fe 100644
---- a/elf/dl-audit.c
-+++ b/elf/dl-audit.c
-@@ -176,8 +176,8 @@ rtld_hidden_def (_dl_audit_symbind_alt)
- 
- void
- _dl_audit_symbind (struct link_map *l, struct reloc_result *reloc_result,
--		   const ElfW(Sym) *defsym, DL_FIXUP_VALUE_TYPE *value,
--		   lookup_t result)
-+		   const void *reloc, const ElfW(Sym) *defsym,
-+		   DL_FIXUP_VALUE_TYPE *value, lookup_t result, bool lazy)
- {
-   bool for_jmp_slot = reloc_result == NULL;
- 
-@@ -259,7 +259,7 @@ _dl_audit_symbind (struct link_map *l, struct reloc_result *reloc_result,
-     }
- 
-   if (flags & LA_SYMB_ALTVALUE)
--    DL_FIXUP_BINDNOW_RELOC (value, new_value, sym.st_value);
-+    DL_FIXUP_BINDNOW_RELOC (l, reloc, value, new_value, sym.st_value, lazy);
- }
- 
- void
-diff --git a/elf/dl-close.c b/elf/dl-close.c
-index b887a44888..ea62d0e601 100644
---- a/elf/dl-close.c
-+++ b/elf/dl-close.c
-@@ -138,30 +138,31 @@ _dl_close_worker (struct link_map *map, bool force)
- 
-   bool any_tls = false;
-   const unsigned int nloaded = ns->_ns_nloaded;
--  struct link_map *maps[nloaded];
- 
--  /* Run over the list and assign indexes to the link maps and enter
--     them into the MAPS array.  */
-+  /* Run over the list and assign indexes to the link maps.  */
-   int idx = 0;
-   for (struct link_map *l = ns->_ns_loaded; l != NULL; l = l->l_next)
-     {
-       l->l_map_used = 0;
-       l->l_map_done = 0;
-       l->l_idx = idx;
--      maps[idx] = l;
-       ++idx;
-     }
-   assert (idx == nloaded);
- 
--  /* Keep track of the lowest index link map we have covered already.  */
--  int done_index = -1;
--  while (++done_index < nloaded)
-+  /* Keep marking link maps until no new link maps are found.  */
-+  for (struct link_map *l = ns->_ns_loaded; l != NULL; )
-     {
--      struct link_map *l = maps[done_index];
-+      /* next is reset to earlier link maps for remarking.  */
-+      struct link_map *next = l->l_next;
-+      int next_idx = l->l_idx + 1; /* next->l_idx, but covers next == NULL.  */
- 
-       if (l->l_map_done)
--	/* Already handled.  */
--	continue;
-+	{
-+	  /* Already handled.  */
-+	  l = next;
-+	  continue;
-+	}
- 
-       /* Check whether this object is still used.  */
-       if (l->l_type == lt_loaded
-@@ -171,7 +172,10 @@ _dl_close_worker (struct link_map *map, bool force)
- 	     acquire is sufficient and correct.  */
- 	  && atomic_load_acquire (&l->l_tls_dtor_count) == 0
- 	  && !l->l_map_used)
--	continue;
-+	{
-+	  l = next;
-+	  continue;
-+	}
- 
-       /* We need this object and we handle it now.  */
-       l->l_map_used = 1;
-@@ -198,8 +202,11 @@ _dl_close_worker (struct link_map *map, bool force)
- 			 already processed it, then we need to go back
- 			 and process again from that point forward to
- 			 ensure we keep all of its dependencies also.  */
--		      if ((*lp)->l_idx - 1 < done_index)
--			done_index = (*lp)->l_idx - 1;
-+		      if ((*lp)->l_idx < next_idx)
-+			{
-+			  next = *lp;
-+			  next_idx = next->l_idx;
-+			}
- 		    }
- 		}
- 
-@@ -219,44 +226,65 @@ _dl_close_worker (struct link_map *map, bool force)
- 		if (!jmap->l_map_used)
- 		  {
- 		    jmap->l_map_used = 1;
--		    if (jmap->l_idx - 1 < done_index)
--		      done_index = jmap->l_idx - 1;
-+		    if (jmap->l_idx < next_idx)
-+		      {
-+			  next = jmap;
-+			  next_idx = next->l_idx;
-+		      }
- 		  }
- 	      }
- 	  }
--    }
- 
--  /* Sort the entries.  We can skip looking for the binary itself which is
--     at the front of the search list for the main namespace.  */
--  _dl_sort_maps (maps, nloaded, (nsid == LM_ID_BASE), true);
-+      l = next;
-+    }
- 
--  /* Call all termination functions at once.  */
--  bool unload_any = false;
--  bool scope_mem_left = false;
--  unsigned int unload_global = 0;
--  unsigned int first_loaded = ~0;
--  for (unsigned int i = 0; i < nloaded; ++i)
-+  /* Call the destructors in reverse constructor order, and remove the
-+     closed link maps from the list.  */
-+  for (struct link_map **init_called_head = &_dl_init_called_list;
-+       *init_called_head != NULL; )
-     {
--      struct link_map *imap = maps[i];
-+      struct link_map *imap = *init_called_head;
- 
--      /* All elements must be in the same namespace.  */
--      assert (imap->l_ns == nsid);
--
--      if (!imap->l_map_used)
-+      /* _dl_init_called_list is global, to produce a global odering.
-+	 Ignore the other namespaces (and link maps that are still used).  */
-+      if (imap->l_ns != nsid || imap->l_map_used)
-+	init_called_head = &imap->l_init_called_next;
-+      else
- 	{
- 	  assert (imap->l_type == lt_loaded && !imap->l_nodelete_active);
- 
--	  /* Call its termination function.  Do not do it for
--	     half-cooked objects.  Temporarily disable exception
--	     handling, so that errors are fatal.  */
--	  if (imap->l_init_called)
-+	  /* _dl_init_called_list is updated at the same time as
-+	     l_init_called.  */
-+	  assert (imap->l_init_called);
-+
-+	  if (imap->l_info[DT_FINI_ARRAY] != NULL
-+	      || imap->l_info[DT_FINI] != NULL)
- 	    _dl_catch_exception (NULL, _dl_call_fini, imap);
- 
- #ifdef SHARED
- 	  /* Auditing checkpoint: we remove an object.  */
- 	  _dl_audit_objclose (imap);
- #endif
-+	  /* Unlink this link map.  */
-+	  *init_called_head = imap->l_init_called_next;
-+	}
-+    }
-+
-+
-+  bool unload_any = false;
-+  bool scope_mem_left = false;
-+  unsigned int unload_global = 0;
-+
-+  /* For skipping un-unloadable link maps in the second loop.  */
-+  struct link_map *first_loaded = ns->_ns_loaded;
- 
-+  /* Iterate over the namespace to find objects to unload.  Some
-+     unloadable objects may not be on _dl_init_called_list due to
-+     dlopen failure.  */
-+  for (struct link_map *imap = first_loaded; imap != NULL; imap = imap->l_next)
-+    {
-+      if (!imap->l_map_used)
-+	{
- 	  /* This object must not be used anymore.  */
- 	  imap->l_removed = 1;
- 
-@@ -267,8 +295,8 @@ _dl_close_worker (struct link_map *map, bool force)
- 	    ++unload_global;
- 
- 	  /* Remember where the first dynamically loaded object is.  */
--	  if (i < first_loaded)
--	    first_loaded = i;
-+	  if (first_loaded == NULL)
-+	      first_loaded = imap;
- 	}
-       /* Else imap->l_map_used.  */
-       else if (imap->l_type == lt_loaded)
-@@ -404,8 +432,8 @@ _dl_close_worker (struct link_map *map, bool force)
- 	    imap->l_loader = NULL;
- 
- 	  /* Remember where the first dynamically loaded object is.  */
--	  if (i < first_loaded)
--	    first_loaded = i;
-+	  if (first_loaded == NULL)
-+	      first_loaded = imap;
- 	}
-     }
- 
-@@ -476,10 +504,11 @@ _dl_close_worker (struct link_map *map, bool force)
- 
-   /* Check each element of the search list to see if all references to
-      it are gone.  */
--  for (unsigned int i = first_loaded; i < nloaded; ++i)
-+  for (struct link_map *imap = first_loaded; imap != NULL; )
-     {
--      struct link_map *imap = maps[i];
--      if (!imap->l_map_used)
-+      if (imap->l_map_used)
-+	imap = imap->l_next;
-+      else
- 	{
- 	  assert (imap->l_type == lt_loaded);
- 
-@@ -690,7 +719,9 @@ _dl_close_worker (struct link_map *map, bool force)
- 	  if (imap == GL(dl_initfirst))
- 	    GL(dl_initfirst) = NULL;
- 
-+	  struct link_map *next = imap->l_next;
- 	  free (imap);
-+	  imap = next;
- 	}
-     }
- 
-diff --git a/elf/dl-find_object.c b/elf/dl-find_object.c
-index 2ced2f3510..934e77e11f 100644
---- a/elf/dl-find_object.c
-+++ b/elf/dl-find_object.c
-@@ -46,7 +46,7 @@ _dl_find_object_slow (void *pc, struct dl_find_object *result)
-           struct dl_find_object_internal internal;
-           _dl_find_object_from_map (l, &internal);
-           _dl_find_object_to_external (&internal, result);
--          return 1;
-+          return 0;
-         }
- 
-   /* Object not found.  */
-diff --git a/elf/dl-fini.c b/elf/dl-fini.c
-index 9acb64f47c..e201d36651 100644
---- a/elf/dl-fini.c
-+++ b/elf/dl-fini.c
-@@ -24,116 +24,68 @@
- void
- _dl_fini (void)
- {
--  /* Lots of fun ahead.  We have to call the destructors for all still
--     loaded objects, in all namespaces.  The problem is that the ELF
--     specification now demands that dependencies between the modules
--     are taken into account.  I.e., the destructor for a module is
--     called before the ones for any of its dependencies.
--
--     To make things more complicated, we cannot simply use the reverse
--     order of the constructors.  Since the user might have loaded objects
--     using `dlopen' there are possibly several other modules with its
--     dependencies to be taken into account.  Therefore we have to start
--     determining the order of the modules once again from the beginning.  */
--
--  /* We run the destructors of the main namespaces last.  As for the
--     other namespaces, we pick run the destructors in them in reverse
--     order of the namespace ID.  */
--#ifdef SHARED
--  int do_audit = 0;
-- again:
--#endif
--  for (Lmid_t ns = GL(dl_nns) - 1; ns >= 0; --ns)
--    {
--      /* Protect against concurrent loads and unloads.  */
--      __rtld_lock_lock_recursive (GL(dl_load_lock));
--
--      unsigned int nloaded = GL(dl_ns)[ns]._ns_nloaded;
--      /* No need to do anything for empty namespaces or those used for
--	 auditing DSOs.  */
--      if (nloaded == 0
--#ifdef SHARED
--	  || GL(dl_ns)[ns]._ns_loaded->l_auditing != do_audit
--#endif
--	  )
--	__rtld_lock_unlock_recursive (GL(dl_load_lock));
--      else
--	{
-+  /* Call destructors strictly in the reverse order of constructors.
-+     This causes fewer surprises than some arbitrary reordering based
-+     on new (relocation) dependencies.  None of the objects are
-+     unmapped, so applications can deal with this if their DSOs remain
-+     in a consistent state after destructors have run.  */
-+
-+  /* Protect against concurrent loads and unloads.  */
-+  __rtld_lock_lock_recursive (GL(dl_load_lock));
-+
-+  /* Ignore objects which are opened during shutdown.  */
-+  struct link_map *local_init_called_list = _dl_init_called_list;
-+
-+  for (struct link_map *l = local_init_called_list; l != NULL;
-+       l = l->l_init_called_next)
-+      /* Bump l_direct_opencount of all objects so that they
-+	 are not dlclose()ed from underneath us.  */
-+      ++l->l_direct_opencount;
-+
-+  /* After this point, everything linked from local_init_called_list
-+     cannot be unloaded because of the reference counter update.  */
-+  __rtld_lock_unlock_recursive (GL(dl_load_lock));
-+
-+  /* Perform two passes: One for non-audit modules, one for audit
-+     modules.  This way, audit modules receive unload notifications
-+     for non-audit objects, and the destructors for audit modules
-+     still run.  */
- #ifdef SHARED
--	  _dl_audit_activity_nsid (ns, LA_ACT_DELETE);
-+  int last_pass = GLRO(dl_naudit) > 0;
-+  Lmid_t last_ns = -1;
-+  for (int do_audit = 0; do_audit <= last_pass; ++do_audit)
- #endif
--
--	  /* Now we can allocate an array to hold all the pointers and
--	     copy the pointers in.  */
--	  struct link_map *maps[nloaded];
--
--	  unsigned int i;
--	  struct link_map *l;
--	  assert (nloaded != 0 || GL(dl_ns)[ns]._ns_loaded == NULL);
--	  for (l = GL(dl_ns)[ns]._ns_loaded, i = 0; l != NULL; l = l->l_next)
--	    /* Do not handle ld.so in secondary namespaces.  */
--	    if (l == l->l_real)
--	      {
--		assert (i < nloaded);
--
--		maps[i] = l;
--		l->l_idx = i;
--		++i;
--
--		/* Bump l_direct_opencount of all objects so that they
--		   are not dlclose()ed from underneath us.  */
--		++l->l_direct_opencount;
--	      }
--	  assert (ns != LM_ID_BASE || i == nloaded);
--	  assert (ns == LM_ID_BASE || i == nloaded || i == nloaded - 1);
--	  unsigned int nmaps = i;
--
--	  /* Now we have to do the sorting.  We can skip looking for the
--	     binary itself which is at the front of the search list for
--	     the main namespace.  */
--	  _dl_sort_maps (maps, nmaps, (ns == LM_ID_BASE), true);
--
--	  /* We do not rely on the linked list of loaded object anymore
--	     from this point on.  We have our own list here (maps).  The
--	     various members of this list cannot vanish since the open
--	     count is too high and will be decremented in this loop.  So
--	     we release the lock so that some code which might be called
--	     from a destructor can directly or indirectly access the
--	     lock.  */
--	  __rtld_lock_unlock_recursive (GL(dl_load_lock));
--
--	  /* 'maps' now contains the objects in the right order.  Now
--	     call the destructors.  We have to process this array from
--	     the front.  */
--	  for (i = 0; i < nmaps; ++i)
--	    {
--	      struct link_map *l = maps[i];
--
--	      if (l->l_init_called)
--		{
--		  _dl_call_fini (l);
-+    for (struct link_map *l = local_init_called_list; l != NULL;
-+	 l = l->l_init_called_next)
-+      {
- #ifdef SHARED
--		  /* Auditing checkpoint: another object closed.  */
--		  _dl_audit_objclose (l);
-+	if (GL(dl_ns)[l->l_ns]._ns_loaded->l_auditing != do_audit)
-+	  continue;
-+
-+	/* Avoid back-to-back calls of _dl_audit_activity_nsid for the
-+	   same namespace.  */
-+	if (last_ns != l->l_ns)
-+	  {
-+	    if (last_ns >= 0)
-+	      _dl_audit_activity_nsid (last_ns, LA_ACT_CONSISTENT);
-+	    _dl_audit_activity_nsid (l->l_ns, LA_ACT_DELETE);
-+	    last_ns = l->l_ns;
-+	  }
- #endif
--		}
- 
--	      /* Correct the previous increment.  */
--	      --l->l_direct_opencount;
--	    }
-+	/* There is no need to re-enable exceptions because _dl_fini
-+	   is not called from a context where exceptions are caught.  */
-+	_dl_call_fini (l);
- 
- #ifdef SHARED
--	  _dl_audit_activity_nsid (ns, LA_ACT_CONSISTENT);
-+	/* Auditing checkpoint: another object closed.  */
-+	_dl_audit_objclose (l);
- #endif
--	}
--    }
-+      }
- 
- #ifdef SHARED
--  if (! do_audit && GLRO(dl_naudit) > 0)
--    {
--      do_audit = 1;
--      goto again;
--    }
-+  if (last_ns >= 0)
-+    _dl_audit_activity_nsid (last_ns, LA_ACT_CONSISTENT);
- 
-   if (__glibc_unlikely (GLRO(dl_debug_mask) & DL_DEBUG_STATISTICS))
-     _dl_debug_printf ("\nruntime linker statistics:\n"
++$(objpfx)tst-tlsgap: $(shared-thread-library)
++$(objpfx)tst-tlsgap.out: \
++  $(objpfx)tst-tlsgap-mod0.so \
++  $(objpfx)tst-tlsgap-mod1.so \
++  $(objpfx)tst-tlsgap-mod2.so
++ifeq (yes,$(have-mtls-dialect-gnu2))
++CFLAGS-tst-tlsgap-mod0.c += -mtls-dialect=gnu2
++CFLAGS-tst-tlsgap-mod1.c += -mtls-dialect=gnu2
++CFLAGS-tst-tlsgap-mod2.c += -mtls-dialect=gnu2
++endif
 diff --git a/elf/dl-init.c b/elf/dl-init.c
-index 5b0732590f..ffd05b7806 100644
+index 5b0732590f..ba4d2fdc85 100644
 --- a/elf/dl-init.c
 +++ b/elf/dl-init.c
-@@ -21,14 +21,19 @@
- #include <ldsodefs.h>
- #include <elf-initfini.h>
- 
-+struct link_map *_dl_init_called_list;
- 
+@@ -25,10 +25,14 @@
  static void
  call_init (struct link_map *l, int argc, char **argv, char **env)
  {
@@ -556,98 +112,23 @@ index 5b0732590f..ffd05b7806 100644
  
    if (l->l_init_called)
      /* This object is all done.  */
-@@ -38,6 +43,21 @@ call_init (struct link_map *l, int argc, char **argv, char **env)
-      dependency.  */
-   l->l_init_called = 1;
+diff --git a/elf/dl-tls.c b/elf/dl-tls.c
+index 99b83ca696..1f6f820819 100644
+--- a/elf/dl-tls.c
++++ b/elf/dl-tls.c
+@@ -154,6 +154,7 @@ _dl_assign_tls_modid (struct link_map *l)
+ 	      {
+ 		/* Mark the entry as used, so any dependency see it.  */
+ 		atomic_store_relaxed (&runp->slotinfo[result - disp].map, l);
++		atomic_store_relaxed (&runp->slotinfo[result - disp].gen, 0);
+ 		break;
+ 	      }
  
-+  /* Help an already-running dlclose: The just-loaded object must not
-+     be removed during the current pass.  (No effect if no dlclose in
-+     progress.)  */
-+  l->l_map_used = 1;
-+
-+  /* Record execution before starting any initializers.  This way, if
-+     the initializers themselves call dlopen, their ELF destructors
-+     will eventually be run before this object is destructed, matching
-+     that their ELF constructors have run before this object was
-+     constructed.  _dl_fini uses this list for audit callbacks, so
-+     register objects on the list even if they do not have a
-+     constructor.  */
-+  l->l_init_called_next = _dl_init_called_list;
-+  _dl_init_called_list = l;
-+
-   /* Check for object which constructors we do not run here.  */
-   if (__builtin_expect (l->l_name[0], 'a') == '\0'
-       && l->l_type == lt_executable)
-diff --git a/elf/dl-load.c b/elf/dl-load.c
-index fcb39a78d4..7e2ae6b71b 100644
---- a/elf/dl-load.c
-+++ b/elf/dl-load.c
-@@ -1263,7 +1263,7 @@ _dl_map_object_from_fd (const char *name, const char *origname, int fd,
- 
-     /* Now process the load commands and map segments into memory.
-        This is responsible for filling in:
--       l_map_start, l_map_end, l_addr, l_contiguous, l_text_end, l_phdr
-+       l_map_start, l_map_end, l_addr, l_contiguous, l_phdr
-      */
-     errstring = _dl_map_segments (l, fd, header, type, loadcmds, nloadcmds,
- 				  maplength, has_holes, loader);
-diff --git a/elf/dl-load.h b/elf/dl-load.h
-index ecf6910c68..1d5207694b 100644
---- a/elf/dl-load.h
-+++ b/elf/dl-load.h
-@@ -83,14 +83,11 @@ struct loadcmd
- 
- /* This is a subroutine of _dl_map_segments.  It should be called for each
-    load command, some time after L->l_addr has been set correctly.  It is
--   responsible for setting up the l_text_end and l_phdr fields.  */
-+   responsible for setting the l_phdr fields  */
- static __always_inline void
- _dl_postprocess_loadcmd (struct link_map *l, const ElfW(Ehdr) *header,
-                          const struct loadcmd *c)
- {
--  if (c->prot & PROT_EXEC)
--    l->l_text_end = l->l_addr + c->mapend;
--
-   if (l->l_phdr == 0
-       && c->mapoff <= header->e_phoff
-       && ((size_t) (c->mapend - c->mapstart + c->mapoff)
-@@ -103,7 +100,7 @@ _dl_postprocess_loadcmd (struct link_map *l, const ElfW(Ehdr) *header,
- 
- /* This is a subroutine of _dl_map_object_from_fd.  It is responsible
-    for filling in several fields in *L: l_map_start, l_map_end, l_addr,
--   l_contiguous, l_text_end, l_phdr.  On successful return, all the
-+   l_contiguous, l_phdr.  On successful return, all the
-    segments are mapped (or copied, or whatever) from the file into their
-    final places in the address space, with the correct page permissions,
-    and any bss-like regions already zeroed.  It returns a null pointer
-diff --git a/elf/dl-runtime.c b/elf/dl-runtime.c
-index d35a725415..32a8bfcf74 100644
---- a/elf/dl-runtime.c
-+++ b/elf/dl-runtime.c
-@@ -139,7 +139,7 @@ _dl_fixup (
-       unsigned int init = atomic_load_acquire (&reloc_result->init);
-       if (init == 0)
- 	{
--	  _dl_audit_symbind (l, reloc_result, sym, &value, result);
-+	  _dl_audit_symbind (l, reloc_result, reloc, sym, &value, result, true);
- 
- 	  /* Store the result for later runs.  */
- 	  if (__glibc_likely (! GLRO(dl_bind_not)))
-@@ -314,7 +314,8 @@ _dl_profile_fixup (
- 	 auditing libraries the possibility to change the value and
- 	 tell us whether further auditing is wanted.  */
-       if (defsym != NULL && GLRO(dl_naudit) > 0)
--	_dl_audit_symbind (l, reloc_result, defsym, &value, result);
-+	_dl_audit_symbind (l, reloc_result, reloc, defsym, &value, result,
-+			   true);
- #endif
- 
-       /* Store the result for later runs.  */
 diff --git a/elf/dl-tunables.c b/elf/dl-tunables.c
-index 327b9eb52f..985b69c180 100644
+index 62b7332d95..cae67efa0a 100644
 --- a/elf/dl-tunables.c
 +++ b/elf/dl-tunables.c
-@@ -187,11 +187,7 @@ parse_tunables (char *tunestr, char *valstring)
+@@ -180,11 +180,7 @@ parse_tunables (char *tunestr, char *valstring)
        /* If we reach the end of the string before getting a valid name-value
  	 pair, bail out.  */
        if (p[len] == '\0')
@@ -660,7 +141,7 @@ index 327b9eb52f..985b69c180 100644
  
        /* We did not find a valid name-value pair before encountering the
  	 colon.  */
-@@ -251,9 +247,16 @@ parse_tunables (char *tunestr, char *valstring)
+@@ -244,9 +240,16 @@ parse_tunables (char *tunestr, char *valstring)
  	    }
  	}
  
@@ -677,374 +158,25 @@ index 327b9eb52f..985b69c180 100644
 +  if (__libc_enable_secure)
 +    tunestr[off] = '\0';
  }
- #endif
  
-diff --git a/elf/dl-tunables.list b/elf/dl-tunables.list
-index a685f5cdbc..695ba7192e 100644
---- a/elf/dl-tunables.list
-+++ b/elf/dl-tunables.list
-@@ -170,4 +170,17 @@ glibc {
-       default: 2
-     }
-   }
-+
-+  gmon {
-+    minarcs {
-+      type: INT_32
-+      minval: 50
-+      default: 50
-+    }
-+    maxarcs {
-+      type: INT_32
-+      minval: 50
-+      default: 1048576
-+    }
-+  }
- }
-diff --git a/elf/do-rel.h b/elf/do-rel.h
-index 7e1cc4452a..ea973b155a 100644
---- a/elf/do-rel.h
-+++ b/elf/do-rel.h
-@@ -154,7 +154,8 @@ elf_dynamic_do_Rel (struct link_map *map, struct r_scope_elem *scope[],
- 		    = RESOLVE_MAP (map, scope, &sym, rversion,
- 				   ELF_MACHINE_JMP_SLOT);
- 		  if (sym != NULL)
--		    _dl_audit_symbind (map, NULL, sym, r_addr_arg, sym_map);
-+		    _dl_audit_symbind (map, NULL, r, sym, r_addr_arg, sym_map,
-+				       false);
- 		}
- #endif
- 	    }
-@@ -200,7 +201,8 @@ elf_dynamic_do_Rel (struct link_map *map, struct r_scope_elem *scope[],
- 				   (struct r_found_version *) NULL,
- 				   ELF_MACHINE_JMP_SLOT);
- 		  if (sym != NULL)
--		    _dl_audit_symbind (map, NULL , sym,r_addr_arg, sym_map);
-+		    _dl_audit_symbind (map, NULL, r, sym,r_addr_arg, sym_map,
-+				       false);
- 		}
- # endif
- 	    }
-diff --git a/elf/dso-sort-tests-1.def b/elf/dso-sort-tests-1.def
-index 4bf9052db1..61dc54f8ae 100644
---- a/elf/dso-sort-tests-1.def
-+++ b/elf/dso-sort-tests-1.def
-@@ -53,21 +53,14 @@ tst-dso-ordering10: {}->a->b->c;soname({})=c
- output: b>a>{}<a<b
+ /* Enable the glibc.malloc.check tunable in SETUID/SETGID programs only when
+diff --git a/elf/readelflib.c b/elf/readelflib.c
+index f5b8c80e38..64f1d662a9 100644
+--- a/elf/readelflib.c
++++ b/elf/readelflib.c
+@@ -107,6 +107,7 @@ process_elf_file (const char *file_name, const char *lib, int *flag,
+ 	case PT_INTERP:
+ 	  program_interpreter = (char *) (file_contents + segment->p_offset);
+ 	  check_ptr (program_interpreter);
++	  break;
  
- # Complex example from Bugzilla #15311, under-linked and with circular
--# relocation(dynamic) dependencies. While this is technically unspecified, the
--# presumed reasonable practical behavior is for the destructor order to respect
--# the static DT_NEEDED links (here this means the a->b->c->d order).
--# The older dynamic_sort=1 algorithm does not achieve this, while the DFS-based
--# dynamic_sort=2 algorithm does, although it is still arguable whether going
--# beyond spec to do this is the right thing to do.
--# The below expected outputs are what the two algorithms currently produce
--# respectively, for regression testing purposes.
-+# relocation(dynamic) dependencies. For both sorting algorithms, the
-+# destruction order is the reverse of the construction order, and
-+# relocation dependencies are not taken into account.
- tst-bz15311: {+a;+e;+f;+g;+d;%d;-d;-g;-f;-e;-a};a->b->c->d;d=>[ba];c=>a;b=>e=>a;c=>f=>b;d=>g=>c
--output(glibc.rtld.dynamic_sort=1): {+a[d>c>b>a>];+e[e>];+f[f>];+g[g>];+d[];%d(b(e(a()))a()g(c(a()f(b(e(a()))))));-d[];-g[];-f[];-e[];-a[<a<c<d<g<f<b<e];}
--output(glibc.rtld.dynamic_sort=2): {+a[d>c>b>a>];+e[e>];+f[f>];+g[g>];+d[];%d(b(e(a()))a()g(c(a()f(b(e(a()))))));-d[];-g[];-f[];-e[];-a[<g<f<a<b<c<d<e];}
-+output: {+a[d>c>b>a>];+e[e>];+f[f>];+g[g>];+d[];%d(b(e(a()))a()g(c(a()f(b(e(a()))))));-d[];-g[];-f[];-e[];-a[<g<f<e<a<b<c<d];}
- 
- # Test that even in the presence of dependency loops involving dlopen'ed
- # object, that object is initialized last (and not unloaded prematurely).
--# Final destructor order is indeterminate due to the cycle.
-+# Final destructor order is the opposite of constructor order.
- tst-bz28937: {+a;+b;-b;+c;%c};a->a1;a->a2;a2->a;b->b1;c->a1;c=>a1
--output(glibc.rtld.dynamic_sort=1): {+a[a2>a1>a>];+b[b1>b>];-b[<b<b1];+c[c>];%c(a1());}<a<a2<c<a1
--output(glibc.rtld.dynamic_sort=2): {+a[a2>a1>a>];+b[b1>b>];-b[<b<b1];+c[c>];%c(a1());}<a2<a<c<a1
-+output: {+a[a2>a1>a>];+b[b1>b>];-b[<b<b1];+c[c>];%c(a1());}<c<a<a1<a2
-diff --git a/elf/elf.h b/elf/elf.h
-index b6a75c13a8..4bc0e4299c 100644
---- a/elf/elf.h
-+++ b/elf/elf.h
-@@ -4159,6 +4159,46 @@ enum
- #define R_LARCH_GNU_VTINHERIT  57
- #define R_LARCH_GNU_VTENTRY  58
- 
-+/* reserved 59-63 */
-+
-+#define R_LARCH_B16 64
-+#define R_LARCH_B21 65
-+#define R_LARCH_B26 66
-+#define R_LARCH_ABS_HI20 67
-+#define R_LARCH_ABS_LO12 68
-+#define R_LARCH_ABS64_LO20 69
-+#define R_LARCH_ABS64_HI12 70
-+#define R_LARCH_PCALA_HI20 71
-+#define R_LARCH_PCALA_LO12 72
-+#define R_LARCH_PCALA64_LO20 73
-+#define R_LARCH_PCALA64_HI12 74
-+#define R_LARCH_GOT_PC_HI20 75
-+#define R_LARCH_GOT_PC_LO12 76
-+#define R_LARCH_GOT64_PC_LO20 77
-+#define R_LARCH_GOT64_PC_HI12 78
-+#define R_LARCH_GOT_HI20 79
-+#define R_LARCH_GOT_LO12 80
-+#define R_LARCH_GOT64_LO20 81
-+#define R_LARCH_GOT64_HI12 82
-+#define R_LARCH_TLS_LE_HI20 83
-+#define R_LARCH_TLS_LE_LO12 84
-+#define R_LARCH_TLS_LE64_LO20 85
-+#define R_LARCH_TLS_LE64_HI12 86
-+#define R_LARCH_TLS_IE_PC_HI20 87
-+#define R_LARCH_TLS_IE_PC_LO12 88
-+#define R_LARCH_TLS_IE64_PC_LO20 89
-+#define R_LARCH_TLS_IE64_PC_HI12 90
-+#define R_LARCH_TLS_IE_HI20 91
-+#define R_LARCH_TLS_IE_LO12 92
-+#define R_LARCH_TLS_IE64_LO20 93
-+#define R_LARCH_TLS_IE64_HI12 94
-+#define R_LARCH_TLS_LD_PC_HI20 95
-+#define R_LARCH_TLS_LD_HI20 96
-+#define R_LARCH_TLS_GD_PC_HI20 97
-+#define R_LARCH_TLS_GD_HI20 98
-+#define R_LARCH_32_PCREL 99
-+#define R_LARCH_RELAX 100
-+
- /* ARC specific declarations.  */
- 
- /* Processor specific flags for the Ehdr e_flags field.  */
-diff --git a/elf/ldconfig.c b/elf/ldconfig.c
-index 166dccb528..5b1c9139f6 100644
---- a/elf/ldconfig.c
-+++ b/elf/ldconfig.c
-@@ -616,7 +616,7 @@ manual_link (char *library)
-       goto out;
-     }
-   if (soname == NULL)
--    soname = implicit_soname (libname, flag);
-+    soname = xstrdup (libname);
-   create_links (real_path, path, libname, soname);
-   free (soname);
- out:
-@@ -849,7 +849,7 @@ search_dir (const struct dir_entry *entry)
- 	}
- 
-       if (soname == NULL)
--	soname = implicit_soname (direntry->d_name, flag);
-+	soname = xstrdup (direntry->d_name);
- 
-       /* A link may just point to itself.  */
-       if (is_link)
-diff --git a/elf/readlib.c b/elf/readlib.c
-index c5c3591eef..bc13d9acc6 100644
---- a/elf/readlib.c
-+++ b/elf/readlib.c
-@@ -166,24 +166,5 @@ process_file (const char *real_file_name, const char *file_name,
-   return ret;
- }
- 
--/* Returns made up soname if lib doesn't have explicit DT_SONAME.  */
--
--char *
--implicit_soname (const char *lib, int flag)
--{
--  char *soname = xstrdup (lib);
--
--  /* Aout files don't have a soname, just return the name
--     including the major number.  */
--  char *major = strstr (soname, ".so.");
--  if (major)
--    {
--      char *dot = strstr (major + 4, ".");
--      if (dot)
--	*dot = '\0';
--    }
--  return soname;
--}
--
- /* Get architecture specific version of process_elf_file.  */
- #include <readelflib.c>
-diff --git a/elf/rtld.c b/elf/rtld.c
-index b8467f37cf..2658d47cc4 100644
---- a/elf/rtld.c
-+++ b/elf/rtld.c
-@@ -480,7 +480,6 @@ _dl_start_final (void *arg, struct dl_start_final_info *info)
-   GL(dl_rtld_map).l_real = &GL(dl_rtld_map);
-   GL(dl_rtld_map).l_map_start = (ElfW(Addr)) &__ehdr_start;
-   GL(dl_rtld_map).l_map_end = (ElfW(Addr)) _end;
--  GL(dl_rtld_map).l_text_end = (ElfW(Addr)) _etext;
-   /* Copy the TLS related data if necessary.  */
- #ifndef DONT_USE_BOOTSTRAP_MAP
- # if NO_TLS_OFFSET != 0
-@@ -1122,7 +1121,6 @@ rtld_setup_main_map (struct link_map *main_map)
-   bool has_interp = false;
- 
-   main_map->l_map_end = 0;
--  main_map->l_text_end = 0;
-   /* Perhaps the executable has no PT_LOAD header entries at all.  */
-   main_map->l_map_start = ~0;
-   /* And it was opened directly.  */
-@@ -1214,8 +1212,6 @@ rtld_setup_main_map (struct link_map *main_map)
- 	  allocend = main_map->l_addr + ph->p_vaddr + ph->p_memsz;
- 	  if (main_map->l_map_end < allocend)
- 	    main_map->l_map_end = allocend;
--	  if ((ph->p_flags & PF_X) && allocend > main_map->l_text_end)
--	    main_map->l_text_end = allocend;
- 
- 	  /* The next expected address is the page following this load
- 	     segment.  */
-@@ -1275,8 +1271,6 @@ rtld_setup_main_map (struct link_map *main_map)
-       = (char *) main_map->l_tls_initimage + main_map->l_addr;
-   if (! main_map->l_map_end)
-     main_map->l_map_end = ~0;
--  if (! main_map->l_text_end)
--    main_map->l_text_end = ~0;
-   if (! GL(dl_rtld_map).l_libname && GL(dl_rtld_map).l_name)
-     {
-       /* We were invoked directly, so the program might not have a
-diff --git a/elf/setup-vdso.h b/elf/setup-vdso.h
-index 0079842d1f..d92b12a7aa 100644
---- a/elf/setup-vdso.h
-+++ b/elf/setup-vdso.h
-@@ -51,9 +51,6 @@ setup_vdso (struct link_map *main_map __attribute__ ((unused)),
- 		l->l_addr = ph->p_vaddr;
- 	      if (ph->p_vaddr + ph->p_memsz >= l->l_map_end)
- 		l->l_map_end = ph->p_vaddr + ph->p_memsz;
--	      if ((ph->p_flags & PF_X)
--		  && ph->p_vaddr + ph->p_memsz >= l->l_text_end)
--		l->l_text_end = ph->p_vaddr + ph->p_memsz;
- 	    }
- 	  else
- 	    /* There must be no TLS segment.  */
-@@ -62,7 +59,6 @@ setup_vdso (struct link_map *main_map __attribute__ ((unused)),
-       l->l_map_start = (ElfW(Addr)) GLRO(dl_sysinfo_dso);
-       l->l_addr = l->l_map_start - l->l_addr;
-       l->l_map_end += l->l_addr;
--      l->l_text_end += l->l_addr;
-       l->l_ld = (void *) ((ElfW(Addr)) l->l_ld + l->l_addr);
-       elf_get_dynamic_info (l, false, false);
-       _dl_setup_hash (l);
-diff --git a/elf/tst-audit23.c b/elf/tst-audit23.c
-index bb7d66c385..503699c36a 100644
---- a/elf/tst-audit23.c
-+++ b/elf/tst-audit23.c
-@@ -98,6 +98,8 @@ do_test (int argc, char *argv[])
-     char *lname;
-     uintptr_t laddr;
-     Lmid_t lmid;
-+    uintptr_t cookie;
-+    uintptr_t namespace;
-     bool closed;
-   } objs[max_objs] = { [0 ... max_objs-1] = { .closed = false } };
-   size_t nobjs = 0;
-@@ -117,6 +119,9 @@ do_test (int argc, char *argv[])
-   size_t buffer_length = 0;
-   while (xgetline (&buffer, &buffer_length, out))
-     {
-+      *strchrnul (buffer, '\n') = '\0';
-+      printf ("info: subprocess output: %s\n", buffer);
-+
-       if (startswith (buffer, "la_activity: "))
- 	{
- 	  uintptr_t cookie;
-@@ -125,29 +130,26 @@ do_test (int argc, char *argv[])
- 			  &cookie);
- 	  TEST_COMPARE (r, 2);
- 
--	  /* The cookie identifies the object at the head of the link map,
--	     so we only add a new namespace if it changes from the previous
--	     one.  This works since dlmopen is the last in the test body.  */
--	  if (cookie != last_act_cookie && last_act_cookie != -1)
--	    TEST_COMPARE (last_act, LA_ACT_CONSISTENT);
--
- 	  if (this_act == LA_ACT_ADD && acts[nacts] != cookie)
- 	    {
-+	      /* The cookie identifies the object at the head of the
-+		 link map, so we only add a new namespace if it
-+		 changes from the previous one.  This works since
-+		 dlmopen is the last in the test body.  */
-+	      if (cookie != last_act_cookie && last_act_cookie != -1)
-+		TEST_COMPARE (last_act, LA_ACT_CONSISTENT);
-+
- 	      acts[nacts++] = cookie;
- 	      last_act_cookie = cookie;
- 	    }
--	  /* The LA_ACT_DELETE is called in the reverse order of LA_ACT_ADD
--	     at program termination (if the tests adds a dlclose or a library
--	     with extra dependencies this will need to be adapted).  */
-+	  /* LA_ACT_DELETE is called multiple times for each
-+	     namespace, depending on destruction order.  */
- 	  else if (this_act == LA_ACT_DELETE)
--	    {
--	      last_act_cookie = acts[--nacts];
--	      TEST_COMPARE (acts[nacts], cookie);
--	      acts[nacts] = 0;
--	    }
-+	    last_act_cookie = cookie;
- 	  else if (this_act == LA_ACT_CONSISTENT)
- 	    {
- 	      TEST_COMPARE (cookie, last_act_cookie);
-+	      last_act_cookie = -1;
- 
- 	      /* LA_ACT_DELETE must always be followed by an la_objclose.  */
- 	      if (last_act == LA_ACT_DELETE)
-@@ -179,6 +181,8 @@ do_test (int argc, char *argv[])
- 	  objs[nobjs].lname = lname;
- 	  objs[nobjs].laddr = laddr;
- 	  objs[nobjs].lmid = lmid;
-+	  objs[nobjs].cookie = cookie;
-+	  objs[nobjs].namespace = last_act_cookie;
- 	  objs[nobjs].closed = false;
- 	  nobjs++;
- 
-@@ -201,6 +205,12 @@ do_test (int argc, char *argv[])
- 	      if (strcmp (lname, objs[i].lname) == 0 && lmid == objs[i].lmid)
- 		{
- 		  TEST_COMPARE (objs[i].closed, false);
-+		  TEST_COMPARE (objs[i].cookie, cookie);
-+		  if (objs[i].namespace == -1)
-+		    /* No LA_ACT_ADD before the first la_objopen call.  */
-+		    TEST_COMPARE (acts[0], last_act_cookie);
-+		  else
-+		    TEST_COMPARE (objs[i].namespace, last_act_cookie);
- 		  objs[i].closed = true;
- 		  break;
- 		}
-@@ -209,11 +219,7 @@ do_test (int argc, char *argv[])
- 	  /* la_objclose should be called after la_activity(LA_ACT_DELETE) for
- 	     the closed object's namespace.  */
- 	  TEST_COMPARE (last_act, LA_ACT_DELETE);
--	  if (!seen_first_objclose)
--	    {
--	      TEST_COMPARE (last_act_cookie, cookie);
--	      seen_first_objclose = true;
--	    }
-+	  seen_first_objclose = true;
- 	}
-     }
- 
-diff --git a/elf/tst-auditmod28.c b/elf/tst-auditmod28.c
-index f6ab991398..f6dfbbe202 100644
---- a/elf/tst-auditmod28.c
-+++ b/elf/tst-auditmod28.c
-@@ -71,6 +71,17 @@ la_version (unsigned int current)
-   TEST_VERIFY (dladdr1 (&_exit, &info, &extra_info, RTLD_DL_LINKMAP) != 0);
-   TEST_VERIFY (extra_info == handle);
- 
-+  /* Check _dl_find_object.  */
-+  struct dl_find_object dlfo;
-+  TEST_COMPARE (_dl_find_object (__builtin_return_address (0), &dlfo), 0);
-+  /* "ld.so" is seen with --enable-hardcoded-path-in-tests.  */
-+  if (strcmp (basename (dlfo.dlfo_link_map->l_name), "ld.so") != 0)
-+    TEST_COMPARE_STRING (basename (dlfo.dlfo_link_map->l_name), LD_SO);
-+  TEST_COMPARE (_dl_find_object (dlsym (handle, "environ"), &dlfo), 0);
-+  TEST_COMPARE_STRING (basename (dlfo.dlfo_link_map->l_name), LIBC_SO);
-+  TEST_COMPARE (_dl_find_object ((void *) 1, &dlfo), -1);
-+  TEST_COMPARE (_dl_find_object ((void *) -1, &dlfo), -1);
-+
-   /* Verify that dlmopen creates a new namespace.  */
-   void *dlmopen_handle = xdlmopen (LM_ID_NEWLM, LIBC_SO, RTLD_NOW);
-   TEST_VERIFY (dlmopen_handle != handle);
+ 	case PT_GNU_PROPERTY:
+ 	  /* The NT_GNU_PROPERTY_TYPE_0 note must be aligned to 4 bytes
 diff --git a/elf/tst-env-setuid-tunables.c b/elf/tst-env-setuid-tunables.c
-index 807b426012..1f5e7f4f06 100644
+index 7dfb0e073a..f0b92c97e7 100644
 --- a/elf/tst-env-setuid-tunables.c
 +++ b/elf/tst-env-setuid-tunables.c
-@@ -52,6 +52,8 @@ const char *teststrings[] =
+@@ -50,6 +50,8 @@ const char *teststrings[] =
    "glibc.malloc.perturb=0x800:not_valid.malloc.check=2:glibc.malloc.mmap_threshold=4096",
    "glibc.not_valid.check=2:glibc.malloc.mmap_threshold=4096",
    "not_valid.malloc.check=2:glibc.malloc.mmap_threshold=4096",
@@ -1053,7 +185,7 @@ index 807b426012..1f5e7f4f06 100644
    "glibc.malloc.garbage=2:glibc.maoc.mmap_threshold=4096:glibc.malloc.check=2",
    "glibc.malloc.check=4:glibc.malloc.garbage=2:glibc.maoc.mmap_threshold=4096",
    ":glibc.malloc.garbage=2:glibc.malloc.check=1",
-@@ -70,6 +72,8 @@ const char *resultstrings[] =
+@@ -68,6 +70,8 @@ const char *resultstrings[] =
    "glibc.malloc.perturb=0x800:glibc.malloc.mmap_threshold=4096",
    "glibc.malloc.mmap_threshold=4096",
    "glibc.malloc.mmap_threshold=4096",
@@ -1062,10 +194,10 @@ index 807b426012..1f5e7f4f06 100644
    "",
    "",
    "",
-@@ -84,11 +88,18 @@ test_child (int off)
+@@ -81,11 +85,18 @@ test_child (int off)
+ {
    const char *val = getenv ("GLIBC_TUNABLES");
  
- #if HAVE_TUNABLES
 +  printf ("    [%d] GLIBC_TUNABLES is %s\n", off, val);
 +  fflush (stdout);
    if (val != NULL && strcmp (val, resultstrings[off]) == 0)
@@ -1081,8 +213,8 @@ index 807b426012..1f5e7f4f06 100644
 +  fflush (stdout);
  
    return 1;
- #else
-@@ -117,21 +128,26 @@ do_test (int argc, char **argv)
+ }
+@@ -106,21 +117,26 @@ do_test (int argc, char **argv)
        if (ret != 0)
  	exit (1);
  
@@ -1114,7 +246,7 @@ index 807b426012..1f5e7f4f06 100644
  
  	  int status = support_capture_subprogram_self_sgid (buf);
  
-@@ -139,9 +155,14 @@ do_test (int argc, char **argv)
+@@ -128,9 +144,14 @@ do_test (int argc, char **argv)
  	  if (WEXITSTATUS (status) == EXIT_UNSUPPORTED)
  	    return EXIT_UNSUPPORTED;
  
@@ -1131,552 +263,37 @@ index 807b426012..1f5e7f4f06 100644
      }
  }
  
-diff --git a/elf/tst-ldconfig-p.sh b/elf/tst-ldconfig-p.sh
+diff --git a/elf/tst-tlsgap-mod0.c b/elf/tst-tlsgap-mod0.c
 new file mode 100644
-index 0000000000..ec937bf4ec
+index 0000000000..1478b0beac
 --- /dev/null
-+++ b/elf/tst-ldconfig-p.sh
-@@ -0,0 +1,77 @@
-+#!/bin/sh
-+# Test that ldconfig -p prints something useful.
-+# Copyright (C) 2023 Free Software Foundation, Inc.
-+# This file is part of the GNU C Library.
-+
-+# The GNU C Library is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU Lesser General Public
-+# License as published by the Free Software Foundation; either
-+# version 2.1 of the License, or (at your option) any later version.
-+
-+# The GNU C Library is distributed in the hope that it will be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+# Lesser General Public License for more details.
-+
-+# You should have received a copy of the GNU Lesser General Public
-+# License along with the GNU C Library; if not, see
-+# <https://www.gnu.org/licenses/>.
-+
-+# Check that the newly built ldconfig -p can dump the system
-+# /etc/ld.so.cache file.  This should always work even if the ABIs are
-+# not compatible, except in a cross-endian build (that presumably
-+# involves emulation when running ldconfig).
-+
-+common_objpfx=$1
-+test_wrapper_env=$2
-+run_program_env=$3
-+
-+if ! test -r /etc/ld.so.cache; then
-+    echo "warning: /etc/ld.so.cache does not exist, test skipped"
-+    exit 77
-+fi
-+
-+testout="${common_objpfx}elf/tst-ldconfig-p.out"
-+# Truncate file.
-+: > "$testout"
-+
-+${test_wrapper_env} \
-+${run_program_env} \
-+${common_objpfx}elf/ldconfig -p \
-+  $testroot/lib >>"$testout" 2>>"$testout"
-+status=$?
-+echo "info: ldconfig exit status: $status" >>"$testout"
-+
-+errors=0
-+case $status in
-+    (0)
-+	if head -n 1 "$testout" | \
-+		grep -q "libs found in cache \`/etc/ld.so.cache'\$" ; then
-+	    echo "info: initial string found" >>"$testout"
-+	else
-+	    echo "error: initial string not found" >>"$testout"
-+	    errors=1
-+	fi
-+	if grep -q "^	libc\.so\..* => " "$testout"; then
-+	    echo "info: libc.so.* string found" >>"$testout"
-+	else
-+	    echo "error: libc.so.* string not found" >>"$testout"
-+	    errors=1
-+	fi
-+	;;
-+    (1)
-+	if head -n 1 "$testout" | \
-+		grep -q ": Cache file has wrong endianness\.$" ; then
-+	    echo "info: cache file has wrong endianess" >> "$testout"
-+	else
-+	    echo "error: unexpected ldconfig error message" >> "$testout"
-+	    errors=1
-+	fi
-+	;;
-+    (*)
-+	echo "error: unexpected exit status" >> "$testout"
-+	errors=1
-+	;;
-+esac
-+
-+exit $errors
-diff --git a/elf/tst-ldconfig-soname-lib-with-soname.c b/elf/tst-ldconfig-soname-lib-with-soname.c
++++ b/elf/tst-tlsgap-mod0.c
+@@ -0,0 +1,2 @@
++int __thread tls0;
++int *f0(void) { return &tls0; }
+diff --git a/elf/tst-tlsgap-mod1.c b/elf/tst-tlsgap-mod1.c
 new file mode 100644
-index 0000000000..d1ab56ad58
+index 0000000000..b10fc3702c
 --- /dev/null
-+++ b/elf/tst-ldconfig-soname-lib-with-soname.c
-@@ -0,0 +1 @@
-+/* This file intentionally left blank */
-diff --git a/elf/tst-ldconfig-soname-lib-without-soname.c b/elf/tst-ldconfig-soname-lib-without-soname.c
++++ b/elf/tst-tlsgap-mod1.c
+@@ -0,0 +1,2 @@
++int __thread tls1[100]; /* Size > glibc.rtld.optional_static_tls / 2.  */
++int *f1(void) { return tls1; }
+diff --git a/elf/tst-tlsgap-mod2.c b/elf/tst-tlsgap-mod2.c
 new file mode 100644
-index 0000000000..d1ab56ad58
+index 0000000000..166c27d7f3
 --- /dev/null
-+++ b/elf/tst-ldconfig-soname-lib-without-soname.c
-@@ -0,0 +1 @@
-+/* This file intentionally left blank */
-diff --git a/elf/tst-ldconfig-soname.sh b/elf/tst-ldconfig-soname.sh
++++ b/elf/tst-tlsgap-mod2.c
+@@ -0,0 +1,2 @@
++int __thread tls2;
++int *f2(void) { return &tls2; }
+diff --git a/elf/tst-tlsgap.c b/elf/tst-tlsgap.c
 new file mode 100644
-index 0000000000..406f526dbf
+index 0000000000..4932885076
 --- /dev/null
-+++ b/elf/tst-ldconfig-soname.sh
-@@ -0,0 +1,49 @@
-+#!/bin/sh
-+# Test that ldconfig creates symlinks according to the library's soname
-+# (and in particular, does not create symlinks for libraries without a soname)
-+# Copyright (C) 2000-2023 Free Software Foundation, Inc.
-+# Copyright The GNU Toolchain Authors.
-+# This file is part of the GNU C Library.
-+
-+# The GNU C Library is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU Lesser General Public
-+# License as published by the Free Software Foundation; either
-+# version 2.1 of the License, or (at your option) any later version.
-+
-+# The GNU C Library is distributed in the hope that it will be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+# Lesser General Public License for more details.
-+
-+# You should have received a copy of the GNU Lesser General Public
-+# License along with the GNU C Library; if not, see
-+# <https://www.gnu.org/licenses/>.
-+
-+set -ex
-+
-+common_objpfx=$1
-+test_wrapper_env=$2
-+run_program_env=$3
-+
-+testroot="${common_objpfx}elf/bug30125-test-directory"
-+cleanup () {
-+    rm -rf "$testroot"
-+}
-+trap cleanup 0
-+
-+rm -rf "$testroot"
-+mkdir -p $testroot/lib
-+cp "${common_objpfx}elf/tst-ldconfig-soname-lib-with-soname.so" \
-+    $testroot/lib/libtst-ldconfig-soname-lib-with-soname.so.1.2.3
-+cp "${common_objpfx}elf/tst-ldconfig-soname-lib-without-soname.so" \
-+    $testroot/lib/libtst-ldconfig-soname-lib-without-soname.so.1.2.3
-+
-+${test_wrapper_env} \
-+${run_program_env} \
-+${common_objpfx}elf/ldconfig -vn $testroot/lib
-+
-+LINKS=$(cd $testroot/lib && find . -type l)
-+if [ "$LINKS" != "./libtst-ldconfig-soname-lib-with-soname.so.1" ]; then
-+    echo "error: $0 - extra symlinks found"
-+    exit 1
-+fi
-diff --git a/gmon/Makefile b/gmon/Makefile
-index 4dd5adb80b..fbe2b0ba5c 100644
---- a/gmon/Makefile
-+++ b/gmon/Makefile
-@@ -1,4 +1,5 @@
- # Copyright (C) 1995-2023 Free Software Foundation, Inc.
-+# Copyright The GNU Toolchain Authors.
- # This file is part of the GNU C Library.
- 
- # The GNU C Library is free software; you can redistribute it and/or
-@@ -25,7 +26,7 @@ include ../Makeconfig
- headers	:= sys/gmon.h sys/gmon_out.h sys/profil.h
- routines := gmon mcount profil sprofil prof-freq
- 
--tests	= tst-sprofil tst-gmon
-+tests	= tst-sprofil tst-gmon tst-mcleanup
- ifeq ($(build-profile),yes)
- tests	+= tst-profile-static
- tests-static	+= tst-profile-static
-@@ -56,6 +57,14 @@ ifeq ($(run-built-tests),yes)
- tests-special += $(objpfx)tst-gmon-gprof.out
- endif
- 
-+CFLAGS-tst-mcleanup.c := -fno-omit-frame-pointer -pg
-+tst-mcleanup-no-pie = yes
-+CRT-tst-mcleanup := $(csu-objpfx)g$(start-installed-name)
-+tst-mcleanup-ENV := GMON_OUT_PREFIX=$(objpfx)tst-mcleanup.data
-+ifeq ($(run-built-tests),yes)
-+tests-special += $(objpfx)tst-mcleanup.out
-+endif
-+
- CFLAGS-tst-gmon-static.c := $(PIE-ccflag) -fno-omit-frame-pointer -pg
- CRT-tst-gmon-static := $(csu-objpfx)g$(static-start-installed-name)
- tst-gmon-static-no-pie = yes
-@@ -103,6 +112,18 @@ $(objpfx)tst-gmon.out: clean-tst-gmon-data
- clean-tst-gmon-data:
- 	rm -f $(objpfx)tst-gmon.data.*
- 
-+$(objpfx)tst-mcount-overflow.o: clean-tst-mcount-overflow-data
-+clean-tst-mcount-overflow-data:
-+	rm -f $(objpfx)tst-mcount-overflow.data.*
-+
-+$(objpfx)tst-mcount-overflow-check.out: tst-mcount-overflow-check.sh $(objpfx)tst-mcount-overflow.out
-+	$(SHELL) $< $(objpfx)tst-mcount-overflow > $@; \
-+	$(evaluate-test)
-+
-+$(objpfx)tst-mcleanup.out: clean-tst-mcleanup-data
-+clean-tst-mcleanup-data:
-+	rm -f $(objpfx)tst-mcleanup.data.*
-+
- $(objpfx)tst-gmon-gprof.out: tst-gmon-gprof.sh $(objpfx)tst-gmon.out
- 	$(SHELL) $< $(GPROF) $(objpfx)tst-gmon $(objpfx)tst-gmon.data.* > $@; \
- 	$(evaluate-test)
-diff --git a/gmon/gmon.c b/gmon/gmon.c
-index dee64803ad..97be1f72ca 100644
---- a/gmon/gmon.c
-+++ b/gmon/gmon.c
-@@ -97,11 +97,8 @@ __moncontrol (int mode)
- {
-   struct gmonparam *p = &_gmonparam;
- 
--  /* Don't change the state if we ran into an error.  */
--  if (p->state == GMON_PROF_ERROR)
--    return;
--
--  if (mode)
-+  /* Treat start request as stop if error or gmon not initialized. */
-+  if (mode && p->state != GMON_PROF_ERROR && p->tos != NULL)
-     {
-       /* start */
-       __profil((void *) p->kcount, p->kcountsize, p->lowpc, s_scale);
-@@ -111,7 +108,9 @@ __moncontrol (int mode)
-     {
-       /* stop */
-       __profil(NULL, 0, 0, 0);
--      p->state = GMON_PROF_OFF;
-+      /* Don't change the state if we ran into an error. */
-+      if (p->state != GMON_PROF_ERROR)
-+        p->state = GMON_PROF_OFF;
-     }
- }
- libc_hidden_def (__moncontrol)
-@@ -124,6 +123,19 @@ __monstartup (u_long lowpc, u_long highpc)
-   int o;
-   char *cp;
-   struct gmonparam *p = &_gmonparam;
-+  long int minarcs, maxarcs;
-+
-+  /* No tunables, we use hardcoded defaults */
-+  minarcs = MINARCS;
-+  maxarcs = MAXARCS;
-+
-+  /*
-+   * If we are incorrectly called twice in a row (without an
-+   * intervening call to _mcleanup), ignore the second call to
-+   * prevent leaking memory.
-+   */
-+  if (p->tos != NULL)
-+      return;
- 
-   /*
-    * round lowpc and highpc to multiples of the density we're using
-@@ -132,6 +144,8 @@ __monstartup (u_long lowpc, u_long highpc)
-   p->lowpc = ROUNDDOWN(lowpc, HISTFRACTION * sizeof(HISTCOUNTER));
-   p->highpc = ROUNDUP(highpc, HISTFRACTION * sizeof(HISTCOUNTER));
-   p->textsize = p->highpc - p->lowpc;
-+  /* This looks like a typo, but it's here to align the p->froms
-+     section.  */
-   p->kcountsize = ROUNDUP(p->textsize / HISTFRACTION, sizeof(*p->froms));
-   p->hashfraction = HASHFRACTION;
-   p->log_hashfraction = -1;
-@@ -142,12 +156,12 @@ __monstartup (u_long lowpc, u_long highpc)
- 	 instead of integer division.  Precompute shift amount. */
-       p->log_hashfraction = ffs(p->hashfraction * sizeof(*p->froms)) - 1;
-   }
--  p->fromssize = p->textsize / HASHFRACTION;
-+  p->fromssize = ROUNDUP(p->textsize / HASHFRACTION, sizeof(*p->froms));
-   p->tolimit = p->textsize * ARCDENSITY / 100;
--  if (p->tolimit < MINARCS)
--    p->tolimit = MINARCS;
--  else if (p->tolimit > MAXARCS)
--    p->tolimit = MAXARCS;
-+  if (p->tolimit < minarcs)
-+    p->tolimit = minarcs;
-+  else if (p->tolimit > maxarcs)
-+    p->tolimit = maxarcs;
-   p->tossize = p->tolimit * sizeof(struct tostruct);
- 
-   cp = calloc (p->kcountsize + p->fromssize + p->tossize, 1);
-@@ -440,9 +454,14 @@ _mcleanup (void)
- {
-   __moncontrol (0);
- 
--  if (_gmonparam.state != GMON_PROF_ERROR)
-+  if (_gmonparam.state != GMON_PROF_ERROR && _gmonparam.tos != NULL)
-     write_gmon ();
- 
-   /* free the memory. */
-   free (_gmonparam.tos);
-+
-+  /* reset buffer to initial state for safety */
-+  memset(&_gmonparam, 0, sizeof _gmonparam);
-+  /* somewhat confusingly, ON=0, OFF=3 */
-+  _gmonparam.state = GMON_PROF_OFF;
- }
-diff --git a/gmon/mcount.c b/gmon/mcount.c
-index 9d4a1a50fa..f7180fdb83 100644
---- a/gmon/mcount.c
-+++ b/gmon/mcount.c
-@@ -41,6 +41,10 @@ static char sccsid[] = "@(#)mcount.c	8.1 (Berkeley) 6/4/93";
- 
- #include <atomic.h>
- 
-+#include <not-cancel.h>
-+#include <unistd.h>
-+#define ERR(s) __write_nocancel (STDERR_FILENO, s, sizeof (s) - 1)
-+
- /*
-  * mcount is called on entry to each function compiled with the profiling
-  * switch set.  _mcount(), which is declared in a machine-dependent way
-@@ -170,6 +174,7 @@ done:
- 	return;
- overflow:
- 	p->state = GMON_PROF_ERROR;
-+	ERR("mcount: call graph buffer size limit exceeded, gmon.out will not be generated\n");
- 	return;
- }
- 
-diff --git a/gmon/sys/gmon.h b/gmon/sys/gmon.h
-index b4cc3b043a..af0582a371 100644
---- a/gmon/sys/gmon.h
-+++ b/gmon/sys/gmon.h
-@@ -111,6 +111,8 @@ extern struct __bb *__bb_head;
-  * Always allocate at least this many tostructs.  This
-  * hides the inadequacy of the ARCDENSITY heuristic, at least
-  * for small programs.
-+ *
-+ * Value can be overridden at runtime by glibc.gmon.minarcs tunable.
-  */
- #define MINARCS		50
- 
-@@ -124,8 +126,8 @@ extern struct __bb *__bb_head;
-  * Used to be max representable value of ARCINDEX minus 2, but now
-  * that ARCINDEX is a long, that's too large; we don't really want
-  * to allow a 48 gigabyte table.
-- * The old value of 1<<16 wasn't high enough in practice for large C++
-- * programs; will 1<<20 be adequate for long?  FIXME
-+ *
-+ * Value can be overridden at runtime by glibc.gmon.maxarcs tunable.
-  */
- #define MAXARCS		(1 << 20)
- 
-diff --git a/gmon/tst-mcleanup.c b/gmon/tst-mcleanup.c
-new file mode 100644
-index 0000000000..b259653ec8
---- /dev/null
-+++ b/gmon/tst-mcleanup.c
-@@ -0,0 +1,31 @@
-+/* Test program for repeated invocation of _mcleanup
-+   Copyright The GNU Toolchain Authors.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <https://www.gnu.org/licenses/>.  */
-+
-+/* Intentionally calls _mcleanup() twice: once manually, it will be
-+   called again as an atexit handler. This is incorrect use of the API,
-+   but the point of the test is to make sure we don't crash when the
-+   API is misused in this way. */
-+
-+#include <sys/gmon.h>
-+
-+int
-+main (void)
-+{
-+  _mcleanup();
-+  return 0;
-+}
-diff --git a/gmon/tst-mcount-overflow-check.sh b/gmon/tst-mcount-overflow-check.sh
-new file mode 100644
-index 0000000000..27eb5538fd
---- /dev/null
-+++ b/gmon/tst-mcount-overflow-check.sh
-@@ -0,0 +1,45 @@
-+#!/bin/sh
-+# Test expected messages generated when mcount overflows
-+# Copyright (C) 2017-2023 Free Software Foundation, Inc.
-+# Copyright The GNU Toolchain Authors.
-+# This file is part of the GNU C Library.
-+
-+# The GNU C Library is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU Lesser General Public
-+# License as published by the Free Software Foundation; either
-+# version 2.1 of the License, or (at your option) any later version.
-+
-+# The GNU C Library is distributed in the hope that it will be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+# Lesser General Public License for more details.
-+
-+# You should have received a copy of the GNU Lesser General Public
-+# License along with the GNU C Library; if not, see
-+# <https://www.gnu.org/licenses/>.
-+
-+LC_ALL=C
-+export LC_ALL
-+set -e
-+exec 2>&1
-+
-+program="$1"
-+
-+check_msg() {
-+    if ! grep -q "$1" "$program.out"; then
-+       echo "FAIL: expected message not in output: $1"
-+       exit 1
-+    fi
-+}
-+
-+check_msg 'monstartup: maxarcs < minarcs, setting maxarcs = minarcs'
-+check_msg 'mcount: call graph buffer size limit exceeded, gmon.out will not be generated'
-+
-+for data_file in $1.data.*; do
-+  if [ -f "$data_file" ]; then
-+    echo "FAIL: expected no data files, but found $data_file"
-+    exit 1
-+  fi
-+done
-+
-+echo PASS
-diff --git a/gmon/tst-mcount-overflow.c b/gmon/tst-mcount-overflow.c
-new file mode 100644
-index 0000000000..06cc93ef87
---- /dev/null
-+++ b/gmon/tst-mcount-overflow.c
-@@ -0,0 +1,72 @@
-+/* Test program to trigger mcount overflow in profiling collection.
-+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <https://www.gnu.org/licenses/>.  */
-+
-+/* Program with sufficiently complex, yet pointless, call graph
-+   that it will trigger an mcount overflow, when you set the
-+   minarcs/maxarcs tunables to very low values. */
-+
-+#define PREVENT_TAIL_CALL asm volatile ("")
-+
-+/* Calls REP(n) macro 16 times, for n=0..15.
-+ * You need to define REP(n) before using this.
-+ */
-+#define REPS \
-+  REP(0) REP(1) REP(2) REP(3) REP(4) REP(5) REP(6) REP(7) \
-+  REP(8) REP(9) REP(10) REP(11) REP(12) REP(13) REP(14) REP(15)
-+
-+/* Defines 16 leaf functions named f1_0 to f1_15 */
-+#define REP(n) \
-+  __attribute__ ((noinline, noclone, weak)) void f1_##n (void) {};
-+REPS
-+#undef REP
-+
-+/* Calls all 16 leaf functions f1_* in succession */
-+__attribute__ ((noinline, noclone, weak)) void
-+f2 (void)
-+{
-+# define REP(n) f1_##n();
-+  REPS
-+# undef REP
-+  PREVENT_TAIL_CALL;
-+}
-+
-+/* Defines 16 functions named f2_0 to f2_15, which all just call f2 */
-+#define REP(n) \
-+  __attribute__ ((noinline, noclone, weak)) void \
-+  f2_##n (void) { f2(); PREVENT_TAIL_CALL; };
-+REPS
-+#undef REP
-+
-+__attribute__ ((noinline, noclone, weak)) void
-+f3 (int count)
-+{
-+  for (int i = 0; i < count; ++i)
-+    {
-+      /* Calls f1_0(), f2_0(), f1_1(), f2_1(), f3_0(), etc */
-+#     define REP(n) f1_##n(); f2_##n();
-+      REPS
-+#     undef REP
-+    }
-+}
-+
-+int
-+main (void)
-+{
-+  f3 (1000);
-+  return 0;
-+}
-diff --git a/gshadow/Makefile b/gshadow/Makefile
-index 796fbbf473..a95524593a 100644
---- a/gshadow/Makefile
-+++ b/gshadow/Makefile
-@@ -26,7 +26,7 @@ headers		= gshadow.h
- routines	= getsgent getsgnam sgetsgent fgetsgent putsgent \
- 		  getsgent_r getsgnam_r sgetsgent_r fgetsgent_r
- 
--tests = tst-gshadow tst-putsgent tst-fgetsgent_r
-+tests = tst-gshadow tst-putsgent tst-fgetsgent_r tst-sgetsgent
- 
- CFLAGS-getsgent_r.c += -fexceptions
- CFLAGS-getsgent.c += -fexceptions
-diff --git a/gshadow/sgetsgent_r.c b/gshadow/sgetsgent_r.c
-index ea085e91d7..c75624e1f7 100644
---- a/gshadow/sgetsgent_r.c
-+++ b/gshadow/sgetsgent_r.c
-@@ -61,7 +61,10 @@ __sgetsgent_r (const char *string, struct sgrp *resbuf, char *buffer,
-       buffer[buflen - 1] = '\0';
-       sp = strncpy (buffer, string, buflen);
-       if (buffer[buflen - 1] != '\0')
--	return ERANGE;
-+	{
-+	  __set_errno (ERANGE);
-+	  return ERANGE;
-+	}
-     }
-   else
-     sp = (char *) string;
-diff --git a/gshadow/tst-sgetsgent.c b/gshadow/tst-sgetsgent.c
-new file mode 100644
-index 0000000000..0370c10fd0
---- /dev/null
-+++ b/gshadow/tst-sgetsgent.c
-@@ -0,0 +1,69 @@
-+/* Test large input for sgetsgent (bug 30151).
++++ b/elf/tst-tlsgap.c
+@@ -0,0 +1,92 @@
++/* TLS modid gap reuse regression test for bug 29039.
 +   Copyright (C) 2023 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -1692,142 +309,153 @@ index 0000000000..0370c10fd0
 +
 +   You should have received a copy of the GNU Lesser General Public
 +   License along with the GNU C Library; if not, see
-+   <https://www.gnu.org/licenses/>.  */
++   <http://www.gnu.org/licenses/>.  */
 +
-+#include <gshadow.h>
-+#include <stddef.h>
++#include <stdio.h>
++#include <dlfcn.h>
++#include <pthread.h>
++#include <support/xdlfcn.h>
++#include <support/xthread.h>
 +#include <support/check.h>
-+#include <support/support.h>
-+#include <support/xmemstream.h>
-+#include <stdlib.h>
++
++static void *mod[3];
++#define MOD(i) "tst-tlsgap-mod" #i ".so"
++static const char *modname[3] = { MOD(0), MOD(1), MOD(2) };
++#undef MOD
++
++static void
++open_mod (int i)
++{
++  mod[i] = xdlopen (modname[i], RTLD_LAZY);
++  printf ("open %s\n", modname[i]);
++}
++
++static void
++close_mod (int i)
++{
++  xdlclose (mod[i]);
++  mod[i] = NULL;
++  printf ("close %s\n", modname[i]);
++}
++
++static void
++access_mod (int i, const char *sym)
++{
++  int *(*f) (void) = xdlsym (mod[i], sym);
++  int *p = f ();
++  printf ("access %s: %s() = %p\n", modname[i], sym, p);
++  TEST_VERIFY_EXIT (p != NULL);
++  ++*p;
++}
++
++static void *
++start (void *arg)
++{
++  /* The DTV generation is at the last dlopen of mod0 and the
++     entry for mod1 is NULL.  */
++
++  open_mod (1); /* Reuse modid of mod1. Uses dynamic TLS.  */
++
++  /* DTV is unchanged: dlopen only updates the DTV to the latest
++     generation if static TLS is allocated for a loaded module.
++
++     With bug 29039, the TLSDESC relocation in mod1 uses the old
++     dlclose generation of mod1 instead of the new dlopen one so
++     DTV is not updated on TLS access.  */
++
++  access_mod (1, "f1");
++
++  return arg;
++}
 +
 +static int
 +do_test (void)
 +{
-+  /* Create a shadow group with 1000 members.  */
-+  struct xmemstream mem;
-+  xopen_memstream (&mem);
-+  const char *passwd = "k+zD0nucwfxAo3sw1NXUj6K5vt5M16+X0TVGdE1uFvq5R8V7efJ";
-+  fprintf (mem.out, "group-name:%s::m0", passwd);
-+  for (int i = 1; i < 1000; ++i)
-+    fprintf (mem.out, ",m%d", i);
-+  xfclose_memstream (&mem);
++  open_mod (0);
++  open_mod (1);
++  open_mod (2);
++  close_mod (0);
++  close_mod (1); /* Create modid gap at mod1.  */
++  open_mod (0); /* Reuse modid of mod0, bump generation count.  */
 +
-+  /* Call sgetsgent.  */
-+  char *input = mem.buffer;
-+  struct sgrp *e = sgetsgent (input);
-+  TEST_VERIFY_EXIT (e != NULL);
-+  TEST_COMPARE_STRING (e->sg_namp, "group-name");
-+  TEST_COMPARE_STRING (e->sg_passwd, passwd);
-+  /* No administrators.  */
-+  TEST_COMPARE_STRING (e->sg_adm[0], NULL);
-+  /* Check the members list.  */
-+  for (int i = 0; i < 1000; ++i)
-+    {
-+      char *member = xasprintf ("m%d", i);
-+      TEST_COMPARE_STRING (e->sg_mem[i], member);
-+      free (member);
-+    }
-+  TEST_COMPARE_STRING (e->sg_mem[1000], NULL);
-+
-+  /* Check that putsgent brings back the input string.  */
-+  xopen_memstream (&mem);
-+  TEST_COMPARE (putsgent (e, mem.out), 0);
-+  xfclose_memstream (&mem);
-+  /* Compare without the trailing '\n' that putsgent added.  */
-+  TEST_COMPARE (mem.buffer[mem.length - 1], '\n');
-+  mem.buffer[mem.length - 1] = '\0';
-+  TEST_COMPARE_STRING (mem.buffer, input);
-+
-+  free (mem.buffer);
-+  free (input);
++  /* Create a thread where DTV of mod1 is NULL.  */
++  pthread_t t = xpthread_create (NULL, start, NULL);
++  xpthread_join (t);
 +  return 0;
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/hurd/catch-exc.c b/hurd/catch-exc.c
-index e8a9c7981f..5ee2233aa9 100644
---- a/hurd/catch-exc.c
-+++ b/hurd/catch-exc.c
-@@ -31,7 +31,7 @@ _S_catch_exception_raise (mach_port_t port,
- 			  mach_msg_type_number_t codeCnt
- #else				/* Vanilla Mach 3.0 interface.  */
- 			  integer_t exception,
--			  integer_t code, integer_t subcode
-+			  integer_t code, long_integer_t subcode
- #endif
- 			  )
- {
-diff --git a/hurd/hurd/signal.h b/hurd/hurd/signal.h
-index 4e9f79b19d..c33f974b1b 100644
---- a/hurd/hurd/signal.h
-+++ b/hurd/hurd/signal.h
-@@ -51,9 +51,10 @@ struct hurd_signal_preemptor;	/* <hurd/sigpreempt.h> */
- struct hurd_signal_detail
-   {
-     /* Codes from origination Mach exception_raise message.  */
--    integer_t exc, exc_code, exc_subcode;
-+    integer_t exc, exc_code;
-+    long_integer_t exc_subcode;
-     /* Sigcode as passed or computed from exception codes.  */
--    integer_t code;
-+    long_integer_t code;
-     /* Error code as passed or extracted from exception codes.  */
-     error_t error;
-   };
-diff --git a/hurd/hurdfault.c b/hurd/hurdfault.c
-index 069c1c262c..a81e72803f 100644
---- a/hurd/hurdfault.c
-+++ b/hurd/hurdfault.c
-@@ -45,7 +45,7 @@ _hurdsig_fault_catch_exception_raise (mach_port_t port,
- 				      mach_msg_type_number_t codeCnt
- #else				/* Vanilla Mach 3.0 interface.  */
- 				      integer_t exception,
--				      integer_t code, integer_t subcode
-+				      integer_t code, long_integer_t subcode
- #endif
- 				      )
- {
+diff --git a/iconv/iconv_prog.c b/iconv/iconv_prog.c
+index bee898c63c..cf32cf9b44 100644
+--- a/iconv/iconv_prog.c
++++ b/iconv/iconv_prog.c
+@@ -187,7 +187,7 @@ main (int argc, char *argv[])
+ 
+       if (res != __GCONV_OK)
+ 	{
+-	  if (errno == EINVAL)
++	  if (res == __GCONV_NOCONV || res == __GCONV_NODB)
+ 	    {
+ 	      /* Try to be nice with the user and tell her which of the
+ 		 two encoding names is wrong.  This is possible because
+diff --git a/include/ifaddrs.h b/include/ifaddrs.h
+index 416118f1b3..19a3afb19f 100644
+--- a/include/ifaddrs.h
++++ b/include/ifaddrs.h
+@@ -34,9 +34,5 @@ extern void __check_native (uint32_t a1_index, int *a1_native,
+ 			    uint32_t a2_index, int *a2_native)
+   attribute_hidden;
+ 
+-#if IS_IN (nscd)
+-extern uint32_t __bump_nl_timestamp (void) attribute_hidden;
+-#endif
+-
+ # endif /* !_ISOMAC */
+ #endif	/* ifaddrs.h */
 diff --git a/include/link.h b/include/link.h
-index 1d74feb2bd..686813f281 100644
+index 1d74feb2bd..69bda3ed17 100644
 --- a/include/link.h
 +++ b/include/link.h
-@@ -253,8 +253,10 @@ struct link_map
-     /* Start and finish of memory map for this object.  l_map_start
-        need not be the same as l_addr.  */
-     ElfW(Addr) l_map_start, l_map_end;
--    /* End of the executable part of the mapping.  */
--    ElfW(Addr) l_text_end;
-+
+@@ -278,6 +278,10 @@ struct link_map
+     /* List of object in order of the init and fini calls.  */
+     struct link_map **l_initfini;
+ 
 +    /* Linked list of objects in reverse ELF constructor execution
 +       order.  Head of list is stored in _dl_init_called_list.  */
 +    struct link_map *l_init_called_next;
- 
-     /* Default array for 'l_scope'.  */
-     struct r_scope_elem *l_scope_mem[4];
++
+     /* List of the dependencies introduced through symbol binding.  */
+     struct link_map_reldeps
+       {
+diff --git a/inet/check_pf.c b/inet/check_pf.c
+index 5310c99121..6d1475920f 100644
+--- a/inet/check_pf.c
++++ b/inet/check_pf.c
+@@ -60,12 +60,3 @@ __free_in6ai (struct in6addrinfo *in6ai)
+ {
+   /* Nothing to do.  */
+ }
+-
+-
+-#if IS_IN (nscd)
+-uint32_t
+-__bump_nl_timestamp (void)
+-{
+-  return 0;
+-}
+-#endif
 diff --git a/io/Makefile b/io/Makefile
-index f72571cdae..069e675188 100644
+index 6ccc0e8691..8a3c83a3bb 100644
 --- a/io/Makefile
 +++ b/io/Makefile
-@@ -59,6 +59,7 @@ routines :=								\
- 	ftw64-time64							\
- 	closefrom close_range
- 
-+
- others		:= pwd
- test-srcs	:= ftwtest ftwtest-time64
- tests		:= test-utime test-stat test-stat2 test-lfs tst-getcwd \
-@@ -80,7 +81,9 @@ tests		:= test-utime test-stat test-stat2 test-lfs tst-getcwd \
- 		   tst-utimensat \
- 		   tst-closefrom \
- 		   tst-close_range \
--		   tst-ftw-bz28126
-+		   tst-ftw-bz28126 \
-+		   tst-fcntl-lock \
-+		   tst-fcntl-lock-lfs
- 
- tests-time64 := \
-   tst-fcntl-time64 \
+@@ -192,6 +192,7 @@ tests := \
+   tst-fchownat \
+   tst-fcntl \
+   tst-fcntl-lock \
++  tst-fcntl-lock-lfs \
+   tst-fstatat \
+   tst-fts \
+   tst-fts-lfs \
 diff --git a/io/tst-fcntl-lock-lfs.c b/io/tst-fcntl-lock-lfs.c
 new file mode 100644
 index 0000000000..f2a909fb02
@@ -1836,328 +464,851 @@ index 0000000000..f2a909fb02
 @@ -0,0 +1,2 @@
 +#define _FILE_OFFSET_BITS 64
 +#include <io/tst-fcntl-lock.c>
-diff --git a/io/tst-fcntl-lock.c b/io/tst-fcntl-lock.c
-new file mode 100644
-index 0000000000..357c4b7b56
---- /dev/null
-+++ b/io/tst-fcntl-lock.c
-@@ -0,0 +1,97 @@
-+/* Test for advisory record locking.
-+   Copyright (C) 2023 Free Software Foundation, Inc.
-+
-+   This program is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU General Public License
-+   as published by the Free Software Foundation; either version 2
-+   of the License, or (at your option) any later version.
-+
-+   This program is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+   GNU General Public License for more details.
-+
-+   You should have received a copy of the GNU General Public License
-+   along with this program; if not, see <https://www.gnu.org/licenses/>.
-+*/
-+
-+#include <fcntl.h>
-+#include <errno.h>
-+#include <unistd.h>
-+
-+/* This is essentially the POSIX lockf.  */
-+
-+static int
-+fcntl_lockf (int fd, int cmd, off_t len)
-+{
-+  struct flock fl = {
-+    .l_type = F_WRLCK,
-+    .l_whence = SEEK_CUR,
-+    .l_len = len
-+  };
-+
-+  switch (cmd)
-+    {
-+    case F_TEST:
-+      fl.l_type = F_RDLCK;
-+      if (fcntl (fd, F_GETLK, &fl) < 0)
-+	return -1;
-+      if (fl.l_type == F_UNLCK || fl.l_pid == getpid ())
-+	return 0;
-+      errno = EACCES;
-+      return -1;
-+
-+    case F_ULOCK:
-+      fl.l_type = F_UNLCK;
-+      return fcntl (fd, F_SETLK, &fl);
-+
-+    case F_LOCK:
-+      return fcntl (fd, F_SETLKW, &fl);
-+
-+    case F_TLOCK:
-+      return fcntl (fd, F_SETLK, &fl);
-+    }
-+
-+  errno = EINVAL;
-+  return -1;
-+}
-+
-+static int
-+fcntl64_lockf (int fd, int cmd, off64_t len64)
-+  {
-+  struct flock64 fl64 = {
-+    .l_type = F_WRLCK,
-+    .l_whence = SEEK_CUR,
-+    .l_len = len64
-+  };
-+
-+  switch (cmd)
-+    {
-+    case F_TEST:
-+      fl64.l_type = F_RDLCK;
-+      if (fcntl64 (fd, F_GETLK64, &fl64) < 0)
-+	return -1;
-+      if (fl64.l_type == F_UNLCK || fl64.l_pid == getpid ())
-+	return 0;
-+      errno = EACCES;
-+      return -1;
-+
-+    case F_ULOCK:
-+      fl64.l_type = F_UNLCK;
-+      return fcntl64 (fd, F_SETLK64, &fl64);
-+
-+    case F_LOCK:
-+      return fcntl64 (fd, F_SETLKW64, &fl64);
-+
-+    case F_TLOCK:
-+      return fcntl64 (fd, F_SETLK64, &fl64);
-+    }
-+
-+  errno = EINVAL;
-+  return -1;
-+}
-+
-+#define TST_LOCKFD  "tst-fcntl-lock."
-+#define LOCKF       fcntl_lockf
-+#define LOCKF64     fcntl64_lockf
-+#include "tst-lockf.c"
-diff --git a/io/tst-lockf.c b/io/tst-lockf.c
-index eda04b5417..cf8d3001c3 100644
---- a/io/tst-lockf.c
-+++ b/io/tst-lockf.c
-@@ -24,13 +24,23 @@
- #include <support/capture_subprocess.h>
- #include <support/check.h>
+diff --git a/libio/vtables.c b/libio/vtables.c
+index 1d8ad612e9..34f7e15f1c 100644
+--- a/libio/vtables.c
++++ b/libio/vtables.c
+@@ -20,6 +20,7 @@
+ #include <libioP.h>
+ #include <stdio.h>
+ #include <ldsodefs.h>
++#include <array_length.h>
+ #include <pointer_guard.h>
+ #include <libio-macros.h>
  
-+#ifndef TST_LOCKFD
-+# define TST_LOCKFD "tst-lockfd."
-+#endif
-+#ifndef LOCKF
-+# define LOCKF lockf
-+#endif
-+#ifndef LOCKF64
-+# define LOCKF64 lockf64
-+#endif
-+
- static char *temp_filename;
- static int temp_fd;
- 
- static void
- do_prepare (int argc, char **argv)
- {
--  temp_fd = create_temp_file ("tst-lockfd.", &temp_filename);
-+  temp_fd = create_temp_file (TST_LOCKFD, &temp_filename);
-   TEST_VERIFY_EXIT (temp_fd != -1);
- }
- #define PREPARE do_prepare
-@@ -40,22 +50,22 @@ do_test_child_lockf (void *closure)
- {
-   /* Check if parent has [0, 1024) locked.  */
-   TEST_COMPARE (lseek (temp_fd, 0, SEEK_SET), 0);
--  TEST_COMPARE (lockf (temp_fd, F_TLOCK, 1024), -1);
-+  TEST_COMPARE (LOCKF (temp_fd, F_TLOCK, 1024), -1);
-   TEST_COMPARE (errno, EAGAIN);
--  TEST_COMPARE (lockf (temp_fd, F_TEST, 1024), -1);
-+  TEST_COMPARE (LOCKF (temp_fd, F_TEST, 1024), -1);
-   TEST_COMPARE (errno, EACCES);
-   /* Also Check if parent has last 1024 bytes locked.  */
-   TEST_COMPARE (lseek (temp_fd, INT32_MAX-1024, SEEK_SET), INT32_MAX-1024);
--  TEST_COMPARE (lockf (temp_fd, F_TEST, 1024), -1);
-+  TEST_COMPARE (LOCKF (temp_fd, F_TEST, 1024), -1);
- 
-   /* And try to lock [1024, 2048).  */
-   TEST_COMPARE (lseek (temp_fd, 1024, SEEK_SET), 1024);
--  TEST_COMPARE (lockf (temp_fd, F_LOCK, 1024), 0);
-+  TEST_COMPARE (LOCKF (temp_fd, F_LOCK, 1024), 0);
- 
-   /* Check if non-LFS interface cap access to 32-bif off_t.  */
-   TEST_COMPARE (lseek64 (temp_fd, (off64_t)INT32_MAX, SEEK_SET),
- 		(off64_t)INT32_MAX);
--  TEST_COMPARE (lockf64 (temp_fd, F_TEST, 1024), 0);
-+  TEST_COMPARE (LOCKF64 (temp_fd, F_TEST, 1024), 0);
- }
- 
- static void
-@@ -63,32 +73,32 @@ do_test_child_lockf64 (void *closure)
- {
-   /* Check if parent has [0, 1024) locked.  */
-   TEST_COMPARE (lseek64 (temp_fd, 0, SEEK_SET), 0);
--  TEST_COMPARE (lockf64 (temp_fd, F_TLOCK, 1024), -1);
-+  TEST_COMPARE (LOCKF64 (temp_fd, F_TLOCK, 1024), -1);
-   TEST_COMPARE (errno, EAGAIN);
--  TEST_COMPARE (lockf64 (temp_fd, F_TEST, 1024), -1);
-+  TEST_COMPARE (LOCKF64 (temp_fd, F_TEST, 1024), -1);
-   TEST_COMPARE (errno, EACCES);
-   /* Also Check if parent has last 1024 bytes locked.  */
-   TEST_COMPARE (lseek64 (temp_fd, INT32_MAX-1024, SEEK_SET), INT32_MAX-1024);
--  TEST_COMPARE (lockf64 (temp_fd, F_TEST, 1024), -1);
-+  TEST_COMPARE (LOCKF64 (temp_fd, F_TEST, 1024), -1);
- 
-   /* And try to lock [1024, 2048).  */
-   TEST_COMPARE (lseek64 (temp_fd, 1024, SEEK_SET), 1024);
--  TEST_COMPARE (lockf64 (temp_fd, F_LOCK, 1024), 0);
-+  TEST_COMPARE (LOCKF64 (temp_fd, F_LOCK, 1024), 0);
- 
-   /* And also [INT32_MAX, INT32_MAX+1024).  */
-   {
-     off64_t off = (off64_t)INT32_MAX;
-     TEST_COMPARE (lseek64 (temp_fd, off, SEEK_SET), off);
--    TEST_COMPARE (lockf64 (temp_fd, F_LOCK, 1024), 0);
-+    TEST_COMPARE (LOCKF64 (temp_fd, F_LOCK, 1024), 0);
-   }
- 
-   /* Check if [INT32_MAX+1024, INT64_MAX) is locked.  */
-   {
-     off64_t off = (off64_t)INT32_MAX+1024;
-     TEST_COMPARE (lseek64 (temp_fd, off, SEEK_SET), off);
--    TEST_COMPARE (lockf64 (temp_fd, F_TLOCK, 1024), -1);
-+    TEST_COMPARE (LOCKF64 (temp_fd, F_TLOCK, 1024), -1);
-     TEST_COMPARE (errno, EAGAIN);
--    TEST_COMPARE (lockf64 (temp_fd, F_TEST, 1024), -1);
-+    TEST_COMPARE (LOCKF64 (temp_fd, F_TEST, 1024), -1);
-     TEST_COMPARE (errno, EACCES);
-   }
- }
-@@ -97,38 +107,38 @@ static int
- do_test (void)
- {
-   /* Basic tests to check if a lock can be obtained and checked.  */
--  TEST_COMPARE (lockf (temp_fd, F_LOCK, 1024), 0);
--  TEST_COMPARE (lockf (temp_fd, F_LOCK, INT32_MAX), 0);
--  TEST_COMPARE (lockf (temp_fd, F_TLOCK, 1024), 0);
--  TEST_COMPARE (lockf (temp_fd, F_TEST, 1024), 0);
-+  TEST_COMPARE (LOCKF (temp_fd, F_LOCK, 1024), 0);
-+  TEST_COMPARE (LOCKF (temp_fd, F_LOCK, INT32_MAX), 0);
-+  TEST_COMPARE (LOCKF (temp_fd, F_TLOCK, 1024), 0);
-+  TEST_COMPARE (LOCKF (temp_fd, F_TEST, 1024), 0);
-   TEST_COMPARE (lseek (temp_fd, 1024, SEEK_SET), 1024);
--  TEST_COMPARE (lockf (temp_fd, F_ULOCK, 1024), 0);
-+  TEST_COMPARE (LOCKF (temp_fd, F_ULOCK, 1024), 0);
-   /* Parent process should have ([0, 1024), [2048, INT32_MAX)) ranges locked.  */
- 
-   {
-     struct support_capture_subprocess result;
-     result = support_capture_subprocess (do_test_child_lockf, NULL);
--    support_capture_subprocess_check (&result, "lockf", 0, sc_allow_none);
-+    support_capture_subprocess_check (&result, "LOCKF", 0, sc_allow_none);
-   }
- 
-   if (sizeof (off_t) != sizeof (off64_t))
-     {
-       /* Check if previously locked regions with LFS symbol.  */
-       TEST_COMPARE (lseek (temp_fd, 0, SEEK_SET), 0);
--      TEST_COMPARE (lockf64 (temp_fd, F_LOCK, 1024), 0);
--      TEST_COMPARE (lockf64 (temp_fd, F_TLOCK, 1024), 0);
--      TEST_COMPARE (lockf64 (temp_fd, F_TEST, 1024), 0);
-+      TEST_COMPARE (LOCKF64 (temp_fd, F_LOCK, 1024), 0);
-+      TEST_COMPARE (LOCKF64 (temp_fd, F_TLOCK, 1024), 0);
-+      TEST_COMPARE (LOCKF64 (temp_fd, F_TEST, 1024), 0);
-       /* Lock region [INT32_MAX+1024, INT64_MAX).  */
-       off64_t off = (off64_t)INT32_MAX + 1024;
-       TEST_COMPARE (lseek64 (temp_fd, off, SEEK_SET), off);
--      TEST_COMPARE (lockf64 (temp_fd, F_LOCK, 1024), 0);
-+      TEST_COMPARE (LOCKF64 (temp_fd, F_LOCK, 1024), 0);
-       /* Parent process should have ([0, 1024), [2048, INT32_MAX),
- 	 [INT32_MAX+1024, INT64_MAX)) ranges locked.  */
- 
-       {
- 	struct support_capture_subprocess result;
- 	result = support_capture_subprocess (do_test_child_lockf64, NULL);
--	support_capture_subprocess_check (&result, "lockf", 0, sc_allow_none);
-+	support_capture_subprocess_check (&result, "LOCKF", 0, sc_allow_none);
-       }
-     }
- 
-diff --git a/malloc/malloc.c b/malloc/malloc.c
-index fd8b52bfac..67df9f8c51 100644
---- a/malloc/malloc.c
-+++ b/malloc/malloc.c
-@@ -3398,16 +3398,23 @@ __libc_realloc (void *oldmem, size_t bytes)
-   if (__glibc_unlikely (mtag_enabled))
-     *(volatile char*) oldmem;
- 
--  /* Return the chunk as is whenever possible, i.e. there's enough usable space
--     but not so much that we end up fragmenting the block.  We use the trim
--     threshold as the heuristic to decide the latter.  */
--  size_t usable = musable (oldmem);
--  if (bytes <= usable
--      && (unsigned long) (usable - bytes) <= mp_.trim_threshold)
--    return oldmem;
--
-   /* chunk corresponding to oldmem */
-   const mchunkptr oldp = mem2chunk (oldmem);
-+
-+  /* Return the chunk as is if the request grows within usable bytes, typically
-+     into the alignment padding.  We want to avoid reusing the block for
-+     shrinkages because it ends up unnecessarily fragmenting the address space.
-+     This is also why the heuristic misses alignment padding for THP for
-+     now.  */
-+  size_t usable = musable (oldmem);
-+  if (bytes <= usable)
-+    {
-+      size_t difference = usable - bytes;
-+      if ((unsigned long) difference < 2 * sizeof (INTERNAL_SIZE_T)
-+	  || (chunk_is_mmapped (oldp) && difference <= GLRO (dl_pagesize)))
-+	return oldmem;
-+    }
-+
-   /* its size */
-   const INTERNAL_SIZE_T oldsize = chunksize (oldp);
- 
-diff --git a/misc/sys/cdefs.h b/misc/sys/cdefs.h
-index 66d6702123..c37a3ff637 100644
---- a/misc/sys/cdefs.h
-+++ b/misc/sys/cdefs.h
-@@ -152,6 +152,7 @@
- # define __glibc_objsize(__o) __bos (__o)
+@@ -88,7 +89,7 @@
+ # pragma weak __wprintf_buffer_as_file_xsputn
  #endif
  
-+#if __USE_FORTIFY_LEVEL > 0
- /* Compile time conditions to choose between the regular, _chk and _chk_warn
-    variants.  These conditions should get evaluated to constant and optimized
-    away.  */
-@@ -187,7 +188,7 @@
-    ? __ ## f ## _alias (__VA_ARGS__)					      \
-    : (__glibc_unsafe_len (__l, __s, __osz)				      \
-       ? __ ## f ## _chk_warn (__VA_ARGS__, __osz)			      \
--      : __ ## f ## _chk (__VA_ARGS__, __osz)))			      \
-+      : __ ## f ## _chk (__VA_ARGS__, __osz)))
+-const struct _IO_jump_t __io_vtables[IO_VTABLES_LEN] attribute_relro =
++const struct _IO_jump_t __io_vtables[] attribute_relro =
+ {
+   /* _IO_str_jumps  */
+   [IO_STR_JUMPS] =
+@@ -485,6 +486,8 @@ const struct _IO_jump_t __io_vtables[IO_VTABLES_LEN] attribute_relro =
+   },
+ #endif
+ };
++_Static_assert (array_length (__io_vtables) == IO_VTABLES_NUM,
++                "initializer count");
  
- /* Fortify function f, where object size argument passed to f is the number of
-    elements and not total size.  */
-@@ -197,7 +198,8 @@
-    ? __ ## f ## _alias (__VA_ARGS__)					      \
-    : (__glibc_unsafe_len (__l, __s, __osz)				      \
-       ? __ ## f ## _chk_warn (__VA_ARGS__, (__osz) / (__s))		      \
--      : __ ## f ## _chk (__VA_ARGS__, (__osz) / (__s))))		      \
-+      : __ ## f ## _chk (__VA_ARGS__, (__osz) / (__s))))
-+#endif
+ #ifdef SHARED
  
- #if __GNUC_PREREQ (4,3)
- # define __warnattr(msg) __attribute__((__warning__ (msg)))
+diff --git a/libio/wfileops.c b/libio/wfileops.c
+index f16f6db1c3..9ab8f2e7f3 100644
+--- a/libio/wfileops.c
++++ b/libio/wfileops.c
+@@ -55,7 +55,7 @@ _IO_wdo_write (FILE *fp, const wchar_t *data, size_t to_do)
+ 	  char mb_buf[MB_LEN_MAX];
+ 	  char *write_base, *write_ptr, *buf_end;
+ 
+-	  if (fp->_IO_write_ptr - fp->_IO_write_base < sizeof (mb_buf))
++	  if (fp->_IO_buf_end - fp->_IO_write_ptr < sizeof (mb_buf))
+ 	    {
+ 	      /* Make sure we have room for at least one multibyte
+ 		 character.  */
+diff --git a/malloc/malloc.c b/malloc/malloc.c
+index e2f1a615a4..d0bbbf3710 100644
+--- a/malloc/malloc.c
++++ b/malloc/malloc.c
+@@ -1086,6 +1086,11 @@ typedef struct malloc_chunk* mchunkptr;
+ 
+ static void*  _int_malloc(mstate, size_t);
+ static void     _int_free(mstate, mchunkptr, int);
++static void _int_free_merge_chunk (mstate, mchunkptr, INTERNAL_SIZE_T);
++static INTERNAL_SIZE_T _int_free_create_chunk (mstate,
++					       mchunkptr, INTERNAL_SIZE_T,
++					       mchunkptr, INTERNAL_SIZE_T);
++static void _int_free_maybe_consolidate (mstate, INTERNAL_SIZE_T);
+ static void*  _int_realloc(mstate, mchunkptr, INTERNAL_SIZE_T,
+ 			   INTERNAL_SIZE_T);
+ static void*  _int_memalign(mstate, size_t, size_t);
+@@ -4483,12 +4488,6 @@ _int_free (mstate av, mchunkptr p, int have_lock)
+ {
+   INTERNAL_SIZE_T size;        /* its size */
+   mfastbinptr *fb;             /* associated fastbin */
+-  mchunkptr nextchunk;         /* next contiguous chunk */
+-  INTERNAL_SIZE_T nextsize;    /* its size */
+-  int nextinuse;               /* true if nextchunk is used */
+-  INTERNAL_SIZE_T prevsize;    /* size of previous contiguous chunk */
+-  mchunkptr bck;               /* misc temp for linking */
+-  mchunkptr fwd;               /* misc temp for linking */
+ 
+   size = chunksize (p);
+ 
+@@ -4637,31 +4636,52 @@ _int_free (mstate av, mchunkptr p, int have_lock)
+     if (!have_lock)
+       __libc_lock_lock (av->mutex);
+ 
+-    nextchunk = chunk_at_offset(p, size);
+-
+-    /* Lightweight tests: check whether the block is already the
+-       top block.  */
+-    if (__glibc_unlikely (p == av->top))
+-      malloc_printerr ("double free or corruption (top)");
+-    /* Or whether the next chunk is beyond the boundaries of the arena.  */
+-    if (__builtin_expect (contiguous (av)
+-			  && (char *) nextchunk
+-			  >= ((char *) av->top + chunksize(av->top)), 0))
+-	malloc_printerr ("double free or corruption (out)");
+-    /* Or whether the block is actually not marked used.  */
+-    if (__glibc_unlikely (!prev_inuse(nextchunk)))
+-      malloc_printerr ("double free or corruption (!prev)");
+-
+-    nextsize = chunksize(nextchunk);
+-    if (__builtin_expect (chunksize_nomask (nextchunk) <= CHUNK_HDR_SZ, 0)
+-	|| __builtin_expect (nextsize >= av->system_mem, 0))
+-      malloc_printerr ("free(): invalid next size (normal)");
++    _int_free_merge_chunk (av, p, size);
+ 
+-    free_perturb (chunk2mem(p), size - CHUNK_HDR_SZ);
++    if (!have_lock)
++      __libc_lock_unlock (av->mutex);
++  }
++  /*
++    If the chunk was allocated via mmap, release via munmap().
++  */
+ 
+-    /* consolidate backward */
+-    if (!prev_inuse(p)) {
+-      prevsize = prev_size (p);
++  else {
++    munmap_chunk (p);
++  }
++}
++
++/* Try to merge chunk P of SIZE bytes with its neighbors.  Put the
++   resulting chunk on the appropriate bin list.  P must not be on a
++   bin list yet, and it can be in use.  */
++static void
++_int_free_merge_chunk (mstate av, mchunkptr p, INTERNAL_SIZE_T size)
++{
++  mchunkptr nextchunk = chunk_at_offset(p, size);
++
++  /* Lightweight tests: check whether the block is already the
++     top block.  */
++  if (__glibc_unlikely (p == av->top))
++    malloc_printerr ("double free or corruption (top)");
++  /* Or whether the next chunk is beyond the boundaries of the arena.  */
++  if (__builtin_expect (contiguous (av)
++			&& (char *) nextchunk
++			>= ((char *) av->top + chunksize(av->top)), 0))
++    malloc_printerr ("double free or corruption (out)");
++  /* Or whether the block is actually not marked used.  */
++  if (__glibc_unlikely (!prev_inuse(nextchunk)))
++    malloc_printerr ("double free or corruption (!prev)");
++
++  INTERNAL_SIZE_T nextsize = chunksize(nextchunk);
++  if (__builtin_expect (chunksize_nomask (nextchunk) <= CHUNK_HDR_SZ, 0)
++      || __builtin_expect (nextsize >= av->system_mem, 0))
++    malloc_printerr ("free(): invalid next size (normal)");
++
++  free_perturb (chunk2mem(p), size - CHUNK_HDR_SZ);
++
++  /* Consolidate backward.  */
++  if (!prev_inuse(p))
++    {
++      INTERNAL_SIZE_T prevsize = prev_size (p);
+       size += prevsize;
+       p = chunk_at_offset(p, -((long) prevsize));
+       if (__glibc_unlikely (chunksize(p) != prevsize))
+@@ -4669,9 +4689,25 @@ _int_free (mstate av, mchunkptr p, int have_lock)
+       unlink_chunk (av, p);
+     }
+ 
+-    if (nextchunk != av->top) {
++  /* Write the chunk header, maybe after merging with the following chunk.  */
++  size = _int_free_create_chunk (av, p, size, nextchunk, nextsize);
++  _int_free_maybe_consolidate (av, size);
++}
++
++/* Create a chunk at P of SIZE bytes, with SIZE potentially increased
++   to cover the immediately following chunk NEXTCHUNK of NEXTSIZE
++   bytes (if NEXTCHUNK is unused).  The chunk at P is not actually
++   read and does not have to be initialized.  After creation, it is
++   placed on the appropriate bin list.  The function returns the size
++   of the new chunk.  */
++static INTERNAL_SIZE_T
++_int_free_create_chunk (mstate av, mchunkptr p, INTERNAL_SIZE_T size,
++			mchunkptr nextchunk, INTERNAL_SIZE_T nextsize)
++{
++  if (nextchunk != av->top)
++    {
+       /* get and clear inuse bit */
+-      nextinuse = inuse_bit_at_offset(nextchunk, nextsize);
++      bool nextinuse = inuse_bit_at_offset (nextchunk, nextsize);
+ 
+       /* consolidate forward */
+       if (!nextinuse) {
+@@ -4686,8 +4722,8 @@ _int_free (mstate av, mchunkptr p, int have_lock)
+ 	been given one chance to be used in malloc.
+       */
+ 
+-      bck = unsorted_chunks(av);
+-      fwd = bck->fd;
++      mchunkptr bck = unsorted_chunks (av);
++      mchunkptr fwd = bck->fd;
+       if (__glibc_unlikely (fwd->bk != bck))
+ 	malloc_printerr ("free(): corrupted unsorted chunks");
+       p->fd = fwd;
+@@ -4706,61 +4742,52 @@ _int_free (mstate av, mchunkptr p, int have_lock)
+       check_free_chunk(av, p);
+     }
+ 
+-    /*
+-      If the chunk borders the current high end of memory,
+-      consolidate into top
+-    */
+-
+-    else {
++  else
++    {
++      /* If the chunk borders the current high end of memory,
++	 consolidate into top.  */
+       size += nextsize;
+       set_head(p, size | PREV_INUSE);
+       av->top = p;
+       check_chunk(av, p);
+     }
+ 
+-    /*
+-      If freeing a large space, consolidate possibly-surrounding
+-      chunks. Then, if the total unused topmost memory exceeds trim
+-      threshold, ask malloc_trim to reduce top.
+-
+-      Unless max_fast is 0, we don't know if there are fastbins
+-      bordering top, so we cannot tell for sure whether threshold
+-      has been reached unless fastbins are consolidated.  But we
+-      don't want to consolidate on each free.  As a compromise,
+-      consolidation is performed if FASTBIN_CONSOLIDATION_THRESHOLD
+-      is reached.
+-    */
++  return size;
++}
+ 
+-    if ((unsigned long)(size) >= FASTBIN_CONSOLIDATION_THRESHOLD) {
++/* If freeing a large space, consolidate possibly-surrounding
++   chunks.  Then, if the total unused topmost memory exceeds trim
++   threshold, ask malloc_trim to reduce top.  */
++static void
++_int_free_maybe_consolidate (mstate av, INTERNAL_SIZE_T size)
++{
++  /* Unless max_fast is 0, we don't know if there are fastbins
++     bordering top, so we cannot tell for sure whether threshold has
++     been reached unless fastbins are consolidated.  But we don't want
++     to consolidate on each free.  As a compromise, consolidation is
++     performed if FASTBIN_CONSOLIDATION_THRESHOLD is reached.  */
++  if (size >= FASTBIN_CONSOLIDATION_THRESHOLD)
++    {
+       if (atomic_load_relaxed (&av->have_fastchunks))
+ 	malloc_consolidate(av);
+ 
+-      if (av == &main_arena) {
++      if (av == &main_arena)
++	{
+ #ifndef MORECORE_CANNOT_TRIM
+-	if ((unsigned long)(chunksize(av->top)) >=
+-	    (unsigned long)(mp_.trim_threshold))
+-	  systrim(mp_.top_pad, av);
++	  if (chunksize (av->top) >= mp_.trim_threshold)
++	    systrim (mp_.top_pad, av);
+ #endif
+-      } else {
+-	/* Always try heap_trim(), even if the top chunk is not
+-	   large, because the corresponding heap might go away.  */
+-	heap_info *heap = heap_for_ptr(top(av));
++	}
++      else
++	{
++	  /* Always try heap_trim, even if the top chunk is not large,
++	     because the corresponding heap might go away.  */
++	  heap_info *heap = heap_for_ptr (top (av));
+ 
+-	assert(heap->ar_ptr == av);
+-	heap_trim(heap, mp_.top_pad);
+-      }
++	  assert (heap->ar_ptr == av);
++	  heap_trim (heap, mp_.top_pad);
++	}
+     }
+-
+-    if (!have_lock)
+-      __libc_lock_unlock (av->mutex);
+-  }
+-  /*
+-    If the chunk was allocated via mmap, release via munmap().
+-  */
+-
+-  else {
+-    munmap_chunk (p);
+-  }
+ }
+ 
+ /*
+@@ -4999,42 +5026,6 @@ _int_realloc (mstate av, mchunkptr oldp, INTERNAL_SIZE_T oldsize,
+    ------------------------------ memalign ------------------------------
+  */
+ 
+-/* Returns 0 if the chunk is not and does not contain the requested
+-   aligned sub-chunk, else returns the amount of "waste" from
+-   trimming.  NB is the *chunk* byte size, not the user byte
+-   size.  */
+-static size_t
+-chunk_ok_for_memalign (mchunkptr p, size_t alignment, size_t nb)
+-{
+-  void *m = chunk2mem (p);
+-  INTERNAL_SIZE_T size = chunksize (p);
+-  void *aligned_m = m;
+-
+-  if (__glibc_unlikely (misaligned_chunk (p)))
+-    malloc_printerr ("_int_memalign(): unaligned chunk detected");
+-
+-  aligned_m = PTR_ALIGN_UP (m, alignment);
+-
+-  INTERNAL_SIZE_T front_extra = (intptr_t) aligned_m - (intptr_t) m;
+-
+-  /* We can't trim off the front as it's too small.  */
+-  if (front_extra > 0 && front_extra < MINSIZE)
+-    return 0;
+-
+-  /* If it's a perfect fit, it's an exception to the return value rule
+-     (we would return zero waste, which looks like "not usable"), so
+-     handle it here by returning a small non-zero value instead.  */
+-  if (size == nb && front_extra == 0)
+-    return 1;
+-
+-  /* If the block we need fits in the chunk, calculate total waste.  */
+-  if (size > nb + front_extra)
+-    return size - nb;
+-
+-  /* Can't use this chunk.  */
+-  return 0;
+-}
+-
+ /* BYTES is user requested bytes, not requested chunksize bytes.  */
+ static void *
+ _int_memalign (mstate av, size_t alignment, size_t bytes)
+@@ -5049,7 +5040,6 @@ _int_memalign (mstate av, size_t alignment, size_t bytes)
+   mchunkptr remainder;            /* spare room at end to split off */
+   unsigned long remainder_size;   /* its size */
+   INTERNAL_SIZE_T size;
+-  mchunkptr victim;
+ 
+   nb = checked_request2size (bytes);
+   if (nb == 0)
+@@ -5068,129 +5058,13 @@ _int_memalign (mstate av, size_t alignment, size_t bytes)
+      we don't find anything in those bins, the common malloc code will
+      scan starting at 2x.  */
+ 
+-  /* This will be set if we found a candidate chunk.  */
+-  victim = NULL;
++  /* Call malloc with worst case padding to hit alignment. */
++  m = (char *) (_int_malloc (av, nb + alignment + MINSIZE));
+ 
+-  /* Fast bins are singly-linked, hard to remove a chunk from the middle
+-     and unlikely to meet our alignment requirements.  We have not done
+-     any experimentation with searching for aligned fastbins.  */
+-
+-  if (av != NULL)
+-    {
+-      int first_bin_index;
+-      int first_largebin_index;
+-      int last_bin_index;
+-
+-      if (in_smallbin_range (nb))
+-	first_bin_index = smallbin_index (nb);
+-      else
+-	first_bin_index = largebin_index (nb);
++  if (m == 0)
++    return 0;           /* propagate failure */
+ 
+-      if (in_smallbin_range (nb * 2))
+-	last_bin_index = smallbin_index (nb * 2);
+-      else
+-	last_bin_index = largebin_index (nb * 2);
+-
+-      first_largebin_index = largebin_index (MIN_LARGE_SIZE);
+-
+-      int victim_index;                 /* its bin index */
+-
+-      for (victim_index = first_bin_index;
+-	   victim_index < last_bin_index;
+-	   victim_index ++)
+-	{
+-	  victim = NULL;
+-
+-	  if (victim_index < first_largebin_index)
+-	    {
+-	      /* Check small bins.  Small bin chunks are doubly-linked despite
+-		 being the same size.  */
+-
+-	      mchunkptr fwd;                    /* misc temp for linking */
+-	      mchunkptr bck;                    /* misc temp for linking */
+-
+-	      bck = bin_at (av, victim_index);
+-	      fwd = bck->fd;
+-	      while (fwd != bck)
+-		{
+-		  if (chunk_ok_for_memalign (fwd, alignment, nb) > 0)
+-		    {
+-		      victim = fwd;
+-
+-		      /* Unlink it */
+-		      victim->fd->bk = victim->bk;
+-		      victim->bk->fd = victim->fd;
+-		      break;
+-		    }
+-
+-		  fwd = fwd->fd;
+-		}
+-	    }
+-	  else
+-	    {
+-	      /* Check large bins.  */
+-	      mchunkptr fwd;                    /* misc temp for linking */
+-	      mchunkptr bck;                    /* misc temp for linking */
+-	      mchunkptr best = NULL;
+-	      size_t best_size = 0;
+-
+-	      bck = bin_at (av, victim_index);
+-	      fwd = bck->fd;
+-
+-	      while (fwd != bck)
+-		{
+-		  int extra;
+-
+-		  if (chunksize (fwd) < nb)
+-		    break;
+-		  extra = chunk_ok_for_memalign (fwd, alignment, nb);
+-		  if (extra > 0
+-		      && (extra <= best_size || best == NULL))
+-		    {
+-		      best = fwd;
+-		      best_size = extra;
+-		    }
+-
+-		  fwd = fwd->fd;
+-		}
+-	      victim = best;
+-
+-	      if (victim != NULL)
+-		{
+-		  unlink_chunk (av, victim);
+-		  break;
+-		}
+-	    }
+-
+-	  if (victim != NULL)
+-	    break;
+-	}
+-    }
+-
+-  /* Strategy: find a spot within that chunk that meets the alignment
+-     request, and then possibly free the leading and trailing space.
+-     This strategy is incredibly costly and can lead to external
+-     fragmentation if header and footer chunks are unused.  */
+-
+-  if (victim != NULL)
+-    {
+-      p = victim;
+-      m = chunk2mem (p);
+-      set_inuse (p);
+-      if (av != &main_arena)
+-	set_non_main_arena (p);
+-    }
+-  else
+-    {
+-      /* Call malloc with worst case padding to hit alignment. */
+-
+-      m = (char *) (_int_malloc (av, nb + alignment + MINSIZE));
+-
+-      if (m == 0)
+-	return 0;           /* propagate failure */
+-
+-      p = mem2chunk (m);
+-    }
++  p = mem2chunk (m);
+ 
+   if ((((unsigned long) (m)) % alignment) != 0)   /* misaligned */
+     {
+@@ -5221,7 +5095,7 @@ _int_memalign (mstate av, size_t alignment, size_t bytes)
+                 (av != &main_arena ? NON_MAIN_ARENA : 0));
+       set_inuse_bit_at_offset (newp, newsize);
+       set_head_size (p, leadsize | (av != &main_arena ? NON_MAIN_ARENA : 0));
+-      _int_free (av, p, 1);
++      _int_free_merge_chunk (av, p, leadsize);
+       p = newp;
+ 
+       assert (newsize >= nb &&
+@@ -5232,15 +5106,27 @@ _int_memalign (mstate av, size_t alignment, size_t bytes)
+   if (!chunk_is_mmapped (p))
+     {
+       size = chunksize (p);
+-      if ((unsigned long) (size) > (unsigned long) (nb + MINSIZE))
++      mchunkptr nextchunk = chunk_at_offset(p, size);
++      INTERNAL_SIZE_T nextsize = chunksize(nextchunk);
++      if (size > nb)
+         {
+           remainder_size = size - nb;
+-          remainder = chunk_at_offset (p, nb);
+-          set_head (remainder, remainder_size | PREV_INUSE |
+-                    (av != &main_arena ? NON_MAIN_ARENA : 0));
+-          set_head_size (p, nb);
+-          _int_free (av, remainder, 1);
+-        }
++	  if (remainder_size >= MINSIZE
++	      || nextchunk == av->top
++	      || !inuse_bit_at_offset (nextchunk, nextsize))
++	    {
++	      /* We can only give back the tail if it is larger than
++		 MINSIZE, or if the following chunk is unused (top
++		 chunk or unused in-heap chunk).  Otherwise we would
++		 create a chunk that is smaller than MINSIZE.  */
++	      remainder = chunk_at_offset (p, nb);
++	      set_head_size (p, nb);
++	      remainder_size = _int_free_create_chunk (av, remainder,
++						       remainder_size,
++						       nextchunk, nextsize);
++	      _int_free_maybe_consolidate (av, remainder_size);
++	    }
++	}
+     }
+ 
+   check_inuse_chunk (av, p);
+diff --git a/malloc/tst-memalign-2.c b/malloc/tst-memalign-2.c
+index f229283dbf..ecd6fa249e 100644
+--- a/malloc/tst-memalign-2.c
++++ b/malloc/tst-memalign-2.c
+@@ -86,7 +86,8 @@ do_test (void)
+       TEST_VERIFY (tcache_allocs[i].ptr1 == tcache_allocs[i].ptr2);
+     }
+ 
+-  /* Test for non-head tcache hits.  */
++  /* Test for non-head tcache hits.  This exercises the memalign
++     scanning code to find matching allocations.  */
+   for (i = 0; i < array_length (ptr); ++ i)
+     {
+       if (i == 4)
+@@ -113,7 +114,9 @@ do_test (void)
+   free (p);
+   TEST_VERIFY (count > 0);
+ 
+-  /* Large bins test.  */
++  /* Large bins test.  This verifies that the over-allocated parts
++     that memalign releases for future allocations can be reused by
++     memalign itself at least in some cases.  */
+ 
+   for (i = 0; i < LN; ++ i)
+     {
+diff --git a/misc/Makefile b/misc/Makefile
+index fe0d49c1de..90b31952c5 100644
+--- a/misc/Makefile
++++ b/misc/Makefile
+@@ -289,7 +289,10 @@ tests-special += $(objpfx)tst-error1-mem.out \
+   $(objpfx)tst-allocate_once-mem.out
+ endif
+ 
+-tests-container := tst-syslog
++tests-container := \
++  tst-syslog \
++  tst-syslog-long-progname \
++  # tests-container
+ 
+ CFLAGS-select.c += -fexceptions -fasynchronous-unwind-tables
+ CFLAGS-tsearch.c += $(uses-callbacks)
+@@ -351,6 +354,9 @@ $(objpfx)tst-allocate_once-mem.out: $(objpfx)tst-allocate_once.out
+ 	$(common-objpfx)malloc/mtrace $(objpfx)tst-allocate_once.mtrace > $@; \
+ 	$(evaluate-test)
+ 
++tst-syslog-long-progname-ENV = GLIBC_TUNABLES=glibc.malloc.check=3 \
++			       LD_PRELOAD=libc_malloc_debug.so.0
++
+ $(objpfx)tst-select: $(librt)
+ $(objpfx)tst-select-time64: $(librt)
+ $(objpfx)tst-pselect: $(librt)
+diff --git a/misc/syslog.c b/misc/syslog.c
+index 1b8cb722c5..4af87f54fd 100644
+--- a/misc/syslog.c
++++ b/misc/syslog.c
+@@ -41,6 +41,7 @@ static char sccsid[] = "@(#)syslog.c	8.4 (Berkeley) 3/18/94";
+ #include <sys/uio.h>
+ #include <sys/un.h>
+ #include <syslog.h>
++#include <limits.h>
+ 
+ static int LogType = SOCK_DGRAM;	/* type of socket connection */
+ static int LogFile = -1;		/* fd for log */
+@@ -124,8 +125,9 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
+ {
+   /* Try to use a static buffer as an optimization.  */
+   char bufs[1024];
+-  char *buf = NULL;
+-  size_t bufsize = 0;
++  char *buf = bufs;
++  size_t bufsize;
++
+   int msgoff;
+   int saved_errno = errno;
+ 
+@@ -177,29 +179,55 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
+ #define SYSLOG_HEADER_WITHOUT_TS(__pri, __msgoff)        \
+   "<%d>: %n", __pri, __msgoff
+ 
+-  int l;
++  int l, vl;
+   if (has_ts)
+     l = __snprintf (bufs, sizeof bufs,
+ 		    SYSLOG_HEADER (pri, timestamp, &msgoff, pid));
+   else
+     l = __snprintf (bufs, sizeof bufs,
+ 		    SYSLOG_HEADER_WITHOUT_TS (pri, &msgoff));
+-  if (0 <= l && l < sizeof bufs)
++  if (l < 0)
++    goto out;
++
++  char *pos;
++  size_t len;
++
++  if (l < sizeof bufs)
+     {
+-      va_list apc;
+-      va_copy (apc, ap);
++      /* At this point, there is still a chance that we can print the
++         remaining part of the log into bufs and use that.  */
++      pos = bufs + l;
++      len = sizeof (bufs) - l;
++    }
++  else
++    {
++      buf = NULL;
++      /* We already know that bufs is too small to use for this log message.
++         The next vsnprintf into bufs is used only to calculate the total
++         required buffer length.  We will discard bufs contents and allocate
++         an appropriately sized buffer later instead.  */
++      pos = bufs;
++      len = sizeof (bufs);
++    }
+ 
+-      /* Restore errno for %m format.  */
+-      __set_errno (saved_errno);
++  {
++    va_list apc;
++    va_copy (apc, ap);
+ 
+-      int vl = __vsnprintf_internal (bufs + l, sizeof bufs - l, fmt, apc,
+-                                     mode_flags);
+-      if (0 <= vl && vl < sizeof bufs - l)
+-        buf = bufs;
+-      bufsize = l + vl;
++    /* Restore errno for %m format.  */
++    __set_errno (saved_errno);
+ 
+-      va_end (apc);
+-    }
++    vl = __vsnprintf_internal (pos, len, fmt, apc, mode_flags);
++    va_end (apc);
++
++    if (vl < 0 || vl >= INT_MAX - l)
++      goto out;
++
++    if (vl >= len)
++      buf = NULL;
++
++    bufsize = l + vl;
++  }
+ 
+   if (buf == NULL)
+     {
+@@ -209,25 +237,37 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
+ 	  /* Tell the cancellation handler to free this buffer.  */
+ 	  clarg.buf = buf;
+ 
++	  int cl;
+ 	  if (has_ts)
+-	    __snprintf (buf, l + 1,
+-			SYSLOG_HEADER (pri, timestamp, &msgoff, pid));
++	    cl = __snprintf (buf, l + 1,
++			     SYSLOG_HEADER (pri, timestamp, &msgoff, pid));
+ 	  else
+-	    __snprintf (buf, l + 1,
+-			SYSLOG_HEADER_WITHOUT_TS (pri, &msgoff));
++	    cl = __snprintf (buf, l + 1,
++			     SYSLOG_HEADER_WITHOUT_TS (pri, &msgoff));
++	  if (cl != l)
++	    goto out;
+ 
+ 	  va_list apc;
+ 	  va_copy (apc, ap);
+-	  __vsnprintf_internal (buf + l, bufsize - l + 1, fmt, apc,
+-				mode_flags);
++	  cl = __vsnprintf_internal (buf + l, bufsize - l + 1, fmt, apc,
++				     mode_flags);
+ 	  va_end (apc);
++
++	  if (cl != vl)
++	    goto out;
+ 	}
+       else
+         {
++          int bl;
+ 	  /* Nothing much to do but emit an error message.  */
+-          bufsize = __snprintf (bufs, sizeof bufs,
+-                                "out of memory[%d]", __getpid ());
++          bl = __snprintf (bufs, sizeof bufs,
++                           "out of memory[%d]", __getpid ());
++          if (bl < 0 || bl >= sizeof bufs)
++            goto out;
++
++          bufsize = bl;
+           buf = bufs;
++          msgoff = 0;
+         }
+     }
+ 
+diff --git a/misc/tst-syslog-long-progname.c b/misc/tst-syslog-long-progname.c
+new file mode 100644
+index 0000000000..88f37a8a00
+--- /dev/null
++++ b/misc/tst-syslog-long-progname.c
+@@ -0,0 +1,39 @@
++/* Test heap buffer overflow in syslog with long __progname (CVE-2023-6246)
++   Copyright (C) 2023 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <syslog.h>
++#include <string.h>
++
++extern char * __progname;
++
++static int
++do_test (void)
++{
++  char long_progname[2048];
++
++  memset (long_progname, 'X', sizeof (long_progname) - 1);
++  long_progname[sizeof (long_progname) - 1] = '\0';
++
++  __progname = long_progname;
++
++  syslog (LOG_INFO, "Hello, World!");
++
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/misc/tst-syslog-long-progname.root/postclean.req b/misc/tst-syslog-long-progname.root/postclean.req
+new file mode 100644
+index 0000000000..e69de29bb2
+diff --git a/nscd/Makefile b/nscd/Makefile
+index 2a0489f4cf..16b6460ee9 100644
+--- a/nscd/Makefile
++++ b/nscd/Makefile
+@@ -35,7 +35,7 @@ nscd-modules := nscd connections pwdcache getpwnam_r getpwuid_r grpcache \
+ 		getgrnam_r getgrgid_r hstcache gethstbyad_r gethstbynm3_r \
+ 		getsrvbynm_r getsrvbypt_r servicescache \
+ 		dbg_log nscd_conf nscd_stat cache mem nscd_setup_thread \
+-		xmalloc xstrdup aicache initgrcache gai res_hconf \
++		xmalloc xstrdup aicache initgrcache res_hconf \
+ 		netgroupcache cachedumper
+ 
+ ifeq ($(build-nscd)$(have-thread-library),yesyes)
+diff --git a/nscd/connections.c b/nscd/connections.c
+index a405a44a9b..15693e5090 100644
+--- a/nscd/connections.c
++++ b/nscd/connections.c
+@@ -256,6 +256,17 @@ int inotify_fd = -1;
+ #ifdef HAVE_NETLINK
+ /* Descriptor for netlink status updates.  */
+ static int nl_status_fd = -1;
++
++static uint32_t
++__bump_nl_timestamp (void)
++{
++  static uint32_t nl_timestamp;
++
++  if (atomic_fetch_add_relaxed (&nl_timestamp, 1) + 1 == 0)
++    atomic_fetch_add_relaxed (&nl_timestamp, 1);
++
++  return nl_timestamp;
++}
+ #endif
+ 
+ /* Number of times clients had to wait.  */
+diff --git a/nscd/gai.c b/nscd/gai.c
+deleted file mode 100644
+index e29f3fe583..0000000000
+--- a/nscd/gai.c
++++ /dev/null
+@@ -1,50 +0,0 @@
+-/* Copyright (C) 2004-2023 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   This program is free software; you can redistribute it and/or modify
+-   it under the terms of the GNU General Public License as published
+-   by the Free Software Foundation; version 2 of the License, or
+-   (at your option) any later version.
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-   You should have received a copy of the GNU General Public License
+-   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
+-
+-#include <alloca.h>
+-#include <sys/stat.h>
+-
+-/* This file uses the getaddrinfo code but it compiles it without NSCD
+-   support.  We just need a few symbol renames.  */
+-#define __ioctl ioctl
+-#define __getsockname getsockname
+-#define __socket socket
+-#define __recvmsg recvmsg
+-#define __bind bind
+-#define __sendto sendto
+-#define __strchrnul strchrnul
+-#define __getline getline
+-#define __qsort_r qsort_r
+-/* nscd uses 1MB or 2MB thread stacks.  */
+-#define __libc_use_alloca(size) (size <= __MAX_ALLOCA_CUTOFF)
+-#define __getifaddrs getifaddrs
+-#define __freeifaddrs freeifaddrs
+-#undef __fstat64
+-#define __fstat64 fstat64
+-#undef __stat64
+-#define __stat64 stat64
+-
+-/* We are nscd, so we don't want to be talking to ourselves.  */
+-#undef  USE_NSCD
+-
+-#include <getaddrinfo.c>
+-
+-/* Support code.  */
+-#include <check_pf.c>
+-#include <check_native.c>
+-
+-/* Some variables normally defined in libc.  */
+-nss_action_list __nss_hosts_database attribute_hidden;
 diff --git a/nss/Makefile b/nss/Makefile
-index 3a9ea065ac..6ef5bf23b3 100644
+index 06fcdc450f..668ba34b18 100644
 --- a/nss/Makefile
 +++ b/nss/Makefile
-@@ -81,6 +81,7 @@ tests-container := \
+@@ -82,6 +82,7 @@ tests-container := \
    tst-nss-test3 \
    tst-reload1 \
    tst-reload2 \
@@ -2165,7 +1316,7 @@ index 3a9ea065ac..6ef5bf23b3 100644
  # tests-container
  
  # Tests which need libdl
-@@ -144,7 +145,17 @@ libnss_compat-inhibit-o	= $(filter-out .os,$(object-suffixes))
+@@ -145,7 +146,17 @@ libnss_compat-inhibit-o	= $(filter-out .os,$(object-suffixes))
  ifeq ($(build-static-nss),yes)
  tests-static		+= tst-nss-static
  endif
@@ -2184,7 +1335,7 @@ index 3a9ea065ac..6ef5bf23b3 100644
  
  include ../Rules
  
-@@ -179,12 +190,16 @@ rtld-tests-LDFLAGS += -Wl,--dynamic-list=nss_test.ver
+@@ -180,12 +191,16 @@ rtld-tests-LDFLAGS += -Wl,--dynamic-list=nss_test.ver
  libof-nss_test1 = extramodules
  libof-nss_test2 = extramodules
  libof-nss_test_errno = extramodules
@@ -2201,7 +1352,7 @@ index 3a9ea065ac..6ef5bf23b3 100644
  $(objpfx)nss_test2.os : nss_test1.c
  # Use the nss_files suffix for these objects as well.
  $(objpfx)/libnss_test1.so$(libnss_files.so-version): $(objpfx)/libnss_test1.so
-@@ -194,10 +209,14 @@ $(objpfx)/libnss_test2.so$(libnss_files.so-version): $(objpfx)/libnss_test2.so
+@@ -195,10 +210,14 @@ $(objpfx)/libnss_test2.so$(libnss_files.so-version): $(objpfx)/libnss_test2.so
  $(objpfx)/libnss_test_errno.so$(libnss_files.so-version): \
    $(objpfx)/libnss_test_errno.so
  	$(make-link)
@@ -2217,7 +1368,7 @@ index 3a9ea065ac..6ef5bf23b3 100644
  
  ifeq (yes,$(have-thread-library))
  $(objpfx)tst-cancel-getpwuid_r: $(shared-thread-library)
-@@ -206,6 +225,17 @@ endif
+@@ -207,6 +226,17 @@ endif
  $(objpfx)tst-nss-files-alias-leak.out: $(objpfx)/libnss_files.so
  $(objpfx)tst-nss-files-alias-truncated.out: $(objpfx)/libnss_files.so
  
@@ -2235,7 +1386,7 @@ index 3a9ea065ac..6ef5bf23b3 100644
  # Disable DT_RUNPATH on NSS tests so that the glibc internal NSS
  # functions can load testing NSS modules via DT_RPATH.
  LDFLAGS-tst-nss-test1 = -Wl,--disable-new-dtags
-@@ -214,3 +244,4 @@ LDFLAGS-tst-nss-test3 = -Wl,--disable-new-dtags
+@@ -215,3 +245,4 @@ LDFLAGS-tst-nss-test3 = -Wl,--disable-new-dtags
  LDFLAGS-tst-nss-test4 = -Wl,--disable-new-dtags
  LDFLAGS-tst-nss-test5 = -Wl,--disable-new-dtags
  LDFLAGS-tst-nss-test_errno = -Wl,--disable-new-dtags
@@ -2393,10 +1544,10 @@ index 0000000000..31848b4a28
 +cp $B/nss/libnss_test_gai_hv2_canonname.so $L/libnss_test_gai_hv2_canonname.so.2
 +su
 diff --git a/resolv/Makefile b/resolv/Makefile
-index cc69b4e60b..60f5d46897 100644
+index 054b1fa36c..2f99eb3862 100644
 --- a/resolv/Makefile
 +++ b/resolv/Makefile
-@@ -101,6 +101,7 @@ tests += \
+@@ -102,6 +102,7 @@ tests += \
    tst-resolv-invalid-cname \
    tst-resolv-network \
    tst-resolv-noaaaa \
@@ -2404,7 +1555,7 @@ index cc69b4e60b..60f5d46897 100644
    tst-resolv-nondecimal \
    tst-resolv-res_init-multi \
    tst-resolv-search \
-@@ -292,6 +293,7 @@ $(objpfx)tst-resolv-res_init-thread: $(objpfx)libresolv.so \
+@@ -293,6 +294,7 @@ $(objpfx)tst-resolv-res_init-thread: $(objpfx)libresolv.so \
  $(objpfx)tst-resolv-invalid-cname: $(objpfx)libresolv.so \
    $(shared-thread-library)
  $(objpfx)tst-resolv-noaaaa: $(objpfx)libresolv.so $(shared-thread-library)
@@ -2413,7 +1564,7 @@ index cc69b4e60b..60f5d46897 100644
  $(objpfx)tst-resolv-qtypes: $(objpfx)libresolv.so $(shared-thread-library)
  $(objpfx)tst-resolv-rotate: $(objpfx)libresolv.so $(shared-thread-library)
 diff --git a/resolv/nss_dns/dns-host.c b/resolv/nss_dns/dns-host.c
-index ae1f8669d5..e6aaef98d1 100644
+index 1d60c51f5e..5d0ab30de6 100644
 --- a/resolv/nss_dns/dns-host.c
 +++ b/resolv/nss_dns/dns-host.c
 @@ -427,7 +427,7 @@ _nss_dns_gethostbyname4_r (const char *name, struct gaih_addrtuple **pat,
@@ -2560,586 +1711,240 @@ index 0000000000..9f5aebd99f
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/stdio-common/Makefile b/stdio-common/Makefile
-index 34fdd6d1f8..fdc49f32ea 100644
---- a/stdio-common/Makefile
-+++ b/stdio-common/Makefile
-@@ -196,6 +196,7 @@ tests := \
-   tst-gets \
-   tst-grouping \
-   tst-grouping2 \
-+  tst-grouping3 \
-   tst-long-dbl-fphex \
-   tst-memstream-string \
-   tst-obprintf \
-@@ -340,6 +341,7 @@ $(objpfx)tst-sscanf.out: $(gen-locales)
- $(objpfx)tst-swprintf.out: $(gen-locales)
- $(objpfx)tst-vfprintf-mbs-prec.out: $(gen-locales)
- $(objpfx)tst-vfprintf-width-i18n.out: $(gen-locales)
-+$(objpfx)tst-grouping3.out: $(gen-locales)
- endif
+diff --git a/stdlib/tst-realpath.c b/stdlib/tst-realpath.c
+index f325c95a44..3694ecd8af 100644
+--- a/stdlib/tst-realpath.c
++++ b/stdlib/tst-realpath.c
+@@ -24,6 +24,7 @@
+    License along with the GNU C Library; if not, see
+    <https://www.gnu.org/licenses/>.  */
  
- tst-printf-bz18872-ENV = MALLOC_TRACE=$(objpfx)tst-printf-bz18872.mtrace \
-@@ -431,7 +433,7 @@ CFLAGS-tst-gets.c += -Wno-deprecated-declarations
++#include <limits.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <malloc.h>
+@@ -50,7 +51,11 @@ void dealloc (void *p)
  
- # BZ #11319 was first fixed for regular vdprintf, then reopened because
- # the fortified version had the same bug.
--CFLAGS-tst-bz11319-fortify2.c += -D_FORTIFY_SOURCE=2
-+CFLAGS-tst-bz11319-fortify2.c += -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
- 
- CFLAGS-tst-memstream-string.c += -fno-builtin-fprintf
- 
-diff --git a/stdio-common/tst-grouping3.c b/stdio-common/tst-grouping3.c
-new file mode 100644
-index 0000000000..e9e39218e2
---- /dev/null
-+++ b/stdio-common/tst-grouping3.c
-@@ -0,0 +1,54 @@
-+/* Test printf with grouping and padding (bug 30068)
-+   Copyright (C) 2023 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <https://www.gnu.org/licenses/>.  */
-+
-+#include <locale.h>
-+#include <stdio.h>
-+#include <support/check.h>
-+#include <support/support.h>
-+
-+static int
-+do_test (void)
-+{
-+  char buf[80];
-+
-+  xsetlocale (LC_NUMERIC, "de_DE.UTF-8");
-+
-+  /* The format string has the following conversion specifier:
-+     '  - Use thousands grouping.
-+     +  - The result of a signed conversion shall begin with a sign.
-+     -  - Left justified.
-+     13 - Minimum 13 bytes of width.
-+     9  - Minimum 9 digits of precision.
-+
-+     In bug 30068 the grouping characters were not accounted for in
-+     the width, and were added after the fact resulting in a 15-byte
-+     output instead of a 13-byte output.  The two additional bytes
-+     come from the locale-specific thousands separator.  This increase
-+     in size could result in a buffer overflow if a reasonable caller
-+     calculated the size of the expected buffer using nl_langinfo to
-+     determine the sie of THOUSEP in bytes.
-+
-+     This bug is distinct from bug 23432 which has to do with the
-+     minimum precision calculation (digit based).  */
-+  sprintf (buf, "%+-'13.9d", 1234567);
-+  TEST_COMPARE_STRING (buf, "+001.234.567 ");
-+
-+  return 0;
-+}
-+
-+#include <support/test-driver.c>
-diff --git a/stdio-common/vfprintf-process-arg.c b/stdio-common/vfprintf-process-arg.c
-index 24c9125f9f..8c0fcbcf78 100644
---- a/stdio-common/vfprintf-process-arg.c
-+++ b/stdio-common/vfprintf-process-arg.c
-@@ -186,11 +186,17 @@ LABEL (unsigned_number):      /* Unsigned number of base BASE.  */
-   bool octal_marker = (prec <= number_length && number.word != 0
-                        && alt && base == 8);
- 
--  prec = MAX (0, prec - (workend - string));
-+  /* At this point prec_inc is the additional bytes required for the
-+     specificed precision.  It is 0 if the precision would not have
-+     required additional bytes i.e. the number of input digits is more
-+     than the precision.  It is greater than zero if the precision is
-+     more than the number of digits without grouping (precision only
-+     considers digits).  */
-+  unsigned int prec_inc = MAX (0, prec - (workend - string));
- 
-   if (!left)
-     {
--      width -= number_length + prec;
-+      width -= number_length + prec_inc;
- 
-       if (number.word != 0 && alt && (base == 16 || base == 2))
-         /* Account for 0X, 0x, 0B or 0b hex or binary marker.  */
-@@ -221,7 +227,7 @@ LABEL (unsigned_number):      /* Unsigned number of base BASE.  */
-           Xprintf_buffer_putc (buf, spec);
-         }
- 
--      width += prec;
-+      width += prec_inc;
-       Xprintf_buffer_pad (buf, L_('0'), width);
- 
-       if (octal_marker)
-@@ -237,6 +243,8 @@ LABEL (unsigned_number):      /* Unsigned number of base BASE.  */
-     }
-   else
-     {
-+      /* Perform left justification adjustments.  */
-+
-       if (is_negative)
-         {
-           Xprintf_buffer_putc (buf, L_('-'));
-@@ -263,9 +271,13 @@ LABEL (unsigned_number):      /* Unsigned number of base BASE.  */
-       if (octal_marker)
- 	--width;
- 
--      width -= workend - string + prec;
-+      /* Adjust the width by subtracting the number of bytes
-+         required to represent the number with grouping characters
-+	 (NUMBER_LENGTH) and any additional bytes required for
-+	 precision.  */
-+      width -= number_length + prec_inc;
- 
--      Xprintf_buffer_pad (buf, L_('0'), prec);
-+      Xprintf_buffer_pad (buf, L_('0'), prec_inc);
- 
-       if (octal_marker)
-         Xprintf_buffer_putc (buf, L_('0'));
-diff --git a/stdlib/Makefile b/stdlib/Makefile
-index e0fc82fc4d..005eede5d9 100644
---- a/stdlib/Makefile
-+++ b/stdlib/Makefile
-@@ -171,6 +171,7 @@ tests := \
-   test-a64l \
-   test-at_quick_exit-race \
-   test-atexit-race \
-+  test-atexit-recursive \
-   test-bz22786 \
-   test-canon \
-   test-canon2 \
-diff --git a/stdlib/exit.c b/stdlib/exit.c
-index 6b1eed6445..1cd0bdfe94 100644
---- a/stdlib/exit.c
-+++ b/stdlib/exit.c
-@@ -51,7 +51,10 @@ __run_exit_handlers (int status, struct exit_function_list **listp,
-      exit (). */
-   while (true)
-     {
--      struct exit_function_list *cur = *listp;
-+      struct exit_function_list *cur;
-+
-+    restart:
-+      cur = *listp;
- 
-       if (cur == NULL)
- 	{
-@@ -113,7 +116,7 @@ __run_exit_handlers (int status, struct exit_function_list **listp,
- 	  if (__glibc_unlikely (new_exitfn_called != __new_exitfn_called))
- 	    /* The last exit function, or another thread, has registered
- 	       more exit functions.  Start the loop over.  */
--            continue;
-+	    goto restart;
- 	}
- 
-       *listp = cur->next;
-diff --git a/stdlib/test-atexit-recursive.c b/stdlib/test-atexit-recursive.c
-new file mode 100644
-index 0000000000..0596b9763b
---- /dev/null
-+++ b/stdlib/test-atexit-recursive.c
-@@ -0,0 +1,75 @@
-+/* Support file for atexit/exit, etc. race tests (BZ #27749).
-+   Copyright (C) 2023 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <https://www.gnu.org/licenses/>.  */
-+
-+/* Check that atexit handler registed from another handler still called. */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <support/check.h>
-+#include <support/xunistd.h>
-+#include <sys/wait.h>
-+#include <unistd.h>
-+
-+static void
-+atexit_cb (void)
-+{
-+}
-+
-+static void
-+atexit_last (void)
-+{
-+  _exit (1);
-+}
-+
-+static void
-+atexit_recursive (void)
-+{
-+  atexit (&atexit_cb);
-+  atexit (&atexit_last);
-+}
-+
-+_Noreturn static void
-+test_and_exit (int count)
-+{
-+  for (int i = 0; i < count; ++i)
-+    atexit (&atexit_cb);
-+  atexit (&atexit_recursive);
-+  exit (0);
-+}
-+
-+static int
-+do_test (void)
-+{
-+  for (int i = 0; i < 100; ++i)
-+    if (xfork () == 0)
-+      test_and_exit (i);
-+
-+  for (int i = 0; i < 100; ++i)
-+    {
-+      int status;
-+      xwaitpid (0, &status, 0);
-+      if (!WIFEXITED (status))
-+	FAIL_EXIT1 ("Failed iterations %d", i);
-+      TEST_COMPARE (WEXITSTATUS (status), 1);
-+    }
-+
-+  return 0;
-+}
-+
-+#define TEST_FUNCTION do_test
-+#include <support/test-driver.c>
-diff --git a/stdlib/tst-system.c b/stdlib/tst-system.c
-index 634acfe264..47a0afe6bf 100644
---- a/stdlib/tst-system.c
-+++ b/stdlib/tst-system.c
-@@ -25,6 +25,7 @@
- #include <support/check.h>
- #include <support/temp_file.h>
- #include <support/support.h>
-+#include <support/xthread.h>
- #include <support/xunistd.h>
- 
- static char *tmpdir;
-@@ -71,6 +72,20 @@ call_system (void *closure)
-     }
- }
- 
-+static void *
-+sleep_and_check_sigchld (void *closure)
-+{
-+  double *seconds = (double *) closure;
-+  char cmd[namemax];
-+  sprintf (cmd, "sleep %lf" , *seconds);
-+  TEST_COMPARE (system (cmd), 0);
-+
-+  sigset_t blocked = {0};
-+  TEST_COMPARE (sigprocmask (SIG_BLOCK, NULL, &blocked), 0);
-+  TEST_COMPARE (sigismember (&blocked, SIGCHLD), 0);
-+  return NULL;
-+}
-+
- static int
- do_test (void)
+ char* alloc (void)
  {
-@@ -154,6 +169,17 @@ do_test (void)
-     xchmod (_PATH_BSHELL, st.st_mode);
-   }
- 
-+  {
-+    pthread_t long_sleep_thread = xpthread_create (NULL,
-+                                                   sleep_and_check_sigchld,
-+                                                   &(double) { 0.2 });
-+    pthread_t short_sleep_thread = xpthread_create (NULL,
-+                                                    sleep_and_check_sigchld,
-+                                                    &(double) { 0.1 });
-+    xpthread_join (short_sleep_thread);
-+    xpthread_join (long_sleep_thread);
-+  }
-+
-   TEST_COMPARE (system (""), 0);
- 
-   return 0;
-diff --git a/support/Makefile b/support/Makefile
-index b29b7eb505..48cd74581d 100644
---- a/support/Makefile
-+++ b/support/Makefile
-@@ -32,6 +32,8 @@ libsupport-routines = \
-   check_hostent \
-   check_netent \
-   delayed_exit \
-+  dtotimespec \
-+  dtotimespec-time64 \
-   ignore_stderr \
-   next_to_fault \
-   oom_error \
-diff --git a/support/dtotimespec-time64.c b/support/dtotimespec-time64.c
-new file mode 100644
-index 0000000000..b3d5e351e3
---- /dev/null
-+++ b/support/dtotimespec-time64.c
-@@ -0,0 +1,27 @@
-+/* Convert double to timespec.  64-bit time support.
-+   Copyright (C) 2011-2023 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library and is also part of gnulib.
-+   Patches to this file should be submitted to both projects.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <https://www.gnu.org/licenses/>.  */
-+
-+#include <time.h>
-+
-+#if __TIMESIZE != 64
-+# define timespec      __timespec64
-+# define time_t        __time64_t
-+# define dtotimespec   dtotimespec_time64
-+# include "dtotimespec.c"
+-  return (char *)malloc (8);
++#ifdef PATH_MAX
++  return (char *)malloc (PATH_MAX);
++#else
++  return (char *)malloc (4096);
 +#endif
-diff --git a/support/dtotimespec.c b/support/dtotimespec.c
-new file mode 100644
-index 0000000000..cde5b4d74c
---- /dev/null
-+++ b/support/dtotimespec.c
-@@ -0,0 +1,50 @@
-+/* Convert double to timespec.
-+   Copyright (C) 2011-2023 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library and is also part of gnulib.
-+   Patches to this file should be submitted to both projects.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <https://www.gnu.org/licenses/>.  */
-+
-+/* Convert the double value SEC to a struct timespec.  Round toward
-+   positive infinity.  On overflow, return an extremal value.  */
-+
-+#include <support/timespec.h>
-+#include <intprops.h>
-+
-+struct timespec
-+dtotimespec (double sec)
-+{
-+  if (sec <= TYPE_MINIMUM (time_t))
-+    return make_timespec (TYPE_MINIMUM (time_t), 0);
-+  else if (sec >= 1.0 + TYPE_MAXIMUM (time_t))
-+    return make_timespec (TYPE_MAXIMUM (time_t), TIMESPEC_HZ - 1);
-+  else
-+    {
-+      time_t s = sec;
-+      double frac = TIMESPEC_HZ * (sec - s);
-+      long ns = frac;
-+      ns += ns < frac;
-+      s += ns / TIMESPEC_HZ;
-+      ns %= TIMESPEC_HZ;
-+
-+      if (ns < 0)
-+        {
-+          s--;
-+          ns += TIMESPEC_HZ;
-+        }
-+
-+      return make_timespec (s, ns);
-+    }
-+}
-diff --git a/support/shell-container.c b/support/shell-container.c
-index e9ac9b6d04..66cf0c8b1f 100644
---- a/support/shell-container.c
-+++ b/support/shell-container.c
-@@ -39,6 +39,7 @@
- #include <error.h>
- 
- #include <support/support.h>
-+#include <support/timespec.h>
- 
- /* Design considerations
- 
-@@ -171,6 +172,32 @@ kill_func (char **argv)
-   return 0;
  }
  
-+/* Emulate the "/bin/sleep" command.  No suffix support.  Options are
-+   ignored.  */
-+static int
-+sleep_func (char **argv)
-+{
-+  if (argv[0] == NULL)
-+    {
-+      fprintf (stderr, "sleep: missing operand\n");
-+      return 1;
-+    }
-+  char *endptr = NULL;
-+  double sec = strtod (argv[0], &endptr);
-+  if (endptr == argv[0] || errno == ERANGE || sec < 0)
-+    {
-+      fprintf (stderr, "sleep: invalid time interval '%s'\n", argv[0]);
-+      return 1;
-+    }
-+  struct timespec ts = dtotimespec (sec);
-+  if (nanosleep (&ts, NULL) < 0)
-+    {
-+      fprintf (stderr, "sleep: failed to nanosleep: %s\n", strerror (errno));
-+      return 1;
-+    }
-+  return 0;
-+}
-+
- /* This is a list of all the built-in commands we understand.  */
- static struct {
-   const char *name;
-@@ -181,6 +208,7 @@ static struct {
-   { "cp", copy_func },
-   { "exit", exit_func },
-   { "kill", kill_func },
-+  { "sleep", sleep_func },
-   { NULL, NULL }
- };
- 
-diff --git a/support/timespec.h b/support/timespec.h
-index 77b1e4e8d6..9559836d4c 100644
---- a/support/timespec.h
-+++ b/support/timespec.h
-@@ -57,6 +57,8 @@ int support_timespec_check_in_range (struct timespec expected,
- 				     struct timespec observed,
- 				     double lower_bound, double upper_bound);
- 
-+struct timespec dtotimespec (double sec) __attribute__((const));
-+
- #else
- struct timespec __REDIRECT (timespec_add, (struct timespec, struct timespec),
- 			    timespec_add_time64);
-@@ -82,6 +84,8 @@ int __REDIRECT (support_timespec_check_in_range, (struct timespec expected,
- 						  double lower_bound,
- 						  double upper_bound),
- 		support_timespec_check_in_range_time64);
-+
-+struct timespec __REDIRECT (dtotimespec, (double sec), dtotimespec_time64);
+ static int
+diff --git a/string/tester.c b/string/tester.c
+index f7d4bac5a8..824cf315ff 100644
+--- a/string/tester.c
++++ b/string/tester.c
+@@ -34,6 +34,14 @@
+ DIAG_IGNORE_NEEDS_COMMENT (8, "-Wstringop-truncation");
  #endif
  
- /* Check that the timespec on the left represents a time before the
-diff --git a/sysdeps/generic/dl-lookupcfg.h b/sysdeps/generic/dl-lookupcfg.h
-index cc5e9d619b..e4f6358f88 100644
---- a/sysdeps/generic/dl-lookupcfg.h
-+++ b/sysdeps/generic/dl-lookupcfg.h
-@@ -27,5 +27,5 @@
- #define DL_FIXUP_VALUE_ADDR(value) (value)
- #define DL_FIXUP_ADDR_VALUE(addr) (addr)
- #define DL_FIXUP_BINDNOW_ADDR_VALUE(addr) (addr)
--#define DL_FIXUP_BINDNOW_RELOC(value, new_value, st_value) \
-+#define DL_FIXUP_BINDNOW_RELOC(l, reloc, value, new_value, st_value, lazy) \
-   (*value) = st_value;
-diff --git a/sysdeps/generic/ldconfig.h b/sysdeps/generic/ldconfig.h
-index 0e1a9a9515..e9e9e19d0f 100644
---- a/sysdeps/generic/ldconfig.h
-+++ b/sysdeps/generic/ldconfig.h
-@@ -90,8 +90,6 @@ extern int process_file (const char *real_file_name, const char *file_name,
- 			 const char *lib, int *flag, unsigned int *isa_level,
- 			 char **soname, int is_link, struct stat *stat_buf);
- 
--extern char *implicit_soname (const char *lib, int flag);
--
- /* Declared in readelflib.c.  */
- extern int process_elf_file (const char *file_name, const char *lib,
- 			     int *flag, unsigned int *isa_level, char **soname,
-diff --git a/sysdeps/generic/ldsodefs.h b/sysdeps/generic/ldsodefs.h
-index c99dad77cc..36055ad251 100644
---- a/sysdeps/generic/ldsodefs.h
-+++ b/sysdeps/generic/ldsodefs.h
-@@ -1043,6 +1043,10 @@ extern int _dl_check_map_versions (struct link_map *map, int verbose,
- extern void _dl_init (struct link_map *main_map, int argc, char **argv,
- 		      char **env) attribute_hidden;
- 
-+/* List of ELF objects in reverse order of their constructor
-+   invocation.  */
-+extern struct link_map *_dl_init_called_list attribute_hidden;
++/* When building with fortify enabled, GCC < 12 issues a warning on the
++   fortify strncat wrapper might overflow the destination buffer (the
++   failure is tied to -Werror).
++   Triggered by strncat fortify wrapper when it is enabled.  */
++#if __GNUC_PREREQ (11, 0)
++DIAG_IGNORE_NEEDS_COMMENT (11, "-Wstringop-overread");
++#endif
 +
- /* Call the finalizer functions of all shared objects whose
-    initializer functions have completed.  */
- extern void _dl_fini (void) attribute_hidden;
-@@ -1377,8 +1381,8 @@ void _dl_audit_preinit (struct link_map *l);
-    the flags with LA_SYMB_NOPLTENTER | LA_SYMB_NOPLTEXIT prior calling
-    la_symbind{32,64}.  */
- void _dl_audit_symbind (struct link_map *l, struct reloc_result *reloc_result,
--			const ElfW(Sym) *defsym, DL_FIXUP_VALUE_TYPE *value,
--			lookup_t result)
-+			const void *reloc, const ElfW(Sym) *defsym,
-+			DL_FIXUP_VALUE_TYPE *value, lookup_t result, bool lazy)
-   attribute_hidden;
- /* Same as _dl_audit_symbind, but also sets LA_SYMB_DLSYM flag.  */
- void _dl_audit_symbind_alt (struct link_map *l, const ElfW(Sym) *ref,
-diff --git a/sysdeps/hppa/dl-lookupcfg.h b/sysdeps/hppa/dl-lookupcfg.h
-index 66b3ff9763..28daf3f89b 100644
---- a/sysdeps/hppa/dl-lookupcfg.h
-+++ b/sysdeps/hppa/dl-lookupcfg.h
-@@ -84,5 +84,5 @@ void attribute_hidden _dl_unmap (struct link_map *map);
- #define DL_FIXUP_ADDR_VALUE(addr) \
-   (*(DL_FIXUP_VALUE_TYPE *) ((uintptr_t) (addr) & ~2))
- #define DL_FIXUP_BINDNOW_ADDR_VALUE(addr) (addr)
--#define DL_FIXUP_BINDNOW_RELOC(value, new_value, st_value)	\
-+#define DL_FIXUP_BINDNOW_RELOC(l, reloc, value, new_value, st_value, lazy) \
-   *(value) = *(DL_FIXUP_VALUE_TYPE *) ((uintptr_t) (new_value) & ~2)
-diff --git a/sysdeps/i386/i686/fpu/multiarch/libm-test-ulps b/sysdeps/i386/i686/fpu/multiarch/libm-test-ulps
-index 8705a7822c..6f50cec761 100644
---- a/sysdeps/i386/i686/fpu/multiarch/libm-test-ulps
-+++ b/sysdeps/i386/i686/fpu/multiarch/libm-test-ulps
-@@ -1617,7 +1617,7 @@ ldouble: 5
+ #include <errno.h>
+ #include <stdint.h>
+ #include <stdio.h>
+@@ -52,9 +60,6 @@ DIAG_IGNORE_NEEDS_COMMENT (5.0, "-Wmemset-transposed-args");
+ DIAG_IGNORE_NEEDS_COMMENT (9, "-Wrestrict");
+ DIAG_IGNORE_NEEDS_COMMENT (7, "-Wstringop-overflow=");
+ #endif
+-#if __GNUC_PREREQ (11, 0)
+-DIAG_IGNORE_NEEDS_COMMENT (11, "-Wstringop-overread");
+-#endif
  
- Function: "y0_towardzero":
- double: 4
--float: 8
-+float: 9
- float128: 3
- ldouble: 8
  
-diff --git a/sysdeps/ia64/dl-lookupcfg.h b/sysdeps/ia64/dl-lookupcfg.h
-index 0e47e529fe..64218fa7bb 100644
---- a/sysdeps/ia64/dl-lookupcfg.h
-+++ b/sysdeps/ia64/dl-lookupcfg.h
-@@ -75,5 +75,5 @@ extern void attribute_hidden _dl_unmap (struct link_map *map);
- #define DL_FIXUP_VALUE_ADDR(value) ((uintptr_t) &(value))
- #define DL_FIXUP_ADDR_VALUE(addr) (*(struct fdesc *) (addr))
- #define DL_FIXUP_BINDNOW_ADDR_VALUE(addr) (addr)
--#define DL_FIXUP_BINDNOW_RELOC(value, new_value, st_value) \
-+#define DL_FIXUP_BINDNOW_RELOC(l, reloc, value, new_value, st_value, lazy) \
-   (*value) = *(struct fdesc *) (st_value)
+ #define	STREQ(a, b)	(strcmp((a), (b)) == 0)
+diff --git a/sysdeps/generic/unsecvars.h b/sysdeps/generic/unsecvars.h
+index 81397fb90b..8278c50a84 100644
+--- a/sysdeps/generic/unsecvars.h
++++ b/sysdeps/generic/unsecvars.h
+@@ -4,7 +4,6 @@
+ #define UNSECURE_ENVVARS \
+   "GCONV_PATH\0"							      \
+   "GETCONF_DIR\0"							      \
+-  "GLIBC_TUNABLES\0"							      \
+   "HOSTALIASES\0"							      \
+   "LD_AUDIT\0"								      \
+   "LD_DEBUG\0"								      \
+diff --git a/sysdeps/i386/i686/memcpy.S b/sysdeps/i386/i686/memcpy.S
+index 9b48ec0ea1..b86af4aac9 100644
+--- a/sysdeps/i386/i686/memcpy.S
++++ b/sysdeps/i386/i686/memcpy.S
+@@ -27,7 +27,7 @@
+ #define LEN	SRC+4
+ 
+ 	.text
+-#if defined PIC && IS_IN (libc)
++#if defined SHARED && IS_IN (libc)
+ ENTRY_CHK (__memcpy_chk)
+ 	movl	12(%esp), %eax
+ 	cmpl	%eax, 16(%esp)
+diff --git a/sysdeps/i386/i686/mempcpy.S b/sysdeps/i386/i686/mempcpy.S
+index 26f8501e7d..14d9dd681a 100644
+--- a/sysdeps/i386/i686/mempcpy.S
++++ b/sysdeps/i386/i686/mempcpy.S
+@@ -27,7 +27,7 @@
+ #define LEN	SRC+4
+ 
+ 	.text
+-#if defined PIC && IS_IN (libc)
++#if defined SHARED && IS_IN (libc)
+ ENTRY_CHK (__mempcpy_chk)
+ 	movl	12(%esp), %eax
+ 	cmpl	%eax, 16(%esp)
+diff --git a/sysdeps/i386/i686/multiarch/memcpy_chk.c b/sysdeps/i386/i686/multiarch/memcpy_chk.c
+index ec945dc91f..c3a8aeaf18 100644
+--- a/sysdeps/i386/i686/multiarch/memcpy_chk.c
++++ b/sysdeps/i386/i686/multiarch/memcpy_chk.c
+@@ -32,4 +32,6 @@ libc_ifunc_redirected (__redirect_memcpy_chk, __memcpy_chk,
+ __hidden_ver1 (__memcpy_chk, __GI___memcpy_chk, __redirect_memcpy_chk)
+   __attribute__ ((visibility ("hidden"))) __attribute_copy__ (__memcpy_chk);
+ # endif
++#else
++# include <debug/memcpy_chk.c>
+ #endif
+diff --git a/sysdeps/i386/i686/multiarch/memmove_chk.c b/sysdeps/i386/i686/multiarch/memmove_chk.c
+index 55c7601d5d..070dde083a 100644
+--- a/sysdeps/i386/i686/multiarch/memmove_chk.c
++++ b/sysdeps/i386/i686/multiarch/memmove_chk.c
+@@ -32,4 +32,6 @@ libc_ifunc_redirected (__redirect_memmove_chk, __memmove_chk,
+ __hidden_ver1 (__memmove_chk, __GI___memmove_chk, __redirect_memmove_chk)
+   __attribute__ ((visibility ("hidden"))) __attribute_copy__ (__memmove_chk);
+ # endif
++#else
++# include <debug/memmove_chk.c>
+ #endif
+diff --git a/sysdeps/i386/i686/multiarch/mempcpy_chk.c b/sysdeps/i386/i686/multiarch/mempcpy_chk.c
+index 83569cf9d9..14360f1828 100644
+--- a/sysdeps/i386/i686/multiarch/mempcpy_chk.c
++++ b/sysdeps/i386/i686/multiarch/mempcpy_chk.c
+@@ -32,4 +32,6 @@ libc_ifunc_redirected (__redirect_mempcpy_chk, __mempcpy_chk,
+ __hidden_ver1 (__mempcpy_chk, __GI___mempcpy_chk, __redirect_mempcpy_chk)
+   __attribute__ ((visibility ("hidden"))) __attribute_copy__ (__mempcpy_chk);
+ # endif
++#else
++# include <debug/mempcpy_chk.c>
+ #endif
+diff --git a/sysdeps/i386/i686/multiarch/memset_chk.c b/sysdeps/i386/i686/multiarch/memset_chk.c
+index 1a7503858d..8179ef7c0b 100644
+--- a/sysdeps/i386/i686/multiarch/memset_chk.c
++++ b/sysdeps/i386/i686/multiarch/memset_chk.c
+@@ -32,4 +32,6 @@ libc_ifunc_redirected (__redirect_memset_chk, __memset_chk,
+ __hidden_ver1 (__memset_chk, __GI___memset_chk, __redirect_memset_chk)
+   __attribute__ ((visibility ("hidden"))) __attribute_copy__ (__memset_chk);
+ # endif
++#else
++# include <debug/memset_chk.c>
+ #endif
+diff --git a/sysdeps/loongarch/dl-trampoline.h b/sysdeps/loongarch/dl-trampoline.h
+index 02375286f8..99fcacab76 100644
+--- a/sysdeps/loongarch/dl-trampoline.h
++++ b/sysdeps/loongarch/dl-trampoline.h
+@@ -19,9 +19,9 @@
+ /* Assembler veneer called from the PLT header code for lazy loading.
+    The PLT header passes its own args in t0-t2.  */
+ #ifdef USE_LASX
+-# define FRAME_SIZE (-((-9 * SZREG - 8 * SZFREG - 8 * SZXREG) & ALMASK))
++# define FRAME_SIZE (-((-9 * SZREG - 8 * SZXREG) & ALMASK))
+ #elif defined USE_LSX
+-# define FRAME_SIZE (-((-9 * SZREG - 8 * SZFREG - 8 * SZVREG) & ALMASK))
++# define FRAME_SIZE (-((-9 * SZREG - 8 * SZVREG) & ALMASK))
+ #elif !defined __loongarch_soft_float
+ # define FRAME_SIZE (-((-9 * SZREG - 8 * SZFREG) & ALMASK))
+ #else
+@@ -44,23 +44,23 @@ ENTRY (_dl_runtime_resolve)
+ 	REG_S	a7, sp, 8*SZREG
+ 
+ #ifdef USE_LASX
+-	xvst	xr0, sp, 9*SZREG + 8*SZFREG + 0*SZXREG
+-	xvst	xr1, sp, 9*SZREG + 8*SZFREG + 1*SZXREG
+-	xvst	xr2, sp, 9*SZREG + 8*SZFREG + 2*SZXREG
+-	xvst	xr3, sp, 9*SZREG + 8*SZFREG + 3*SZXREG
+-	xvst	xr4, sp, 9*SZREG + 8*SZFREG + 4*SZXREG
+-	xvst	xr5, sp, 9*SZREG + 8*SZFREG + 5*SZXREG
+-	xvst	xr6, sp, 9*SZREG + 8*SZFREG + 6*SZXREG
+-	xvst	xr7, sp, 9*SZREG + 8*SZFREG + 7*SZXREG
++	xvst	xr0, sp, 9*SZREG + 0*SZXREG
++	xvst	xr1, sp, 9*SZREG + 1*SZXREG
++	xvst	xr2, sp, 9*SZREG + 2*SZXREG
++	xvst	xr3, sp, 9*SZREG + 3*SZXREG
++	xvst	xr4, sp, 9*SZREG + 4*SZXREG
++	xvst	xr5, sp, 9*SZREG + 5*SZXREG
++	xvst	xr6, sp, 9*SZREG + 6*SZXREG
++	xvst	xr7, sp, 9*SZREG + 7*SZXREG
+ #elif defined USE_LSX
+-	vst	vr0, sp, 9*SZREG + 8*SZFREG + 0*SZVREG
+-	vst	vr1, sp, 9*SZREG + 8*SZFREG + 1*SZVREG
+-	vst	vr2, sp, 9*SZREG + 8*SZFREG + 2*SZVREG
+-	vst	vr3, sp, 9*SZREG + 8*SZFREG + 3*SZVREG
+-	vst	vr4, sp, 9*SZREG + 8*SZFREG + 4*SZVREG
+-	vst	vr5, sp, 9*SZREG + 8*SZFREG + 5*SZVREG
+-	vst	vr6, sp, 9*SZREG + 8*SZFREG + 6*SZVREG
+-	vst	vr7, sp, 9*SZREG + 8*SZFREG + 7*SZVREG
++	vst	vr0, sp, 9*SZREG + 0*SZVREG
++	vst	vr1, sp, 9*SZREG + 1*SZVREG
++	vst	vr2, sp, 9*SZREG + 2*SZVREG
++	vst	vr3, sp, 9*SZREG + 3*SZVREG
++	vst	vr4, sp, 9*SZREG + 4*SZVREG
++	vst	vr5, sp, 9*SZREG + 5*SZVREG
++	vst	vr6, sp, 9*SZREG + 6*SZVREG
++	vst	vr7, sp, 9*SZREG + 7*SZVREG
+ #elif !defined __loongarch_soft_float
+ 	FREG_S	fa0, sp, 9*SZREG + 0*SZFREG
+ 	FREG_S	fa1, sp, 9*SZREG + 1*SZFREG
+@@ -92,23 +92,23 @@ ENTRY (_dl_runtime_resolve)
+ 	REG_L	a7, sp, 8*SZREG
+ 
+ #ifdef USE_LASX
+-	xvld	xr0, sp, 9*SZREG + 8*SZFREG + 0*SZXREG
+-	xvld	xr1, sp, 9*SZREG + 8*SZFREG + 1*SZXREG
+-	xvld	xr2, sp, 9*SZREG + 8*SZFREG + 2*SZXREG
+-	xvld	xr3, sp, 9*SZREG + 8*SZFREG + 3*SZXREG
+-	xvld	xr4, sp, 9*SZREG + 8*SZFREG + 4*SZXREG
+-	xvld	xr5, sp, 9*SZREG + 8*SZFREG + 5*SZXREG
+-	xvld	xr6, sp, 9*SZREG + 8*SZFREG + 6*SZXREG
+-	xvld	xr7, sp, 9*SZREG + 8*SZFREG + 7*SZXREG
++	xvld	xr0, sp, 9*SZREG + 0*SZXREG
++	xvld	xr1, sp, 9*SZREG + 1*SZXREG
++	xvld	xr2, sp, 9*SZREG + 2*SZXREG
++	xvld	xr3, sp, 9*SZREG + 3*SZXREG
++	xvld	xr4, sp, 9*SZREG + 4*SZXREG
++	xvld	xr5, sp, 9*SZREG + 5*SZXREG
++	xvld	xr6, sp, 9*SZREG + 6*SZXREG
++	xvld	xr7, sp, 9*SZREG + 7*SZXREG
+ #elif defined USE_LSX
+-	vld	vr0, sp, 9*SZREG + 8*SZFREG + 0*SZVREG
+-	vld	vr1, sp, 9*SZREG + 8*SZFREG + 1*SZVREG
+-	vld	vr2, sp, 9*SZREG + 8*SZFREG + 2*SZVREG
+-	vld	vr3, sp, 9*SZREG + 8*SZFREG + 3*SZVREG
+-	vld	vr4, sp, 9*SZREG + 8*SZFREG + 4*SZVREG
+-	vld	vr5, sp, 9*SZREG + 8*SZFREG + 5*SZVREG
+-	vld	vr6, sp, 9*SZREG + 8*SZFREG + 6*SZVREG
+-	vld	vr7, sp, 9*SZREG + 8*SZFREG + 7*SZVREG
++	vld	vr0, sp, 9*SZREG + 0*SZVREG
++	vld	vr1, sp, 9*SZREG + 1*SZVREG
++	vld	vr2, sp, 9*SZREG + 2*SZVREG
++	vld	vr3, sp, 9*SZREG + 3*SZVREG
++	vld	vr4, sp, 9*SZREG + 4*SZVREG
++	vld	vr5, sp, 9*SZREG + 5*SZVREG
++	vld	vr6, sp, 9*SZREG + 6*SZVREG
++	vld	vr7, sp, 9*SZREG + 7*SZVREG
+ #elif !defined __loongarch_soft_float
+ 	FREG_L	fa0, sp, 9*SZREG + 0*SZFREG
+ 	FREG_L	fa1, sp, 9*SZREG + 1*SZFREG
 diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
-index fd22dc4fcb..69f38bbfb9 100644
+index 0356b622be..da573bea24 100644
 --- a/sysdeps/posix/getaddrinfo.c
 +++ b/sysdeps/posix/getaddrinfo.c
 @@ -120,6 +120,7 @@ struct gaih_result
@@ -3213,7 +2018,23 @@ index fd22dc4fcb..69f38bbfb9 100644
  	/* If the canonical name cannot be determined, use the passed
  	   string.  */
  	s = (char *) name;
-@@ -771,7 +780,7 @@ get_nss_addresses (const char *name, const struct addrinfo *req,
+@@ -607,7 +616,14 @@ get_nss_addresses (const char *name, const struct addrinfo *req,
+      function variant.  */
+   res_ctx = __resolv_context_get ();
+   if (res_ctx == NULL)
+-    no_more = 1;
++    {
++      if (errno == ENOMEM)
++	{
++	  result = -EAI_MEMORY;
++	  goto out;
++	}
++      no_more = 1;
++    }
+ 
+   while (!no_more)
+     {
+@@ -771,7 +787,7 @@ get_nss_addresses (const char *name, const struct addrinfo *req,
  		  if ((req->ai_flags & AI_CANONNAME) != 0
  		      && res->canon == NULL)
  		    {
@@ -3222,7 +2043,7 @@ index fd22dc4fcb..69f38bbfb9 100644
  		      if (canonbuf == NULL)
  			{
  			  __resolv_context_put (res_ctx);
-@@ -1187,9 +1196,7 @@ free_and_return:
+@@ -1187,9 +1203,7 @@ free_and_return:
    if (malloc_name)
      free ((char *) name);
    free (addrmem);
@@ -3233,245 +2054,115 @@ index fd22dc4fcb..69f38bbfb9 100644
  
    return result;
  }
-diff --git a/sysdeps/posix/system.c b/sysdeps/posix/system.c
-index 2335a99184..d77720a625 100644
---- a/sysdeps/posix/system.c
-+++ b/sysdeps/posix/system.c
-@@ -179,16 +179,16 @@ do_system (const char *line)
-       as if the shell had terminated using _exit(127).  */
-    status = W_EXITCODE (127, 0);
+diff --git a/sysdeps/pthread/sem_open.c b/sysdeps/pthread/sem_open.c
+index e5db929d20..0e331a7445 100644
+--- a/sysdeps/pthread/sem_open.c
++++ b/sysdeps/pthread/sem_open.c
+@@ -32,11 +32,12 @@
+ # define __unlink unlink
+ #endif
  
-+  /* sigaction can not fail with SIGINT/SIGQUIT used with old
-+     disposition.  Same applies for sigprocmask.  */
-   DO_LOCK ();
-   if (SUB_REF () == 0)
++#define SEM_OPEN_FLAGS (O_RDWR | O_NOFOLLOW | O_CLOEXEC)
++
+ sem_t *
+ __sem_open (const char *name, int oflag, ...)
+ {
+   int fd;
+-  int open_flags;
+   sem_t *result;
+ 
+   /* Check that shared futexes are supported.  */
+@@ -65,10 +66,8 @@ __sem_open (const char *name, int oflag, ...)
+   /* If the semaphore object has to exist simply open it.  */
+   if ((oflag & O_CREAT) == 0 || (oflag & O_EXCL) == 0)
      {
--      /* sigaction can not fail with SIGINT/SIGQUIT used with old
--	 disposition.  Same applies for sigprocmask.  */
-       __sigaction (SIGINT, &intr, NULL);
-       __sigaction (SIGQUIT, &quit, NULL);
--      __sigprocmask (SIG_SETMASK, &omask, NULL);
-     }
-   DO_UNLOCK ();
-+  __sigprocmask (SIG_SETMASK, &omask, NULL);
+-      open_flags = O_RDWR | O_NOFOLLOW | O_CLOEXEC;
+-      open_flags |= (oflag & ~(O_CREAT|O_ACCMODE));
+     try_again:
+-      fd = __open (dirname.name, open_flags);
++      fd = __open (dirname.name, (oflag & O_EXCL) | SEM_OPEN_FLAGS);
  
-   if (ret != 0)
-     __set_errno (ret);
-diff --git a/sysdeps/powerpc/dl-lookupcfg.h b/sysdeps/powerpc/dl-lookupcfg.h
-index db0869bd33..0d6dcb8e25 100644
---- a/sysdeps/powerpc/dl-lookupcfg.h
-+++ b/sysdeps/powerpc/dl-lookupcfg.h
-@@ -25,7 +25,7 @@
- /* We need to correctly set the audit modules value for bind-now.  */
- # define DL_FIXUP_BINDNOW_ADDR_VALUE(addr) \
-  (((Elf64_FuncDesc *)(addr))->fd_func)
--# define DL_FIXUP_BINDNOW_RELOC(value, new_value, st_value)	\
-+# define DL_FIXUP_BINDNOW_RELOC(l, reloc, value, new_value, st_value, lazy) \
-  ({								\
-     Elf64_FuncDesc *opd = (Elf64_FuncDesc *) (value);		\
-     opd->fd_func = (st_value);					\
-@@ -34,6 +34,6 @@
-   })
- #else
- # define DL_FIXUP_BINDNOW_ADDR_VALUE(addr) (addr)
--# define DL_FIXUP_BINDNOW_RELOC(value, new_value, st_value)	\
-+# define DL_FIXUP_BINDNOW_RELOC(l, reloc, value, new_value, st_value, lazy) \
-   (*value) = st_value;
- #endif
-diff --git a/sysdeps/pthread/tst-cancel30.c b/sysdeps/pthread/tst-cancel30.c
-index 6eb4eb5b42..ff803386be 100644
---- a/sysdeps/pthread/tst-cancel30.c
-+++ b/sysdeps/pthread/tst-cancel30.c
-@@ -46,9 +46,7 @@ tf (void *arg)
+       if (fd == -1)
+ 	{
+@@ -135,8 +134,7 @@ __sem_open (const char *name, int oflag, ...)
+ 	    }
  
-   /* Wait indefinitely for cancellation, which only works if asynchronous
-      cancellation is enabled.  */
--#ifdef SYS_pause
--  syscall (SYS_pause);
--#elif defined SYS_ppoll || defined SYS_ppoll_time64
-+#if defined SYS_ppoll || defined SYS_ppoll_time64
- # ifndef SYS_ppoll_time64
- #  define SYS_ppoll_time64 SYS_ppoll
- # endif
-diff --git a/sysdeps/sparc/dl-lookupcfg.h b/sysdeps/sparc/dl-lookupcfg.h
-new file mode 100644
-index 0000000000..3a5a5c1d8c
---- /dev/null
-+++ b/sysdeps/sparc/dl-lookupcfg.h
-@@ -0,0 +1,49 @@
-+/* Configuration of lookup functions.  SPARC64 version.
-+   Copyright (C) 2023 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <https://www.gnu.org/licenses/>.  */
-+
-+/* The type of the return value of fixup/profile_fixup.  */
-+#define DL_FIXUP_VALUE_TYPE ElfW(Addr)
-+/* Construct a value of type DL_FIXUP_VALUE_TYPE from a code address
-+   and a link map.  */
-+#define DL_FIXUP_MAKE_VALUE(map, addr) (addr)
-+/* Extract the code address from a value of type DL_FIXUP_MAKE_VALUE.
-+ */
-+#define DL_FIXUP_VALUE_CODE_ADDR(value) (value)
-+#define DL_FIXUP_VALUE_ADDR(value) (value)
-+#define DL_FIXUP_ADDR_VALUE(addr) (addr)
-+#define DL_FIXUP_BINDNOW_ADDR_VALUE(addr) (addr)
-+/* For bindnow, _dl_audit_symbind will be responsible to setup the final value
-+   while for lazy binding _dl_fixup/_dl_profile_fixup will call the audit
-+   callbacks and tail cail elf_machine_fixup_plt.  */
-+#ifdef __arch64__
-+# define DL_SPARC_FIXUP(l, r, value, new_value)                              \
-+  sparc64_fixup_plt (l, r, value, new_value, (r)->r_addend, 0)
-+#else
-+# define DL_SPARC_FIXUP(l, r, value, new_value)                              \
-+  sparc_fixup_plt (r, value, new_value, 0, 1)
-+#endif
-+#define DL_FIXUP_BINDNOW_RELOC(l, reloc, value, new_value, st_value, lazy)   \
-+  ({                                                                         \
-+     if (lazy)                                                               \
-+       (*value) = st_value;                                                  \
-+     else                                                                    \
-+       {                                                                     \
-+         const PLTREL *__r = (reloc);                                        \
-+         DL_SPARC_FIXUP (l, __r, value, new_value);                          \
-+       }                                                                     \
-+  })
-diff --git a/sysdeps/unix/sysv/linux/Makefile b/sysdeps/unix/sysv/linux/Makefile
-index f298878e8f..94747b37a6 100644
---- a/sysdeps/unix/sysv/linux/Makefile
-+++ b/sysdeps/unix/sysv/linux/Makefile
-@@ -456,6 +456,8 @@ sysdep_headers += netinet/if_fddi.h netinet/if_tr.h \
- 		  netrom/netrom.h netpacket/packet.h netrose/rose.h \
- 		  neteconet/ec.h netiucv/iucv.h
- sysdep_routines += netlink_assert_response
-+
-+CFLAGS-check_pf.c += -fexceptions
- endif
- 
- # Don't compile the ctype glue code, since there is no old non-GNU C library.
-diff --git a/sysdeps/unix/sysv/linux/bits/fcntl-linux.h b/sysdeps/unix/sysv/linux/bits/fcntl-linux.h
-index ca6a0d7516..1babbdc84e 100644
---- a/sysdeps/unix/sysv/linux/bits/fcntl-linux.h
-+++ b/sysdeps/unix/sysv/linux/bits/fcntl-linux.h
-@@ -101,7 +101,7 @@
- #endif
- 
- #ifndef F_GETLK
--# ifndef __USE_FILE_OFFSET64
-+# if !defined __USE_FILE_OFFSET64 && __TIMESIZE != 64
- #  define F_GETLK	5	/* Get record locking info.  */
- #  define F_SETLK	6	/* Set record locking info (non-blocking).  */
- #  define F_SETLKW	7	/* Set record locking info (blocking).  */
+ 	  /* Open the file.  Make sure we do not overwrite anything.  */
+-	  open_flags = O_RDWR | O_CREAT | O_EXCL | O_CLOEXEC;
+-	  fd = __open (tmpfname, open_flags, mode);
++	  fd = __open (tmpfname, O_CREAT | O_EXCL | SEM_OPEN_FLAGS, mode);
+ 	  if (fd == -1)
+ 	    {
+ 	      if (errno == EEXIST)
 diff --git a/sysdeps/unix/sysv/linux/check_pf.c b/sysdeps/unix/sysv/linux/check_pf.c
-index de207122b0..50654cb28d 100644
+index 2b0b8b6368..3aa6a00348 100644
 --- a/sysdeps/unix/sysv/linux/check_pf.c
 +++ b/sysdeps/unix/sysv/linux/check_pf.c
-@@ -292,6 +292,14 @@ make_request (int fd, pid_t pid)
-   return NULL;
+@@ -66,25 +66,10 @@ static struct cached_data *cache;
+ __libc_lock_define_initialized (static, lock);
+ 
+ 
+-#if IS_IN (nscd)
+-static uint32_t nl_timestamp;
+-
+-uint32_t
+-__bump_nl_timestamp (void)
+-{
+-  if (atomic_fetch_add_relaxed (&nl_timestamp, 1) + 1 == 0)
+-    atomic_fetch_add_relaxed (&nl_timestamp, 1);
+-
+-  return nl_timestamp;
+-}
+-#endif
+-
+ static inline uint32_t
+ get_nl_timestamp (void)
+ {
+-#if IS_IN (nscd)
+-  return nl_timestamp;
+-#elif defined USE_NSCD
++#if defined USE_NSCD
+   return __nscd_get_nl_timestamp ();
+ #else
+   return 0;
+diff --git a/sysdeps/unix/sysv/linux/i386/tst-bz21269.c b/sysdeps/unix/sysv/linux/i386/tst-bz21269.c
+index 51d4a1b082..822c41fceb 100644
+--- a/sysdeps/unix/sysv/linux/i386/tst-bz21269.c
++++ b/sysdeps/unix/sysv/linux/i386/tst-bz21269.c
+@@ -52,7 +52,14 @@ xset_thread_area (struct user_desc *u_info)
+ static void
+ xmodify_ldt (int func, const void *ptr, unsigned long bytecount)
+ {
+-  TEST_VERIFY_EXIT (syscall (SYS_modify_ldt, 1, ptr, bytecount) == 0);
++  long ret = syscall (SYS_modify_ldt, func, ptr, bytecount);
++
++  if (ret == -1)
++    {
++      if (errno == ENOSYS)
++	FAIL_UNSUPPORTED ("modify_ldt not supported");
++      FAIL_EXIT1 ("modify_ldt failed (errno=%d)", errno);
++    }
  }
  
-+#ifdef __EXCEPTIONS
-+static void
-+cancel_handler (void *arg __attribute__((unused)))
-+{
-+  /* Release the lock.  */
-+  __libc_lock_unlock (lock);
-+}
-+#endif
- 
- void
- attribute_hidden
-@@ -304,6 +312,10 @@ __check_pf (bool *seen_ipv4, bool *seen_ipv6,
-   struct cached_data *olddata = NULL;
-   struct cached_data *data = NULL;
- 
-+#ifdef __EXCEPTIONS
-+  /* Make sure that lock is released when the thread is cancelled.  */
-+  __libc_cleanup_push (cancel_handler, NULL);
-+#endif
-   __libc_lock_lock (lock);
- 
-   if (cache_valid_p ())
-@@ -338,6 +350,9 @@ __check_pf (bool *seen_ipv4, bool *seen_ipv6,
- 	}
-     }
- 
-+#ifdef __EXCEPTIONS
-+  __libc_cleanup_pop (0);
-+#endif
-   __libc_lock_unlock (lock);
- 
-   if (data != NULL)
-diff --git a/sysdeps/unix/sysv/linux/hppa/Makefile b/sysdeps/unix/sysv/linux/hppa/Makefile
-index c89ec83182..2e031e2f8a 100644
---- a/sysdeps/unix/sysv/linux/hppa/Makefile
-+++ b/sysdeps/unix/sysv/linux/hppa/Makefile
-@@ -14,3 +14,7 @@ test-xfail-check-execstack = yes
- test-xfail-check-wx-segment = *
- 
- endif # $(subdir) == elf
-+
-+ifeq ($(subdir),debug)
-+test-xfail-tst-ssp-1 = $(have-ssp)
-+endif # $(subdir) == debug
+ static int
 diff --git a/sysdeps/unix/sysv/linux/powerpc/bits/fcntl.h b/sysdeps/unix/sysv/linux/powerpc/bits/fcntl.h
-index 0905cd833c..d8a291a331 100644
+index f7615a447e..d8a291a331 100644
 --- a/sysdeps/unix/sysv/linux/powerpc/bits/fcntl.h
 +++ b/sysdeps/unix/sysv/linux/powerpc/bits/fcntl.h
-@@ -33,6 +33,12 @@
+@@ -33,7 +33,7 @@
  # define __O_LARGEFILE	0200000
  #endif
  
+-#if __WORDSIZE == 64
 +#if __WORDSIZE == 64 && !defined __USE_FILE_OFFSET64
-+# define F_GETLK	5
-+# define F_SETLK	6
-+# define F_SETLKW	7
-+#endif
-+
- struct flock
-   {
-     short int l_type;	/* Type of lock: F_RDLCK, F_WRLCK, or F_UNLCK.	*/
-diff --git a/sysdeps/unix/sysv/linux/tst-mman-consts.py b/sysdeps/unix/sysv/linux/tst-mman-consts.py
-index 0bba893064..92b78a877c 100644
---- a/sysdeps/unix/sysv/linux/tst-mman-consts.py
-+++ b/sysdeps/unix/sysv/linux/tst-mman-consts.py
-@@ -47,9 +47,12 @@ def main():
-         # MAP_ANON alias for MAP_ANONYMOUS.  MAP_RENAME, MAP_AUTOGROW,
-         # MAP_LOCAL and MAP_AUTORSRV are in the kernel header for
-         # MIPS, marked as "not used by linux"; SPARC has MAP_INHERIT
--        # in the kernel header, but does not use it.
-+        # in the kernel header, but does not use it.  The kernel
-+        # header for HPPA removed a define of MAP_VARIABLE to 0 in
-+        # Linux 6.2.
-         'MAP_HUGE_[0-9].*|MAP_UNINITIALIZED|MAP_FAILED|MAP_ANON'
--        '|MAP_RENAME|MAP_AUTOGROW|MAP_LOCAL|MAP_AUTORSRV|MAP_INHERIT',
-+        '|MAP_RENAME|MAP_AUTOGROW|MAP_LOCAL|MAP_AUTORSRV|MAP_INHERIT'
-+        '|MAP_VARIABLE',
-         linux_version_glibc > linux_version_headers,
-         linux_version_headers > linux_version_glibc))
- 
+ # define F_GETLK	5
+ # define F_SETLK	6
+ # define F_SETLKW	7
 diff --git a/sysdeps/x86/dl-cacheinfo.h b/sysdeps/x86/dl-cacheinfo.h
-index a0474af8d1..4383eb568b 100644
+index cd4d0351ae..5ddb35c9d9 100644
 --- a/sysdeps/x86/dl-cacheinfo.h
 +++ b/sysdeps/x86/dl-cacheinfo.h
-@@ -311,47 +311,212 @@ handle_intel (int name, const struct cpu_features *cpu_features)
- 
- 
- static long int __attribute__ ((noinline))
--handle_amd (int name, const struct cpu_features *cpu_features)
-+handle_amd (int name)
+@@ -315,40 +315,206 @@ handle_amd (int name)
  {
    unsigned int eax;
    unsigned int ebx;
@@ -3554,24 +2245,9 @@ index a0474af8d1..4383eb568b 100644
  
    switch (name)
      {
--       case _SC_LEVEL1_ICACHE_ASSOC:
--       case _SC_LEVEL1_DCACHE_ASSOC:
--       case _SC_LEVEL2_CACHE_ASSOC:
--       case _SC_LEVEL3_CACHE_ASSOC:
--         return ecx?((ebx >> 22) & 0x3ff) + 1 : 0;
--       case _SC_LEVEL1_ICACHE_LINESIZE:
--       case _SC_LEVEL1_DCACHE_LINESIZE:
--       case _SC_LEVEL2_CACHE_LINESIZE:
--       case _SC_LEVEL3_CACHE_LINESIZE:
--         return ecx?(ebx & 0xfff) + 1 : 0;
--       case _SC_LEVEL1_ICACHE_SIZE:
--       case _SC_LEVEL1_DCACHE_SIZE:
--       case _SC_LEVEL2_CACHE_SIZE:
--       case _SC_LEVEL3_CACHE_SIZE:
--         return ecx?(((ebx >> 22) & 0x3ff) + 1)*((ebx & 0xfff) + 1)\
--                                                    *(ecx + 1):0;
--       default:
--         assert (! "cannot happen");
+-    case _SC_LEVEL1_ICACHE_ASSOC:
+-    case _SC_LEVEL1_DCACHE_ASSOC:
+-    case _SC_LEVEL2_CACHE_ASSOC:
 +      case _SC_LEVEL1_DCACHE_SIZE:
 +        return (ecx >> 14) & 0x3fc00;
 +
@@ -3671,7 +2347,11 @@ index a0474af8d1..4383eb568b 100644
 +          }
 +      }
 +
-+    case _SC_LEVEL3_CACHE_ASSOC:
+     case _SC_LEVEL3_CACHE_ASSOC:
+-      return ecx ? ((ebx >> 22) & 0x3ff) + 1 : 0;
+-    case _SC_LEVEL1_ICACHE_LINESIZE:
+-    case _SC_LEVEL1_DCACHE_LINESIZE:
+-    case _SC_LEVEL2_CACHE_LINESIZE:
 +      switch ((edx >> 12) & 0xf)
 +      {
 +        case 0:
@@ -3699,158 +2379,50 @@ index a0474af8d1..4383eb568b 100644
 +          return 0;
 +      }
 +
-+    case _SC_LEVEL3_CACHE_LINESIZE:
+     case _SC_LEVEL3_CACHE_LINESIZE:
+-      return ecx ? (ebx & 0xfff) + 1 : 0;
+-    case _SC_LEVEL1_ICACHE_SIZE:
+-    case _SC_LEVEL1_DCACHE_SIZE:
+-    case _SC_LEVEL2_CACHE_SIZE:
+-    case _SC_LEVEL3_CACHE_SIZE:
+-      return ecx ? (((ebx >> 22) & 0x3ff) + 1) * ((ebx & 0xfff) + 1) * (ecx + 1): 0;
 +      return (edx & 0xf000) == 0 ? 0 : edx & 0xff;
 +
-+    default:
-+      __builtin_unreachable ();
+     default:
+       __builtin_unreachable ();
      }
-   return -1;
- }
-@@ -408,7 +573,7 @@ handle_zhaoxin (int name)
- }
- 
- static void
--get_common_cache_info (long int *shared_ptr, unsigned int *threads_ptr,
-+get_common_cache_info (long int *shared_ptr, long int * shared_per_thread_ptr, unsigned int *threads_ptr,
-                 long int core)
- {
-   unsigned int eax;
-@@ -427,6 +592,7 @@ get_common_cache_info (long int *shared_ptr, unsigned int *threads_ptr,
-   unsigned int family = cpu_features->basic.family;
-   unsigned int model = cpu_features->basic.model;
-   long int shared = *shared_ptr;
-+  long int shared_per_thread = *shared_per_thread_ptr;
-   unsigned int threads = *threads_ptr;
-   bool inclusive_cache = true;
-   bool support_count_mask = true;
-@@ -442,6 +608,7 @@ get_common_cache_info (long int *shared_ptr, unsigned int *threads_ptr,
-       /* Try L2 otherwise.  */
-       level  = 2;
-       shared = core;
-+      shared_per_thread = core;
-       threads_l2 = 0;
-       threads_l3 = -1;
-     }
-@@ -598,29 +765,27 @@ get_common_cache_info (long int *shared_ptr, unsigned int *threads_ptr,
-         }
-       else
-         {
--intel_bug_no_cache_info:
--          /* Assume that all logical threads share the highest cache
--             level.  */
--          threads
--            = ((cpu_features->features[CPUID_INDEX_1].cpuid.ebx >> 16)
--	       & 0xff);
--        }
+@@ -604,11 +770,10 @@ get_common_cache_info (long int *shared_ptr, long int * shared_per_thread_ptr, u
+ 	     level.  */
+ 	  threads = ((cpu_features->features[CPUID_INDEX_1].cpuid.ebx >> 16)
+ 		     & 0xff);
 -
--        /* Cap usage of highest cache level to the number of supported
--           threads.  */
--        if (shared > 0 && threads > 0)
--          shared /= threads;
-+	intel_bug_no_cache_info:
-+	  /* Assume that all logical threads share the highest cache
-+	     level.  */
-+	  threads = ((cpu_features->features[CPUID_INDEX_1].cpuid.ebx >> 16)
-+		     & 0xff);
-+	}
+-	  /* Get per-thread size of highest level cache.  */
+-	  if (shared_per_thread > 0 && threads > 0)
+-	    shared_per_thread /= threads;
+ 	}
 +      /* Get per-thread size of highest level cache.  */
 +      if (shared_per_thread > 0 && threads > 0)
 +	shared_per_thread /= threads;
      }
  
    /* Account for non-inclusive L2 and L3 caches.  */
-   if (!inclusive_cache)
-     {
--      if (threads_l2 > 0)
--        core /= threads_l2;
-+      long int core_per_thread = threads_l2 > 0 ? (core / threads_l2) : core;
-+      shared_per_thread += core_per_thread;
-       shared += core;
-     }
+@@ -703,7 +868,6 @@ dl_init_cacheinfo (struct cpu_features *cpu_features)
+       data = handle_amd (_SC_LEVEL1_DCACHE_SIZE);
+       core = handle_amd (_SC_LEVEL2_CACHE_SIZE);
+       shared = handle_amd (_SC_LEVEL3_CACHE_SIZE);
+-      shared_per_thread = shared;
  
-   *shared_ptr = shared;
-+  *shared_per_thread_ptr = shared_per_thread;
-   *threads_ptr = threads;
- }
- 
-@@ -630,6 +795,7 @@ dl_init_cacheinfo (struct cpu_features *cpu_features)
-   /* Find out what brand of processor.  */
-   long int data = -1;
-   long int shared = -1;
-+  long int shared_per_thread = -1;
-   long int core = -1;
-   unsigned int threads = 0;
-   unsigned long int level1_icache_size = -1;
-@@ -650,6 +816,7 @@ dl_init_cacheinfo (struct cpu_features *cpu_features)
-       data = handle_intel (_SC_LEVEL1_DCACHE_SIZE, cpu_features);
-       core = handle_intel (_SC_LEVEL2_CACHE_SIZE, cpu_features);
-       shared = handle_intel (_SC_LEVEL3_CACHE_SIZE, cpu_features);
-+      shared_per_thread = shared;
- 
-       level1_icache_size
- 	= handle_intel (_SC_LEVEL1_ICACHE_SIZE, cpu_features);
-@@ -673,13 +840,14 @@ dl_init_cacheinfo (struct cpu_features *cpu_features)
-       level4_cache_size
- 	= handle_intel (_SC_LEVEL4_CACHE_SIZE, cpu_features);
- 
--      get_common_cache_info (&shared, &threads, core);
-+      get_common_cache_info (&shared, &shared_per_thread, &threads, core);
-     }
-   else if (cpu_features->basic.kind == arch_kind_zhaoxin)
-     {
-       data = handle_zhaoxin (_SC_LEVEL1_DCACHE_SIZE);
-       core = handle_zhaoxin (_SC_LEVEL2_CACHE_SIZE);
-       shared = handle_zhaoxin (_SC_LEVEL3_CACHE_SIZE);
-+      shared_per_thread = shared;
- 
-       level1_icache_size = handle_zhaoxin (_SC_LEVEL1_ICACHE_SIZE);
-       level1_icache_linesize = handle_zhaoxin (_SC_LEVEL1_ICACHE_LINESIZE);
-@@ -693,34 +861,39 @@ dl_init_cacheinfo (struct cpu_features *cpu_features)
-       level3_cache_assoc = handle_zhaoxin (_SC_LEVEL3_CACHE_ASSOC);
-       level3_cache_linesize = handle_zhaoxin (_SC_LEVEL3_CACHE_LINESIZE);
- 
--      get_common_cache_info (&shared, &threads, core);
-+      get_common_cache_info (&shared, &shared_per_thread, &threads, core);
-     }
-   else if (cpu_features->basic.kind == arch_kind_amd)
-     {
--      data  = handle_amd (_SC_LEVEL1_DCACHE_SIZE, cpu_features);
--      core = handle_amd (_SC_LEVEL2_CACHE_SIZE, cpu_features);
--      shared = handle_amd (_SC_LEVEL3_CACHE_SIZE, cpu_features);
-+      data = handle_amd (_SC_LEVEL1_DCACHE_SIZE);
-+      core = handle_amd (_SC_LEVEL2_CACHE_SIZE);
-+      shared = handle_amd (_SC_LEVEL3_CACHE_SIZE);
- 
--      level1_icache_size = handle_amd (_SC_LEVEL1_ICACHE_SIZE, cpu_features);
--      level1_icache_linesize
--	= handle_amd (_SC_LEVEL1_ICACHE_LINESIZE, cpu_features);
-+      level1_icache_size = handle_amd (_SC_LEVEL1_ICACHE_SIZE);
-+      level1_icache_linesize = handle_amd (_SC_LEVEL1_ICACHE_LINESIZE);
-       level1_dcache_size = data;
--      level1_dcache_assoc
--	= handle_amd (_SC_LEVEL1_DCACHE_ASSOC, cpu_features);
--      level1_dcache_linesize
--	= handle_amd (_SC_LEVEL1_DCACHE_LINESIZE, cpu_features);
-+      level1_dcache_assoc = handle_amd (_SC_LEVEL1_DCACHE_ASSOC);
-+      level1_dcache_linesize = handle_amd (_SC_LEVEL1_DCACHE_LINESIZE);
-       level2_cache_size = core;
--      level2_cache_assoc = handle_amd (_SC_LEVEL2_CACHE_ASSOC, cpu_features);
--      level2_cache_linesize
--	= handle_amd (_SC_LEVEL2_CACHE_LINESIZE, cpu_features);
-+      level2_cache_assoc = handle_amd (_SC_LEVEL2_CACHE_ASSOC);
-+      level2_cache_linesize = handle_amd (_SC_LEVEL2_CACHE_LINESIZE);
+       level1_icache_size = handle_amd (_SC_LEVEL1_ICACHE_SIZE);
+       level1_icache_linesize = handle_amd (_SC_LEVEL1_ICACHE_LINESIZE);
+@@ -716,13 +880,20 @@ dl_init_cacheinfo (struct cpu_features *cpu_features)
        level3_cache_size = shared;
--      level3_cache_assoc = handle_amd (_SC_LEVEL3_CACHE_ASSOC, cpu_features);
--      level3_cache_linesize
--	= handle_amd (_SC_LEVEL3_CACHE_LINESIZE, cpu_features);
-+      level3_cache_assoc = handle_amd (_SC_LEVEL3_CACHE_ASSOC);
-+      level3_cache_linesize = handle_amd (_SC_LEVEL3_CACHE_LINESIZE);
+       level3_cache_assoc = handle_amd (_SC_LEVEL3_CACHE_ASSOC);
+       level3_cache_linesize = handle_amd (_SC_LEVEL3_CACHE_LINESIZE);
 +      level4_cache_size = handle_amd (_SC_LEVEL4_CACHE_SIZE);
  
        if (shared <= 0)
 -        /* No shared L3 cache.  All we have is the L2 cache.  */
--         shared = core;
+-	shared = core;
 +        {
 +           /* No shared L3 cache.  All we have is the L2 cache.  */
 +           shared = core;
@@ -3860,193 +2432,74 @@ index a0474af8d1..4383eb568b 100644
 +           /* Account for exclusive L2 and L3 caches.  */
 +           shared += core;
 +        }
-+
+ 
+-      if (shared_per_thread <= 0)
+-	shared_per_thread = shared;
 +      shared_per_thread = shared;
      }
  
    cpu_features->level1_icache_size = level1_icache_size;
-@@ -736,17 +909,34 @@ dl_init_cacheinfo (struct cpu_features *cpu_features)
-   cpu_features->level3_cache_linesize = level3_cache_linesize;
-   cpu_features->level4_cache_size = level4_cache_size;
+diff --git a/sysdeps/x86_64/dl-tlsdesc.S b/sysdeps/x86_64/dl-tlsdesc.S
+index 5593897e29..4579424bf7 100644
+--- a/sysdeps/x86_64/dl-tlsdesc.S
++++ b/sysdeps/x86_64/dl-tlsdesc.S
+@@ -61,7 +61,7 @@ _dl_tlsdesc_return:
+ _dl_tlsdesc_undefweak:
+ 	_CET_ENDBR
+ 	movq	8(%rax), %rax
+-	subq	%fs:0, %rax
++	sub	%fs:0, %RAX_LP
+ 	ret
+ 	cfi_endproc
+ 	.size	_dl_tlsdesc_undefweak, .-_dl_tlsdesc_undefweak
+@@ -102,7 +102,7 @@ _dl_tlsdesc_dynamic:
+ 	/* Preserve call-clobbered registers that we modify.
+ 	   We need two scratch regs anyway.  */
+ 	movq	%rsi, -16(%rsp)
+-	movq	%fs:DTV_OFFSET, %rsi
++	mov	%fs:DTV_OFFSET, %RSI_LP
+ 	movq	%rdi, -8(%rsp)
+ 	movq	TLSDESC_ARG(%rax), %rdi
+ 	movq	(%rsi), %rax
+@@ -116,7 +116,7 @@ _dl_tlsdesc_dynamic:
+ 	addq	TLSDESC_MODOFF(%rdi), %rax
+ .Lret:
+ 	movq	-16(%rsp), %rsi
+-	subq	%fs:0, %rax
++	sub	%fs:0, %RAX_LP
+ 	movq	-8(%rsp), %rdi
+ 	ret
+ .Lslow:
+diff --git a/sysdeps/x86_64/memcpy.S b/sysdeps/x86_64/memcpy.S
+index d98500a78a..4922cba657 100644
+--- a/sysdeps/x86_64/memcpy.S
++++ b/sysdeps/x86_64/memcpy.S
+@@ -1 +1 @@
+-/* Implemented in memcpy.S.  */
++/* Implemented in memmove.S.  */
+diff --git a/sysdeps/x86_64/memmove.S b/sysdeps/x86_64/memmove.S
+index f0b84e3b52..c3c08165e1 100644
+--- a/sysdeps/x86_64/memmove.S
++++ b/sysdeps/x86_64/memmove.S
+@@ -46,6 +46,9 @@ weak_alias (__mempcpy, mempcpy)
  
--  /* The default setting for the non_temporal threshold is 3/4 of one
--     thread's share of the chip's cache. For most Intel and AMD processors
--     with an initial release date between 2017 and 2020, a thread's typical
--     share of the cache is from 500 KBytes to 2 MBytes. Using the 3/4
--     threshold leaves 125 KBytes to 500 KBytes of the thread's data
--     in cache after a maximum temporal copy, which will maintain
--     in cache a reasonable portion of the thread's stack and other
--     active data. If the threshold is set higher than one thread's
--     share of the cache, it has a substantial risk of negatively
--     impacting the performance of other threads running on the chip. */
--  unsigned long int non_temporal_threshold = shared * 3 / 4;
-+  /* The default setting for the non_temporal threshold is 1/4 of size
-+     of the chip's cache. For most Intel and AMD processors with an
-+     initial release date between 2017 and 2023, a thread's typical
-+     share of the cache is from 18-64MB. Using the 1/4 L3 is meant to
-+     estimate the point where non-temporal stores begin out-competing
-+     REP MOVSB. As well the point where the fact that non-temporal
-+     stores are forced back to main memory would already occurred to the
-+     majority of the lines in the copy. Note, concerns about the
-+     entire L3 cache being evicted by the copy are mostly alleviated
-+     by the fact that modern HW detects streaming patterns and
-+     provides proper LRU hints so that the maximum thrashing
-+     capped at 1/associativity. */
-+  unsigned long int non_temporal_threshold = shared / 4;
-+
-+  /* If the computed non_temporal_threshold <= 3/4 * per-thread L3, we most
-+     likely have incorrect/incomplete cache info in which case, default to
-+     3/4 * per-thread L3 to avoid regressions.  */
-+  unsigned long int non_temporal_threshold_lowbound
-+      = shared_per_thread * 3 / 4;
-+  if (non_temporal_threshold < non_temporal_threshold_lowbound)
-+    non_temporal_threshold = non_temporal_threshold_lowbound;
-+
-+  /* If no ERMS, we use the per-thread L3 chunking. Normal cacheable stores run
-+     a higher risk of actually thrashing the cache as they don't have a HW LRU
-+     hint. As well, their performance in highly parallel situations is
-+     noticeably worse.  */
-+  if (!CPU_FEATURE_USABLE_P (cpu_features, ERMS))
-+    non_temporal_threshold = non_temporal_threshold_lowbound;
-   /* SIZE_MAX >> 4 because memmove-vec-unaligned-erms right-shifts the value of
-      'x86_non_temporal_threshold' by `LOG_4X_MEMCPY_THRESH` (4) and it is best
-      if that operation cannot overflow. Minimum of 0x4040 (16448) because the
-diff --git a/sysdeps/x86_64/fpu/fraiseexcpt.c b/sysdeps/x86_64/fpu/fraiseexcpt.c
-index 924eed96a9..e7430a4158 100644
---- a/sysdeps/x86_64/fpu/fraiseexcpt.c
-+++ b/sysdeps/x86_64/fpu/fraiseexcpt.c
-@@ -33,7 +33,7 @@ __feraiseexcept (int excepts)
-       /* One example of an invalid operation is 0.0 / 0.0.  */
-       float f = 0.0;
+ #ifndef USE_MULTIARCH
+ libc_hidden_builtin_def (memmove)
++libc_hidden_builtin_def (__memmove_chk)
++libc_hidden_builtin_def (__memcpy_chk)
++libc_hidden_builtin_def (__mempcpy_chk)
+ # if defined SHARED && IS_IN (libc)
+ strong_alias (memmove, __memcpy)
+ libc_hidden_ver (memmove, memcpy)
+diff --git a/sysdeps/x86_64/memset.S b/sysdeps/x86_64/memset.S
+index 7c99df36db..c6df24e8de 100644
+--- a/sysdeps/x86_64/memset.S
++++ b/sysdeps/x86_64/memset.S
+@@ -32,6 +32,7 @@
+ #include "isa-default-impl.h"
  
--      __asm__ __volatile__ ("divss %0, %0 " : : "x" (f));
-+      __asm__ __volatile__ ("divss %0, %0 " : "+x" (f));
-       (void) &f;
-     }
+ libc_hidden_builtin_def (memset)
++libc_hidden_builtin_def (__memset_chk)
  
-@@ -43,7 +43,7 @@ __feraiseexcept (int excepts)
-       float f = 1.0;
-       float g = 0.0;
- 
--      __asm__ __volatile__ ("divss %1, %0" : : "x" (f), "x" (g));
-+      __asm__ __volatile__ ("divss %1, %0" : "+x" (f) : "x" (g));
-       (void) &f;
-     }
- 
-diff --git a/time/Makefile b/time/Makefile
-index d86f2105c5..92bc3db315 100644
---- a/time/Makefile
-+++ b/time/Makefile
-@@ -50,7 +50,7 @@ tests	:= test_time clocktest tst-posixtz tst-strptime tst_wcsftime \
- 	   tst-clock tst-clock2 tst-clock_nanosleep tst-cpuclock1 \
- 	   tst-adjtime tst-ctime tst-difftime tst-mktime4 tst-clock_settime \
- 	   tst-settimeofday tst-itimer tst-gmtime tst-timegm \
--	   tst-timespec_get tst-timespec_getres
-+	   tst-timespec_get tst-timespec_getres tst-strftime4
- 
- tests-time64 := \
-   tst-adjtime-time64 \
-@@ -65,6 +65,7 @@ tests-time64 := \
-   tst-itimer-time64 \
-   tst-mktime4-time64 \
-   tst-settimeofday-time64 \
-+  tst-strftime4-time64 \
-   tst-timegm-time64 \
-   tst-timespec_get-time64 \
-   tst-timespec_getres-time64 \
-diff --git a/time/strftime_l.c b/time/strftime_l.c
-index e09561c39c..402c6c4111 100644
---- a/time/strftime_l.c
-+++ b/time/strftime_l.c
-@@ -159,6 +159,10 @@ extern char *tzname[];
- #ifdef _LIBC
- # define tzname __tzname
- # define tzset __tzset
-+
-+# define time_t __time64_t
-+# define __gmtime_r(t, tp) __gmtime64_r (t, tp)
-+# define mktime(tp) __mktime64 (tp)
- #endif
- 
- #if !HAVE_TM_GMTOFF
-diff --git a/time/strptime_l.c b/time/strptime_l.c
-index 80fd705b8d..85c3249fcc 100644
---- a/time/strptime_l.c
-+++ b/time/strptime_l.c
-@@ -30,8 +30,10 @@
- #ifdef _LIBC
- # define HAVE_LOCALTIME_R 0
- # include "../locale/localeinfo.h"
--#endif
- 
-+# define time_t __time64_t
-+# define __localtime_r(t, tp) __localtime64_r (t, tp)
-+#endif
- 
- #if ! HAVE_LOCALTIME_R && ! defined localtime_r
- # ifdef _LIBC
-diff --git a/time/tst-strftime4-time64.c b/time/tst-strftime4-time64.c
-new file mode 100644
-index 0000000000..4d47ee7d79
---- /dev/null
-+++ b/time/tst-strftime4-time64.c
-@@ -0,0 +1 @@
-+#include "tst-strftime4.c"
-diff --git a/time/tst-strftime4.c b/time/tst-strftime4.c
-new file mode 100644
-index 0000000000..659716d0fa
---- /dev/null
-+++ b/time/tst-strftime4.c
-@@ -0,0 +1,52 @@
-+/* Test strftime and strptime after 2038-01-19 03:14:07 UTC (bug 30053).
-+   Copyright (C) 2023 Free Software Foundation, Inc.
-+   This file is part of the GNU C Library.
-+
-+   The GNU C Library is free software; you can redistribute it and/or
-+   modify it under the terms of the GNU Lesser General Public
-+   License as published by the Free Software Foundation; either
-+   version 2.1 of the License, or (at your option) any later version.
-+
-+   The GNU C Library is distributed in the hope that it will be useful,
-+   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+   Lesser General Public License for more details.
-+
-+   You should have received a copy of the GNU Lesser General Public
-+   License along with the GNU C Library; if not, see
-+   <https://www.gnu.org/licenses/>.  */
-+
-+#include <time.h>
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <string.h>
-+#include <support/check.h>
-+
-+static int
-+do_test (void)
-+{
-+  TEST_VERIFY_EXIT (setenv ("TZ", "UTC0", 1) == 0);
-+  tzset ();
-+  if (sizeof (time_t) > 4)
-+    {
-+      time_t wrap = (time_t) 2147483648LL;
-+      char buf[80];
-+      struct tm *tm = gmtime (&wrap);
-+      TEST_VERIFY_EXIT (tm != NULL);
-+      TEST_VERIFY_EXIT (strftime (buf, sizeof buf, "%s", tm) > 0);
-+      puts (buf);
-+      TEST_VERIFY (strcmp (buf, "2147483648") == 0);
-+
-+      struct tm tm2;
-+      char *p = strptime (buf, "%s", &tm2);
-+      TEST_VERIFY_EXIT (p != NULL && *p == '\0');
-+      time_t t = mktime (&tm2);
-+      printf ("%lld\n", (long long) t);
-+      TEST_VERIFY (t == wrap);
-+    }
-+  else
-+    FAIL_UNSUPPORTED ("32-bit time_t");
-+  return 0;
-+}
-+
-+#include <support/test-driver.c>
+ #if IS_IN (libc)
+ libc_hidden_def (__wmemset)
