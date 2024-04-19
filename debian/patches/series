@@ -107,3 +107,5 @@ any/local-test-install.diff
 any/local-cross.patch
 any/git-c-utf-8-language.diff
 any/local-qsort-memory-corruption.patch
+#GLIBC-SA-2024-0004
+any/0001-iconv-ISO-2022-CN-EXT-fix-out-of-bound-writes-when-w.patch
