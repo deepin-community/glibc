@@ -54,11 +54,35 @@ index 872bc8907b..6768c2da6f 100644
  
  Version 2.38
  
+diff --git a/bits/wordsize.h b/bits/wordsize.h
+index 14edae3a11..53013a9275 100644
+--- a/bits/wordsize.h
++++ b/bits/wordsize.h
+@@ -21,7 +21,9 @@
+ #define __WORDSIZE32_PTRDIFF_LONG
+ 
+ /* Set to 1 in order to force time types to be 32 bits instead of 64 bits in
+-   struct lastlog and struct utmp{,x} on 64-bit ports.  This may be done in
++   struct lastlog and struct utmp{,x}.  This may be done in
+    order to make 64-bit ports compatible with 32-bit ports.  Set to 0 for
+-   64-bit ports where the time types are 64-bits or for any 32-bit ports.  */
++   64-bit ports where the time types are 64-bits and new 32-bit ports
++   where time_t is 64 bits, and there is no companion architecture with
++   32-bit time_t.  */
+ #define __WORDSIZE_TIME64_COMPAT32
 diff --git a/elf/Makefile b/elf/Makefile
-index c00e2ccfc5..1a05a6aaca 100644
+index c00e2ccfc5..c2af11b92c 100644
 --- a/elf/Makefile
 +++ b/elf/Makefile
-@@ -459,6 +459,7 @@ tests += \
+@@ -166,6 +166,7 @@ CFLAGS-.op += $(call elide-stack-protector,.op,$(elide-routines.os))
+ CFLAGS-.os += $(call elide-stack-protector,.os,$(all-rtld-routines))
+ 
+ # Add the requested compiler flags to the early startup code.
++CFLAGS-dl-misc.os += $(rtld-early-cflags)
+ CFLAGS-dl-printf.os += $(rtld-early-cflags)
+ CFLAGS-dl-setup_hash.os += $(rtld-early-cflags)
+ CFLAGS-dl-sysdep.os += $(rtld-early-cflags)
+@@ -459,6 +460,7 @@ tests += \
    tst-tls21 \
    tst-tlsalign \
    tst-tlsalign-extern \
@@ -66,7 +90,7 @@ index c00e2ccfc5..1a05a6aaca 100644
    tst-unique1 \
    tst-unique2 \
    tst-unwind-ctor \
-@@ -883,6 +884,9 @@ modules-names += \
+@@ -883,6 +885,9 @@ modules-names += \
    tst-tls20mod-bad \
    tst-tls21mod \
    tst-tlsalign-lib \
@@ -76,7 +100,7 @@ index c00e2ccfc5..1a05a6aaca 100644
    tst-tlsmod1 \
    tst-tlsmod10 \
    tst-tlsmod11 \
-@@ -3009,3 +3013,14 @@ LDFLAGS-tst-dlclose-lazy-mod1.so = -Wl,-z,lazy,--no-as-needed
+@@ -3009,3 +3014,14 @@ LDFLAGS-tst-dlclose-lazy-mod1.so = -Wl,-z,lazy,--no-as-needed
  $(objpfx)tst-dlclose-lazy-mod1.so: $(objpfx)tst-dlclose-lazy-mod2.so
  $(objpfx)tst-dlclose-lazy.out: \
    $(objpfx)tst-dlclose-lazy-mod1.so $(objpfx)tst-dlclose-lazy-mod2.so
@@ -398,6 +422,193 @@ index bee898c63c..cf32cf9b44 100644
  	    {
  	      /* Try to be nice with the user and tell her which of the
  		 two encoding names is wrong.  This is possible because
+diff --git a/iconvdata/Makefile b/iconvdata/Makefile
+index dd5cafab21..075098dce8 100644
+--- a/iconvdata/Makefile
++++ b/iconvdata/Makefile
+@@ -75,7 +75,8 @@ ifeq (yes,$(build-shared))
+ tests = bug-iconv1 bug-iconv2 tst-loading tst-e2big tst-iconv4 bug-iconv4 \
+ 	tst-iconv6 bug-iconv5 bug-iconv6 tst-iconv7 bug-iconv8 bug-iconv9 \
+ 	bug-iconv10 bug-iconv11 bug-iconv12 tst-iconv-big5-hkscs-to-2ucs4 \
+-	bug-iconv13 bug-iconv14 bug-iconv15
++	bug-iconv13 bug-iconv14 bug-iconv15 \
++	tst-iconv-iso-2022-cn-ext
+ ifeq ($(have-thread-library),yes)
+ tests += bug-iconv3
+ endif
+@@ -330,6 +331,8 @@ $(objpfx)bug-iconv14.out: $(addprefix $(objpfx), $(gconv-modules)) \
+ 			  $(addprefix $(objpfx),$(modules.so))
+ $(objpfx)bug-iconv15.out: $(addprefix $(objpfx), $(gconv-modules)) \
+ 			  $(addprefix $(objpfx),$(modules.so))
++$(objpfx)tst-iconv-iso-2022-cn-ext.out: $(addprefix $(objpfx), $(gconv-modules)) \
++					$(addprefix $(objpfx),$(modules.so))
+ 
+ $(objpfx)iconv-test.out: run-iconv-test.sh \
+ 			 $(addprefix $(objpfx), $(gconv-modules)) \
+diff --git a/iconvdata/iso-2022-cn-ext.c b/iconvdata/iso-2022-cn-ext.c
+index 36727f0865..9bb02238a3 100644
+--- a/iconvdata/iso-2022-cn-ext.c
++++ b/iconvdata/iso-2022-cn-ext.c
+@@ -574,6 +574,12 @@ DIAG_IGNORE_Os_NEEDS_COMMENT (5, "-Wmaybe-uninitialized");
+ 	      {								      \
+ 		const char *escseq;					      \
+ 									      \
++		if (outptr + 4 > outend)				      \
++		  {							      \
++		    result = __GCONV_FULL_OUTPUT;			      \
++		    break;						      \
++		  }							      \
++									      \
+ 		assert (used == CNS11643_2_set); /* XXX */		      \
+ 		escseq = "*H";						      \
+ 		*outptr++ = ESC;					      \
+@@ -587,6 +593,12 @@ DIAG_IGNORE_Os_NEEDS_COMMENT (5, "-Wmaybe-uninitialized");
+ 	      {								      \
+ 		const char *escseq;					      \
+ 									      \
++		if (outptr + 4 > outend)				      \
++		  {							      \
++		    result = __GCONV_FULL_OUTPUT;			      \
++		    break;						      \
++		  }							      \
++									      \
+ 		assert ((used >> 5) >= 3 && (used >> 5) <= 7);		      \
+ 		escseq = "+I+J+K+L+M" + ((used >> 5) - 3) * 2;		      \
+ 		*outptr++ = ESC;					      \
+diff --git a/iconvdata/tst-iconv-iso-2022-cn-ext.c b/iconvdata/tst-iconv-iso-2022-cn-ext.c
+new file mode 100644
+index 0000000000..96a8765fd5
+--- /dev/null
++++ b/iconvdata/tst-iconv-iso-2022-cn-ext.c
+@@ -0,0 +1,128 @@
++/* Verify ISO-2022-CN-EXT does not write out of the bounds.
++   Copyright (C) 2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <string.h>
++
++#include <errno.h>
++#include <iconv.h>
++#include <sys/mman.h>
++
++#include <support/xunistd.h>
++#include <support/check.h>
++#include <support/support.h>
++
++/* The test sets up a two memory page buffer with the second page marked
++   PROT_NONE to trigger a fault if the conversion writes beyond the exact
++   expected amount.  Then we carry out various conversions and precisely
++   place the start of the output buffer in order to trigger a SIGSEGV if the
++   process writes anywhere between 1 and page sized bytes more (only one
++   PROT_NONE page is setup as a canary) than expected.  These tests exercise
++   all three of the cases in ISO-2022-CN-EXT where the converter must switch
++   character sets and may run out of buffer space while doing the
++   operation.  */
++
++static int
++do_test (void)
++{
++  iconv_t cd = iconv_open ("ISO-2022-CN-EXT", "UTF-8");
++  TEST_VERIFY_EXIT (cd != (iconv_t) -1);
++
++  char *ntf;
++  size_t ntfsize;
++  char *outbufbase;
++  {
++    int pgz = getpagesize ();
++    TEST_VERIFY_EXIT (pgz > 0);
++    ntfsize = 2 * pgz;
++
++    ntf = xmmap (NULL, ntfsize, PROT_READ | PROT_WRITE, MAP_PRIVATE
++		 | MAP_ANONYMOUS, -1);
++    xmprotect (ntf + pgz, pgz, PROT_NONE);
++
++    outbufbase = ntf + pgz;
++  }
++
++  /* Check if SOdesignation escape sequence does not trigger an OOB write.  */
++  {
++    char inbuf[] = "\xe4\xba\xa4\xe6\x8d\xa2";
++
++    for (int i = 0; i < 9; i++)
++      {
++	char *inp = inbuf;
++	size_t inleft = sizeof (inbuf) - 1;
++
++	char *outp = outbufbase - i;
++	size_t outleft = i;
++
++	TEST_VERIFY_EXIT (iconv (cd, &inp, &inleft, &outp, &outleft)
++			  == (size_t) -1);
++	TEST_COMPARE (errno, E2BIG);
++
++	TEST_VERIFY_EXIT (iconv (cd, NULL, NULL, NULL, NULL) == 0);
++      }
++  }
++
++  /* Same as before for SS2designation.  */
++  {
++    char inbuf[] = "㴽 \xe3\xb4\xbd";
++
++    for (int i = 0; i < 14; i++)
++      {
++	char *inp = inbuf;
++	size_t inleft = sizeof (inbuf) - 1;
++
++	char *outp = outbufbase - i;
++	size_t outleft = i;
++
++	TEST_VERIFY_EXIT (iconv (cd, &inp, &inleft, &outp, &outleft)
++			  == (size_t) -1);
++	TEST_COMPARE (errno, E2BIG);
++
++	TEST_VERIFY_EXIT (iconv (cd, NULL, NULL, NULL, NULL) == 0);
++      }
++  }
++
++  /* Same as before for SS3designation.  */
++  {
++    char inbuf[] = "劄 \xe5\x8a\x84";
++
++    for (int i = 0; i < 14; i++)
++      {
++	char *inp = inbuf;
++	size_t inleft = sizeof (inbuf) - 1;
++
++	char *outp = outbufbase - i;
++	size_t outleft = i;
++
++	TEST_VERIFY_EXIT (iconv (cd, &inp, &inleft, &outp, &outleft)
++			  == (size_t) -1);
++	TEST_COMPARE (errno, E2BIG);
++
++	TEST_VERIFY_EXIT (iconv (cd, NULL, NULL, NULL, NULL) == 0);
++      }
++  }
++
++  TEST_VERIFY_EXIT (iconv_close (cd) != -1);
++
++  xmunmap (ntf, ntfsize);
++
++  return 0;
++}
++
++#include <support/test-driver.c>
 diff --git a/include/ifaddrs.h b/include/ifaddrs.h
 index 416118f1b3..19a3afb19f 100644
 --- a/include/ifaddrs.h
@@ -427,6 +638,21 @@ index 1d74feb2bd..69bda3ed17 100644
      /* List of the dependencies introduced through symbol binding.  */
      struct link_map_reldeps
        {
+diff --git a/include/sys/sysinfo.h b/include/sys/sysinfo.h
+index c490561581..65742b1036 100644
+--- a/include/sys/sysinfo.h
++++ b/include/sys/sysinfo.h
+@@ -14,10 +14,6 @@ libc_hidden_proto (__get_nprocs_conf)
+ extern int __get_nprocs (void);
+ libc_hidden_proto (__get_nprocs)
+ 
+-/* Return the number of available processors which the process can
+-   be scheduled.  */
+-extern int __get_nprocs_sched (void) attribute_hidden;
+-
+ /* Return number of physical pages of memory in the system.  */
+ extern long int __get_phys_pages (void);
+ libc_hidden_proto (__get_phys_pages)
 diff --git a/inet/check_pf.c b/inet/check_pf.c
 index 5310c99121..6d1475920f 100644
 --- a/inet/check_pf.c
@@ -507,6 +733,81 @@ index f16f6db1c3..9ab8f2e7f3 100644
  	    {
  	      /* Make sure we have room for at least one multibyte
  		 character.  */
+diff --git a/login/Makefile b/login/Makefile
+index 74216cbcb2..7dd6cab9c9 100644
+--- a/login/Makefile
++++ b/login/Makefile
+@@ -44,7 +44,9 @@ subdir-dirs = programs
+ vpath %.c programs
+ 
+ tests := tst-utmp tst-utmpx tst-grantpt tst-ptsname tst-getlogin tst-updwtmpx \
+-  tst-pututxline-lockfail tst-pututxline-cache
++  tst-pututxline-lockfail tst-pututxline-cache tst-utmp-size tst-utmp-size-64
++
++CFLAGS-tst-utmp-size-64.c += -D_FILE_OFFSET_BITS=64 -D_TIME_BITS=64
+ 
+ # Empty compatibility library for old binaries.
+ extra-libs      := libutil
+diff --git a/login/tst-utmp-size-64.c b/login/tst-utmp-size-64.c
+new file mode 100644
+index 0000000000..7a581a4c12
+--- /dev/null
++++ b/login/tst-utmp-size-64.c
+@@ -0,0 +1,2 @@
++/* The on-disk layout must not change in time64 mode.  */
++#include "tst-utmp-size.c"
+diff --git a/login/tst-utmp-size.c b/login/tst-utmp-size.c
+new file mode 100644
+index 0000000000..1b7f7ff042
+--- /dev/null
++++ b/login/tst-utmp-size.c
+@@ -0,0 +1,33 @@
++/* Check expected sizes of struct utmp, struct utmpx, struct lastlog.
++   Copyright (C) 2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <utmp.h>
++#include <utmpx.h>
++#include <utmp-size.h>
++
++static int
++do_test (void)
++{
++  _Static_assert (sizeof (struct utmp) == UTMP_SIZE, "struct utmp size");
++  _Static_assert (sizeof (struct utmpx) == UTMP_SIZE, "struct utmpx size");
++  _Static_assert (sizeof (struct lastlog) == LASTLOG_SIZE,
++                  "struct lastlog size");
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/malloc/arena.c b/malloc/arena.c
+index 6f03955ff2..82b09adb47 100644
+--- a/malloc/arena.c
++++ b/malloc/arena.c
+@@ -820,7 +820,7 @@ arena_get2 (size_t size, mstate avoid_arena)
+             narenas_limit = mp_.arena_max;
+           else if (narenas > mp_.arena_test)
+             {
+-              int n = __get_nprocs_sched ();
++              int n = __get_nprocs ();
+ 
+               if (n >= 1)
+                 narenas_limit = NARENAS_FROM_NCORES (n);
 diff --git a/malloc/malloc.c b/malloc/malloc.c
 index e2f1a615a4..d0bbbf3710 100644
 --- a/malloc/malloc.c
@@ -1026,6 +1327,23 @@ index fe0d49c1de..90b31952c5 100644
  $(objpfx)tst-select: $(librt)
  $(objpfx)tst-select-time64: $(librt)
  $(objpfx)tst-pselect: $(librt)
+diff --git a/misc/getsysstats.c b/misc/getsysstats.c
+index 5f36adc0e8..23cc112074 100644
+--- a/misc/getsysstats.c
++++ b/misc/getsysstats.c
+@@ -44,12 +44,6 @@ weak_alias (__get_nprocs, get_nprocs)
+ link_warning (get_nprocs, "warning: get_nprocs will always return 1")
+ 
+ 
+-int
+-__get_nprocs_sched (void)
+-{
+-  return 1;
+-}
+-
+ long int
+ __get_phys_pages (void)
+ {
 diff --git a/misc/syslog.c b/misc/syslog.c
 index 1b8cb722c5..4af87f54fd 100644
 --- a/misc/syslog.c
@@ -1304,6 +1622,441 @@ index e29f3fe583..0000000000
 -
 -/* Some variables normally defined in libc.  */
 -nss_action_list __nss_hosts_database attribute_hidden;
+diff --git a/nscd/netgroupcache.c b/nscd/netgroupcache.c
+index 06b7d7b6ca..a63b260fdb 100644
+--- a/nscd/netgroupcache.c
++++ b/nscd/netgroupcache.c
+@@ -23,6 +23,7 @@
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <sys/mman.h>
++#include <scratch_buffer.h>
+ 
+ #include "../inet/netgroup.h"
+ #include "nscd.h"
+@@ -65,6 +66,16 @@ struct dataset
+   char strdata[0];
+ };
+ 
++/* Send a notfound response to FD.  Always returns -1 to indicate an
++   ephemeral error.  */
++static time_t
++send_notfound (int fd)
++{
++  if (fd != -1)
++    TEMP_FAILURE_RETRY (send (fd, &notfound, sizeof (notfound), MSG_NOSIGNAL));
++  return -1;
++}
++
+ /* Sends a notfound message and prepares a notfound dataset to write to the
+    cache.  Returns true if there was enough memory to allocate the dataset and
+    returns the dataset in DATASETP, total bytes to write in TOTALP and the
+@@ -83,8 +94,7 @@ do_notfound (struct database_dyn *db, int fd, request_header *req,
+   total = sizeof (notfound);
+   timeout = time (NULL) + db->negtimeout;
+ 
+-  if (fd != -1)
+-    TEMP_FAILURE_RETRY (send (fd, &notfound, total, MSG_NOSIGNAL));
++  send_notfound (fd);
+ 
+   dataset = mempool_alloc (db, sizeof (struct dataset) + req->key_len, 1);
+   /* If we cannot permanently store the result, so be it.  */
+@@ -109,11 +119,78 @@ do_notfound (struct database_dyn *db, int fd, request_header *req,
+   return cacheable;
+ }
+ 
++struct addgetnetgrentX_scratch
++{
++  /* This is the result that the caller should use.  It can be NULL,
++     point into buffer, or it can be in the cache.  */
++  struct dataset *dataset;
++
++  struct scratch_buffer buffer;
++
++  /* Used internally in addgetnetgrentX as a staging area.  */
++  struct scratch_buffer tmp;
++
++  /* Number of bytes in buffer that are actually used.  */
++  size_t buffer_used;
++};
++
++static void
++addgetnetgrentX_scratch_init (struct addgetnetgrentX_scratch *scratch)
++{
++  scratch->dataset = NULL;
++  scratch_buffer_init (&scratch->buffer);
++  scratch_buffer_init (&scratch->tmp);
++
++  /* Reserve space for the header.  */
++  scratch->buffer_used = sizeof (struct dataset);
++  static_assert (sizeof (struct dataset) < sizeof (scratch->tmp.__space),
++		 "initial buffer space");
++  memset (scratch->tmp.data, 0, sizeof (struct dataset));
++}
++
++static void
++addgetnetgrentX_scratch_free (struct addgetnetgrentX_scratch *scratch)
++{
++  scratch_buffer_free (&scratch->buffer);
++  scratch_buffer_free (&scratch->tmp);
++}
++
++/* Copy LENGTH bytes from S into SCRATCH.  Returns NULL if SCRATCH
++   could not be resized, otherwise a pointer to the copy.  */
++static char *
++addgetnetgrentX_append_n (struct addgetnetgrentX_scratch *scratch,
++			  const char *s, size_t length)
++{
++  while (true)
++    {
++      size_t remaining = scratch->buffer.length - scratch->buffer_used;
++      if (remaining >= length)
++	break;
++      if (!scratch_buffer_grow_preserve (&scratch->buffer))
++	return NULL;
++    }
++  char *copy = scratch->buffer.data + scratch->buffer_used;
++  memcpy (copy, s, length);
++  scratch->buffer_used += length;
++  return copy;
++}
++
++/* Copy S into SCRATCH, including its null terminator.  Returns false
++   if SCRATCH could not be resized.  */
++static bool
++addgetnetgrentX_append (struct addgetnetgrentX_scratch *scratch, const char *s)
++{
++  if (s == NULL)
++    s = "";
++  return addgetnetgrentX_append_n (scratch, s, strlen (s) + 1) != NULL;
++}
++
++/* Caller must initialize and free *SCRATCH.  If the return value is
++   negative, this function has sent a notfound response.  */
+ static time_t
+ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+ 		 const char *key, uid_t uid, struct hashentry *he,
+-		 struct datahead *dh, struct dataset **resultp,
+-		 void **tofreep)
++		 struct datahead *dh, struct addgetnetgrentX_scratch *scratch)
+ {
+   if (__glibc_unlikely (debug_level > 0))
+     {
+@@ -132,14 +209,10 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+ 
+   char *key_copy = NULL;
+   struct __netgrent data;
+-  size_t buflen = MAX (1024, sizeof (*dataset) + req->key_len);
+-  size_t buffilled = sizeof (*dataset);
+-  char *buffer = NULL;
+   size_t nentries = 0;
+   size_t group_len = strlen (key) + 1;
+   struct name_list *first_needed
+     = alloca (sizeof (struct name_list) + group_len);
+-  *tofreep = NULL;
+ 
+   if (netgroup_database == NULL
+       && !__nss_database_get (nss_database_netgroup, &netgroup_database))
+@@ -147,12 +220,10 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+       /* No such service.  */
+       cacheable = do_notfound (db, fd, req, key, &dataset, &total, &timeout,
+ 			       &key_copy);
+-      goto writeout;
++      goto maybe_cache_add;
+     }
+ 
+   memset (&data, '\0', sizeof (data));
+-  buffer = xmalloc (buflen);
+-  *tofreep = buffer;
+   first_needed->next = first_needed;
+   memcpy (first_needed->name, key, group_len);
+   data.needed_groups = first_needed;
+@@ -195,8 +266,8 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+ 		while (1)
+ 		  {
+ 		    int e;
+-		    status = getfct.f (&data, buffer + buffilled,
+-				       buflen - buffilled - req->key_len, &e);
++		    status = getfct.f (&data, scratch->tmp.data,
++				       scratch->tmp.length, &e);
+ 		    if (status == NSS_STATUS_SUCCESS)
+ 		      {
+ 			if (data.type == triple_val)
+@@ -204,68 +275,10 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+ 			    const char *nhost = data.val.triple.host;
+ 			    const char *nuser = data.val.triple.user;
+ 			    const char *ndomain = data.val.triple.domain;
+-
+-			    size_t hostlen = strlen (nhost ?: "") + 1;
+-			    size_t userlen = strlen (nuser ?: "") + 1;
+-			    size_t domainlen = strlen (ndomain ?: "") + 1;
+-
+-			    if (nhost == NULL || nuser == NULL || ndomain == NULL
+-				|| nhost > nuser || nuser > ndomain)
+-			      {
+-				const char *last = nhost;
+-				if (last == NULL
+-				    || (nuser != NULL && nuser > last))
+-				  last = nuser;
+-				if (last == NULL
+-				    || (ndomain != NULL && ndomain > last))
+-				  last = ndomain;
+-
+-				size_t bufused
+-				  = (last == NULL
+-				     ? buffilled
+-				     : last + strlen (last) + 1 - buffer);
+-
+-				/* We have to make temporary copies.  */
+-				size_t needed = hostlen + userlen + domainlen;
+-
+-				if (buflen - req->key_len - bufused < needed)
+-				  {
+-				    buflen += MAX (buflen, 2 * needed);
+-				    /* Save offset in the old buffer.  We don't
+-				       bother with the NULL check here since
+-				       we'll do that later anyway.  */
+-				    size_t nhostdiff = nhost - buffer;
+-				    size_t nuserdiff = nuser - buffer;
+-				    size_t ndomaindiff = ndomain - buffer;
+-
+-				    char *newbuf = xrealloc (buffer, buflen);
+-				    /* Fix up the triplet pointers into the new
+-				       buffer.  */
+-				    nhost = (nhost ? newbuf + nhostdiff
+-					     : NULL);
+-				    nuser = (nuser ? newbuf + nuserdiff
+-					     : NULL);
+-				    ndomain = (ndomain ? newbuf + ndomaindiff
+-					       : NULL);
+-				    *tofreep = buffer = newbuf;
+-				  }
+-
+-				nhost = memcpy (buffer + bufused,
+-						nhost ?: "", hostlen);
+-				nuser = memcpy ((char *) nhost + hostlen,
+-						nuser ?: "", userlen);
+-				ndomain = memcpy ((char *) nuser + userlen,
+-						  ndomain ?: "", domainlen);
+-			      }
+-
+-			    char *wp = buffer + buffilled;
+-			    wp = memmove (wp, nhost ?: "", hostlen);
+-			    wp += hostlen;
+-			    wp = memmove (wp, nuser ?: "", userlen);
+-			    wp += userlen;
+-			    wp = memmove (wp, ndomain ?: "", domainlen);
+-			    wp += domainlen;
+-			    buffilled = wp - buffer;
++			    if (!(addgetnetgrentX_append (scratch, nhost)
++				  && addgetnetgrentX_append (scratch, nuser)
++				  && addgetnetgrentX_append (scratch, ndomain)))
++			      return send_notfound (fd);
+ 			    ++nentries;
+ 			  }
+ 			else
+@@ -317,8 +330,8 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+ 		      }
+ 		    else if (status == NSS_STATUS_TRYAGAIN && e == ERANGE)
+ 		      {
+-			buflen *= 2;
+-			*tofreep = buffer = xrealloc (buffer, buflen);
++			if (!scratch_buffer_grow (&scratch->tmp))
++			  return send_notfound (fd);
+ 		      }
+ 		    else if (status == NSS_STATUS_RETURN
+ 			     || status == NSS_STATUS_NOTFOUND
+@@ -348,13 +361,20 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+     {
+       cacheable = do_notfound (db, fd, req, key, &dataset, &total, &timeout,
+ 			       &key_copy);
+-      goto writeout;
++      goto maybe_cache_add;
+     }
+ 
+-  total = buffilled;
++  /* Capture the result size without the key appended.   */
++  total = scratch->buffer_used;
++
++  /* Make a copy of the key.  The scratch buffer must not move after
++     this point.  */
++  key_copy = addgetnetgrentX_append_n (scratch, key, req->key_len);
++  if (key_copy == NULL)
++    return send_notfound (fd);
+ 
+   /* Fill in the dataset.  */
+-  dataset = (struct dataset *) buffer;
++  dataset = scratch->buffer.data;
+   timeout = datahead_init_pos (&dataset->head, total + req->key_len,
+ 			       total - offsetof (struct dataset, resp),
+ 			       he == NULL ? 0 : dh->nreloads + 1,
+@@ -363,11 +383,7 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+   dataset->resp.version = NSCD_VERSION;
+   dataset->resp.found = 1;
+   dataset->resp.nresults = nentries;
+-  dataset->resp.result_len = buffilled - sizeof (*dataset);
+-
+-  assert (buflen - buffilled >= req->key_len);
+-  key_copy = memcpy (buffer + buffilled, key, req->key_len);
+-  buffilled += req->key_len;
++  dataset->resp.result_len = total - sizeof (*dataset);
+ 
+   /* Now we can determine whether on refill we have to create a new
+      record or not.  */
+@@ -398,7 +414,7 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+     if (__glibc_likely (newp != NULL))
+       {
+ 	/* Adjust pointer into the memory block.  */
+-	key_copy = (char *) newp + (key_copy - buffer);
++	key_copy = (char *) newp + (key_copy - (char *) dataset);
+ 
+ 	dataset = memcpy (newp, dataset, total + req->key_len);
+ 	cacheable = true;
+@@ -410,14 +426,12 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+   }
+ 
+   if (he == NULL && fd != -1)
+-    {
+-      /* We write the dataset before inserting it to the database
+-	 since while inserting this thread might block and so would
+-	 unnecessarily let the receiver wait.  */
+-    writeout:
++    /* We write the dataset before inserting it to the database since
++       while inserting this thread might block and so would
++       unnecessarily let the receiver wait.  */
+       writeall (fd, &dataset->resp, dataset->head.recsize);
+-    }
+ 
++ maybe_cache_add:
+   if (cacheable)
+     {
+       /* If necessary, we also propagate the data to disk.  */
+@@ -441,7 +455,7 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+     }
+ 
+  out:
+-  *resultp = dataset;
++  scratch->dataset = dataset;
+ 
+   return timeout;
+ }
+@@ -462,6 +476,9 @@ addinnetgrX (struct database_dyn *db, int fd, request_header *req,
+   if (user != NULL)
+     key = strchr (key, '\0') + 1;
+   const char *domain = *key++ ? key : NULL;
++  struct addgetnetgrentX_scratch scratch;
++
++  addgetnetgrentX_scratch_init (&scratch);
+ 
+   if (__glibc_unlikely (debug_level > 0))
+     {
+@@ -477,12 +494,8 @@ addinnetgrX (struct database_dyn *db, int fd, request_header *req,
+ 							    group, group_len,
+ 							    db, uid);
+   time_t timeout;
+-  void *tofree;
+   if (result != NULL)
+-    {
+-      timeout = result->head.timeout;
+-      tofree = NULL;
+-    }
++    timeout = result->head.timeout;
+   else
+     {
+       request_header req_get =
+@@ -491,7 +504,10 @@ addinnetgrX (struct database_dyn *db, int fd, request_header *req,
+ 	  .key_len = group_len
+ 	};
+       timeout = addgetnetgrentX (db, -1, &req_get, group, uid, NULL, NULL,
+-				 &result, &tofree);
++				 &scratch);
++      result = scratch.dataset;
++      if (timeout < 0)
++	goto out;
+     }
+ 
+   struct indataset
+@@ -502,24 +518,26 @@ addinnetgrX (struct database_dyn *db, int fd, request_header *req,
+       = (struct indataset *) mempool_alloc (db,
+ 					    sizeof (*dataset) + req->key_len,
+ 					    1);
+-  struct indataset dataset_mem;
+   bool cacheable = true;
+   if (__glibc_unlikely (dataset == NULL))
+     {
+       cacheable = false;
+-      dataset = &dataset_mem;
++      /* The alloca is safe because nscd_run_worker verfies that
++	 key_len is not larger than MAXKEYLEN.  */
++      dataset = alloca (sizeof (*dataset) + req->key_len);
+     }
+ 
+   datahead_init_pos (&dataset->head, sizeof (*dataset) + req->key_len,
+ 		     sizeof (innetgroup_response_header),
+-		     he == NULL ? 0 : dh->nreloads + 1, result->head.ttl);
++		     he == NULL ? 0 : dh->nreloads + 1,
++		     result == NULL ? db->negtimeout : result->head.ttl);
+   /* Set the notfound status and timeout based on the result from
+      getnetgrent.  */
+-  dataset->head.notfound = result->head.notfound;
++  dataset->head.notfound = result == NULL || result->head.notfound;
+   dataset->head.timeout = timeout;
+ 
+   dataset->resp.version = NSCD_VERSION;
+-  dataset->resp.found = result->resp.found;
++  dataset->resp.found = result != NULL && result->resp.found;
+   /* Until we find a matching entry the result is 0.  */
+   dataset->resp.result = 0;
+ 
+@@ -567,7 +585,9 @@ addinnetgrX (struct database_dyn *db, int fd, request_header *req,
+       goto out;
+     }
+ 
+-  if (he == NULL)
++  /* addgetnetgrentX may have already sent a notfound response.  Do
++     not send another one.  */
++  if (he == NULL && dataset->resp.found)
+     {
+       /* We write the dataset before inserting it to the database
+ 	 since while inserting this thread might block and so would
+@@ -601,7 +621,7 @@ addinnetgrX (struct database_dyn *db, int fd, request_header *req,
+     }
+ 
+  out:
+-  free (tofree);
++  addgetnetgrentX_scratch_free (&scratch);
+   return timeout;
+ }
+ 
+@@ -611,11 +631,12 @@ addgetnetgrentX_ignore (struct database_dyn *db, int fd, request_header *req,
+ 			const char *key, uid_t uid, struct hashentry *he,
+ 			struct datahead *dh)
+ {
+-  struct dataset *ignore;
+-  void *tofree;
+-  time_t timeout = addgetnetgrentX (db, fd, req, key, uid, he, dh,
+-				    &ignore, &tofree);
+-  free (tofree);
++  struct addgetnetgrentX_scratch scratch;
++  addgetnetgrentX_scratch_init (&scratch);
++  time_t timeout = addgetnetgrentX (db, fd, req, key, uid, he, dh, &scratch);
++  addgetnetgrentX_scratch_free (&scratch);
++  if (timeout < 0)
++    timeout = 0;
+   return timeout;
+ }
+ 
+@@ -659,5 +680,9 @@ readdinnetgr (struct database_dyn *db, struct hashentry *he,
+       .key_len = he->len
+     };
+ 
+-  return addinnetgrX (db, -1, &req, db->data + he->key, he->owner, he, dh);
++  time_t timeout = addinnetgrX (db, -1, &req, db->data + he->key, he->owner,
++				he, dh);
++  if (timeout < 0)
++    timeout = 0;
++  return timeout;
+ }
 diff --git a/nss/Makefile b/nss/Makefile
 index 06fcdc450f..668ba34b18 100644
 --- a/nss/Makefile
@@ -1765,6 +2518,1620 @@ index f7d4bac5a8..824cf315ff 100644
  
  
  #define	STREQ(a, b)	(strcmp((a), (b)) == 0)
+diff --git a/sysdeps/aarch64/configure b/sysdeps/aarch64/configure
+old mode 100644
+new mode 100755
+index ca57edce47..9606137e8d
+--- a/sysdeps/aarch64/configure
++++ b/sysdeps/aarch64/configure
+@@ -325,9 +325,10 @@ then :
+   printf %s "(cached) " >&6
+ else $as_nop
+   cat > conftest.s <<\EOF
+-        ptrue p0.b
++	.arch armv8.2-a+sve
++	ptrue p0.b
+ EOF
+-if { ac_try='${CC-cc} -c -march=armv8.2-a+sve conftest.s 1>&5'
++if { ac_try='${CC-cc} -c conftest.s 1>&5'
+   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+   (eval $ac_try) 2>&5
+   ac_status=$?
+diff --git a/sysdeps/aarch64/configure.ac b/sysdeps/aarch64/configure.ac
+index 27874eceb4..56d12d661d 100644
+--- a/sysdeps/aarch64/configure.ac
++++ b/sysdeps/aarch64/configure.ac
+@@ -90,9 +90,10 @@ LIBC_CONFIG_VAR([aarch64-variant-pcs], [$libc_cv_aarch64_variant_pcs])
+ # Check if asm support armv8.2-a+sve
+ AC_CACHE_CHECK([for SVE support in assembler], [libc_cv_aarch64_sve_asm], [dnl
+ cat > conftest.s <<\EOF
+-        ptrue p0.b
++	.arch armv8.2-a+sve
++	ptrue p0.b
+ EOF
+-if AC_TRY_COMMAND(${CC-cc} -c -march=armv8.2-a+sve conftest.s 1>&AS_MESSAGE_LOG_FD); then
++if AC_TRY_COMMAND(${CC-cc} -c conftest.s 1>&AS_MESSAGE_LOG_FD); then
+   libc_cv_aarch64_sve_asm=yes
+ else
+   libc_cv_aarch64_sve_asm=no
+diff --git a/sysdeps/aarch64/memset.S b/sysdeps/aarch64/memset.S
+index 50e5da3e7a..bbfb7184c3 100644
+--- a/sysdeps/aarch64/memset.S
++++ b/sysdeps/aarch64/memset.S
+@@ -29,7 +29,7 @@
+  *
+  */
+ 
+-ENTRY_ALIGN (MEMSET, 6)
++ENTRY (MEMSET)
+ 
+ 	PTR_ARG (0)
+ 	SIZE_ARG (2)
+@@ -101,19 +101,19 @@ L(tail64):
+ 	ret
+ 
+ L(try_zva):
+-#ifdef ZVA_MACRO
+-	zva_macro
+-#else
++#ifndef ZVA64_ONLY
+ 	.p2align 3
+ 	mrs	tmp1, dczid_el0
+ 	tbnz	tmp1w, 4, L(no_zva)
+ 	and	tmp1w, tmp1w, 15
+ 	cmp	tmp1w, 4	/* ZVA size is 64 bytes.  */
+ 	b.ne	 L(zva_128)
+-
++	nop
++#endif
+ 	/* Write the first and last 64 byte aligned block using stp rather
+ 	   than using DC ZVA.  This is faster on some cores.
+ 	 */
++	.p2align 4
+ L(zva_64):
+ 	str	q0, [dst, 16]
+ 	stp	q0, q0, [dst, 32]
+@@ -123,7 +123,6 @@ L(zva_64):
+ 	sub	count, dstend, dst	/* Count is now 128 too large.	*/
+ 	sub	count, count, 128+64+64	/* Adjust count and bias for loop.  */
+ 	add	dst, dst, 128
+-	nop
+ 1:	dc	zva, dst
+ 	add	dst, dst, 64
+ 	subs	count, count, 64
+@@ -134,6 +133,7 @@ L(zva_64):
+ 	stp	q0, q0, [dstend, -32]
+ 	ret
+ 
++#ifndef ZVA64_ONLY
+ 	.p2align 3
+ L(zva_128):
+ 	cmp	tmp1w, 5	/* ZVA size is 128 bytes.  */
+diff --git a/sysdeps/aarch64/multiarch/Makefile b/sysdeps/aarch64/multiarch/Makefile
+index 223777d94e..e4720b7468 100644
+--- a/sysdeps/aarch64/multiarch/Makefile
++++ b/sysdeps/aarch64/multiarch/Makefile
+@@ -3,17 +3,19 @@ sysdep_routines += \
+   memchr_generic \
+   memchr_nosimd \
+   memcpy_a64fx \
+-  memcpy_falkor \
+   memcpy_generic \
++  memcpy_mops \
+   memcpy_sve \
+   memcpy_thunderx \
+   memcpy_thunderx2 \
++  memmove_mops \
+   memset_a64fx \
+   memset_emag \
+-  memset_falkor \
+   memset_generic \
+   memset_kunpeng \
++  memset_mops \
++  memset_zva64 \
+   strlen_asimd \
+-  strlen_mte \
++  strlen_generic \
+ # sysdep_routines
+ endif
+diff --git a/sysdeps/aarch64/multiarch/ifunc-impl-list.c b/sysdeps/aarch64/multiarch/ifunc-impl-list.c
+index d274f01fdb..73038ac810 100644
+--- a/sysdeps/aarch64/multiarch/ifunc-impl-list.c
++++ b/sysdeps/aarch64/multiarch/ifunc-impl-list.c
+@@ -36,30 +36,29 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+   IFUNC_IMPL (i, name, memcpy,
+ 	      IFUNC_IMPL_ADD (array, i, memcpy, 1, __memcpy_thunderx)
+ 	      IFUNC_IMPL_ADD (array, i, memcpy, !bti, __memcpy_thunderx2)
+-	      IFUNC_IMPL_ADD (array, i, memcpy, 1, __memcpy_falkor)
+ #if HAVE_AARCH64_SVE_ASM
+ 	      IFUNC_IMPL_ADD (array, i, memcpy, sve, __memcpy_a64fx)
+ 	      IFUNC_IMPL_ADD (array, i, memcpy, sve, __memcpy_sve)
+ #endif
++	      IFUNC_IMPL_ADD (array, i, memcpy, mops, __memcpy_mops)
+ 	      IFUNC_IMPL_ADD (array, i, memcpy, 1, __memcpy_generic))
+   IFUNC_IMPL (i, name, memmove,
+ 	      IFUNC_IMPL_ADD (array, i, memmove, 1, __memmove_thunderx)
+ 	      IFUNC_IMPL_ADD (array, i, memmove, !bti, __memmove_thunderx2)
+-	      IFUNC_IMPL_ADD (array, i, memmove, 1, __memmove_falkor)
+ #if HAVE_AARCH64_SVE_ASM
+ 	      IFUNC_IMPL_ADD (array, i, memmove, sve, __memmove_a64fx)
+ 	      IFUNC_IMPL_ADD (array, i, memmove, sve, __memmove_sve)
+ #endif
++	      IFUNC_IMPL_ADD (array, i, memmove, mops, __memmove_mops)
+ 	      IFUNC_IMPL_ADD (array, i, memmove, 1, __memmove_generic))
+   IFUNC_IMPL (i, name, memset,
+-	      /* Enable this on non-falkor processors too so that other cores
+-		 can do a comparative analysis with __memset_generic.  */
+-	      IFUNC_IMPL_ADD (array, i, memset, (zva_size == 64), __memset_falkor)
+-	      IFUNC_IMPL_ADD (array, i, memset, (zva_size == 64), __memset_emag)
++	      IFUNC_IMPL_ADD (array, i, memset, (zva_size == 64), __memset_zva64)
++	      IFUNC_IMPL_ADD (array, i, memset, 1, __memset_emag)
+ 	      IFUNC_IMPL_ADD (array, i, memset, 1, __memset_kunpeng)
+ #if HAVE_AARCH64_SVE_ASM
+ 	      IFUNC_IMPL_ADD (array, i, memset, sve && zva_size == 256, __memset_a64fx)
+ #endif
++	      IFUNC_IMPL_ADD (array, i, memset, mops, __memset_mops)
+ 	      IFUNC_IMPL_ADD (array, i, memset, 1, __memset_generic))
+   IFUNC_IMPL (i, name, memchr,
+ 	      IFUNC_IMPL_ADD (array, i, memchr, !mte, __memchr_nosimd)
+@@ -67,7 +66,7 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+ 
+   IFUNC_IMPL (i, name, strlen,
+ 	      IFUNC_IMPL_ADD (array, i, strlen, !mte, __strlen_asimd)
+-	      IFUNC_IMPL_ADD (array, i, strlen, 1, __strlen_mte))
++	      IFUNC_IMPL_ADD (array, i, strlen, 1, __strlen_generic))
+ 
+   return 0;
+ }
+diff --git a/sysdeps/aarch64/multiarch/init-arch.h b/sysdeps/aarch64/multiarch/init-arch.h
+index 6de081e381..daef631e04 100644
+--- a/sysdeps/aarch64/multiarch/init-arch.h
++++ b/sysdeps/aarch64/multiarch/init-arch.h
+@@ -35,4 +35,8 @@
+   bool __attribute__((unused)) mte =					      \
+     MTE_ENABLED ();							      \
+   bool __attribute__((unused)) sve =					      \
+-    GLRO(dl_aarch64_cpu_features).sve;
++    GLRO(dl_aarch64_cpu_features).sve;					      \
++  bool __attribute__((unused)) prefer_sve_ifuncs =			      \
++    GLRO(dl_aarch64_cpu_features).prefer_sve_ifuncs;			      \
++  bool __attribute__((unused)) mops =					      \
++    GLRO(dl_aarch64_cpu_features).mops;
+diff --git a/sysdeps/aarch64/multiarch/memchr_nosimd.S b/sysdeps/aarch64/multiarch/memchr_nosimd.S
+index 57e48375e9..7800751899 100644
+--- a/sysdeps/aarch64/multiarch/memchr_nosimd.S
++++ b/sysdeps/aarch64/multiarch/memchr_nosimd.S
+@@ -26,10 +26,6 @@
+  * Use base integer registers.
+  */
+ 
+-#ifndef MEMCHR
+-# define MEMCHR __memchr_nosimd
+-#endif
+-
+ /* Arguments and results.  */
+ #define srcin		x0
+ #define chrin		x1
+@@ -62,7 +58,7 @@
+ #define REP8_7f		0x7f7f7f7f7f7f7f7f
+ 
+ 
+-ENTRY_ALIGN (MEMCHR, 6)
++ENTRY (__memchr_nosimd)
+ 
+ 	PTR_ARG (0)
+ 	SIZE_ARG (2)
+@@ -219,5 +215,4 @@ L(none_chr):
+ 	mov	result, 0
+ 	ret
+ 
+-END (MEMCHR)
+-libc_hidden_builtin_def (MEMCHR)
++END (__memchr_nosimd)
+diff --git a/sysdeps/aarch64/multiarch/memcpy.c b/sysdeps/aarch64/multiarch/memcpy.c
+index 3aae915c5f..e7c7795db6 100644
+--- a/sysdeps/aarch64/multiarch/memcpy.c
++++ b/sysdeps/aarch64/multiarch/memcpy.c
+@@ -31,20 +31,23 @@ extern __typeof (__redirect_memcpy) __libc_memcpy;
+ extern __typeof (__redirect_memcpy) __memcpy_generic attribute_hidden;
+ extern __typeof (__redirect_memcpy) __memcpy_thunderx attribute_hidden;
+ extern __typeof (__redirect_memcpy) __memcpy_thunderx2 attribute_hidden;
+-extern __typeof (__redirect_memcpy) __memcpy_falkor attribute_hidden;
+ extern __typeof (__redirect_memcpy) __memcpy_a64fx attribute_hidden;
+ extern __typeof (__redirect_memcpy) __memcpy_sve attribute_hidden;
++extern __typeof (__redirect_memcpy) __memcpy_mops attribute_hidden;
+ 
+ static inline __typeof (__redirect_memcpy) *
+ select_memcpy_ifunc (void)
+ {
+   INIT_ARCH ();
+ 
++  if (mops)
++    return __memcpy_mops;
++
+   if (sve && HAVE_AARCH64_SVE_ASM)
+     {
+       if (IS_A64FX (midr))
+ 	return __memcpy_a64fx;
+-      return __memcpy_sve;
++      return prefer_sve_ifuncs ? __memcpy_sve : __memcpy_generic;
+     }
+ 
+   if (IS_THUNDERX (midr))
+@@ -53,9 +56,6 @@ select_memcpy_ifunc (void)
+   if (IS_THUNDERX2 (midr) || IS_THUNDERX2PA (midr))
+     return __memcpy_thunderx2;
+ 
+-  if (IS_FALKOR (midr) || IS_PHECDA (midr))
+-    return __memcpy_falkor;
+-
+   return __memcpy_generic;
+ }
+ 
+diff --git a/sysdeps/aarch64/multiarch/memcpy_a64fx.S b/sysdeps/aarch64/multiarch/memcpy_a64fx.S
+index f89b5b670a..baff7e96d0 100644
+--- a/sysdeps/aarch64/multiarch/memcpy_a64fx.S
++++ b/sysdeps/aarch64/multiarch/memcpy_a64fx.S
+@@ -39,9 +39,6 @@
+ #define vlen8	x8
+ 
+ #if HAVE_AARCH64_SVE_ASM
+-# if IS_IN (libc)
+-#  define MEMCPY __memcpy_a64fx
+-#  define MEMMOVE __memmove_a64fx
+ 
+ 	.arch armv8.2-a+sve
+ 
+@@ -97,7 +94,7 @@
+ #undef BTI_C
+ #define BTI_C
+ 
+-ENTRY (MEMCPY)
++ENTRY (__memcpy_a64fx)
+ 
+ 	PTR_ARG (0)
+ 	PTR_ARG (1)
+@@ -234,11 +231,10 @@ L(last_bytes):
+ 	st1b	z3.b, p0, [dstend, -1, mul vl]
+ 	ret
+ 
+-END (MEMCPY)
+-libc_hidden_builtin_def (MEMCPY)
++END (__memcpy_a64fx)
+ 
+ 
+-ENTRY_ALIGN (MEMMOVE, 4)
++ENTRY_ALIGN (__memmove_a64fx, 4)
+ 
+ 	PTR_ARG (0)
+ 	PTR_ARG (1)
+@@ -307,7 +303,5 @@ L(full_overlap):
+ 	mov	dst, dstin
+ 	b	L(last_bytes)
+ 
+-END (MEMMOVE)
+-libc_hidden_builtin_def (MEMMOVE)
+-# endif /* IS_IN (libc) */
++END (__memmove_a64fx)
+ #endif /* HAVE_AARCH64_SVE_ASM */
+diff --git a/sysdeps/aarch64/multiarch/memcpy_falkor.S b/sysdeps/aarch64/multiarch/memcpy_falkor.S
+deleted file mode 100644
+index ec0e4ade24..0000000000
+--- a/sysdeps/aarch64/multiarch/memcpy_falkor.S
++++ /dev/null
+@@ -1,315 +0,0 @@
+-/* Optimized memcpy for Qualcomm Falkor processor.
+-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+-
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <https://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-/* Assumptions:
+-
+-   ARMv8-a, AArch64, falkor, unaligned accesses.  */
+-
+-#define dstin	x0
+-#define src	x1
+-#define count	x2
+-#define dst	x3
+-#define srcend	x4
+-#define dstend	x5
+-#define tmp1	x14
+-#define A_x	x6
+-#define B_x	x7
+-#define A_w	w6
+-#define B_w	w7
+-
+-#define A_q	q0
+-#define B_q	q1
+-#define C_q	q2
+-#define D_q	q3
+-#define E_q	q4
+-#define F_q	q5
+-#define G_q	q6
+-#define H_q	q7
+-#define Q_q	q6
+-#define S_q	q22
+-
+-/* Copies are split into 3 main cases:
+-
+-   1. Small copies of up to 32 bytes
+-   2. Medium copies of 33..128 bytes which are fully unrolled
+-   3. Large copies of more than 128 bytes.
+-
+-   Large copies align the source to a quad word and use an unrolled loop
+-   processing 64 bytes per iteration.
+-
+-   FALKOR-SPECIFIC DESIGN:
+-
+-   The smallest copies (32 bytes or less) focus on optimal pipeline usage,
+-   which is why the redundant copies of 0-3 bytes have been replaced with
+-   conditionals, since the former would unnecessarily break across multiple
+-   issue groups.  The medium copy group has been enlarged to 128 bytes since
+-   bumping up the small copies up to 32 bytes allows us to do that without
+-   cost and also allows us to reduce the size of the prep code before loop64.
+-
+-   The copy loop uses only one register q0.  This is to ensure that all loads
+-   hit a single hardware prefetcher which can get correctly trained to prefetch
+-   a single stream.
+-
+-   The non-temporal stores help optimize cache utilization.  */
+-
+-#if IS_IN (libc)
+-ENTRY_ALIGN (__memcpy_falkor, 6)
+-
+-	PTR_ARG (0)
+-	PTR_ARG (1)
+-	SIZE_ARG (2)
+-
+-	cmp	count, 32
+-	add	srcend, src, count
+-	add	dstend, dstin, count
+-	b.ls	L(copy32)
+-	cmp	count, 128
+-	b.hi	L(copy_long)
+-
+-	/* Medium copies: 33..128 bytes.  */
+-L(copy128):
+-	sub	tmp1, count, 1
+-	ldr	A_q, [src]
+-	ldr	B_q, [src, 16]
+-	ldr	C_q, [srcend, -32]
+-	ldr	D_q, [srcend, -16]
+-	tbz	tmp1, 6, 1f
+-	ldr	E_q, [src, 32]
+-	ldr	F_q, [src, 48]
+-	ldr	G_q, [srcend, -64]
+-	ldr	H_q, [srcend, -48]
+-	str	G_q, [dstend, -64]
+-	str	H_q, [dstend, -48]
+-	str	E_q, [dstin, 32]
+-	str	F_q, [dstin, 48]
+-1:
+-	str	A_q, [dstin]
+-	str	B_q, [dstin, 16]
+-	str	C_q, [dstend, -32]
+-	str	D_q, [dstend, -16]
+-	ret
+-
+-	.p2align 4
+-	/* Small copies: 0..32 bytes.  */
+-L(copy32):
+-	/* 16-32 */
+-	cmp	count, 16
+-	b.lo	1f
+-	ldr	A_q, [src]
+-	ldr	B_q, [srcend, -16]
+-	str	A_q, [dstin]
+-	str	B_q, [dstend, -16]
+-	ret
+-	.p2align 4
+-1:
+-	/* 8-15 */
+-	tbz	count, 3, 1f
+-	ldr	A_x, [src]
+-	ldr	B_x, [srcend, -8]
+-	str	A_x, [dstin]
+-	str	B_x, [dstend, -8]
+-	ret
+-	.p2align 4
+-1:
+-	/* 4-7 */
+-	tbz	count, 2, 1f
+-	ldr	A_w, [src]
+-	ldr	B_w, [srcend, -4]
+-	str	A_w, [dstin]
+-	str	B_w, [dstend, -4]
+-	ret
+-	.p2align 4
+-1:
+-	/* 2-3 */
+-	tbz	count, 1, 1f
+-	ldrh	A_w, [src]
+-	ldrh	B_w, [srcend, -2]
+-	strh	A_w, [dstin]
+-	strh	B_w, [dstend, -2]
+-	ret
+-	.p2align 4
+-1:
+-	/* 0-1 */
+-	tbz	count, 0, 1f
+-	ldrb	A_w, [src]
+-	strb	A_w, [dstin]
+-1:
+-	ret
+-
+-	/* Align SRC to 16 bytes and copy; that way at least one of the
+-	   accesses is aligned throughout the copy sequence.
+-
+-	   The count is off by 0 to 15 bytes, but this is OK because we trim
+-	   off the last 64 bytes to copy off from the end.  Due to this the
+-	   loop never runs out of bounds.  */
+-
+-	.p2align 4
+-	nop		/* Align loop64 below.  */
+-L(copy_long):
+-	ldr	A_q, [src]
+-	sub	count, count, 64 + 16
+-	and	tmp1, src, 15
+-	str	A_q, [dstin]
+-	bic	src, src, 15
+-	sub	dst, dstin, tmp1
+-	add	count, count, tmp1
+-
+-L(loop64):
+-	ldr	A_q, [src, 16]!
+-	str	A_q, [dst, 16]
+-	ldr	A_q, [src, 16]!
+-	subs	count, count, 64
+-	str	A_q, [dst, 32]
+-	ldr	A_q, [src, 16]!
+-	str	A_q, [dst, 48]
+-	ldr	A_q, [src, 16]!
+-	str	A_q, [dst, 64]!
+-	b.hi	L(loop64)
+-
+-	/* Write the last full set of 64 bytes.  The remainder is at most 64
+-	   bytes, so it is safe to always copy 64 bytes from the end even if
+-	   there is just 1 byte left.  */
+-	ldr	E_q, [srcend, -64]
+-	str	E_q, [dstend, -64]
+-	ldr	D_q, [srcend, -48]
+-	str	D_q, [dstend, -48]
+-	ldr	C_q, [srcend, -32]
+-	str	C_q, [dstend, -32]
+-	ldr	B_q, [srcend, -16]
+-	str	B_q, [dstend, -16]
+-	ret
+-
+-END (__memcpy_falkor)
+-libc_hidden_builtin_def (__memcpy_falkor)
+-
+-
+-/* RATIONALE:
+-
+-   The move has 4 distinct parts:
+-   * Small moves of 32 bytes and under.
+-   * Medium sized moves of 33-128 bytes (fully unrolled).
+-   * Large moves where the source address is higher than the destination
+-     (forward copies)
+-   * Large moves where the destination address is higher than the source
+-     (copy backward, or move).
+-
+-   We use only two registers q6 and q22 for the moves and move 32 bytes at a
+-   time to correctly train the hardware prefetcher for better throughput.
+-
+-   For small and medium cases memcpy is used.  */
+-
+-ENTRY_ALIGN (__memmove_falkor, 6)
+-
+-	PTR_ARG (0)
+-	PTR_ARG (1)
+-	SIZE_ARG (2)
+-
+-	cmp	count, 32
+-	add	srcend, src, count
+-	add	dstend, dstin, count
+-	b.ls	L(copy32)
+-	cmp	count, 128
+-	b.ls	L(copy128)
+-	sub	tmp1, dstin, src
+-	ccmp	tmp1, count, 2, hi
+-	b.lo	L(move_long)
+-
+-	/* CASE: Copy Forwards
+-
+-	   Align src to 16 byte alignment so that we don't cross cache line
+-	   boundaries on both loads and stores.  There are at least 128 bytes
+-	   to copy, so copy 16 bytes unaligned and then align.  The loop
+-	   copies 32 bytes per iteration and prefetches one iteration ahead.  */
+-
+-	ldr	S_q, [src]
+-	and	tmp1, src, 15
+-	bic	src, src, 15
+-	sub	dst, dstin, tmp1
+-	add	count, count, tmp1	/* Count is now 16 too large.  */
+-	ldr	Q_q, [src, 16]!
+-	str	S_q, [dstin]
+-	ldr	S_q, [src, 16]!
+-	sub	count, count, 32 + 32 + 16	/* Test and readjust count.  */
+-
+-	.p2align 4
+-1:
+-	subs	count, count, 32
+-	str	Q_q, [dst, 16]
+-	ldr	Q_q, [src, 16]!
+-	str	S_q, [dst, 32]!
+-	ldr	S_q, [src, 16]!
+-	b.hi	1b
+-
+-	/* Copy 32 bytes from the end before writing the data prefetched in the
+-	   last loop iteration.  */
+-2:
+-	ldr	B_q, [srcend, -32]
+-	ldr	C_q, [srcend, -16]
+-	str	Q_q, [dst, 16]
+-	str	S_q, [dst, 32]
+-	str	B_q, [dstend, -32]
+-	str	C_q, [dstend, -16]
+-	ret
+-
+-	/* CASE: Copy Backwards
+-
+-	   Align srcend to 16 byte alignment so that we don't cross cache line
+-	   boundaries on both loads and stores.  There are at least 128 bytes
+-	   to copy, so copy 16 bytes unaligned and then align.  The loop
+-	   copies 32 bytes per iteration and prefetches one iteration ahead.  */
+-
+-	.p2align 4
+-	nop
+-	nop
+-L(move_long):
+-	cbz	tmp1, 3f  /* Return early if src == dstin */
+-	ldr	S_q, [srcend, -16]
+-	and	tmp1, srcend, 15
+-	sub	srcend, srcend, tmp1
+-	ldr	Q_q, [srcend, -16]!
+-	str	S_q, [dstend, -16]
+-	sub	count, count, tmp1
+-	ldr	S_q, [srcend, -16]!
+-	sub	dstend, dstend, tmp1
+-	sub	count, count, 32 + 32
+-
+-1:
+-	subs	count, count, 32
+-	str	Q_q, [dstend, -16]
+-	ldr	Q_q, [srcend, -16]!
+-	str	S_q, [dstend, -32]!
+-	ldr	S_q, [srcend, -16]!
+-	b.hi	1b
+-
+-	/* Copy 32 bytes from the start before writing the data prefetched in the
+-	   last loop iteration.  */
+-
+-	ldr	B_q, [src, 16]
+-	ldr	C_q, [src]
+-	str	Q_q, [dstend, -16]
+-	str	S_q, [dstend, -32]
+-	str	B_q, [dstin, 16]
+-	str	C_q, [dstin]
+-3:	ret
+-
+-END (__memmove_falkor)
+-libc_hidden_builtin_def (__memmove_falkor)
+-#endif
+diff --git a/sysdeps/aarch64/multiarch/memcpy_mops.S b/sysdeps/aarch64/multiarch/memcpy_mops.S
+new file mode 100644
+index 0000000000..4685629664
+--- /dev/null
++++ b/sysdeps/aarch64/multiarch/memcpy_mops.S
+@@ -0,0 +1,39 @@
++/* Optimized memcpy for MOPS.
++   Copyright (C) 2023 Free Software Foundation, Inc.
++
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library.  If not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <sysdep.h>
++
++/* Assumptions:
++ *
++ * AArch64, MOPS.
++ *
++ */
++
++ENTRY (__memcpy_mops)
++	PTR_ARG (0)
++	PTR_ARG (1)
++	SIZE_ARG (2)
++
++	mov	x3, x0
++	.inst	0x19010443	/* cpyfp   [x3]!, [x1]!, x2!  */
++	.inst	0x19410443	/* cpyfm   [x3]!, [x1]!, x2!  */
++	.inst	0x19810443	/* cpyfe   [x3]!, [x1]!, x2!  */
++	ret
++
++END (__memcpy_mops)
+diff --git a/sysdeps/aarch64/multiarch/memcpy_sve.S b/sysdeps/aarch64/multiarch/memcpy_sve.S
+index d11be6a443..2f14f91366 100644
+--- a/sysdeps/aarch64/multiarch/memcpy_sve.S
++++ b/sysdeps/aarch64/multiarch/memcpy_sve.S
+@@ -141,7 +141,6 @@ L(copy64_from_end):
+ 	ret
+ 
+ END (__memcpy_sve)
+-libc_hidden_builtin_def (__memcpy_sve)
+ 
+ 
+ ENTRY (__memmove_sve)
+@@ -208,5 +207,4 @@ L(return):
+ 	ret
+ 
+ END (__memmove_sve)
+-libc_hidden_builtin_def (__memmove_sve)
+ #endif
+diff --git a/sysdeps/aarch64/multiarch/memcpy_thunderx.S b/sysdeps/aarch64/multiarch/memcpy_thunderx.S
+index 366287587f..14269b1a47 100644
+--- a/sysdeps/aarch64/multiarch/memcpy_thunderx.S
++++ b/sysdeps/aarch64/multiarch/memcpy_thunderx.S
+@@ -65,21 +65,7 @@
+    Overlapping large forward memmoves use a loop that copies backwards.
+ */
+ 
+-#ifndef MEMMOVE
+-# define MEMMOVE memmove
+-#endif
+-#ifndef MEMCPY
+-# define MEMCPY memcpy
+-#endif
+-
+-#if IS_IN (libc)
+-
+-#  undef MEMCPY
+-#  define MEMCPY __memcpy_thunderx
+-#  undef MEMMOVE
+-#  define MEMMOVE __memmove_thunderx
+-
+-ENTRY_ALIGN (MEMMOVE, 6)
++ENTRY (__memmove_thunderx)
+ 
+ 	PTR_ARG (0)
+ 	PTR_ARG (1)
+@@ -91,9 +77,9 @@ ENTRY_ALIGN (MEMMOVE, 6)
+ 	b.lo	L(move_long)
+ 
+ 	/* Common case falls through into memcpy.  */
+-END (MEMMOVE)
+-libc_hidden_builtin_def (MEMMOVE)
+-ENTRY (MEMCPY)
++END (__memmove_thunderx)
++
++ENTRY (__memcpy_thunderx)
+ 
+ 	PTR_ARG (0)
+ 	PTR_ARG (1)
+@@ -316,7 +302,4 @@ L(move_long):
+ 	stp	C_l, C_h, [dstin]
+ 3:	ret
+ 
+-END (MEMCPY)
+-libc_hidden_builtin_def (MEMCPY)
+-
+-#endif
++END (__memcpy_thunderx)
+diff --git a/sysdeps/aarch64/multiarch/memcpy_thunderx2.S b/sysdeps/aarch64/multiarch/memcpy_thunderx2.S
+index d3d6f1debc..93993b9e03 100644
+--- a/sysdeps/aarch64/multiarch/memcpy_thunderx2.S
++++ b/sysdeps/aarch64/multiarch/memcpy_thunderx2.S
+@@ -75,27 +75,12 @@
+ #define I_v	v16
+ #define J_v	v17
+ 
+-#ifndef MEMMOVE
+-# define MEMMOVE memmove
+-#endif
+-#ifndef MEMCPY
+-# define MEMCPY memcpy
+-#endif
+-
+-#if IS_IN (libc)
+-
+-#undef MEMCPY
+-#define MEMCPY __memcpy_thunderx2
+-#undef MEMMOVE
+-#define MEMMOVE __memmove_thunderx2
+-
+-
+ /* Overlapping large forward memmoves use a loop that copies backwards.
+    Otherwise memcpy is used. Small moves branch to memcopy16 directly.
+    The longer memcpy cases fall through to the memcpy head.
+ */
+ 
+-ENTRY_ALIGN (MEMMOVE, 6)
++ENTRY (__memmove_thunderx2)
+ 
+ 	PTR_ARG (0)
+ 	PTR_ARG (1)
+@@ -109,8 +94,7 @@ ENTRY_ALIGN (MEMMOVE, 6)
+ 	ccmp	tmp1, count, 2, hi
+ 	b.lo	L(move_long)
+ 
+-END (MEMMOVE)
+-libc_hidden_builtin_def (MEMMOVE)
++END (__memmove_thunderx2)
+ 
+ 
+ /* Copies are split into 3 main cases: small copies of up to 16 bytes,
+@@ -124,8 +108,7 @@ libc_hidden_builtin_def (MEMMOVE)
+ 
+ #define MEMCPY_PREFETCH_LDR 640
+ 
+-	.p2align 4
+-ENTRY (MEMCPY)
++ENTRY (__memcpy_thunderx2)
+ 
+ 	PTR_ARG (0)
+ 	PTR_ARG (1)
+@@ -449,7 +432,7 @@ L(move_long):
+ 3:	ret
+ 
+ 
+-END (MEMCPY)
++END (__memcpy_thunderx2)
+ 	.section	.rodata
+ 	.p2align	4
+ 
+@@ -472,6 +455,3 @@ L(ext_table):
+ 	.word	L(ext_size_13) -.
+ 	.word	L(ext_size_14) -.
+ 	.word	L(ext_size_15) -.
+-
+-libc_hidden_builtin_def (MEMCPY)
+-#endif
+diff --git a/sysdeps/aarch64/multiarch/memmove.c b/sysdeps/aarch64/multiarch/memmove.c
+index 312f90f111..6b77166851 100644
+--- a/sysdeps/aarch64/multiarch/memmove.c
++++ b/sysdeps/aarch64/multiarch/memmove.c
+@@ -31,20 +31,23 @@ extern __typeof (__redirect_memmove) __libc_memmove;
+ extern __typeof (__redirect_memmove) __memmove_generic attribute_hidden;
+ extern __typeof (__redirect_memmove) __memmove_thunderx attribute_hidden;
+ extern __typeof (__redirect_memmove) __memmove_thunderx2 attribute_hidden;
+-extern __typeof (__redirect_memmove) __memmove_falkor attribute_hidden;
+ extern __typeof (__redirect_memmove) __memmove_a64fx attribute_hidden;
+ extern __typeof (__redirect_memmove) __memmove_sve attribute_hidden;
++extern __typeof (__redirect_memmove) __memmove_mops attribute_hidden;
+ 
+ static inline __typeof (__redirect_memmove) *
+ select_memmove_ifunc (void)
+ {
+   INIT_ARCH ();
+ 
++  if (mops)
++    return __memmove_mops;
++
+   if (sve && HAVE_AARCH64_SVE_ASM)
+     {
+       if (IS_A64FX (midr))
+ 	return __memmove_a64fx;
+-      return __memmove_sve;
++      return prefer_sve_ifuncs ? __memmove_sve : __memmove_generic;
+     }
+ 
+   if (IS_THUNDERX (midr))
+@@ -53,9 +56,6 @@ select_memmove_ifunc (void)
+   if (IS_THUNDERX2 (midr) || IS_THUNDERX2PA (midr))
+     return __memmove_thunderx2;
+ 
+-  if (IS_FALKOR (midr) || IS_PHECDA (midr))
+-    return __memmove_falkor;
+-
+   return __memmove_generic;
+ }
+ 
+diff --git a/sysdeps/aarch64/multiarch/memmove_mops.S b/sysdeps/aarch64/multiarch/memmove_mops.S
+new file mode 100644
+index 0000000000..c5ea66be3a
+--- /dev/null
++++ b/sysdeps/aarch64/multiarch/memmove_mops.S
+@@ -0,0 +1,39 @@
++/* Optimized memmove for MOPS.
++   Copyright (C) 2023 Free Software Foundation, Inc.
++
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library.  If not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <sysdep.h>
++
++/* Assumptions:
++ *
++ * AArch64, MOPS.
++ *
++ */
++
++ENTRY (__memmove_mops)
++	PTR_ARG (0)
++	PTR_ARG (1)
++	SIZE_ARG (2)
++
++	mov	x3, x0
++	.inst	0x1d010443	/* cpyp    [x3]!, [x1]!, x2!  */
++	.inst	0x1d410443	/* cpym    [x3]!, [x1]!, x2!  */
++	.inst	0x1d810443	/* cpye    [x3]!, [x1]!, x2!  */
++	ret
++
++END (__memmove_mops)
+diff --git a/sysdeps/aarch64/multiarch/memset.c b/sysdeps/aarch64/multiarch/memset.c
+index f9c81d3d8e..6deb6865e5 100644
+--- a/sysdeps/aarch64/multiarch/memset.c
++++ b/sysdeps/aarch64/multiarch/memset.c
+@@ -28,33 +28,36 @@
+ 
+ extern __typeof (__redirect_memset) __libc_memset;
+ 
+-extern __typeof (__redirect_memset) __memset_falkor attribute_hidden;
++extern __typeof (__redirect_memset) __memset_zva64 attribute_hidden;
+ extern __typeof (__redirect_memset) __memset_emag attribute_hidden;
+ extern __typeof (__redirect_memset) __memset_kunpeng attribute_hidden;
+ extern __typeof (__redirect_memset) __memset_a64fx attribute_hidden;
+ extern __typeof (__redirect_memset) __memset_generic attribute_hidden;
++extern __typeof (__redirect_memset) __memset_mops attribute_hidden;
+ 
+ static inline __typeof (__redirect_memset) *
+ select_memset_ifunc (void)
+ {
+   INIT_ARCH ();
+ 
++  if (mops)
++    return __memset_mops;
++
+   if (sve && HAVE_AARCH64_SVE_ASM)
+     {
+       if (IS_A64FX (midr) && zva_size == 256)
+ 	return __memset_a64fx;
+-      return __memset_generic;
+     }
+ 
+   if (IS_KUNPENG920 (midr))
+     return __memset_kunpeng;
+ 
+-  if ((IS_FALKOR (midr) || IS_PHECDA (midr)) && zva_size == 64)
+-    return __memset_falkor;
+-
+-  if (IS_EMAG (midr) && zva_size == 64)
++  if (IS_EMAG (midr))
+     return __memset_emag;
+ 
++  if (zva_size == 64)
++    return __memset_zva64;
++
+   return __memset_generic;
+ }
+ 
+diff --git a/sysdeps/aarch64/multiarch/memset_a64fx.S b/sysdeps/aarch64/multiarch/memset_a64fx.S
+index d520355143..7176f3d284 100644
+--- a/sysdeps/aarch64/multiarch/memset_a64fx.S
++++ b/sysdeps/aarch64/multiarch/memset_a64fx.S
+@@ -33,8 +33,6 @@
+ #define vector_length	x9
+ 
+ #if HAVE_AARCH64_SVE_ASM
+-# if IS_IN (libc)
+-#  define MEMSET __memset_a64fx
+ 
+ 	.arch armv8.2-a+sve
+ 
+@@ -49,7 +47,7 @@
+ #undef BTI_C
+ #define BTI_C
+ 
+-ENTRY (MEMSET)
++ENTRY (__memset_a64fx)
+ 	PTR_ARG (0)
+ 	SIZE_ARG (2)
+ 
+@@ -166,8 +164,6 @@ L(L2):
+ 	add	count, count, CACHE_LINE_SIZE
+ 	b	L(last)
+ 
+-END (MEMSET)
+-libc_hidden_builtin_def (MEMSET)
++END (__memset_a64fx)
+ 
+-#endif /* IS_IN (libc) */
+ #endif /* HAVE_AARCH64_SVE_ASM */
+diff --git a/sysdeps/aarch64/multiarch/memset_base64.S b/sysdeps/aarch64/multiarch/memset_base64.S
+deleted file mode 100644
+index 35296a6dec..0000000000
+--- a/sysdeps/aarch64/multiarch/memset_base64.S
++++ /dev/null
+@@ -1,186 +0,0 @@
+-/* Copyright (C) 2018-2023 Free Software Foundation, Inc.
+-
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <https://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-#include "memset-reg.h"
+-
+-#ifndef MEMSET
+-# define MEMSET __memset_base64
+-#endif
+-
+-/* To disable DC ZVA, set this threshold to 0. */
+-#ifndef DC_ZVA_THRESHOLD
+-# define DC_ZVA_THRESHOLD 512
+-#endif
+-
+-/* Assumptions:
+- *
+- * ARMv8-a, AArch64, unaligned accesses
+- *
+- */
+-
+-ENTRY_ALIGN (MEMSET, 6)
+-
+-	PTR_ARG (0)
+-	SIZE_ARG (2)
+-
+-	bfi	valw, valw, 8, 8
+-	bfi	valw, valw, 16, 16
+-	bfi	val, val, 32, 32
+-
+-	add	dstend, dstin, count
+-
+-	cmp	count, 96
+-	b.hi	L(set_long)
+-	cmp	count, 16
+-	b.hs	L(set_medium)
+-
+-	/* Set 0..15 bytes.  */
+-	tbz	count, 3, 1f
+-	str	val, [dstin]
+-	str	val, [dstend, -8]
+-	ret
+-
+-	.p2align 3
+-1:	tbz	count, 2, 2f
+-	str	valw, [dstin]
+-	str	valw, [dstend, -4]
+-	ret
+-2:	cbz	count, 3f
+-	strb	valw, [dstin]
+-	tbz	count, 1, 3f
+-	strh	valw, [dstend, -2]
+-3:	ret
+-
+-	.p2align 3
+-	/* Set 16..96 bytes.  */
+-L(set_medium):
+-	stp	val, val, [dstin]
+-	tbnz	count, 6, L(set96)
+-	stp	val, val, [dstend, -16]
+-	tbz	count, 5, 1f
+-	stp	val, val, [dstin, 16]
+-	stp	val, val, [dstend, -32]
+-1:	ret
+-
+-	.p2align 4
+-	/* Set 64..96 bytes.  Write 64 bytes from the start and
+-	   32 bytes from the end.  */
+-L(set96):
+-	stp	val, val, [dstin, 16]
+-	stp	val, val, [dstin, 32]
+-	stp	val, val, [dstin, 48]
+-	stp	val, val, [dstend, -32]
+-	stp	val, val, [dstend, -16]
+-	ret
+-
+-	.p2align 4
+-L(set_long):
+-	stp	val, val, [dstin]
+-	bic	dst, dstin, 15
+-#if DC_ZVA_THRESHOLD
+-	cmp	count, DC_ZVA_THRESHOLD
+-	ccmp	val, 0, 0, cs
+-	b.eq	L(zva_64)
+-#endif
+-	/* Small-size or non-zero memset does not use DC ZVA. */
+-	sub	count, dstend, dst
+-
+-	/*
+-	 * Adjust count and bias for loop. By subtracting extra 1 from count,
+-	 * it is easy to use tbz instruction to check whether loop tailing
+-	 * count is less than 33 bytes, so as to bypass 2 unnecessary stps.
+-	 */
+-	sub	count, count, 64+16+1
+-
+-#if DC_ZVA_THRESHOLD
+-	/* Align loop on 16-byte boundary, this might be friendly to i-cache. */
+-	nop
+-#endif
+-
+-1:	stp	val, val, [dst, 16]
+-	stp	val, val, [dst, 32]
+-	stp	val, val, [dst, 48]
+-	stp	val, val, [dst, 64]!
+-	subs	count, count, 64
+-	b.hs	1b
+-
+-	tbz	count, 5, 1f	/* Remaining count is less than 33 bytes? */
+-	stp	val, val, [dst, 16]
+-	stp	val, val, [dst, 32]
+-1:	stp	val, val, [dstend, -32]
+-	stp	val, val, [dstend, -16]
+-	ret
+-
+-#if DC_ZVA_THRESHOLD
+-	.p2align 3
+-L(zva_64):
+-	stp	val, val, [dst, 16]
+-	stp	val, val, [dst, 32]
+-	stp	val, val, [dst, 48]
+-	bic	dst, dst, 63
+-
+-	/*
+-	 * Previous memory writes might cross cache line boundary, and cause
+-	 * cache line partially dirty. Zeroing this kind of cache line using
+-	 * DC ZVA will incur extra cost, for it requires loading untouched
+-	 * part of the line from memory before zeoring.
+-	 *
+-	 * So, write the first 64 byte aligned block using stp to force
+-	 * fully dirty cache line.
+-	 */
+-	stp	val, val, [dst, 64]
+-	stp	val, val, [dst, 80]
+-	stp	val, val, [dst, 96]
+-	stp	val, val, [dst, 112]
+-
+-	sub	count, dstend, dst
+-	/*
+-	 * Adjust count and bias for loop. By subtracting extra 1 from count,
+-	 * it is easy to use tbz instruction to check whether loop tailing
+-	 * count is less than 33 bytes, so as to bypass 2 unnecessary stps.
+-	 */
+-	sub	count, count, 128+64+64+1
+-	add	dst, dst, 128
+-	nop
+-
+-	/* DC ZVA sets 64 bytes each time. */
+-1:	dc	zva, dst
+-	add	dst, dst, 64
+-	subs	count, count, 64
+-	b.hs	1b
+-
+-	/*
+-	 * Write the last 64 byte aligned block using stp to force fully
+-	 * dirty cache line.
+-	 */
+-	stp	val, val, [dst, 0]
+-	stp	val, val, [dst, 16]
+-	stp	val, val, [dst, 32]
+-	stp	val, val, [dst, 48]
+-
+-	tbz	count, 5, 1f	/* Remaining count is less than 33 bytes? */
+-	stp	val, val, [dst, 64]
+-	stp	val, val, [dst, 80]
+-1:	stp	val, val, [dstend, -32]
+-	stp	val, val, [dstend, -16]
+-	ret
+-#endif
+-
+-END (MEMSET)
+-libc_hidden_builtin_def (MEMSET)
+diff --git a/sysdeps/aarch64/multiarch/memset_emag.S b/sysdeps/aarch64/multiarch/memset_emag.S
+index 17d609cead..bbfa815925 100644
+--- a/sysdeps/aarch64/multiarch/memset_emag.S
++++ b/sysdeps/aarch64/multiarch/memset_emag.S
+@@ -18,19 +18,95 @@
+    <https://www.gnu.org/licenses/>.  */
+ 
+ #include <sysdep.h>
++#include "memset-reg.h"
+ 
+-#if IS_IN (libc)
+-# define MEMSET __memset_emag
+-
+-/*
+- * Using DC ZVA to zero memory does not produce better performance if
+- * memory size is not very large, especially when there are multiple
+- * processes/threads contending memory/cache. Here we set threshold to
+- * zero to disable using DC ZVA, which is good for multi-process/thread
+- * workloads.
++/* Assumptions:
++ *
++ * ARMv8-a, AArch64, unaligned accesses
++ *
+  */
+ 
+-# define DC_ZVA_THRESHOLD 0
++ENTRY (__memset_emag)
++
++	PTR_ARG (0)
++	SIZE_ARG (2)
++
++	bfi	valw, valw, 8, 8
++	bfi	valw, valw, 16, 16
++	bfi	val, val, 32, 32
++
++	add	dstend, dstin, count
++
++	cmp	count, 96
++	b.hi	L(set_long)
++	cmp	count, 16
++	b.hs	L(set_medium)
++
++	/* Set 0..15 bytes.  */
++	tbz	count, 3, 1f
++	str	val, [dstin]
++	str	val, [dstend, -8]
++	ret
++
++	.p2align 3
++1:	tbz	count, 2, 2f
++	str	valw, [dstin]
++	str	valw, [dstend, -4]
++	ret
++2:	cbz	count, 3f
++	strb	valw, [dstin]
++	tbz	count, 1, 3f
++	strh	valw, [dstend, -2]
++3:	ret
++
++	.p2align 3
++	/* Set 16..96 bytes.  */
++L(set_medium):
++	stp	val, val, [dstin]
++	tbnz	count, 6, L(set96)
++	stp	val, val, [dstend, -16]
++	tbz	count, 5, 1f
++	stp	val, val, [dstin, 16]
++	stp	val, val, [dstend, -32]
++1:	ret
++
++	.p2align 4
++	/* Set 64..96 bytes.  Write 64 bytes from the start and
++	   32 bytes from the end.  */
++L(set96):
++	stp	val, val, [dstin, 16]
++	stp	val, val, [dstin, 32]
++	stp	val, val, [dstin, 48]
++	stp	val, val, [dstend, -32]
++	stp	val, val, [dstend, -16]
++	ret
++
++	.p2align 4
++L(set_long):
++	stp	val, val, [dstin]
++	bic	dst, dstin, 15
++	/* Small-size or non-zero memset does not use DC ZVA. */
++	sub	count, dstend, dst
++
++	/*
++	 * Adjust count and bias for loop. By subtracting extra 1 from count,
++	 * it is easy to use tbz instruction to check whether loop tailing
++	 * count is less than 33 bytes, so as to bypass 2 unnecessary stps.
++	 */
++	sub	count, count, 64+16+1
++
++1:	stp	val, val, [dst, 16]
++	stp	val, val, [dst, 32]
++	stp	val, val, [dst, 48]
++	stp	val, val, [dst, 64]!
++	subs	count, count, 64
++	b.hs	1b
++
++	tbz	count, 5, 1f	/* Remaining count is less than 33 bytes? */
++	stp	val, val, [dst, 16]
++	stp	val, val, [dst, 32]
++1:	stp	val, val, [dstend, -32]
++	stp	val, val, [dstend, -16]
++	ret
+ 
+-# include "./memset_base64.S"
+-#endif
++END (__memset_emag)
+diff --git a/sysdeps/aarch64/multiarch/memset_falkor.S b/sysdeps/aarch64/multiarch/memset_falkor.S
+deleted file mode 100644
+index c6946a8072..0000000000
+--- a/sysdeps/aarch64/multiarch/memset_falkor.S
++++ /dev/null
+@@ -1,54 +0,0 @@
+-/* Memset for falkor.
+-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+-
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <https://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-#include <memset-reg.h>
+-
+-/* Reading dczid_el0 is expensive on falkor so move it into the ifunc
+-   resolver and assume ZVA size of 64 bytes.  The IFUNC resolver takes care to
+-   use this function only when ZVA is enabled.  */
+-
+-#if IS_IN (libc)
+-.macro zva_macro
+-	.p2align 4
+-	/* Write the first and last 64 byte aligned block using stp rather
+-	   than using DC ZVA.  This is faster on some cores.  */
+-	str	q0, [dst, 16]
+-	stp	q0, q0, [dst, 32]
+-	bic	dst, dst, 63
+-	stp	q0, q0, [dst, 64]
+-	stp	q0, q0, [dst, 96]
+-	sub	count, dstend, dst	/* Count is now 128 too large.	*/
+-	sub	count, count, 128+64+64	/* Adjust count and bias for loop.  */
+-	add	dst, dst, 128
+-1:	dc	zva, dst
+-	add	dst, dst, 64
+-	subs	count, count, 64
+-	b.hi	1b
+-	stp	q0, q0, [dst, 0]
+-	stp	q0, q0, [dst, 32]
+-	stp	q0, q0, [dstend, -64]
+-	stp	q0, q0, [dstend, -32]
+-	ret
+-.endm
+-
+-# define ZVA_MACRO zva_macro
+-# define MEMSET __memset_falkor
+-# include <sysdeps/aarch64/memset.S>
+-#endif
+diff --git a/sysdeps/aarch64/multiarch/memset_generic.S b/sysdeps/aarch64/multiarch/memset_generic.S
+index 9c23e482bf..6c1f0daac8 100644
+--- a/sysdeps/aarch64/multiarch/memset_generic.S
++++ b/sysdeps/aarch64/multiarch/memset_generic.S
+@@ -21,9 +21,15 @@
+ 
+ #if IS_IN (libc)
+ # define MEMSET __memset_generic
++
++/* Do not hide the generic version of memset, we use it internally.  */
++# undef libc_hidden_builtin_def
++# define libc_hidden_builtin_def(name)
++
+ /* Add a hidden definition for use within libc.so.  */
+ # ifdef SHARED
+ 	.globl __GI_memset; __GI_memset = __memset_generic
+ # endif
+-# include <sysdeps/aarch64/memset.S>
+ #endif
++
++#include <../memset.S>
+diff --git a/sysdeps/aarch64/multiarch/memset_kunpeng.S b/sysdeps/aarch64/multiarch/memset_kunpeng.S
+index 86c46434fd..4a54373398 100644
+--- a/sysdeps/aarch64/multiarch/memset_kunpeng.S
++++ b/sysdeps/aarch64/multiarch/memset_kunpeng.S
+@@ -20,16 +20,13 @@
+ #include <sysdep.h>
+ #include <sysdeps/aarch64/memset-reg.h>
+ 
+-#if IS_IN (libc)
+-# define MEMSET __memset_kunpeng
+-
+ /* Assumptions:
+  *
+  * ARMv8-a, AArch64, unaligned accesses
+  *
+  */
+ 
+-ENTRY_ALIGN (MEMSET, 6)
++ENTRY (__memset_kunpeng)
+ 
+ 	PTR_ARG (0)
+ 	SIZE_ARG (2)
+@@ -108,6 +105,4 @@ L(set_long):
+ 	stp	q0, q0, [dstend, -32]
+ 	ret
+ 
+-END (MEMSET)
+-libc_hidden_builtin_def (MEMSET)
+-#endif
++END (__memset_kunpeng)
+diff --git a/sysdeps/aarch64/multiarch/memset_mops.S b/sysdeps/aarch64/multiarch/memset_mops.S
+new file mode 100644
+index 0000000000..ca820b8636
+--- /dev/null
++++ b/sysdeps/aarch64/multiarch/memset_mops.S
+@@ -0,0 +1,38 @@
++/* Optimized memset for MOPS.
++   Copyright (C) 2023 Free Software Foundation, Inc.
++
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library.  If not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <sysdep.h>
++
++/* Assumptions:
++ *
++ * AArch64, MOPS.
++ *
++ */
++
++ENTRY (__memset_mops)
++	PTR_ARG (0)
++	SIZE_ARG (2)
++
++	mov     x3, x0
++	.inst   0x19c10443	/* setp    [x3]!, x2!, x1  */
++	.inst   0x19c14443	/* setm    [x3]!, x2!, x1  */
++	.inst   0x19c18443	/* sete    [x3]!, x2!, x1  */
++	ret
++
++END (__memset_mops)
+diff --git a/sysdeps/aarch64/multiarch/rtld-memset.S b/sysdeps/aarch64/multiarch/memset_zva64.S
+similarity index 76%
+rename from sysdeps/aarch64/multiarch/rtld-memset.S
+rename to sysdeps/aarch64/multiarch/memset_zva64.S
+index 4b035ed8b2..13f45fd3d8 100644
+--- a/sysdeps/aarch64/multiarch/rtld-memset.S
++++ b/sysdeps/aarch64/multiarch/memset_zva64.S
+@@ -1,5 +1,5 @@
+-/* Memset for aarch64, for the dynamic linker.
+-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
++/* Optimized memset for zva size = 64.
++   Copyright (C) 2023 Free Software Foundation, Inc.
+ 
+    This file is part of the GNU C Library.
+ 
+@@ -19,7 +19,9 @@
+ 
+ #include <sysdep.h>
+ 
+-#if IS_IN (rtld)
+-# define MEMSET memset
+-# include <sysdeps/aarch64/memset.S>
+-#endif
++#define ZVA64_ONLY 1
++#define MEMSET __memset_zva64
++#undef libc_hidden_builtin_def
++#define libc_hidden_builtin_def(X)
++
++#include "../memset.S"
+diff --git a/sysdeps/aarch64/multiarch/strlen.c b/sysdeps/aarch64/multiarch/strlen.c
+index bbdd3de8c4..728bd1936a 100644
+--- a/sysdeps/aarch64/multiarch/strlen.c
++++ b/sysdeps/aarch64/multiarch/strlen.c
+@@ -28,10 +28,10 @@
+ 
+ extern __typeof (__redirect_strlen) __strlen;
+ 
+-extern __typeof (__redirect_strlen) __strlen_mte attribute_hidden;
++extern __typeof (__redirect_strlen) __strlen_generic attribute_hidden;
+ extern __typeof (__redirect_strlen) __strlen_asimd attribute_hidden;
+ 
+-libc_ifunc (__strlen, (mte ? __strlen_mte : __strlen_asimd));
++libc_ifunc (__strlen, (mte ? __strlen_generic : __strlen_asimd));
+ 
+ # undef strlen
+ strong_alias (__strlen, strlen);
+diff --git a/sysdeps/aarch64/multiarch/strlen_asimd.S b/sysdeps/aarch64/multiarch/strlen_asimd.S
+index 490439491d..aee5ef9f78 100644
+--- a/sysdeps/aarch64/multiarch/strlen_asimd.S
++++ b/sysdeps/aarch64/multiarch/strlen_asimd.S
+@@ -203,4 +203,3 @@ L(page_cross):
+ 	ret
+ 
+ END (__strlen_asimd)
+-libc_hidden_builtin_def (__strlen_asimd)
+diff --git a/sysdeps/aarch64/multiarch/strlen_mte.S b/sysdeps/aarch64/multiarch/strlen_generic.S
+similarity index 85%
+rename from sysdeps/aarch64/multiarch/strlen_mte.S
+rename to sysdeps/aarch64/multiarch/strlen_generic.S
+index 1c1220b767..2346296a18 100644
+--- a/sysdeps/aarch64/multiarch/strlen_mte.S
++++ b/sysdeps/aarch64/multiarch/strlen_generic.S
+@@ -17,14 +17,14 @@
+    <https://www.gnu.org/licenses/>.  */
+ 
+ /* The actual strlen code is in ../strlen.S.  If we are building libc this file
+-   defines __strlen_mte.  Otherwise the include of ../strlen.S will define
+-   the normal __strlen  entry points.  */
++   defines __strlen_generic.  Otherwise the include of ../strlen.S will define
++   the normal __strlen entry points.  */
+ 
+ #include <sysdep.h>
+ 
+ #if IS_IN (libc)
+ 
+-# define STRLEN __strlen_mte
++# define STRLEN __strlen_generic
+ 
+ /* Do not hide the generic version of strlen, we use it internally.  */
+ # undef libc_hidden_builtin_def
+@@ -32,7 +32,7 @@
+ 
+ # ifdef SHARED
+ /* It doesn't make sense to send libc-internal strlen calls through a PLT. */
+-	.globl __GI_strlen; __GI_strlen = __strlen_mte
++	.globl __GI_strlen; __GI_strlen = __strlen_generic
+ # endif
+ #endif
+ 
+diff --git a/sysdeps/aarch64/rawmemchr.S b/sysdeps/aarch64/rawmemchr.S
+index efc4b7007b..1fff094215 100644
+--- a/sysdeps/aarch64/rawmemchr.S
++++ b/sysdeps/aarch64/rawmemchr.S
+@@ -31,7 +31,7 @@ ENTRY (__rawmemchr)
+ 
+ L(do_strlen):
+ 	mov	x15, x30
+-	cfi_return_column (x15)
++	cfi_register (x30, x15)
+ 	mov	x14, x0
+ 	bl	__strlen
+ 	add	x0, x14, x0
+diff --git a/sysdeps/arc/utmp-size.h b/sysdeps/arc/utmp-size.h
+new file mode 100644
+index 0000000000..a247fcd3da
+--- /dev/null
++++ b/sysdeps/arc/utmp-size.h
+@@ -0,0 +1,3 @@
++/* arc has less padding than other architectures with 64-bit time_t.  */
++#define UTMP_SIZE 392
++#define LASTLOG_SIZE 296
+diff --git a/sysdeps/arm/bits/wordsize.h b/sysdeps/arm/bits/wordsize.h
+new file mode 100644
+index 0000000000..6ecbfe7c86
+--- /dev/null
++++ b/sysdeps/arm/bits/wordsize.h
+@@ -0,0 +1,21 @@
++/* Copyright (C) 1999-2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#define __WORDSIZE			32
++#define __WORDSIZE_TIME64_COMPAT32	1
++#define __WORDSIZE32_SIZE_ULONG		0
++#define __WORDSIZE32_PTRDIFF_LONG	0
+diff --git a/sysdeps/arm/dl-machine.h b/sysdeps/arm/dl-machine.h
+index d720c02c96..77dc7415e9 100644
+--- a/sysdeps/arm/dl-machine.h
++++ b/sysdeps/arm/dl-machine.h
+@@ -137,7 +137,6 @@ _start:\n\
+ _dl_start_user:\n\
+ 	adr	r6, .L_GET_GOT\n\
+ 	add	sl, sl, r6\n\
+-	ldr	r4, [sl, r4]\n\
+ 	@ save the entry point in another register\n\
+ 	mov	r6, r0\n\
+ 	@ get the original arg count\n\
+diff --git a/sysdeps/arm/utmp-size.h b/sysdeps/arm/utmp-size.h
+new file mode 100644
+index 0000000000..8f21ebe1b6
+--- /dev/null
++++ b/sysdeps/arm/utmp-size.h
+@@ -0,0 +1,2 @@
++#define UTMP_SIZE 384
++#define LASTLOG_SIZE 292
+diff --git a/sysdeps/csky/bits/wordsize.h b/sysdeps/csky/bits/wordsize.h
+new file mode 100644
+index 0000000000..6ecbfe7c86
+--- /dev/null
++++ b/sysdeps/csky/bits/wordsize.h
+@@ -0,0 +1,21 @@
++/* Copyright (C) 1999-2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#define __WORDSIZE			32
++#define __WORDSIZE_TIME64_COMPAT32	1
++#define __WORDSIZE32_SIZE_ULONG		0
++#define __WORDSIZE32_PTRDIFF_LONG	0
+diff --git a/sysdeps/csky/utmp-size.h b/sysdeps/csky/utmp-size.h
+new file mode 100644
+index 0000000000..8f21ebe1b6
+--- /dev/null
++++ b/sysdeps/csky/utmp-size.h
+@@ -0,0 +1,2 @@
++#define UTMP_SIZE 384
++#define LASTLOG_SIZE 292
 diff --git a/sysdeps/generic/unsecvars.h b/sysdeps/generic/unsecvars.h
 index 81397fb90b..8278c50a84 100644
 --- a/sysdeps/generic/unsecvars.h
@@ -1777,6 +4144,55 @@ index 81397fb90b..8278c50a84 100644
    "HOSTALIASES\0"							      \
    "LD_AUDIT\0"								      \
    "LD_DEBUG\0"								      \
+diff --git a/sysdeps/generic/utmp-size.h b/sysdeps/generic/utmp-size.h
+new file mode 100644
+index 0000000000..89dbe878b0
+--- /dev/null
++++ b/sysdeps/generic/utmp-size.h
+@@ -0,0 +1,23 @@
++/* Expected sizes of utmp-related structures stored in files.  64-bit version.
++   Copyright (C) 2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++/* Expected size, in bytes, of struct utmp and struct utmpx.  */
++#define UTMP_SIZE 400
++
++/* Expected size, in bytes, of struct lastlog.  */
++#define LASTLOG_SIZE 296
+diff --git a/sysdeps/hppa/utmp-size.h b/sysdeps/hppa/utmp-size.h
+new file mode 100644
+index 0000000000..8f21ebe1b6
+--- /dev/null
++++ b/sysdeps/hppa/utmp-size.h
+@@ -0,0 +1,2 @@
++#define UTMP_SIZE 384
++#define LASTLOG_SIZE 292
+diff --git a/sysdeps/i386/fpu/libm-test-ulps b/sysdeps/i386/fpu/libm-test-ulps
+index 84e6686eba..f2139fc172 100644
+--- a/sysdeps/i386/fpu/libm-test-ulps
++++ b/sysdeps/i386/fpu/libm-test-ulps
+@@ -1232,6 +1232,7 @@ ldouble: 6
+ 
+ Function: "hypot":
+ double: 1
++float: 1
+ float128: 1
+ ldouble: 1
+ 
 diff --git a/sysdeps/i386/i686/memcpy.S b/sysdeps/i386/i686/memcpy.S
 index 9b48ec0ea1..b86af4aac9 100644
 --- a/sysdeps/i386/i686/memcpy.S
@@ -1943,6 +4359,173 @@ index 02375286f8..99fcacab76 100644
  #elif !defined __loongarch_soft_float
  	FREG_L	fa0, sp, 9*SZREG + 0*SZFREG
  	FREG_L	fa1, sp, 9*SZREG + 1*SZFREG
+diff --git a/sysdeps/loongarch/fpu/e_scalbf.c b/sysdeps/loongarch/fpu/e_scalbf.c
+index c37b0fd19d..4690224621 100644
+--- a/sysdeps/loongarch/fpu/e_scalbf.c
++++ b/sysdeps/loongarch/fpu/e_scalbf.c
+@@ -57,4 +57,4 @@ __ieee754_scalbf (float x, float fn)
+ 
+   return x;
+ }
+-libm_alias_finite (__ieee754_scalb, __scalb)
++libm_alias_finite (__ieee754_scalbf, __scalbf)
+diff --git a/sysdeps/m68k/bits/wordsize.h b/sysdeps/m68k/bits/wordsize.h
+new file mode 100644
+index 0000000000..6ecbfe7c86
+--- /dev/null
++++ b/sysdeps/m68k/bits/wordsize.h
+@@ -0,0 +1,21 @@
++/* Copyright (C) 1999-2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#define __WORDSIZE			32
++#define __WORDSIZE_TIME64_COMPAT32	1
++#define __WORDSIZE32_SIZE_ULONG		0
++#define __WORDSIZE32_PTRDIFF_LONG	0
+diff --git a/sysdeps/m68k/utmp-size.h b/sysdeps/m68k/utmp-size.h
+new file mode 100644
+index 0000000000..5946685819
+--- /dev/null
++++ b/sysdeps/m68k/utmp-size.h
+@@ -0,0 +1,3 @@
++/* m68k has 2-byte alignment.  */
++#define UTMP_SIZE 382
++#define LASTLOG_SIZE 292
+diff --git a/sysdeps/mach/getsysstats.c b/sysdeps/mach/getsysstats.c
+index 5184e5eee1..d3834f3b69 100644
+--- a/sysdeps/mach/getsysstats.c
++++ b/sysdeps/mach/getsysstats.c
+@@ -62,12 +62,6 @@ __get_nprocs (void)
+ libc_hidden_def (__get_nprocs)
+ weak_alias (__get_nprocs, get_nprocs)
+ 
+-int
+-__get_nprocs_sched (void)
+-{
+-  return __get_nprocs ();
+-}
+-
+ /* Return the number of physical pages on the system. */
+ long int
+ __get_phys_pages (void)
+diff --git a/sysdeps/microblaze/bits/wordsize.h b/sysdeps/microblaze/bits/wordsize.h
+new file mode 100644
+index 0000000000..6ecbfe7c86
+--- /dev/null
++++ b/sysdeps/microblaze/bits/wordsize.h
+@@ -0,0 +1,21 @@
++/* Copyright (C) 1999-2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#define __WORDSIZE			32
++#define __WORDSIZE_TIME64_COMPAT32	1
++#define __WORDSIZE32_SIZE_ULONG		0
++#define __WORDSIZE32_PTRDIFF_LONG	0
+diff --git a/sysdeps/microblaze/utmp-size.h b/sysdeps/microblaze/utmp-size.h
+new file mode 100644
+index 0000000000..8f21ebe1b6
+--- /dev/null
++++ b/sysdeps/microblaze/utmp-size.h
+@@ -0,0 +1,2 @@
++#define UTMP_SIZE 384
++#define LASTLOG_SIZE 292
+diff --git a/sysdeps/mips/bits/wordsize.h b/sysdeps/mips/bits/wordsize.h
+index 9d7d961f3e..cb72a0869a 100644
+--- a/sysdeps/mips/bits/wordsize.h
++++ b/sysdeps/mips/bits/wordsize.h
+@@ -19,11 +19,7 @@
+ 
+ #define __WORDSIZE			_MIPS_SZPTR
+ 
+-#if _MIPS_SIM == _ABI64
+-# define __WORDSIZE_TIME64_COMPAT32	1
+-#else
+-# define __WORDSIZE_TIME64_COMPAT32	0
+-#endif
++#define __WORDSIZE_TIME64_COMPAT32	1
+ 
+ #if __WORDSIZE == 32
+ #define __WORDSIZE32_SIZE_ULONG		0
+diff --git a/sysdeps/mips/utmp-size.h b/sysdeps/mips/utmp-size.h
+new file mode 100644
+index 0000000000..8f21ebe1b6
+--- /dev/null
++++ b/sysdeps/mips/utmp-size.h
+@@ -0,0 +1,2 @@
++#define UTMP_SIZE 384
++#define LASTLOG_SIZE 292
+diff --git a/sysdeps/nios2/bits/wordsize.h b/sysdeps/nios2/bits/wordsize.h
+new file mode 100644
+index 0000000000..6ecbfe7c86
+--- /dev/null
++++ b/sysdeps/nios2/bits/wordsize.h
+@@ -0,0 +1,21 @@
++/* Copyright (C) 1999-2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#define __WORDSIZE			32
++#define __WORDSIZE_TIME64_COMPAT32	1
++#define __WORDSIZE32_SIZE_ULONG		0
++#define __WORDSIZE32_PTRDIFF_LONG	0
+diff --git a/sysdeps/nios2/utmp-size.h b/sysdeps/nios2/utmp-size.h
+new file mode 100644
+index 0000000000..8f21ebe1b6
+--- /dev/null
++++ b/sysdeps/nios2/utmp-size.h
+@@ -0,0 +1,2 @@
++#define UTMP_SIZE 384
++#define LASTLOG_SIZE 292
+diff --git a/sysdeps/or1k/utmp-size.h b/sysdeps/or1k/utmp-size.h
+new file mode 100644
+index 0000000000..6b3653aa4d
+--- /dev/null
++++ b/sysdeps/or1k/utmp-size.h
+@@ -0,0 +1,3 @@
++/* or1k has less padding than other architectures with 64-bit time_t.  */
++#define UTMP_SIZE 392
++#define LASTLOG_SIZE 296
 diff --git a/sysdeps/posix/getaddrinfo.c b/sysdeps/posix/getaddrinfo.c
 index 0356b622be..da573bea24 100644
 --- a/sysdeps/posix/getaddrinfo.c
@@ -2054,6 +4637,83 @@ index 0356b622be..da573bea24 100644
  
    return result;
  }
+diff --git a/sysdeps/powerpc/powerpc32/bits/wordsize.h b/sysdeps/powerpc/powerpc32/bits/wordsize.h
+index 04ca9debf0..6993fb6b29 100644
+--- a/sysdeps/powerpc/powerpc32/bits/wordsize.h
++++ b/sysdeps/powerpc/powerpc32/bits/wordsize.h
+@@ -2,10 +2,9 @@
+ 
+ #if defined __powerpc64__
+ # define __WORDSIZE	64
+-# define __WORDSIZE_TIME64_COMPAT32	1
+ #else
+ # define __WORDSIZE	32
+-# define __WORDSIZE_TIME64_COMPAT32	0
+ # define __WORDSIZE32_SIZE_ULONG	0
+ # define __WORDSIZE32_PTRDIFF_LONG	0
+ #endif
++#define __WORDSIZE_TIME64_COMPAT32	1
+diff --git a/sysdeps/powerpc/powerpc64/bits/wordsize.h b/sysdeps/powerpc/powerpc64/bits/wordsize.h
+index 04ca9debf0..6993fb6b29 100644
+--- a/sysdeps/powerpc/powerpc64/bits/wordsize.h
++++ b/sysdeps/powerpc/powerpc64/bits/wordsize.h
+@@ -2,10 +2,9 @@
+ 
+ #if defined __powerpc64__
+ # define __WORDSIZE	64
+-# define __WORDSIZE_TIME64_COMPAT32	1
+ #else
+ # define __WORDSIZE	32
+-# define __WORDSIZE_TIME64_COMPAT32	0
+ # define __WORDSIZE32_SIZE_ULONG	0
+ # define __WORDSIZE32_PTRDIFF_LONG	0
+ #endif
++#define __WORDSIZE_TIME64_COMPAT32	1
+diff --git a/sysdeps/powerpc/powerpc64/dl-machine.h b/sysdeps/powerpc/powerpc64/dl-machine.h
+index 9b8943bc91..7fa8a355b5 100644
+--- a/sysdeps/powerpc/powerpc64/dl-machine.h
++++ b/sysdeps/powerpc/powerpc64/dl-machine.h
+@@ -79,6 +79,7 @@ elf_host_tolerates_class (const Elf64_Ehdr *ehdr)
+ static inline Elf64_Addr
+ elf_machine_load_address (void) __attribute__ ((const));
+ 
++#ifndef __PCREL__
+ static inline Elf64_Addr
+ elf_machine_load_address (void)
+ {
+@@ -106,6 +107,24 @@ elf_machine_dynamic (void)
+   /* Then subtract off the load address offset.  */
+   return runtime_dynamic - elf_machine_load_address() ;
+ }
++#else /* __PCREL__ */
++/* In PCREL mode, r2 may have been clobbered.  Rely on relative
++   relocations instead.  */
++
++static inline ElfW(Addr)
++elf_machine_load_address (void)
++{
++  extern const ElfW(Ehdr) __ehdr_start attribute_hidden;
++  return (ElfW(Addr)) &__ehdr_start;
++}
++
++static inline ElfW(Addr)
++elf_machine_dynamic (void)
++{
++  extern ElfW(Dyn) _DYNAMIC[] attribute_hidden;
++  return (ElfW(Addr)) _DYNAMIC - elf_machine_load_address ();
++}
++#endif /* __PCREL__ */
+ 
+ /* The PLT uses Elf64_Rela relocs.  */
+ #define elf_machine_relplt elf_machine_rela
+diff --git a/sysdeps/powerpc/utmp-size.h b/sysdeps/powerpc/utmp-size.h
+new file mode 100644
+index 0000000000..8f21ebe1b6
+--- /dev/null
++++ b/sysdeps/powerpc/utmp-size.h
+@@ -0,0 +1,2 @@
++#define UTMP_SIZE 384
++#define LASTLOG_SIZE 292
 diff --git a/sysdeps/pthread/sem_open.c b/sysdeps/pthread/sem_open.c
 index e5db929d20..0e331a7445 100644
 --- a/sysdeps/pthread/sem_open.c
@@ -2094,6 +4754,334 @@ index e5db929d20..0e331a7445 100644
  	  if (fd == -1)
  	    {
  	      if (errno == EEXIST)
+diff --git a/sysdeps/pthread/tst-cancel30.c b/sysdeps/pthread/tst-cancel30.c
+index ff803386be..ace925ca67 100644
+--- a/sysdeps/pthread/tst-cancel30.c
++++ b/sysdeps/pthread/tst-cancel30.c
+@@ -18,6 +18,7 @@
+    License along with the GNU C Library; if not, see
+    <https://www.gnu.org/licenses/>.  */
+ 
++#include <errno.h>
+ #include <support/check.h>
+ #include <support/xstdio.h>
+ #include <support/xthread.h>
+@@ -46,13 +47,19 @@ tf (void *arg)
+ 
+   /* Wait indefinitely for cancellation, which only works if asynchronous
+      cancellation is enabled.  */
+-#if defined SYS_ppoll || defined SYS_ppoll_time64
+-# ifndef SYS_ppoll_time64
+-#  define SYS_ppoll_time64 SYS_ppoll
++#ifdef SYS_ppoll_time64
++  long int ret = syscall (SYS_ppoll_time64, NULL, 0, NULL, NULL);
++  (void) ret;
++# ifdef SYS_ppoll
++  if (ret == -1 && errno == ENOSYS)
++    syscall (SYS_ppoll, NULL, 0, NULL, NULL);
+ # endif
+-  syscall (SYS_ppoll_time64, NULL, 0, NULL, NULL);
+ #else
++# ifdef SYS_ppoll
++  syscall (SYS_ppoll, NULL, 0, NULL, NULL);
++# else
+   for (;;);
++# endif
+ #endif
+ 
+   return 0;
+diff --git a/sysdeps/riscv/utmp-size.h b/sysdeps/riscv/utmp-size.h
+new file mode 100644
+index 0000000000..8f21ebe1b6
+--- /dev/null
++++ b/sysdeps/riscv/utmp-size.h
+@@ -0,0 +1,2 @@
++#define UTMP_SIZE 384
++#define LASTLOG_SIZE 292
+diff --git a/sysdeps/s390/memrchr-c.c b/sysdeps/s390/memrchr-c.c
+index bdf3c7bbe0..fadd63087a 100644
+--- a/sysdeps/s390/memrchr-c.c
++++ b/sysdeps/s390/memrchr-c.c
+@@ -25,7 +25,9 @@
+ 
+ # include <string/memrchr.c>
+ 
+-# if defined SHARED && IS_IN (libc)
++# if HAVE_MEMRCHR_IFUNC
++#  if defined SHARED && IS_IN (libc)
+ __hidden_ver1 (__memrchr_c, __GI___memrchr, __memrchr_c);
++#  endif
+ # endif
+ #endif
+diff --git a/sysdeps/s390/strchrnul-c.c b/sysdeps/s390/strchrnul-c.c
+index f6f5bae311..97fbc16edb 100644
+--- a/sysdeps/s390/strchrnul-c.c
++++ b/sysdeps/s390/strchrnul-c.c
+@@ -24,7 +24,9 @@
+ # endif
+ 
+ # include <string/strchrnul.c>
+-# if defined SHARED && IS_IN (libc)
++# if HAVE_STRCHRNUL_IFUNC
++#  if defined SHARED && IS_IN (libc)
+ __hidden_ver1 (__strchrnul_c, __GI___strchrnul, __strchrnul_c);
++#  endif
+ # endif
+ #endif
+diff --git a/sysdeps/sh/bits/wordsize.h b/sysdeps/sh/bits/wordsize.h
+new file mode 100644
+index 0000000000..6ecbfe7c86
+--- /dev/null
++++ b/sysdeps/sh/bits/wordsize.h
+@@ -0,0 +1,21 @@
++/* Copyright (C) 1999-2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#define __WORDSIZE			32
++#define __WORDSIZE_TIME64_COMPAT32	1
++#define __WORDSIZE32_SIZE_ULONG		0
++#define __WORDSIZE32_PTRDIFF_LONG	0
+diff --git a/sysdeps/sh/utmp-size.h b/sysdeps/sh/utmp-size.h
+new file mode 100644
+index 0000000000..8f21ebe1b6
+--- /dev/null
++++ b/sysdeps/sh/utmp-size.h
+@@ -0,0 +1,2 @@
++#define UTMP_SIZE 384
++#define LASTLOG_SIZE 292
+diff --git a/sysdeps/sparc/sparc32/bits/wordsize.h b/sysdeps/sparc/sparc32/bits/wordsize.h
+index 2f66f10d72..a2e79e0fa9 100644
+--- a/sysdeps/sparc/sparc32/bits/wordsize.h
++++ b/sysdeps/sparc/sparc32/bits/wordsize.h
+@@ -1,11 +1,6 @@
+ /* Determine the wordsize from the preprocessor defines.  */
+ 
+-#if defined __arch64__ || defined __sparcv9
+-# define __WORDSIZE	64
+-# define __WORDSIZE_TIME64_COMPAT32	1
+-#else
+-# define __WORDSIZE	32
+-# define __WORDSIZE_TIME64_COMPAT32	0
+-# define __WORDSIZE32_SIZE_ULONG	0
+-# define __WORDSIZE32_PTRDIFF_LONG	0
+-#endif
++#define __WORDSIZE	32
++#define __WORDSIZE_TIME64_COMPAT32	1
++#define __WORDSIZE32_SIZE_ULONG	0
++#define __WORDSIZE32_PTRDIFF_LONG	0
+diff --git a/sysdeps/sparc/sparc32/memset.S b/sysdeps/sparc/sparc32/memset.S
+index ca29ff5685..1dc3a640e8 100644
+--- a/sysdeps/sparc/sparc32/memset.S
++++ b/sysdeps/sparc/sparc32/memset.S
+@@ -55,7 +55,7 @@ ENTRY(memset)
+ 
+ 	andcc		%o0, 3, %o2
+ 	bne		3f
+-4:	 andcc		%o0, 4, %g0
++5:	 andcc		%o0, 4, %g0
+ 
+ 	be		2f
+ 	 mov		%g3, %g2
+@@ -139,7 +139,7 @@ ENTRY(memset)
+ 	stb		%g3, [%o0 + 0x02]
+ 2:	sub		%o2, 4, %o2
+ 	add		%o1, %o2, %o1
+-	b		4b
++	b		5b
+ 	 sub		%o0, %o2, %o0
+ END(memset)
+ libc_hidden_builtin_def (memset)
+diff --git a/sysdeps/sparc/sparc64/bits/wordsize.h b/sysdeps/sparc/sparc64/bits/wordsize.h
+index 2f66f10d72..ea103e5970 100644
+--- a/sysdeps/sparc/sparc64/bits/wordsize.h
++++ b/sysdeps/sparc/sparc64/bits/wordsize.h
+@@ -2,10 +2,9 @@
+ 
+ #if defined __arch64__ || defined __sparcv9
+ # define __WORDSIZE	64
+-# define __WORDSIZE_TIME64_COMPAT32	1
+ #else
+ # define __WORDSIZE	32
+-# define __WORDSIZE_TIME64_COMPAT32	0
+ # define __WORDSIZE32_SIZE_ULONG	0
+ # define __WORDSIZE32_PTRDIFF_LONG	0
+ #endif
++#define __WORDSIZE_TIME64_COMPAT32	1
+diff --git a/sysdeps/sparc/sparc64/memmove.S b/sysdeps/sparc/sparc64/memmove.S
+index db6f4f0e84..62b19ebc1b 100644
+--- a/sysdeps/sparc/sparc64/memmove.S
++++ b/sysdeps/sparc/sparc64/memmove.S
+@@ -38,7 +38,7 @@ ENTRY(memmove)
+ /*
+  * normal, copy forwards
+  */
+-2:	ble	%XCC, .Ldbytecp
++2:	bleu	%XCC, .Ldbytecp
+ 	 andcc	%o1, 3, %o5	/* is src word aligned  */
+ 	bz,pn	%icc, .Laldst
+ 	 cmp	%o5, 2		/* is src half-word aligned  */
+diff --git a/sysdeps/sparc/sysdep.h b/sysdeps/sparc/sysdep.h
+index 687e626182..151baa5e10 100644
+--- a/sysdeps/sparc/sysdep.h
++++ b/sysdeps/sparc/sysdep.h
+@@ -76,6 +76,15 @@ C_LABEL(name)				\
+ 	cfi_endproc;			\
+ 	.size name, . - name
+ 
++#define ENTRY_NOCFI(name)			\
++	.align	4;			\
++	.global	C_SYMBOL_NAME(name);	\
++	.type	name, @function;	\
++C_LABEL(name)
++
++#define END_NOCFI(name)			\
++	.size name, . - name
++
+ #undef LOC
+ #define LOC(name)  .L##name
+ 
+diff --git a/sysdeps/sparc/utmp-size.h b/sysdeps/sparc/utmp-size.h
+new file mode 100644
+index 0000000000..8f21ebe1b6
+--- /dev/null
++++ b/sysdeps/sparc/utmp-size.h
+@@ -0,0 +1,2 @@
++#define UTMP_SIZE 384
++#define LASTLOG_SIZE 292
+diff --git a/sysdeps/unix/sysv/linux/aarch64/bits/hwcap.h b/sysdeps/unix/sysv/linux/aarch64/bits/hwcap.h
+index 55c7ed39be..b251c2d417 100644
+--- a/sysdeps/unix/sysv/linux/aarch64/bits/hwcap.h
++++ b/sysdeps/unix/sysv/linux/aarch64/bits/hwcap.h
+@@ -98,3 +98,4 @@
+ #define HWCAP2_SME_BI32I32	(1UL << 40)
+ #define HWCAP2_SME_B16B16	(1UL << 41)
+ #define HWCAP2_SME_F16F16	(1UL << 42)
++#define HWCAP2_MOPS		(1UL << 43)
+diff --git a/sysdeps/unix/sysv/linux/aarch64/cpu-features.c b/sysdeps/unix/sysv/linux/aarch64/cpu-features.c
+index dc09c1c827..4a205a6b35 100644
+--- a/sysdeps/unix/sysv/linux/aarch64/cpu-features.c
++++ b/sysdeps/unix/sysv/linux/aarch64/cpu-features.c
+@@ -20,6 +20,7 @@
+ #include <sys/auxv.h>
+ #include <elf/dl-hwcaps.h>
+ #include <sys/prctl.h>
++#include <sys/utsname.h>
+ 
+ #define DCZID_DZP_MASK (1 << 4)
+ #define DCZID_BS_MASK (0xf)
+@@ -37,11 +38,9 @@ struct cpu_list
+ };
+ 
+ static struct cpu_list cpu_list[] = {
+-      {"falkor",	 0x510FC000},
+       {"thunderxt88",	 0x430F0A10},
+       {"thunderx2t99",   0x431F0AF0},
+       {"thunderx2t99p1", 0x420F5160},
+-      {"phecda",	 0x680F0000},
+       {"ares",		 0x411FD0C0},
+       {"emag",		 0x503F0001},
+       {"kunpeng920", 	 0x481FD010},
+@@ -59,6 +58,46 @@ get_midr_from_mcpu (const char *mcpu)
+   return UINT64_MAX;
+ }
+ 
++#if __LINUX_KERNEL_VERSION < 0x060200
++
++/* Return true if we prefer using SVE in string ifuncs.  Old kernels disable
++   SVE after every system call which results in unnecessary traps if memcpy
++   uses SVE.  This is true for kernels between 4.15.0 and before 6.2.0, except
++   for 5.14.0 which was patched.  For these versions return false to avoid using
++   SVE ifuncs.
++   Parse the kernel version into a 24-bit kernel.major.minor value without
++   calling any library functions.  If uname() is not supported or if the version
++   format is not recognized, assume the kernel is modern and return true.  */
++
++static inline bool
++prefer_sve_ifuncs (void)
++{
++  struct utsname buf;
++  const char *p = &buf.release[0];
++  int kernel = 0;
++  int val;
++
++  if (__uname (&buf) < 0)
++    return true;
++
++  for (int shift = 16; shift >= 0; shift -= 8)
++    {
++      for (val = 0; *p >= '0' && *p <= '9'; p++)
++	val = val * 10 + *p - '0';
++      kernel |= (val & 255) << shift;
++      if (*p++ != '.')
++	break;
++    }
++
++  if (kernel >= 0x060200 || kernel == 0x050e00)
++    return true;
++  if (kernel >= 0x040f00)
++    return false;
++  return true;
++}
++
++#endif
++
+ static inline void
+ init_cpu_features (struct cpu_features *cpu_features)
+ {
+@@ -120,4 +159,14 @@ init_cpu_features (struct cpu_features *cpu_features)
+ 
+   /* Check if SVE is supported.  */
+   cpu_features->sve = GLRO (dl_hwcap) & HWCAP_SVE;
++
++  cpu_features->prefer_sve_ifuncs = cpu_features->sve;
++
++#if __LINUX_KERNEL_VERSION < 0x060200
++  if (cpu_features->sve)
++    cpu_features->prefer_sve_ifuncs = prefer_sve_ifuncs ();
++#endif
++
++  /* Check if MOPS is supported.  */
++  cpu_features->mops = GLRO (dl_hwcap2) & HWCAP2_MOPS;
+ }
+diff --git a/sysdeps/unix/sysv/linux/aarch64/cpu-features.h b/sysdeps/unix/sysv/linux/aarch64/cpu-features.h
+index d67d286b53..351a619dcb 100644
+--- a/sysdeps/unix/sysv/linux/aarch64/cpu-features.h
++++ b/sysdeps/unix/sysv/linux/aarch64/cpu-features.h
+@@ -47,11 +47,6 @@
+ #define IS_THUNDERX2(midr) (MIDR_IMPLEMENTOR(midr) == 'C'       \
+ 			   && MIDR_PARTNUM(midr) == 0xaf)
+ 
+-#define IS_FALKOR(midr) (MIDR_IMPLEMENTOR(midr) == 'Q'			      \
+-                        && MIDR_PARTNUM(midr) == 0xc00)
+-
+-#define IS_PHECDA(midr) (MIDR_IMPLEMENTOR(midr) == 'h'			      \
+-                        && MIDR_PARTNUM(midr) == 0x000)
+ #define IS_NEOVERSE_N1(midr) (MIDR_IMPLEMENTOR(midr) == 'A'		      \
+ 			      && MIDR_PARTNUM(midr) == 0xd0c)
+ #define IS_NEOVERSE_N2(midr) (MIDR_IMPLEMENTOR(midr) == 'A'		      \
+@@ -76,6 +71,8 @@ struct cpu_features
+   /* Currently, the GLIBC memory tagging tunable only defines 8 bits.  */
+   uint8_t mte_state;
+   bool sve;
++  bool prefer_sve_ifuncs;
++  bool mops;
+ };
+ 
+ #endif /* _CPU_FEATURES_AARCH64_H  */
 diff --git a/sysdeps/unix/sysv/linux/check_pf.c b/sysdeps/unix/sysv/linux/check_pf.c
 index 2b0b8b6368..3aa6a00348 100644
 --- a/sysdeps/unix/sysv/linux/check_pf.c
@@ -2125,6 +5113,46 @@ index 2b0b8b6368..3aa6a00348 100644
    return __nscd_get_nl_timestamp ();
  #else
    return 0;
+diff --git a/sysdeps/unix/sysv/linux/getsysstats.c b/sysdeps/unix/sysv/linux/getsysstats.c
+index b0b6c154ac..1ea7f1f01f 100644
+--- a/sysdeps/unix/sysv/linux/getsysstats.c
++++ b/sysdeps/unix/sysv/linux/getsysstats.c
+@@ -29,7 +29,7 @@
+ #include <sys/sysinfo.h>
+ #include <sysdep.h>
+ 
+-int
++static int
+ __get_nprocs_sched (void)
+ {
+   enum
+diff --git a/sysdeps/unix/sysv/linux/hppa/bits/wordsize.h b/sysdeps/unix/sysv/linux/hppa/bits/wordsize.h
+new file mode 100644
+index 0000000000..6ecbfe7c86
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/hppa/bits/wordsize.h
+@@ -0,0 +1,21 @@
++/* Copyright (C) 1999-2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#define __WORDSIZE			32
++#define __WORDSIZE_TIME64_COMPAT32	1
++#define __WORDSIZE32_SIZE_ULONG		0
++#define __WORDSIZE32_PTRDIFF_LONG	0
 diff --git a/sysdeps/unix/sysv/linux/i386/tst-bz21269.c b/sysdeps/unix/sysv/linux/i386/tst-bz21269.c
 index 51d4a1b082..822c41fceb 100644
 --- a/sysdeps/unix/sysv/linux/i386/tst-bz21269.c
@@ -2158,6 +5186,249 @@ index f7615a447e..d8a291a331 100644
  # define F_GETLK	5
  # define F_SETLK	6
  # define F_SETLKW	7
+diff --git a/sysdeps/unix/sysv/linux/powerpc/bits/wordsize.h b/sysdeps/unix/sysv/linux/powerpc/bits/wordsize.h
+index 04ca9debf0..6993fb6b29 100644
+--- a/sysdeps/unix/sysv/linux/powerpc/bits/wordsize.h
++++ b/sysdeps/unix/sysv/linux/powerpc/bits/wordsize.h
+@@ -2,10 +2,9 @@
+ 
+ #if defined __powerpc64__
+ # define __WORDSIZE	64
+-# define __WORDSIZE_TIME64_COMPAT32	1
+ #else
+ # define __WORDSIZE	32
+-# define __WORDSIZE_TIME64_COMPAT32	0
+ # define __WORDSIZE32_SIZE_ULONG	0
+ # define __WORDSIZE32_PTRDIFF_LONG	0
+ #endif
++#define __WORDSIZE_TIME64_COMPAT32	1
+diff --git a/sysdeps/unix/sysv/linux/s390/s390-32/clone.S b/sysdeps/unix/sysv/linux/s390/s390-32/clone.S
+index 5d8d873383..fd1e509cf4 100644
+--- a/sysdeps/unix/sysv/linux/s390/s390-32/clone.S
++++ b/sysdeps/unix/sysv/linux/s390/s390-32/clone.S
+@@ -53,6 +53,7 @@ ENTRY(__clone)
+ 	br	%r14
+ error:
+ 	lhi	%r2,-EINVAL
++	lm	%r6,%r7,24(%r15)	/* Load registers.  */
+ 	j	SYSCALL_ERROR_LABEL
+ PSEUDO_END (__clone)
+ 
+diff --git a/sysdeps/unix/sysv/linux/s390/s390-64/clone.S b/sysdeps/unix/sysv/linux/s390/s390-64/clone.S
+index f1c4288a3d..7b37b18010 100644
+--- a/sysdeps/unix/sysv/linux/s390/s390-64/clone.S
++++ b/sysdeps/unix/sysv/linux/s390/s390-64/clone.S
+@@ -54,6 +54,7 @@ ENTRY(__clone)
+ 	br	%r14
+ error:
+ 	lghi	%r2,-EINVAL
++	lmg	%r6,%r7,48(%r15)	/* Restore registers.  */
+ 	jg	SYSCALL_ERROR_LABEL
+ PSEUDO_END (__clone)
+ 
+diff --git a/sysdeps/unix/sysv/linux/sched_getcpu.c b/sysdeps/unix/sysv/linux/sched_getcpu.c
+index 4457d714bc..22700ef846 100644
+--- a/sysdeps/unix/sysv/linux/sched_getcpu.c
++++ b/sysdeps/unix/sysv/linux/sched_getcpu.c
+@@ -33,17 +33,9 @@ vsyscall_sched_getcpu (void)
+   return r == -1 ? r : cpu;
+ }
+ 
+-#ifdef RSEQ_SIG
+ int
+ sched_getcpu (void)
+ {
+   int cpu_id = THREAD_GETMEM_VOLATILE (THREAD_SELF, rseq_area.cpu_id);
+   return __glibc_likely (cpu_id >= 0) ? cpu_id : vsyscall_sched_getcpu ();
+ }
+-#else /* RSEQ_SIG */
+-int
+-sched_getcpu (void)
+-{
+-  return vsyscall_sched_getcpu ();
+-}
+-#endif /* RSEQ_SIG */
+diff --git a/sysdeps/unix/sysv/linux/sparc/bits/wordsize.h b/sysdeps/unix/sysv/linux/sparc/bits/wordsize.h
+index 7562875ee2..ea103e5970 100644
+--- a/sysdeps/unix/sysv/linux/sparc/bits/wordsize.h
++++ b/sysdeps/unix/sysv/linux/sparc/bits/wordsize.h
+@@ -2,10 +2,9 @@
+ 
+ #if defined __arch64__ || defined __sparcv9
+ # define __WORDSIZE	64
+-# define __WORDSIZE_TIME64_COMPAT32	1
+ #else
+ # define __WORDSIZE	32
+ # define __WORDSIZE32_SIZE_ULONG	0
+ # define __WORDSIZE32_PTRDIFF_LONG	0
+-# define __WORDSIZE_TIME64_COMPAT32	0
+ #endif
++#define __WORDSIZE_TIME64_COMPAT32	1
+diff --git a/sysdeps/unix/sysv/linux/sparc/sparc32/sigreturn_stub.S b/sysdeps/unix/sysv/linux/sparc/sparc32/sigreturn_stub.S
+index cf509c8d5c..1962f9053c 100644
+--- a/sysdeps/unix/sysv/linux/sparc/sparc32/sigreturn_stub.S
++++ b/sysdeps/unix/sysv/linux/sparc/sparc32/sigreturn_stub.S
+@@ -23,12 +23,15 @@
+ 
+    [1] https://lkml.org/lkml/2016/5/27/465  */
+ 
+-ENTRY (__rt_sigreturn_stub)
++	nop
++	nop
++
++ENTRY_NOCFI (__rt_sigreturn_stub)
+ 	mov	__NR_rt_sigreturn, %g1
+ 	ta	0x10
+-END (__rt_sigreturn_stub)
++END_NOCFI (__rt_sigreturn_stub)
+ 
+-ENTRY (__sigreturn_stub)
++ENTRY_NOCFI (__sigreturn_stub)
+ 	mov	__NR_sigreturn, %g1
+ 	ta	0x10
+-END (__sigreturn_stub)
++END_NOCFI (__sigreturn_stub)
+diff --git a/sysdeps/unix/sysv/linux/sparc/sparc64/sigreturn_stub.S b/sysdeps/unix/sysv/linux/sparc/sparc64/sigreturn_stub.S
+index 7fac04f657..f089bcaf68 100644
+--- a/sysdeps/unix/sysv/linux/sparc/sparc64/sigreturn_stub.S
++++ b/sysdeps/unix/sysv/linux/sparc/sparc64/sigreturn_stub.S
+@@ -23,7 +23,10 @@
+ 
+    [1] https://lkml.org/lkml/2016/5/27/465  */
+ 
+-ENTRY (__rt_sigreturn_stub)
++	nop
++	nop
++
++ENTRY_NOCFI (__rt_sigreturn_stub)
+ 	mov	__NR_rt_sigreturn, %g1
+ 	ta	0x6d
+-END (__rt_sigreturn_stub)
++END_NOCFI (__rt_sigreturn_stub)
+diff --git a/sysdeps/unix/sysv/linux/tst-clone.c b/sysdeps/unix/sysv/linux/tst-clone.c
+index 56348707d4..95bd0f6ccb 100644
+--- a/sysdeps/unix/sysv/linux/tst-clone.c
++++ b/sysdeps/unix/sysv/linux/tst-clone.c
+@@ -16,12 +16,16 @@
+    License along with the GNU C Library; if not, see
+    <https://www.gnu.org/licenses/>.  */
+ 
+-/* BZ #2386 */
++/* BZ #2386, BZ #31402 */
+ #include <errno.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <sched.h>
++#include <stackinfo.h>  /* For _STACK_GROWS_{UP,DOWN}.  */
++#include <support/check.h>
++
++volatile unsigned v = 0xdeadbeef;
+ 
+ #ifdef __ia64__
+ extern int __clone2 (int (*__fn) (void *__arg), void *__child_stack_base,
+@@ -35,26 +39,72 @@ int child_fn(void *arg)
+ }
+ 
+ static int
+-do_test (void)
++__attribute__((noinline))
++do_clone (int (*fn)(void *), void *stack)
+ {
+   int result;
++  unsigned int a = v;
++  unsigned int b = v;
++  unsigned int c = v;
++  unsigned int d = v;
++  unsigned int e = v;
++  unsigned int f = v;
++  unsigned int g = v;
++  unsigned int h = v;
++  unsigned int i = v;
++  unsigned int j = v;
++  unsigned int k = v;
++  unsigned int l = v;
++  unsigned int m = v;
++  unsigned int n = v;
++  unsigned int o = v;
+ 
+ #ifdef __ia64__
+-  result = __clone2 (child_fn, NULL, 0, 0, NULL, NULL, NULL);
++  result = __clone2 (fn, stack, stack != NULL ? 128 * 1024 : 0, 0, NULL, NULL,
++		     NULL);
++#else
++  result = clone (fn, stack, 0, NULL);
++#endif
++
++  /* Check that clone does not clobber call-saved registers.  */
++  TEST_VERIFY (a == v && b == v && c == v && d == v && e == v && f == v
++	       && g == v && h == v && i == v && j == v && k == v && l == v
++	       && m == v && n == v && o == v);
++
++  return result;
++}
++
++static void
++__attribute__((noinline))
++do_test_single (int (*fn)(void *), void *stack)
++{
++  printf ("%s (fn=%p, stack=%p)\n", __FUNCTION__, fn, stack);
++  errno = 0;
++
++  int result = do_clone (fn, stack);
++
++  TEST_COMPARE (errno, EINVAL);
++  TEST_COMPARE (result, -1);
++}
++
++static int
++do_test (void)
++{
++  char st[128 * 1024] __attribute__ ((aligned));
++  void *stack = NULL;
++#if defined __ia64__ || _STACK_GROWS_UP
++  stack = st;
++#elif _STACK_GROWS_DOWN
++  stack = st + sizeof (st);
+ #else
+-  result = clone (child_fn, NULL, 0, NULL);
++# error "Define either _STACK_GROWS_DOWN or _STACK_GROWS_UP"
+ #endif
+ 
+-  if (errno != EINVAL || result != -1)
+-    {
+-      printf ("FAIL: clone()=%d (wanted -1) errno=%d (wanted %d)\n",
+-              result, errno, EINVAL);
+-      return 1;
+-    }
++  do_test_single (child_fn, NULL);
++  do_test_single (NULL, stack);
++  do_test_single (NULL, NULL);
+ 
+-  puts ("All OK");
+   return 0;
+ }
+ 
+-#define TEST_FUNCTION do_test ()
+-#include "../test-skeleton.c"
++#include <support/test-driver.c>
+diff --git a/sysdeps/x86/bits/wordsize.h b/sysdeps/x86/bits/wordsize.h
+index 70f652bca1..3f40aa76f9 100644
+--- a/sysdeps/x86/bits/wordsize.h
++++ b/sysdeps/x86/bits/wordsize.h
+@@ -8,10 +8,9 @@
+ #define __WORDSIZE32_PTRDIFF_LONG	0
+ #endif
+ 
++#define __WORDSIZE_TIME64_COMPAT32 1
++
+ #ifdef __x86_64__
+-# define __WORDSIZE_TIME64_COMPAT32	1
+ /* Both x86-64 and x32 use the 64-bit system call interface.  */
+ # define __SYSCALL_WORDSIZE		64
+-#else
+-# define __WORDSIZE_TIME64_COMPAT32	0
+ #endif
 diff --git a/sysdeps/x86/dl-cacheinfo.h b/sysdeps/x86/dl-cacheinfo.h
 index cd4d0351ae..5ddb35c9d9 100644
 --- a/sysdeps/x86/dl-cacheinfo.h
@@ -2439,6 +5710,14 @@ index cd4d0351ae..5ddb35c9d9 100644
      }
  
    cpu_features->level1_icache_size = level1_icache_size;
+diff --git a/sysdeps/x86/utmp-size.h b/sysdeps/x86/utmp-size.h
+new file mode 100644
+index 0000000000..8f21ebe1b6
+--- /dev/null
++++ b/sysdeps/x86/utmp-size.h
+@@ -0,0 +1,2 @@
++#define UTMP_SIZE 384
++#define LASTLOG_SIZE 292
 diff --git a/sysdeps/x86_64/dl-tlsdesc.S b/sysdeps/x86_64/dl-tlsdesc.S
 index 5593897e29..4579424bf7 100644
 --- a/sysdeps/x86_64/dl-tlsdesc.S
@@ -2470,6 +5749,29 @@ index 5593897e29..4579424bf7 100644
  	movq	-8(%rsp), %rdi
  	ret
  .Lslow:
+diff --git a/sysdeps/x86_64/ffsll.c b/sysdeps/x86_64/ffsll.c
+index a1c13d4906..0c6680735c 100644
+--- a/sysdeps/x86_64/ffsll.c
++++ b/sysdeps/x86_64/ffsll.c
+@@ -26,13 +26,13 @@ int
+ ffsll (long long int x)
+ {
+   long long int cnt;
+-  long long int tmp;
+ 
+-  asm ("bsfq %2,%0\n"		/* Count low bits in X and store in %1.  */
+-       "cmoveq %1,%0\n"		/* If number was zero, use -1 as result.  */
+-       : "=&r" (cnt), "=r" (tmp) : "rm" (x), "1" (-1));
++  asm ("mov $-1,%k0\n"	/* Initialize cnt to -1.  */
++       "bsf %1,%0\n"	/* Count low bits in x and store in cnt.  */
++       "inc %k0\n"	/* Increment cnt by 1.  */
++       : "=&r" (cnt) : "r" (x));
+ 
+-  return cnt + 1;
++  return cnt;
+ }
+ 
+ #ifndef __ILP32__
 diff --git a/sysdeps/x86_64/memcpy.S b/sysdeps/x86_64/memcpy.S
 index d98500a78a..4922cba657 100644
 --- a/sysdeps/x86_64/memcpy.S

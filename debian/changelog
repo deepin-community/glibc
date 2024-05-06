@@ -1,3 +1,17 @@
+glibc (2.38-6deepin3) unstable; urgency=medium
+
+  * debian/patches/git-updates.diff: update from upstream stable branch.
+    - Fix a stack-based buffer overflow in nscd netgroup cache
+      (CVE-2024-33599).
+    - Fix a null pointer dereferences in nscd after failed netgroup cache
+      insertion (CVE-2024-33600).
+    - Fix a DoS in nscd in case of memory allocation failure (CVE-2024-33601).
+    - Fix a memory corruption in nscd when the underlying NSS callback
+      function does not use the buffer space to store all strings
+      (CVE-2024-33602).
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Mon, 06 May 2024 10:27:18 +0800
+
 glibc (2.38-6deepin2) unstable; urgency=medium
 
   * add patch for GLIBC-SA-2024-0004
