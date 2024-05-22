@@ -1,3 +1,10 @@
+glibc (2.38-6deepin4) unstable; urgency=medium
+
+  * Add support for LoongArch LSX/LASX SIMD support.
+  * Backport 2.39 LoongArch fixes for ELF handling.
+
+ -- Mingcong Bai <baimingcong@uniontech.com>  Wed, 22 May 2024 17:45:26 +0800
+
 glibc (2.38-6deepin3) unstable; urgency=medium
 
   * debian/patches/git-updates.diff: update from upstream stable branch.
