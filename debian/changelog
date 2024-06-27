@@ -1,3 +1,9 @@
+glibc (2.38-6deepin5) unstable; urgency=medium
+
+  * build-depends on gcc-12.
+
+ -- LiChengGang <lichenggang@uniontech.com>  Thu, 27 Jun 2024 11:37:56 +0800
+
 glibc (2.38-6deepin4) unstable; urgency=medium
 
   * Add support for LoongArch LSX/LASX SIMD support.
