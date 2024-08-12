@@ -1,3 +1,12 @@
+glibc (2.38-6deepin5) unstable; urgency=medium
+
+  * debian/patches/git-updates.diff: update from upstream stable branch.
+    - Add support for Linux uio.h RWF_NOAPPEND flag.
+    - Update syscall lists for Linux 6.5.
+  * Build using gcc 12.
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Tue, 13 Aug 2024 11:23:34 +0800
+
 glibc (2.38-6deepin4) unstable; urgency=medium
 
   * Add support for LoongArch LSX/LASX SIMD support.
