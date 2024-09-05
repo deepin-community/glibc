@@ -1,3 +1,19 @@
+glibc (2.38-6deepin6) unstable; urgency=medium
+
+  * Unset -U_FILE_OFFSET_BITS -U_TIME_BITS to fix build.
+  * From Debian: 2.37-16:
+
+    [ Aurelien Jarno ]
+
+    debian/rules.d/build.mk: present glibc with a compiler that does not
+    default to -D_FILE_OFFSET_BITS=64 -D_TIME_BITS=64, as upstream doesn't
+    support this configuration. This has the consequence of hiding real issues
+    found by the testsuite, but there is a consensus that this is the way to
+    go for now. Thanks to Helmut Grohne for the hint and starting the
+    discussion.  Closes: #1068251.
+
+ -- Mingcong Bai <baimingcong@uniontech.com>  Wed, 04 Sep 2024 17:57:12 +0800
+
 glibc (2.38-6deepin5) unstable; urgency=medium
 
   * debian/patches/git-updates.diff: update from upstream stable branch.
