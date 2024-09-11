@@ -132,3 +132,4 @@ loong64/0021-LoongArch-Replace-deprecated-v0-with-a0-to-eliminate.patch
 loong64/0022-LoongArch-Add-ifunc-support-for-strcpy-stpcpy-aligne.patch
 loong64/0023-LoongArch-Add-ifunc-support-for-strrchr-aligned-lsx-.patch
 loong64/0024-LoongArch-Change-to-put-magic-number-to-.rodata-sect.patch
+any/uniontech001-compat-mode.patch

@@ -1,3 +1,20 @@
+glibc (2.38-6deepin7) unstable; urgency=medium
+
+  * using -DDCM_ENABLED in debian/rules to enable compatible mode
+  * add search lib from subsystem ,and inhibit RUNPATH and LIBRARY,
+    make sure library load order: host > subsystem > elf specified spdir.
+
+    using subsystem by env:
+    ROOTFS=/lib/var/rootfs/debian10
+    export DCM_LIBRARY_PATH="$ROOTFS/lib:$ROOTFS/lib/x86_64-linux-gnu"
+
+    extra control env：
+    DCM_ORIGIN_LIBRARY_MODE=LAZY
+    DCM_RUNPATH_MODE=LAZY/IGNORE
+    DCM_SYSPATH_MODE=IGNORE
+
+ -- liubo <liubo@uniontech.com>  Tue, 10 Sep 2024 20:49:33 +0800
+
 glibc (2.38-6deepin6) unstable; urgency=medium
 
   * Unset -U_FILE_OFFSET_BITS -U_TIME_BITS to fix build.

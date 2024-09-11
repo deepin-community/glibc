@@ -1,0 +1,386 @@
+Index: glibc_2.38/elf/dl-load.c
+===================================================================
+--- glibc_2.38.orig/elf/dl-load.c
++++ glibc_2.38/elf/dl-load.c
+@@ -101,6 +101,10 @@ int __stack_prot attribute_hidden attrib
+ 
+ /* This is the decomposed LD_LIBRARY_PATH search path.  */
+ struct r_search_path_struct __rtld_env_path_list attribute_relro;
++#ifdef DCM_ENABLED
++struct r_search_path_struct __rtld_subsys_path_list attribute_relro;
++int __run_path_mode attribute_relro;
++#endif
+ 
+ /* List of the hardware capabilities we might end up using.  */
+ #ifdef SHARED
+@@ -698,6 +702,52 @@ cache_rpath (struct link_map *l,
+ 			  l, what);
+ }
+ 
++#ifdef DCM_ENABLED
++void _init_subsystem_path(const char *llp, const char *source)
++{
++
++  const char *errstring = NULL;
++  struct link_map __attribute__ ((unused)) *l = NULL;
++
++  l = GL(dl_ns)[LM_ID_BASE]._ns_loaded;
++#ifdef SHARED
++  if (l == NULL)
++    l = &GL (dl_rtld_map);
++#endif
++  assert (l->l_type != lt_loaded);
++  if (llp != NULL && *llp != '\0')
++    {
++      char *llp_tmp = strdupa (llp);
++
++      /* Decompose the LD_SYSTERM_PATH contents.  First determine how many
++       elements it has.  */
++      size_t nllp = 1;
++      for (const char *cp = llp_tmp; *cp != '\0'; ++cp)
++        if (*cp == ':' || *cp == ';')
++          ++nllp;
++
++      __rtld_subsys_path_list.dirs = (struct r_search_path_elem **)
++	  malloc ((nllp + 1) * sizeof (struct r_search_path_elem *));
++      if (__rtld_subsys_path_list.dirs == NULL)
++      {
++         errstring = N_("cannot create cache for subsys search path");
++         _dl_signal_error (ENOMEM, NULL, NULL, errstring);
++      }
++
++      (void) fillin_rpath (llp_tmp, __rtld_subsys_path_list.dirs, ":;", source, NULL, l);
++
++      if (__rtld_subsys_path_list.dirs[0] == NULL)
++      {
++        free (__rtld_subsys_path_list.dirs);
++        __rtld_subsys_path_list.dirs = (void *) -1;
++      }
++
++      __rtld_subsys_path_list.malloced = 0;
++    }
++  else
++    __rtld_subsys_path_list.dirs = (void *) -1;
++}
++#endif
+ 
+ void
+ _dl_init_paths (const char *llp, const char *source,
+@@ -1968,6 +2018,8 @@ _dl_map_object (struct link_map *loader,
+   char *name_copy;
+   struct link_map *l;
+   struct filebuf fb;
++  struct r_search_path_struct l_rpath_dirs;
++  l_rpath_dirs.dirs = NULL;
+ 
+   assert (nsid >= 0);
+   assert (nsid < GL(dl_nns));
+@@ -2082,10 +2134,11 @@ _dl_map_object (struct link_map *loader,
+ 	      && fd == -1 && !did_main_map
+ 	      && main_map != NULL && main_map->l_type != lt_loaded)
+ 	    {
+-	      struct r_search_path_struct l_rpath_dirs;
+-	      l_rpath_dirs.dirs = NULL;
+ 	      if (cache_rpath (main_map, &l_rpath_dirs,
+ 			       DT_RUNPATH, "RUNPATH"))
++#ifdef DCM_ENABLED
++          if (__run_path_mode == 2) //2=normal;1=lazy;0=sikp
++#endif
+ 		fd = open_path (name, namelen, mode, &l_rpath_dirs,
+ 				&realname, &fb, loader ?: main_map,
+ 				LA_SER_RUNPATH, &found_other_class);
+@@ -2093,6 +2146,9 @@ _dl_map_object (struct link_map *loader,
+ 	}
+ 
+       /* Try the LD_LIBRARY_PATH environment variable.  */
++#ifdef DCM_ENABLED
++      if (__rtld_env_path_list.mode == 0)
++#endif
+       if (fd == -1 && __rtld_env_path_list.dirs != (void *) -1)
+ 	fd = open_path (name, namelen, mode, &__rtld_env_path_list,
+ 			&realname, &fb,
+@@ -2122,6 +2178,9 @@ _dl_map_object (struct link_map *loader,
+         }
+ 
+ #ifdef USE_LDCONFIG
++#ifdef DCM_ENABLED
++      if (__rtld_search_dirs.mode != 0)
++#endif
+       if (fd == -1
+ 	  && (__glibc_likely ((mode & __RTLD_SECURE) == 0)
+ 	      || ! __libc_enable_secure)
+@@ -2180,12 +2239,39 @@ _dl_map_object (struct link_map *loader,
+ #endif
+ 
+       /* Finally, try the default path.  */
++#ifdef DCM_ENABLED
++      if (__rtld_search_dirs.mode != 0)
++#endif
+       if (fd == -1
+ 	  && ((l = loader ?: GL(dl_ns)[nsid]._ns_loaded) == NULL
+ 	      || __glibc_likely (!(l->l_flags_1 & DF_1_NODEFLIB)))
+ 	  && __rtld_search_dirs.dirs != (void *) -1)
+ 	fd = open_path (name, namelen, mode, &__rtld_search_dirs,
+ 			&realname, &fb, l, LA_SER_DEFAULT, &found_other_class);
++#ifdef DCM_ENABLED
++      /*  LD_LIBRARY_PATH lazy load .  */
++      if ( __rtld_env_path_list.mode == 1 && fd == -1 && __rtld_env_path_list.dirs != (void *) -1)
++        fd = open_path (name, namelen, mode, &__rtld_env_path_list,
++            &realname, &fb,
++            loader ?: GL(dl_ns)[LM_ID_BASE]._ns_loaded,
++            LA_SER_LIBPATH, &found_other_class);
++
++      /*  RUN_PATH lazy load .  */
++      if ( fd == -1 && __rtld_search_dirs.dirs != (void *) -1  && __run_path_mode == 1)
++        fd = open_path (name, namelen, mode, &l_rpath_dirs,
++            &realname, &fb,
++            loader ?: GL(dl_ns)[LM_ID_BASE]._ns_loaded,
++            LA_SER_RUNPATH, &found_other_class);
++
++      /* search DCM_LIBRARY_PATH */
++      if (fd == -1 && __rtld_subsys_path_list.dirs != (void *) -1)
++	  {
++        fd = open_path (name, namelen, mode, &__rtld_subsys_path_list,
++            &realname, &fb,
++            loader ?: GL(dl_ns)[LM_ID_BASE]._ns_loaded,
++            LA_SER_LIBPATH, &found_other_class);//DCM_LIBRARY_PATH
++      }
++#endif
+ 
+       /* Add another newline when we are tracing the library loading.  */
+       if (__glibc_unlikely (GLRO(dl_debug_mask) & DL_DEBUG_LIBS))
+Index: glibc_2.38/elf/dl-main.h
+===================================================================
+--- glibc_2.38.orig/elf/dl-main.h
++++ glibc_2.38/elf/dl-main.h
+@@ -77,6 +77,18 @@ struct dl_main_state
+ 
+   /* Where library_path comes from.  LD_LIBRARY_PATH or --library-path.  */
+   const char *library_path_source;
++#ifdef DCM_ENABLED
++  /* Control the library_path work stage, enable lazy mode.  */
++  const char *library_path_mode;
++  const char *run_path_mode;
++  const char *sys_path_mode;
++
++  /* The subsystem search path.  */
++  const char *subsystem_path;
++
++  /* Where library_path comes from.  DCM_LIBRARY_PATH .  */
++  const char *subsystem_path_source;
++#endif
+ 
+   /* The list preloaded objects from LD_PRELOAD.  */
+   const char *preloadlist;
+@@ -104,6 +116,35 @@ struct dl_main_state
+   bool version_info;
+ };
+ 
++#ifdef DCM_ENABLED
++//env control  __rtld_env_path_list.mode
++static void _enable_lazy_library (const struct dl_main_state* state)
++{
++   __rtld_env_path_list.mode = 0;
++   __rtld_search_dirs.mode = 1;
++   __run_path_mode = 2;
++
++   if(state->library_path_mode)
++   {
++      __rtld_env_path_list.mode = 1;
++   }
++
++   if(state->run_path_mode !=NULL && memcmp(state->run_path_mode,"LAZY",5) == 0)
++   {
++      __run_path_mode = 1;
++   }
++   if(state->run_path_mode !=NULL && memcmp(state->run_path_mode,"IGNORE",7) == 0)
++   {
++      __run_path_mode = 0;
++   }
++
++   if(state->sys_path_mode !=NULL &&  memcmp(state->sys_path_mode,"IGNORE",7) == 0)
++   {
++      __rtld_search_dirs.mode = 0;//disable uos v25 default sys path
++   }
++}
++#endif
++
+ /* Helper function to invoke _dl_init_paths with the right arguments
+    from *STATE.  */
+ static inline void
+@@ -111,6 +152,10 @@ call_init_paths (const struct dl_main_st
+ {
+   _dl_init_paths (state->library_path, state->library_path_source,
+                   state->glibc_hwcaps_prepend, state->glibc_hwcaps_mask);
++#ifdef DCM_ENABLED
++  _init_subsystem_path (state->subsystem_path, state->subsystem_path_source);
++  _enable_lazy_library (state);
++#endif
+ }
+ 
+ /* Print ld.so usage information and exit.  */
+Index: glibc_2.38/elf/rtld.c
+===================================================================
+--- glibc_2.38.orig/elf/rtld.c
++++ glibc_2.38/elf/rtld.c
+@@ -295,6 +295,13 @@ dl_main_state_init (struct dl_main_state
+   audit_list_init (&state->audit_list);
+   state->library_path = NULL;
+   state->library_path_source = NULL;
++#ifdef DCM_ENABLED
++  state->library_path_mode = NULL;
++  state->run_path_mode = NULL;
++  state->sys_path_mode = NULL;
++  state->subsystem_path = NULL;
++  state->subsystem_path_source = NULL;
++#endif
+   state->preloadlist = NULL;
+   state->preloadarg = NULL;
+   state->glibc_hwcaps_prepend = NULL;
+@@ -2664,6 +2671,58 @@ process_envvars (struct dl_main_state *s
+ 	}
+     }
+ 
++#ifdef DCM_ENABLED
++  runp = _environ;
++  if (__glibc_unlikely (GLRO(dl_debug_mask) & DL_DEBUG_LIBS))
++  {
++    for (char **envp =runp; *envp != NULL; ++envp)
++    {
++      char *env = *envp;
++      _dl_debug_printf ("DCM_DEBUG ENV: %s\n",env);
++    }
++  }
++
++  while ((envline = _dl_next_dcm_env_entry (&runp)) != NULL)
++  {
++    size_t len = 0;
++    while (envline[len] != '\0' && envline[len] != '=')
++      ++len;
++    if (envline[len] != '=')
++      continue;
++
++    switch (len)
++	  {
++      case 12:
++        if (!__libc_enable_secure
++            && memcmp (envline, "LIBRARY_PATH", 12) == 0)
++          {
++            state->subsystem_path = &envline[13];
++            state->subsystem_path_source = "DCM_LIBRARY_PATH";
++            break;
++          }
++        if (!__libc_enable_secure
++            && memcmp (envline, "RUNPATH_MODE", 12) == 0)
++          {
++            state->run_path_mode = &envline[13];
++            break;
++          }
++        if (!__libc_enable_secure
++            && memcmp (envline, "SYSPATH_MODE", 12) == 0)
++          {
++            state->sys_path_mode = &envline[13];
++            break;
++          }
++
++      case 19:
++        if (!__libc_enable_secure
++            && memcmp (envline, "ORIGIN_LIBRARY_MODE", 19) == 0)
++          {
++            state->library_path_mode = &envline[20];
++            break;
++          }
++    }
++  }
++#endif
+   /* Extra security for SUID binaries.  Remove all dangerous environment
+      variables.  */
+   if (__glibc_unlikely (__libc_enable_secure))
+Index: glibc_2.38/include/link.h
+===================================================================
+--- glibc_2.38.orig/include/link.h
++++ glibc_2.38/include/link.h
+@@ -77,11 +77,17 @@ struct r_search_path_struct
+   {
+     struct r_search_path_elem **dirs;
+     int malloced;
++#ifdef DCM_ENABLED
++    int mode;
++#endif
+   };
+ 
+ /* Search path information computed by _dl_init_paths.  */
+ extern struct r_search_path_struct __rtld_search_dirs attribute_hidden;
+ extern struct r_search_path_struct __rtld_env_path_list attribute_hidden;
++#ifdef DCM_ENABLED
++extern int __run_path_mode attribute_hidden;
++#endif
+ 
+ /* Structure describing a loaded shared object.  The `l_next' and `l_prev'
+    members form a chain of all the shared objects loaded at startup.
+Index: glibc_2.38/sysdeps/generic/ldsodefs.h
+===================================================================
+--- glibc_2.38.orig/sysdeps/generic/ldsodefs.h
++++ glibc_2.38/sysdeps/generic/ldsodefs.h
+@@ -1078,7 +1078,9 @@ extern void _dl_init_paths (const char *
+ 			    const char *glibc_hwcaps_prepend,
+ 			    const char *glibc_hwcaps_mask)
+   attribute_hidden;
+-
++#ifdef DCM_ENABLED
++extern void _init_subsystem_path (const char *system_path, const char *source)  attribute_hidden;
++#endif
+ /* Gather the information needed to install the profiling tables and start
+    the timers.  */
+ extern void _dl_start_profile (void) attribute_hidden;
+@@ -1098,7 +1100,9 @@ extern void _dl_show_auxv (void) attribu
+ /* Return all environment variables starting with `LD_', one after the
+    other.  */
+ extern char *_dl_next_ld_env_entry (char ***position) attribute_hidden;
+-
++#ifdef DCM_ENABLED
++extern char *_dl_next_dcm_env_entry (char ***position) attribute_hidden;
++#endif
+ /* Return an array with the names of the important hardware
+    capabilities.  PREPEND is a colon-separated list of glibc-hwcaps
+    directories to search first.  MASK is a colon-separated list used
+Index: glibc_2.38/elf/dl-environ.c
+===================================================================
+--- glibc_2.38.orig/elf/dl-environ.c
++++ glibc_2.38/elf/dl-environ.c
+@@ -48,6 +48,35 @@ _dl_next_ld_env_entry (char ***position)
+   return result;
+ }
+ 
++#ifdef DCM_ENABLED
++// DCM deepin compatible mode environment
++char *
++_dl_next_dcm_env_entry (char ***position)
++{
++  char **current = *position;
++  char *result = NULL;
++
++  while (*current != NULL)
++  {
++    if (__builtin_expect ((*current)[0] == 'D', 0)
++      && (*current)[1] == 'C'
++      && (*current)[2] == 'M'
++      && (*current)[3] == '_')
++    {
++      result = &(*current)[4];
++
++      /* Save current position for next visit.  */
++      *position = ++current;
++
++      break;
++    }
++
++      ++current;
++    }
++
++  return result;
++}
++#endif
+ 
+ /* In ld.so __environ is not exported.  */
+ extern char **__environ attribute_hidden;
