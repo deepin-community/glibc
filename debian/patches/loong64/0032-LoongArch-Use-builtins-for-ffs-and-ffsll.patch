@@ -1,0 +1,30 @@
+From 7b70484624c0dcc6f9727da0a4399bd1ef0a1c00 Mon Sep 17 00:00:00 2001
+From: Xi Ruoyao <xry111@xry111.site>
+Date: Sun, 4 Feb 2024 08:27:50 +0800
+Subject: [PATCH 08/23] LoongArch: Use builtins for ffs and ffsll
+
+On LoongArch GCC compiles __builtin_ffs{,ll} to basically
+`(x ? __builtin_ctz (x) : -1) + 1`.  Since a hardware ctz instruction is
+available, this is much better than the table-driven generic
+implementation.
+
+Tested on loongarch64.
+
+Signed-off-by: Xi Ruoyao <xry111@xry111.site>
+Reviewed-by: Adhemerval Zanella  <adhemerval.zanella@linaro.org>
+---
+ sysdeps/loongarch/math-use-builtins-ffs.h | 2 ++
+ 1 file changed, 2 insertions(+)
+ create mode 100644 sysdeps/loongarch/math-use-builtins-ffs.h
+
+diff --git a/sysdeps/loongarch/math-use-builtins-ffs.h b/sysdeps/loongarch/math-use-builtins-ffs.h
+new file mode 100644
+index 00000000..a83bb154
+--- /dev/null
++++ b/sysdeps/loongarch/math-use-builtins-ffs.h
+@@ -0,0 +1,2 @@
++#define USE_FFS_BUILTIN   1
++#define USE_FFSLL_BUILTIN 1
+-- 
+2.43.0
+

@@ -1,0 +1,76 @@
+From eef2a1cd36c3224464f166ee1bcc549831bf6683 Mon Sep 17 00:00:00 2001
+From: Xi Ruoyao <xry111@xry111.site>
+Date: Thu, 13 Jun 2024 19:04:05 +0800
+Subject: [PATCH 14/23] LoongArch: Ensure sp 16-byte aligned for tlsdesc
+
+"ADDI sp, sp, 24" and "ADDI sp, sp, SZFCSREG" (SZFCSREG = 4) are
+misaligning the stack: the ABI mandates a 16-byte alignment.  Fix it
+by changing the first one to "ADDI sp, sp, 32", and reuse the spare 4th
+slot for saving fcsr.
+
+Reported-by: Jinyang He <hejinyang@loongson.cn>
+Signed-off-by: Xi Ruoyao <xry111@xry111.site>
+---
+ sysdeps/loongarch/dl-tlsdesc.S | 10 ++++------
+ sysdeps/loongarch/sys/asm.h    |  1 -
+ 2 files changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/sysdeps/loongarch/dl-tlsdesc.S b/sysdeps/loongarch/dl-tlsdesc.S
+index 15d5fa1c..346b80f2 100644
+--- a/sysdeps/loongarch/dl-tlsdesc.S
++++ b/sysdeps/loongarch/dl-tlsdesc.S
+@@ -100,7 +100,7 @@ _dl_tlsdesc_undefweak:
+ _dl_tlsdesc_dynamic:
+ 	/* Save just enough registers to support fast path, if we fall
+ 	   into slow path we will save additional registers.  */
+-	ADDI	sp, sp, -24
++	ADDI	sp, sp, -32
+ 	REG_S	t0, sp, 0
+ 	REG_S	t1, sp, 8
+ 	REG_S	t2, sp, 16
+@@ -141,7 +141,7 @@ Hign address	dynamic_block1 <----- dtv5  */
+ 	REG_L	t0, sp, 0
+ 	REG_L	t1, sp, 8
+ 	REG_L	t2, sp, 16
+-	ADDI	sp, sp, 24
++	ADDI	sp, sp, 32
+ 	RET
+ 
+ .Lslow:
+@@ -171,9 +171,8 @@ Hign address	dynamic_block1 <----- dtv5  */
+ 	/* Save fcsr0 register.
+ 	   Only one physical fcsr0 register, fcsr1-fcsr3 are aliases
+ 	   of some fields in fcsr0.  */
+-	ADDI	sp, sp, -SZFCSREG
+ 	movfcsr2gr  t0, fcsr0
+-	st.w	t0, sp, 0
++	st.w	t0, sp, FRAME_SIZE + 24 /* Use the spare slot above t2 */
+ 
+ 	/* Whether support LASX.  */
+ 	la.global   t0, _rtld_global_ro
+@@ -406,9 +405,8 @@ Hign address	dynamic_block1 <----- dtv5  */
+ 
+ .Lfcsr:
+ 	/* Restore fcsr0 register.  */
+-	ld.w	t0, sp, 0
++	ld.w	t0, sp, FRAME_SIZE + 24
+ 	movgr2fcsr  fcsr0, t0
+-	ADDI	sp, sp, SZFCSREG
+ 
+ #endif /* #ifndef __loongarch_soft_float */
+ 
+diff --git a/sysdeps/loongarch/sys/asm.h b/sysdeps/loongarch/sys/asm.h
+index dbee93ee..c5eb8afa 100644
+--- a/sysdeps/loongarch/sys/asm.h
++++ b/sysdeps/loongarch/sys/asm.h
+@@ -25,7 +25,6 @@
+ /* Macros to handle different pointer/register sizes for 32/64-bit code.  */
+ #define SZREG 8
+ #define SZFREG 8
+-#define SZFCSREG 4
+ #define SZVREG 16
+ #define SZXREG 32
+ #define REG_L ld.d
+-- 
+2.43.0
+

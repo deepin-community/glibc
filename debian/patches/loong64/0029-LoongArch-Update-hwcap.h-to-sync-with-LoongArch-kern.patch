@@ -1,0 +1,24 @@
+From 1f3580ab5b30ea4511d277e489cc451f377a7bd2 Mon Sep 17 00:00:00 2001
+From: caiyinyu <caiyinyu@loongson.cn>
+Date: Mon, 23 Oct 2023 15:53:38 +0800
+Subject: [PATCH 05/23] LoongArch: Update hwcap.h to sync with LoongArch
+ kernel.
+
+Signed-off-by: Peng Fan <fanpeng@loongson.cn>
+Signed-off-by: ticat_fp <fanpeng@loongson.cn>
+---
+ sysdeps/unix/sysv/linux/loongarch/bits/hwcap.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/sysdeps/unix/sysv/linux/loongarch/bits/hwcap.h b/sysdeps/unix/sysv/linux/loongarch/bits/hwcap.h
+index 5104b69c..7acec23d 100644
+--- a/sysdeps/unix/sysv/linux/loongarch/bits/hwcap.h
++++ b/sysdeps/unix/sysv/linux/loongarch/bits/hwcap.h
+@@ -35,3 +35,4 @@
+ #define HWCAP_LOONGARCH_LBT_X86         (1 << 10)
+ #define HWCAP_LOONGARCH_LBT_ARM         (1 << 11)
+ #define HWCAP_LOONGARCH_LBT_MIPS        (1 << 12)
++#define HWCAP_LOONGARCH_PTW             (1 << 13)
+-- 
+2.43.0
+

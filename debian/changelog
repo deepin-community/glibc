@@ -1,3 +1,9 @@
+glibc (2.38-6deepin7) unstable; urgency=medium
+
+  * Add LoongArch TLSDESC and tunable support from upstream.
+
+ -- Xing Li <lixing@loongson.cn>  Tue, 26 Nov 2024 19:57:12 +0800
+
 glibc (2.38-6deepin6) unstable; urgency=medium
 
   * Unset -U_FILE_OFFSET_BITS -U_TIME_BITS to fix build.
