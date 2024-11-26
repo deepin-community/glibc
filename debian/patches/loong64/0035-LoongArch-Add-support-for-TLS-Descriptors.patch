@@ -1,0 +1,1312 @@
+From 08464376236b8bc2931744488b17e89352a23928 Mon Sep 17 00:00:00 2001
+From: mengqinggang <mengqinggang@loongson.cn>
+Date: Wed, 8 May 2024 10:06:15 +0800
+Subject: [PATCH 11/23] LoongArch: Add support for TLS Descriptors
+
+This is mostly based on AArch64 and RISC-V implementation.
+
+Add R_LARCH_TLS_DESC32 and R_LARCH_TLS_DESC64 relocations.
+
+For _dl_tlsdesc_dynamic function slow path, temporarily save and restore
+all vector registers.
+---
+ config.h.in                       |   3 +
+ elf/elf.h                         |   2 +
+ sysdeps/loongarch/Makefile        |  34 ++-
+ sysdeps/loongarch/configure       |  33 +++
+ sysdeps/loongarch/configure.ac    |  16 ++
+ sysdeps/loongarch/dl-machine.h    |  52 +++-
+ sysdeps/loongarch/dl-tls.h        |   9 +-
+ sysdeps/loongarch/dl-tlsdesc.S    | 436 ++++++++++++++++++++++++++++++
+ sysdeps/loongarch/dl-tlsdesc.h    |  49 ++++
+ sysdeps/loongarch/linkmap.h       |   3 +-
+ sysdeps/loongarch/preconfigure    |   1 +
+ sysdeps/loongarch/sys/asm.h       |   1 +
+ sysdeps/loongarch/sys/regdef.h    |   1 +
+ sysdeps/loongarch/tlsdesc.c       |  39 +++
+ sysdeps/loongarch/tlsdesc.sym     |  28 ++
+ sysdeps/loongarch/tst-gnu2-tls2.h | 377 ++++++++++++++++++++++++++
+ 16 files changed, 1076 insertions(+), 8 deletions(-)
+ create mode 100644 sysdeps/loongarch/dl-tlsdesc.S
+ create mode 100644 sysdeps/loongarch/dl-tlsdesc.h
+ create mode 100644 sysdeps/loongarch/tlsdesc.c
+ create mode 100644 sysdeps/loongarch/tlsdesc.sym
+ create mode 100644 sysdeps/loongarch/tst-gnu2-tls2.h
+
+diff --git a/config.h.in b/config.h.in
+index 44a34072..7b5283ba 100644
+--- a/config.h.in
++++ b/config.h.in
+@@ -141,6 +141,9 @@
+ /* LOONGARCH floating-point ABI for ld.so.  */
+ #undef LOONGARCH_ABI_FRLEN
+ 
++/* Define whether compiler support vector.  */
++#undef HAVE_LOONGARCH_VEC_COM
++
+ /* Linux specific: minimum supported kernel version.  */
+ #undef	__LINUX_KERNEL_VERSION
+ 
+diff --git a/elf/elf.h b/elf/elf.h
+index 3dbc7c0f..a4695042 100644
+--- a/elf/elf.h
++++ b/elf/elf.h
+@@ -4125,6 +4125,8 @@ enum
+ #define R_LARCH_TLS_TPREL32	10
+ #define R_LARCH_TLS_TPREL64	11
+ #define R_LARCH_IRELATIVE	12
++#define R_LARCH_TLS_DESC32	13
++#define R_LARCH_TLS_DESC64	14
+ 
+ /* Reserved for future relocs that the dynamic linker must understand.  */
+ 
+diff --git a/sysdeps/loongarch/Makefile b/sysdeps/loongarch/Makefile
+index 446bda65..a4ee915e 100644
+--- a/sysdeps/loongarch/Makefile
++++ b/sysdeps/loongarch/Makefile
+@@ -1,5 +1,7 @@
+ ifeq ($(subdir),misc)
+-sysdep_headers += sys/asm.h
++sysdep_headers += \
++  sys/asm.h \
++  # sysdep_headers
+ 
+ tests += \
+   tst-hwcap-tunables \
+@@ -9,21 +11,45 @@ tst-hwcap-tunables-ARGS = -- $(host-test-program-cmd)
+ endif
+ 
+ ifeq ($(subdir),elf)
+-gen-as-const-headers += dl-link.sym
++sysdep-dl-routines += \
++  dl-tlsdesc \
++  tlsdesc \
++  # sysdep-dl-routines
++
++gen-as-const-headers += \
++  dl-link.sym \
++  # gen-as-const-headers
++endif
++
++ifeq ($(subdir),csu)
++gen-as-const-headers += \
++  tlsdesc.sym \
++  # gen-as-const-headers
+ endif
+ 
+ ifeq ($(subdir),elf)
+ sysdep-dl-routines += \
+   dl-get-cpu-features \
+   # sysdep-dl-routines
++
++# Disable the compiler from using LSX for TLS descriptor tests, or storing into
++# 16B TLS variable may clobber FP/vector registers and prevent us from checking
++# their contents.
++CFLAGS-tst-gnu2-tls2mod0.c += -mno-lsx
++CFLAGS-tst-gnu2-tls2mod1.c += -mno-lsx
++CFLAGS-tst-gnu2-tls2mod2.c += -mno-lsx
+ endif
+ 
+ # LoongArch's assembler also needs to know about PIC as it changes the
+ # definition of some assembler macros.
+-ASFLAGS-.os += $(pic-ccflag)
++ASFLAGS-.os += \
++  $(pic-ccflag) \
++  # ASFLAGS-.os
+ 
+ # All the objects in lib*_nonshared.a need to be compiled with medium code
+ # model or large applications may fail to link.
+ ifeq (yes,$(have-cmodel-medium))
+-CFLAGS-.oS += -mcmodel=medium
++CFLAGS-.oS += \
++  -mcmodel=medium \
++  # CFLAGS-.oS
+ endif
+diff --git a/sysdeps/loongarch/configure b/sysdeps/loongarch/configure
+index 30b60d19..731f7943 100644
+--- a/sysdeps/loongarch/configure
++++ b/sysdeps/loongarch/configure
+@@ -110,3 +110,36 @@ if test $libc_cv_loongarch_vec_asm = no; then
+   as_fn_error $? "binutils version is too old, use 2.41 or newer version" "$LINENO" 5
+ fi
+ 
++
++{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for vector support in compiler" >&5
++printf %s "checking for vector support in compiler... " >&6; }
++if test ${libc_cv_loongarch_vec_com+y}
++then :
++  printf %s "(cached) " >&6
++else $as_nop
++
++cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++
++void foo (void)
++{
++  asm volatile ("vldi \$vr0, 1" ::: "\$vr0");
++  asm volatile ("xvldi \$xr0, 1" ::: "\$xr0");
++}
++
++_ACEOF
++if ac_fn_c_try_compile "$LINENO"
++then :
++  libc_cv_loongarch_vec_com=yes
++else $as_nop
++  libc_cv_loongarch_vec_com=no
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
++fi
++{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_loongarch_vec_com" >&5
++printf "%s\n" "$libc_cv_loongarch_vec_com" >&6; }
++if test "$libc_cv_loongarch_vec_com" = yes ;
++then
++  printf "%s\n" "#define HAVE_LOONGARCH_VEC_COM 1" >>confdefs.h
++
++fi
+diff --git a/sysdeps/loongarch/configure.ac b/sysdeps/loongarch/configure.ac
+index 28a8ae54..24fee55d 100644
+--- a/sysdeps/loongarch/configure.ac
++++ b/sysdeps/loongarch/configure.ac
+@@ -65,3 +65,19 @@ rm -f conftest*])
+ if test $libc_cv_loongarch_vec_asm = no; then
+   AC_MSG_ERROR([binutils version is too old, use 2.41 or newer version])
+ fi
++
++AC_CACHE_CHECK([for vector support in compiler],
++		libc_cv_loongarch_vec_com, [
++AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
++void foo (void)
++{
++  asm volatile ("vldi $vr0, 1" ::: "$vr0");
++  asm volatile ("xvldi $xr0, 1" ::: "$xr0");
++}
++]])],
++                [libc_cv_loongarch_vec_com=yes],
++                [libc_cv_loongarch_vec_com=no])])
++if test "$libc_cv_loongarch_vec_com" = yes ;
++then
++  AC_DEFINE(HAVE_LOONGARCH_VEC_COM)
++fi
+diff --git a/sysdeps/loongarch/dl-machine.h b/sysdeps/loongarch/dl-machine.h
+index befb29a3..222d51a8 100644
+--- a/sysdeps/loongarch/dl-machine.h
++++ b/sysdeps/loongarch/dl-machine.h
+@@ -25,7 +25,7 @@
+ #include <entry.h>
+ #include <elf/elf.h>
+ #include <sys/asm.h>
+-#include <dl-tls.h>
++#include <dl-tlsdesc.h>
+ #include <dl-static-tls.h>
+ #include <dl-machine-rel.h>
+ 
+@@ -205,6 +205,36 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
+       *addr_field = TLS_TPREL_VALUE (sym_map, sym) + reloc->r_addend;
+       break;
+ 
++    case __WORDSIZE == 64 ? R_LARCH_TLS_DESC64 : R_LARCH_TLS_DESC32:
++      {
++	struct tlsdesc volatile *td = (struct tlsdesc volatile *)addr_field;
++	if (sym == NULL)
++	  {
++	    td->arg = (void*)reloc->r_addend;
++	    td->entry = _dl_tlsdesc_undefweak;
++	  }
++	else
++	  {
++# ifndef SHARED
++	    CHECK_STATIC_TLS (map, sym_map);
++# else
++	    if (!TRY_STATIC_TLS (map, sym_map))
++	      {
++		td->arg = _dl_make_tlsdesc_dynamic (sym_map,
++			      sym->st_value + reloc->r_addend);
++		td->entry = _dl_tlsdesc_dynamic;
++	      }
++	    else
++# endif
++	      {
++		td->arg = (void *)(TLS_TPREL_VALUE (sym_map, sym)
++			    + reloc->r_addend);
++		td->entry = _dl_tlsdesc_return;
++	      }
++	  }
++	break;
++      }
++
+     case R_LARCH_COPY:
+       {
+ 	  if (sym == NULL)
+@@ -273,6 +303,26 @@ elf_machine_lazy_rel (struct link_map *map, struct r_scope_elem *scope[],
+       else
+ 	*reloc_addr = map->l_mach.plt;
+     }
++  else if (__glibc_likely (r_type == R_LARCH_TLS_DESC64)
++	    || __glibc_likely (r_type == R_LARCH_TLS_DESC32))
++    {
++      const Elf_Symndx symndx = ELFW (R_SYM) (reloc->r_info);
++      const ElfW (Sym) *symtab = (const void *)D_PTR (map, l_info[DT_SYMTAB]);
++      const ElfW (Sym) *sym = &symtab[symndx];
++      const struct r_found_version *version = NULL;
++
++      if (map->l_info[VERSYMIDX (DT_VERSYM)] != NULL)
++	{
++	  const ElfW (Half) *vernum = (const void *)D_PTR (map,
++					  l_info[VERSYMIDX (DT_VERSYM)]);
++	  version = &map->l_versions[vernum[symndx] & 0x7fff];
++	}
++
++      /* Always initialize TLS descriptors completely, because lazy
++	 initialization requires synchronization at every TLS access.  */
++      elf_machine_rela (map, scope, reloc, sym, version, reloc_addr,
++			skip_ifunc);
++    }
+   else
+     _dl_reloc_bad_type (map, r_type, 1);
+ }
+diff --git a/sysdeps/loongarch/dl-tls.h b/sysdeps/loongarch/dl-tls.h
+index a551594b..1ca37648 100644
+--- a/sysdeps/loongarch/dl-tls.h
++++ b/sysdeps/loongarch/dl-tls.h
+@@ -16,6 +16,9 @@
+    License along with the GNU C Library.  If not, see
+    <https://www.gnu.org/licenses/>.  */
+ 
++#ifndef _DL_TLS_H
++#define _DL_TLS_H
++
+ /* Type used for the representation of TLS information in the GOT.  */
+ typedef struct
+ {
+@@ -23,6 +26,8 @@ typedef struct
+   unsigned long int ti_offset;
+ } tls_index;
+ 
++extern void *__tls_get_addr (tls_index *ti);
++
+ /* The thread pointer points to the first static TLS block.  */
+ #define TLS_TP_OFFSET 0
+ 
+@@ -37,10 +42,10 @@ typedef struct
+ /* Compute the value for a DTPREL reloc.  */
+ #define TLS_DTPREL_VALUE(sym) ((sym)->st_value - TLS_DTV_OFFSET)
+ 
+-extern void *__tls_get_addr (tls_index *ti);
+-
+ #define GET_ADDR_OFFSET (ti->ti_offset + TLS_DTV_OFFSET)
+ #define __TLS_GET_ADDR(__ti) (__tls_get_addr (__ti) - TLS_DTV_OFFSET)
+ 
+ /* Value used for dtv entries for which the allocation is delayed.  */
+ #define TLS_DTV_UNALLOCATED ((void *) -1l)
++
++#endif
+diff --git a/sysdeps/loongarch/dl-tlsdesc.S b/sysdeps/loongarch/dl-tlsdesc.S
+new file mode 100644
+index 00000000..15d5fa1c
+--- /dev/null
++++ b/sysdeps/loongarch/dl-tlsdesc.S
+@@ -0,0 +1,436 @@
++/* Thread-local storage handling in the ELF dynamic linker.
++   LoongArch version.
++   Copyright (C) 2024 Free Software Foundation, Inc.
++
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <sysdep.h>
++#include <tls.h>
++#include "tlsdesc.h"
++
++	.text
++
++	/* Compute the thread pointer offset for symbols in the static
++	   TLS block. The offset is the same for all threads.
++	   Prototype:
++	   _dl_tlsdesc_return (tlsdesc *);  */
++	.hidden _dl_tlsdesc_return
++	.global	_dl_tlsdesc_return
++	.type	_dl_tlsdesc_return,%function
++	cfi_startproc
++	.align 2
++_dl_tlsdesc_return:
++	REG_L  a0, a0, 8
++	RET
++	cfi_endproc
++	.size	_dl_tlsdesc_return, .-_dl_tlsdesc_return
++
++	/* Handler for undefined weak TLS symbols.
++	   Prototype:
++	   _dl_tlsdesc_undefweak (tlsdesc *);
++
++	   The second word of the descriptor contains the addend.
++	   Return the addend minus the thread pointer. This ensures
++	   that when the caller adds on the thread pointer it gets back
++	   the addend.  */
++	.hidden _dl_tlsdesc_undefweak
++	.global	_dl_tlsdesc_undefweak
++	.type	_dl_tlsdesc_undefweak,%function
++	cfi_startproc
++	.align  2
++_dl_tlsdesc_undefweak:
++	REG_L	a0, a0, 8
++	sub.d	a0, a0, tp
++	RET
++	cfi_endproc
++	.size	_dl_tlsdesc_undefweak, .-_dl_tlsdesc_undefweak
++
++
++#ifdef SHARED
++
++#define FRAME_SIZE	  (-((-14 * SZREG) & ALMASK))
++#define FRAME_SIZE_LSX	  (-((-32 * SZVREG) & ALMASK))
++#define FRAME_SIZE_LASX	  (-((-32 * SZXREG) & ALMASK))
++#define FRAME_SIZE_FLOAT  (-((-24 * SZFREG) & ALMASK))
++
++	/* Handler for dynamic TLS symbols.
++	   Prototype:
++	   _dl_tlsdesc_dynamic (tlsdesc *) ;
++
++	   The second word of the descriptor points to a
++	   tlsdesc_dynamic_arg structure.
++
++	   Returns the offset between the thread pointer and the
++	   object referenced by the argument.
++
++	   ptrdiff_t
++	   _dl_tlsdesc_dynamic (struct tlsdesc *tdp)
++	   {
++	     struct tlsdesc_dynamic_arg *td = tdp->arg;
++	     dtv_t *dtv = *(dtv_t **)((char *)__thread_pointer - TCBHEAD_DTV);
++	     if (__glibc_likely (td->gen_count <= dtv[0].counter
++		&& (dtv[td->tlsinfo.ti_module].pointer.val
++		    != TLS_DTV_UNALLOCATED),
++		1))
++	       return dtv[td->tlsinfo.ti_module].pointer.val
++		+ td->tlsinfo.ti_offset
++		- __thread_pointer;
++
++	     return ___tls_get_addr (&td->tlsinfo) - __thread_pointer;
++	   }  */
++	.hidden _dl_tlsdesc_dynamic
++	.global	_dl_tlsdesc_dynamic
++	.type	_dl_tlsdesc_dynamic,%function
++	cfi_startproc
++	.align 2
++_dl_tlsdesc_dynamic:
++	/* Save just enough registers to support fast path, if we fall
++	   into slow path we will save additional registers.  */
++	ADDI	sp, sp, -24
++	REG_S	t0, sp, 0
++	REG_S	t1, sp, 8
++	REG_S	t2, sp, 16
++
++/* Runtime Storage Layout of Thread-Local Storage
++   TP point to the start of TLS block.
++
++				      dtv
++Low address	TCB ----------------> dtv0(counter)
++	 TP -->	static_block0  <----- dtv1
++		static_block1  <----- dtv2
++		static_block2  <----- dtv3
++		dynamic_block0 <----- dtv4
++Hign address	dynamic_block1 <----- dtv5  */
++
++	REG_L	t0, tp, -SIZE_OF_TCB	  /* t0 = dtv */
++	REG_L	a0, a0, TLSDESC_ARG	  /* a0(td) = tdp->arg */
++	REG_L	t1, a0, TLSDESC_GEN_COUNT /* t1 = td->gen_count */
++	REG_L	t2, t0, DTV_COUNTER	  /* t2 = dtv[0].counter */
++	/* If dtv[0].counter < td->gen_count, goto slow path.  */
++	bltu	t2, t1, .Lslow
++
++	REG_L	t1, a0, TLSDESC_MODID /* t1 = td->tlsinfo.ti_module */
++	/* t1 = t1 * sizeof(dtv_t) = t1 * (2 * sizeof(void*)) */
++	slli.d	t1, t1, 4
++	add.d	t1, t1, t0  /* t1 = dtv[td->tlsinfo.ti_module] */
++	REG_L	t1, t1, 0   /* t1 = dtv[td->tlsinfo.ti_module].pointer.val */
++	li.d	t2, TLS_DTV_UNALLOCATED
++	/* If dtv[td->tlsinfo.ti_module].pointer.val is TLS_DTV_UNALLOCATED,
++	   goto slow path.  */
++	beq	t1, t2, .Lslow
++
++	REG_L	t2, a0, TLSDESC_MODOFF	/* t2 = td->tlsinfo.ti_offset */
++	/* dtv[td->tlsinfo.ti_module].pointer.val + td->tlsinfo.ti_offset */
++	add.d	a0, t1, t2
++.Lret:
++	sub.d	a0, a0, tp
++	REG_L	t0, sp, 0
++	REG_L	t1, sp, 8
++	REG_L	t2, sp, 16
++	ADDI	sp, sp, 24
++	RET
++
++.Lslow:
++	/* This is the slow path. We need to call __tls_get_addr() which
++	   means we need to save and restore all the register that the
++	   callee will trash.  */
++
++	/* Save the remaining registers that we must treat as caller save.  */
++	ADDI	sp, sp, -FRAME_SIZE
++	REG_S	ra, sp, 0 * SZREG
++	REG_S	a1, sp, 1 * SZREG
++	REG_S	a2, sp, 2 * SZREG
++	REG_S	a3, sp, 3 * SZREG
++	REG_S	a4, sp, 4 * SZREG
++	REG_S	a5, sp, 5 * SZREG
++	REG_S	a6, sp, 6 * SZREG
++	REG_S	a7, sp, 7 * SZREG
++	REG_S	t3, sp, 8 * SZREG
++	REG_S	t4, sp, 9 * SZREG
++	REG_S	t5, sp, 10 * SZREG
++	REG_S	t6, sp, 11 * SZREG
++	REG_S	t7, sp, 12 * SZREG
++	REG_S	t8, sp, 13 * SZREG
++
++#ifndef __loongarch_soft_float
++
++	/* Save fcsr0 register.
++	   Only one physical fcsr0 register, fcsr1-fcsr3 are aliases
++	   of some fields in fcsr0.  */
++	ADDI	sp, sp, -SZFCSREG
++	movfcsr2gr  t0, fcsr0
++	st.w	t0, sp, 0
++
++	/* Whether support LASX.  */
++	la.global   t0, _rtld_global_ro
++	REG_L	t0, t0, GLRO_DL_HWCAP_OFFSET
++	andi	t0, t0, HWCAP_LOONGARCH_LASX
++	beqz	t0, .Llsx
++
++	/* Save 256-bit vector registers.
++	   FIXME: Without vector ABI, save all vector registers.  */
++	ADDI	sp, sp, -FRAME_SIZE_LASX
++	xvst	xr0, sp, 0*SZXREG
++	xvst	xr1, sp, 1*SZXREG
++	xvst	xr2, sp, 2*SZXREG
++	xvst	xr3, sp, 3*SZXREG
++	xvst	xr4, sp, 4*SZXREG
++	xvst	xr5, sp, 5*SZXREG
++	xvst	xr6, sp, 6*SZXREG
++	xvst	xr7, sp, 7*SZXREG
++	xvst	xr8, sp, 8*SZXREG
++	xvst	xr9, sp, 9*SZXREG
++	xvst	xr10, sp, 10*SZXREG
++	xvst	xr11, sp, 11*SZXREG
++	xvst	xr12, sp, 12*SZXREG
++	xvst	xr13, sp, 13*SZXREG
++	xvst	xr14, sp, 14*SZXREG
++	xvst	xr15, sp, 15*SZXREG
++	xvst	xr16, sp, 16*SZXREG
++	xvst	xr17, sp, 17*SZXREG
++	xvst	xr18, sp, 18*SZXREG
++	xvst	xr19, sp, 19*SZXREG
++	xvst	xr20, sp, 20*SZXREG
++	xvst	xr21, sp, 21*SZXREG
++	xvst	xr22, sp, 22*SZXREG
++	xvst	xr23, sp, 23*SZXREG
++	xvst	xr24, sp, 24*SZXREG
++	xvst	xr25, sp, 25*SZXREG
++	xvst	xr26, sp, 26*SZXREG
++	xvst	xr27, sp, 27*SZXREG
++	xvst	xr28, sp, 28*SZXREG
++	xvst	xr29, sp, 29*SZXREG
++	xvst	xr30, sp, 30*SZXREG
++	xvst	xr31, sp, 31*SZXREG
++	b	    .Ltga
++
++.Llsx:
++	/* Whether support LSX.  */
++	andi	t0, t0, HWCAP_LOONGARCH_LSX
++	beqz	t0, .Lfloat
++
++	/* Save 128-bit vector registers.  */
++	ADDI	sp, sp, -FRAME_SIZE_LSX
++	vst	vr0, sp, 0*SZVREG
++	vst	vr1, sp, 1*SZVREG
++	vst	vr2, sp, 2*SZVREG
++	vst	vr3, sp, 3*SZVREG
++	vst	vr4, sp, 4*SZVREG
++	vst	vr5, sp, 5*SZVREG
++	vst	vr6, sp, 6*SZVREG
++	vst	vr7, sp, 7*SZVREG
++	vst	vr8, sp, 8*SZVREG
++	vst	vr9, sp, 9*SZVREG
++	vst	vr10, sp, 10*SZVREG
++	vst	vr11, sp, 11*SZVREG
++	vst	vr12, sp, 12*SZVREG
++	vst	vr13, sp, 13*SZVREG
++	vst	vr14, sp, 14*SZVREG
++	vst	vr15, sp, 15*SZVREG
++	vst	vr16, sp, 16*SZVREG
++	vst	vr17, sp, 17*SZVREG
++	vst	vr18, sp, 18*SZVREG
++	vst	vr19, sp, 19*SZVREG
++	vst	vr20, sp, 20*SZVREG
++	vst	vr21, sp, 21*SZVREG
++	vst	vr22, sp, 22*SZVREG
++	vst	vr23, sp, 23*SZVREG
++	vst	vr24, sp, 24*SZVREG
++	vst	vr25, sp, 25*SZVREG
++	vst	vr26, sp, 26*SZVREG
++	vst	vr27, sp, 27*SZVREG
++	vst	vr28, sp, 28*SZVREG
++	vst	vr29, sp, 29*SZVREG
++	vst	vr30, sp, 30*SZVREG
++	vst	vr31, sp, 31*SZVREG
++	b	    .Ltga
++
++.Lfloat:
++	/* Save float registers.  */
++	ADDI	sp, sp, -FRAME_SIZE_FLOAT
++	FREG_S	fa0, sp, 0*SZFREG
++	FREG_S	fa1, sp, 1*SZFREG
++	FREG_S	fa2, sp, 2*SZFREG
++	FREG_S	fa3, sp, 3*SZFREG
++	FREG_S	fa4, sp, 4*SZFREG
++	FREG_S	fa5, sp, 5*SZFREG
++	FREG_S	fa6, sp, 6*SZFREG
++	FREG_S	fa7, sp, 7*SZFREG
++	FREG_S	ft0, sp, 8*SZFREG
++	FREG_S	ft1, sp, 9*SZFREG
++	FREG_S	ft2, sp, 10*SZFREG
++	FREG_S	ft3, sp, 11*SZFREG
++	FREG_S	ft4, sp, 12*SZFREG
++	FREG_S	ft5, sp, 13*SZFREG
++	FREG_S	ft6, sp, 14*SZFREG
++	FREG_S	ft7, sp, 15*SZFREG
++	FREG_S	ft8, sp, 16*SZFREG
++	FREG_S	ft9, sp, 17*SZFREG
++	FREG_S	ft10, sp, 18*SZFREG
++	FREG_S	ft11, sp, 19*SZFREG
++	FREG_S	ft12, sp, 20*SZFREG
++	FREG_S	ft13, sp, 21*SZFREG
++	FREG_S	ft14, sp, 22*SZFREG
++	FREG_S	ft15, sp, 23*SZFREG
++
++#endif /* #ifndef __loongarch_soft_float */
++
++.Ltga:
++	bl	HIDDEN_JUMPTARGET(__tls_get_addr)
++	ADDI	a0, a0, -TLS_DTV_OFFSET
++
++#ifndef __loongarch_soft_float
++
++	la.global   t0, _rtld_global_ro
++	REG_L	t0, t0, GLRO_DL_HWCAP_OFFSET
++	andi	t0, t0, HWCAP_LOONGARCH_LASX
++	beqz	t0, .Llsx1
++
++	/* Restore 256-bit vector registers.  */
++	xvld	xr0, sp, 0*SZXREG
++	xvld	xr1, sp, 1*SZXREG
++	xvld	xr2, sp, 2*SZXREG
++	xvld	xr3, sp, 3*SZXREG
++	xvld	xr4, sp, 4*SZXREG
++	xvld	xr5, sp, 5*SZXREG
++	xvld	xr6, sp, 6*SZXREG
++	xvld	xr7, sp, 7*SZXREG
++	xvld	xr8, sp, 8*SZXREG
++	xvld	xr9, sp, 9*SZXREG
++	xvld	xr10, sp, 10*SZXREG
++	xvld	xr11, sp, 11*SZXREG
++	xvld	xr12, sp, 12*SZXREG
++	xvld	xr13, sp, 13*SZXREG
++	xvld	xr14, sp, 14*SZXREG
++	xvld	xr15, sp, 15*SZXREG
++	xvld	xr16, sp, 16*SZXREG
++	xvld	xr17, sp, 17*SZXREG
++	xvld	xr18, sp, 18*SZXREG
++	xvld	xr19, sp, 19*SZXREG
++	xvld	xr20, sp, 20*SZXREG
++	xvld	xr21, sp, 21*SZXREG
++	xvld	xr22, sp, 22*SZXREG
++	xvld	xr23, sp, 23*SZXREG
++	xvld	xr24, sp, 24*SZXREG
++	xvld	xr25, sp, 25*SZXREG
++	xvld	xr26, sp, 26*SZXREG
++	xvld	xr27, sp, 27*SZXREG
++	xvld	xr28, sp, 28*SZXREG
++	xvld	xr29, sp, 29*SZXREG
++	xvld	xr30, sp, 30*SZXREG
++	xvld	xr31, sp, 31*SZXREG
++	ADDI	sp, sp, FRAME_SIZE_LASX
++	b .Lfcsr
++
++.Llsx1:
++	andi	t0, s0, HWCAP_LOONGARCH_LSX
++	beqz	t0, .Lfloat1
++
++	/* Restore 128-bit vector registers.  */
++	vld	vr0, sp, 0*SZVREG
++	vld	vr1, sp, 1*SZVREG
++	vld	vr2, sp, 2*SZVREG
++	vld	vr3, sp, 3*SZVREG
++	vld	vr4, sp, 4*SZVREG
++	vld	vr5, sp, 5*SZVREG
++	vld	vr6, sp, 6*SZVREG
++	vld	vr7, sp, 7*SZVREG
++	vld	vr8, sp, 8*SZVREG
++	vld	vr9, sp, 9*SZVREG
++	vld	vr10, sp, 10*SZVREG
++	vld	vr11, sp, 11*SZVREG
++	vld	vr12, sp, 12*SZVREG
++	vld	vr13, sp, 13*SZVREG
++	vld	vr14, sp, 14*SZVREG
++	vld	vr15, sp, 15*SZVREG
++	vld	vr16, sp, 16*SZVREG
++	vld	vr17, sp, 17*SZVREG
++	vld	vr18, sp, 18*SZVREG
++	vld	vr19, sp, 19*SZVREG
++	vld	vr20, sp, 20*SZVREG
++	vld	vr21, sp, 21*SZVREG
++	vld	vr22, sp, 22*SZVREG
++	vld	vr23, sp, 23*SZVREG
++	vld	vr24, sp, 24*SZVREG
++	vld	vr25, sp, 25*SZVREG
++	vld	vr26, sp, 26*SZVREG
++	vld	vr27, sp, 27*SZVREG
++	vld	vr28, sp, 28*SZVREG
++	vld	vr29, sp, 29*SZVREG
++	vld	vr30, sp, 30*SZVREG
++	vld	vr31, sp, 31*SZVREG
++	ADDI	sp, sp, FRAME_SIZE_LSX
++	b	    .Lfcsr
++
++.Lfloat1:
++	/* Restore float registers.  */
++	FREG_L	fa0, sp, 0*SZFREG
++	FREG_L	fa1, sp, 1*SZFREG
++	FREG_L	fa2, sp, 2*SZFREG
++	FREG_L	fa3, sp, 3*SZFREG
++	FREG_L	fa4, sp, 4*SZFREG
++	FREG_L	fa5, sp, 5*SZFREG
++	FREG_L	fa6, sp, 6*SZFREG
++	FREG_L	fa7, sp, 7*SZFREG
++	FREG_L	ft0, sp, 8*SZFREG
++	FREG_L	ft1, sp, 9*SZFREG
++	FREG_L	ft2, sp, 10*SZFREG
++	FREG_L	ft3, sp, 11*SZFREG
++	FREG_L	ft4, sp, 12*SZFREG
++	FREG_L	ft5, sp, 13*SZFREG
++	FREG_L	ft6, sp, 14*SZFREG
++	FREG_L	ft7, sp, 15*SZFREG
++	FREG_L	ft8, sp, 16*SZFREG
++	FREG_L	ft9, sp, 17*SZFREG
++	FREG_L	ft10, sp, 18*SZFREG
++	FREG_L	ft11, sp, 19*SZFREG
++	FREG_L	ft12, sp, 20*SZFREG
++	FREG_L	ft13, sp, 21*SZFREG
++	FREG_L	ft14, sp, 22*SZFREG
++	FREG_L	ft15, sp, 23*SZFREG
++	ADDI	sp, sp, FRAME_SIZE_FLOAT
++
++.Lfcsr:
++	/* Restore fcsr0 register.  */
++	ld.w	t0, sp, 0
++	movgr2fcsr  fcsr0, t0
++	ADDI	sp, sp, SZFCSREG
++
++#endif /* #ifndef __loongarch_soft_float */
++
++	REG_L	ra, sp, 0 * SZREG
++	REG_L	a1, sp, 1 * SZREG
++	REG_L	a2, sp, 2 * SZREG
++	REG_L	a3, sp, 3 * SZREG
++	REG_L	a4, sp, 4 * SZREG
++	REG_L	a5, sp, 5 * SZREG
++	REG_L	a6, sp, 6 * SZREG
++	REG_L	a7, sp, 7 * SZREG
++	REG_L	t3, sp, 8 * SZREG
++	REG_L	t4, sp, 9 * SZREG
++	REG_L	t5, sp, 10 * SZREG
++	REG_L	t6, sp, 11 * SZREG
++	REG_L	t7, sp, 12 * SZREG
++	REG_L	t8, sp, 13 * SZREG
++	ADDI	sp, sp, FRAME_SIZE
++
++	b	.Lret
++	cfi_endproc
++	.size	_dl_tlsdesc_dynamic, .-_dl_tlsdesc_dynamic
++	.hidden HIDDEN_JUMPTARGET(__tls_get_addr)
++
++#endif /* #ifdef SHARED */
+diff --git a/sysdeps/loongarch/dl-tlsdesc.h b/sysdeps/loongarch/dl-tlsdesc.h
+new file mode 100644
+index 00000000..ff8c69cb
+--- /dev/null
++++ b/sysdeps/loongarch/dl-tlsdesc.h
+@@ -0,0 +1,49 @@
++/* Thread-local storage descriptor handling in the ELF dynamic linker.
++   LoongArch version.
++   Copyright (C) 2024 Free Software Foundation, Inc.
++
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#ifndef _DL_TLSDESC_H
++#define _DL_TLSDESC_H
++
++#include <dl-tls.h>
++
++/* Type used to represent a TLS descriptor in the GOT.  */
++struct tlsdesc
++{
++  ptrdiff_t (*entry) (struct tlsdesc *);
++  void *arg;
++};
++
++/* Type used as the argument in a TLS descriptor for a symbol that
++   needs dynamic TLS offsets.  */
++struct tlsdesc_dynamic_arg
++{
++  tls_index tlsinfo;
++  size_t gen_count;
++};
++
++extern ptrdiff_t attribute_hidden _dl_tlsdesc_return (struct tlsdesc *);
++extern ptrdiff_t attribute_hidden _dl_tlsdesc_undefweak (struct tlsdesc *);
++
++#ifdef SHARED
++extern void *_dl_make_tlsdesc_dynamic (struct link_map *, size_t);
++extern ptrdiff_t attribute_hidden _dl_tlsdesc_dynamic (struct tlsdesc *);
++#endif
++
++#endif
+diff --git a/sysdeps/loongarch/linkmap.h b/sysdeps/loongarch/linkmap.h
+index 2f5bf534..4e637d49 100644
+--- a/sysdeps/loongarch/linkmap.h
++++ b/sysdeps/loongarch/linkmap.h
+@@ -18,5 +18,6 @@
+ 
+ struct link_map_machine
+ {
+-  ElfW (Addr) plt; /* Address of .plt.  */
++  ElfW (Addr) plt;	/* Address of .plt.  */
++  void *tlsdesc_table;	/* Address of TLS descriptor hash table.  */
+ };
+diff --git a/sysdeps/loongarch/preconfigure b/sysdeps/loongarch/preconfigure
+index dfc7ecfd..0d1e9ed8 100644
+--- a/sysdeps/loongarch/preconfigure
++++ b/sysdeps/loongarch/preconfigure
+@@ -43,6 +43,7 @@ loongarch*)
+ 
+ 
+     base_machine=loongarch
++    mtls_descriptor=desc
+     ;;
+ esac
+ 
+diff --git a/sysdeps/loongarch/sys/asm.h b/sysdeps/loongarch/sys/asm.h
+index c5eb8afa..dbee93ee 100644
+--- a/sysdeps/loongarch/sys/asm.h
++++ b/sysdeps/loongarch/sys/asm.h
+@@ -25,6 +25,7 @@
+ /* Macros to handle different pointer/register sizes for 32/64-bit code.  */
+ #define SZREG 8
+ #define SZFREG 8
++#define SZFCSREG 4
+ #define SZVREG 16
+ #define SZXREG 32
+ #define REG_L ld.d
+diff --git a/sysdeps/loongarch/sys/regdef.h b/sysdeps/loongarch/sys/regdef.h
+index 524d2e32..c26b729e 100644
+--- a/sysdeps/loongarch/sys/regdef.h
++++ b/sysdeps/loongarch/sys/regdef.h
+@@ -97,6 +97,7 @@
+ #define fcc5 $fcc5
+ #define fcc6 $fcc6
+ #define fcc7 $fcc7
++#define fcsr0 $fcsr0
+ 
+ #define vr0 $vr0
+ #define vr1 $vr1
+diff --git a/sysdeps/loongarch/tlsdesc.c b/sysdeps/loongarch/tlsdesc.c
+new file mode 100644
+index 00000000..76708f7e
+--- /dev/null
++++ b/sysdeps/loongarch/tlsdesc.c
+@@ -0,0 +1,39 @@
++/* Manage TLS descriptors.  LoongArch64 version.
++
++   Copyright (C) 2024 Free Software Foundation, Inc.
++
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <ldsodefs.h>
++#include <tls.h>
++#include <dl-tlsdesc.h>
++#include <dl-unmap-segments.h>
++#include <tlsdeschtab.h>
++
++/* Unmap the dynamic object, but also release its TLS descriptor table
++   if there is one.  */
++
++void
++_dl_unmap (struct link_map *map)
++{
++  _dl_unmap_segments (map);
++
++#ifdef SHARED
++  if (map->l_mach.tlsdesc_table)
++    htab_delete (map->l_mach.tlsdesc_table);
++#endif
++}
+diff --git a/sysdeps/loongarch/tlsdesc.sym b/sysdeps/loongarch/tlsdesc.sym
+new file mode 100644
+index 00000000..213d0b30
+--- /dev/null
++++ b/sysdeps/loongarch/tlsdesc.sym
+@@ -0,0 +1,28 @@
++#include <stddef.h>
++#include <sysdep.h>
++#include <tls.h>
++#include <link.h>
++#include <dl-tlsdesc.h>
++
++#define SHARED 1
++
++#include <ldsodefs.h>
++
++#define GLRO_offsetof(name) offsetof (struct rtld_global_ro, _##name)
++
++--
++
++-- Abuse tls.h macros to derive offsets relative to the thread register.
++
++TLSDESC_ARG		offsetof(struct tlsdesc, arg)
++TLSDESC_GEN_COUNT	offsetof(struct tlsdesc_dynamic_arg, gen_count)
++TLSDESC_MODID		offsetof(struct tlsdesc_dynamic_arg, tlsinfo.ti_module)
++TLSDESC_MODOFF		offsetof(struct tlsdesc_dynamic_arg, tlsinfo.ti_offset)
++TCBHEAD_DTV		offsetof(tcbhead_t, dtv)
++DTV_COUNTER		offsetof(dtv_t, counter)
++TLS_DTV_UNALLOCATED	TLS_DTV_UNALLOCATED
++TLS_DTV_OFFSET		TLS_DTV_OFFSET
++SIZE_OF_TCB		sizeof(tcbhead_t)
++GLRO_DL_HWCAP_OFFSET    GLRO_offsetof (dl_hwcap)
++HWCAP_LOONGARCH_LSX	HWCAP_LOONGARCH_LSX
++HWCAP_LOONGARCH_LASX	HWCAP_LOONGARCH_LASX
+diff --git a/sysdeps/loongarch/tst-gnu2-tls2.h b/sysdeps/loongarch/tst-gnu2-tls2.h
+new file mode 100644
+index 00000000..8e421678
+--- /dev/null
++++ b/sysdeps/loongarch/tst-gnu2-tls2.h
+@@ -0,0 +1,377 @@
++/* Test TLSDESC relocation.  LoongArch64 version.
++   Copyright (C) 2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <config.h>
++#include <string.h>
++#include <stdlib.h>
++#include <sys/auxv.h>
++
++/* The instruction between BEFORE_TLSDESC_CALL and _dl_tlsdesc_dynamic,
++   and the instruction between _dl_tlsdesc_dynamic and AFTER_TLSDESC_CALL,
++   may modified most of the general-purpose register.  */
++#define	SAVE_REGISTER(src)						\
++  asm volatile ("st.d $r3, %0" :"=m"(src) :);
++
++#ifdef __loongarch_soft_float
++
++#define BEFORE_TLSDESC_CALL()						\
++  uint64_t src;								\
++  SAVE_REGISTER (src);
++
++#define AFTER_TLSDESC_CALL()						\
++  uint64_t restore;							\
++  SAVE_REGISTER (restore);						\
++  if (src != restore)							\
++    abort ();
++
++#else /* hard float */
++
++#define SAVE_REGISTER_FCC(src)				\
++  asm volatile ("movcf2gr $t0, $fcc0" ::: "$t0");	\
++  asm volatile ("st.d $t0, %0" :"=m"(src[0]) :);	\
++  asm volatile ("movcf2gr $t0, $fcc1" ::: "$t0");	\
++  asm volatile ("st.d $t0, %0" :"=m"(src[1]) :);	\
++  asm volatile ("movcf2gr $t0, $fcc2" ::: "$t0");	\
++  asm volatile ("st.d $t0, %0" :"=m"(src[2]) :);	\
++  asm volatile ("movcf2gr $t0, $fcc3" ::: "$t0");	\
++  asm volatile ("st.d $t0, %0" :"=m"(src[3]) :);	\
++  asm volatile ("movcf2gr $t0, $fcc4" ::: "$t0");	\
++  asm volatile ("st.d $t0, %0" :"=m"(src[4]) :);	\
++  asm volatile ("movcf2gr $t0, $fcc5" ::: "$t0");	\
++  asm volatile ("st.d $t0, %0" :"=m"(src[5]) :);	\
++  asm volatile ("movcf2gr $t0, $fcc6" ::: "$t0");	\
++  asm volatile ("st.d $t0, %0" :"=m"(src[6]) :);	\
++  asm volatile ("movcf2gr $t0, $fcc7" ::: "$t0");	\
++  asm volatile ("st.d $t0, %0" :"=m"(src[7]) :);
++
++#define LOAD_REGISTER_FCSR()				\
++  asm volatile ("li.d $t0, 0x01010101" ::: "$t0");	\
++  asm volatile ("movgr2fcsr $fcsr0, $t0" :::);
++
++#define SAVE_REGISTER_FCSR()				\
++  asm volatile ("movfcsr2gr $t0, $fcsr0" ::: "$t0");    \
++  asm volatile ("st.d $t0, %0" :"=m"(restore_fcsr) :);
++
++# define INIT_TLSDESC_CALL()						\
++  unsigned long hwcap = getauxval (AT_HWCAP);
++
++#define	LOAD_REGISTER_FLOAT()						\
++  asm volatile ("fld.d $f0, %0" ::"m"(src_float[0]) :"$f0");		\
++  asm volatile ("fld.d $f1, %0" ::"m"(src_float[1]) :"$f1"); 		\
++  asm volatile ("fld.d $f2, %0" ::"m"(src_float[2]) :"$f2"); 		\
++  asm volatile ("fld.d $f3, %0" ::"m"(src_float[3]) :"$f3"); 		\
++  asm volatile ("fld.d $f4, %0" ::"m"(src_float[4]) :"$f4"); 		\
++  asm volatile ("fld.d $f5, %0" ::"m"(src_float[5]) :"$f5"); 		\
++  asm volatile ("fld.d $f6, %0" ::"m"(src_float[6]) :"$f6"); 		\
++  asm volatile ("fld.d $f7, %0" ::"m"(src_float[7]) :"$f7"); 		\
++  asm volatile ("fld.d $f8, %0" ::"m"(src_float[8]) :"$f8"); 		\
++  asm volatile ("fld.d $f9, %0" ::"m"(src_float[9]) :"$f9"); 		\
++  asm volatile ("fld.d $f10, %0" ::"m"(src_float[10]) :"$f10");		\
++  asm volatile ("fld.d $f11, %0" ::"m"(src_float[11]) :"$f11");		\
++  asm volatile ("fld.d $f12, %0" ::"m"(src_float[12]) :"$f12");		\
++  asm volatile ("fld.d $f13, %0" ::"m"(src_float[13]) :"$f13");		\
++  asm volatile ("fld.d $f14, %0" ::"m"(src_float[14]) :"$f14");		\
++  asm volatile ("fld.d $f15, %0" ::"m"(src_float[15]) :"$f15");		\
++  asm volatile ("fld.d $f16, %0" ::"m"(src_float[16]) :"$f16");		\
++  asm volatile ("fld.d $f17, %0" ::"m"(src_float[17]) :"$f17");		\
++  asm volatile ("fld.d $f18, %0" ::"m"(src_float[18]) :"$f18");		\
++  asm volatile ("fld.d $f19, %0" ::"m"(src_float[19]) :"$f19");		\
++  asm volatile ("fld.d $f20, %0" ::"m"(src_float[20]) :"$f20");		\
++  asm volatile ("fld.d $f21, %0" ::"m"(src_float[21]) :"$f21");		\
++  asm volatile ("fld.d $f22, %0" ::"m"(src_float[22]) :"$f22");		\
++  asm volatile ("fld.d $f23, %0" ::"m"(src_float[23]) :"$f23");		\
++  asm volatile ("fld.d $f24, %0" ::"m"(src_float[24]) :"$f24");		\
++  asm volatile ("fld.d $f25, %0" ::"m"(src_float[25]) :"$f25");		\
++  asm volatile ("fld.d $f26, %0" ::"m"(src_float[26]) :"$f26");		\
++  asm volatile ("fld.d $f27, %0" ::"m"(src_float[27]) :"$f27");		\
++  asm volatile ("fld.d $f28, %0" ::"m"(src_float[28]) :"$f28");		\
++  asm volatile ("fld.d $f29, %0" ::"m"(src_float[29]) :"$f29");		\
++  asm volatile ("fld.d $f30, %0" ::"m"(src_float[30]) :"$f30");		\
++  asm volatile ("fld.d $f31, %0" ::"m"(src_float[31]) :"$f31");
++
++#define	SAVE_REGISTER_FLOAT()						\
++  asm volatile ("fst.d $f0, %0" :"=m"(restore_float[0]) :);		\
++  asm volatile ("fst.d $f1, %0" :"=m"(restore_float[1]) :); 		\
++  asm volatile ("fst.d $f2, %0" :"=m"(restore_float[2]) :); 		\
++  asm volatile ("fst.d $f3, %0" :"=m"(restore_float[3]) :); 		\
++  asm volatile ("fst.d $f4, %0" :"=m"(restore_float[4]) :); 		\
++  asm volatile ("fst.d $f5, %0" :"=m"(restore_float[5]) :); 		\
++  asm volatile ("fst.d $f6, %0" :"=m"(restore_float[6]) :); 		\
++  asm volatile ("fst.d $f7, %0" :"=m"(restore_float[7]) :); 		\
++  asm volatile ("fst.d $f8, %0" :"=m"(restore_float[8]) :); 		\
++  asm volatile ("fst.d $f9, %0" :"=m"(restore_float[9]) :); 		\
++  asm volatile ("fst.d $f10, %0" :"=m"(restore_float[10]) :);		\
++  asm volatile ("fst.d $f11, %0" :"=m"(restore_float[11]) :);		\
++  asm volatile ("fst.d $f12, %0" :"=m"(restore_float[12]) :);		\
++  asm volatile ("fst.d $f13, %0" :"=m"(restore_float[13]) :);		\
++  asm volatile ("fst.d $f14, %0" :"=m"(restore_float[14]) :);		\
++  asm volatile ("fst.d $f15, %0" :"=m"(restore_float[15]) :);		\
++  asm volatile ("fst.d $f16, %0" :"=m"(restore_float[16]) :);		\
++  asm volatile ("fst.d $f17, %0" :"=m"(restore_float[17]) :);		\
++  asm volatile ("fst.d $f18, %0" :"=m"(restore_float[18]) :);		\
++  asm volatile ("fst.d $f19, %0" :"=m"(restore_float[19]) :);		\
++  asm volatile ("fst.d $f20, %0" :"=m"(restore_float[20]) :);		\
++  asm volatile ("fst.d $f21, %0" :"=m"(restore_float[21]) :);		\
++  asm volatile ("fst.d $f22, %0" :"=m"(restore_float[22]) :);		\
++  asm volatile ("fst.d $f23, %0" :"=m"(restore_float[23]) :);		\
++  asm volatile ("fst.d $f24, %0" :"=m"(restore_float[24]) :);		\
++  asm volatile ("fst.d $f25, %0" :"=m"(restore_float[25]) :);		\
++  asm volatile ("fst.d $f26, %0" :"=m"(restore_float[26]) :);		\
++  asm volatile ("fst.d $f27, %0" :"=m"(restore_float[27]) :);		\
++  asm volatile ("fst.d $f28, %0" :"=m"(restore_float[28]) :);		\
++  asm volatile ("fst.d $f29, %0" :"=m"(restore_float[29]) :);		\
++  asm volatile ("fst.d $f30, %0" :"=m"(restore_float[30]) :);		\
++  asm volatile ("fst.d $f31, %0" :"=m"(restore_float[31]) :);
++
++#ifdef HAVE_LOONGARCH_VEC_COM
++  #define	LOAD_REGISTER_LSX()					\
++    /* Every byte in $vr0 is 1.  */					\
++    asm volatile ("vldi $vr0, 1" ::: "$vr0");				\
++    asm volatile ("vldi $vr1, 2" ::: "$vr1"); 				\
++    asm volatile ("vldi $vr2, 3" ::: "$vr2"); 				\
++    asm volatile ("vldi $vr3, 4" ::: "$vr3"); 				\
++    asm volatile ("vldi $vr4, 5" ::: "$vr4"); 				\
++    asm volatile ("vldi $vr5, 6" ::: "$vr5"); 				\
++    asm volatile ("vldi $vr6, 7" ::: "$vr6"); 				\
++    asm volatile ("vldi $vr7, 8" ::: "$vr7"); 				\
++    asm volatile ("vldi $vr8, 9" ::: "$vr8"); 				\
++    asm volatile ("vldi $vr9, 10" ::: "$vr9"); 				\
++    asm volatile ("vldi $vr10, 11" ::: "$vr10");			\
++    asm volatile ("vldi $vr11, 12" ::: "$vr11");			\
++    asm volatile ("vldi $vr12, 13" ::: "$vr12");			\
++    asm volatile ("vldi $vr13, 14" ::: "$vr13");			\
++    asm volatile ("vldi $vr14, 15" ::: "$vr14");			\
++    asm volatile ("vldi $vr15, 16" ::: "$vr15");			\
++    asm volatile ("vldi $vr16, 17" ::: "$vr16");			\
++    asm volatile ("vldi $vr17, 18" ::: "$vr17");			\
++    asm volatile ("vldi $vr18, 19" ::: "$vr18");			\
++    asm volatile ("vldi $vr19, 20" ::: "$vr19");			\
++    asm volatile ("vldi $vr20, 21" ::: "$vr20");			\
++    asm volatile ("vldi $vr21, 22" ::: "$vr21");			\
++    asm volatile ("vldi $vr22, 23" ::: "$vr22");			\
++    asm volatile ("vldi $vr23, 24" ::: "$vr23");			\
++    asm volatile ("vldi $vr24, 25" ::: "$vr24");			\
++    asm volatile ("vldi $vr25, 26" ::: "$vr25");			\
++    asm volatile ("vldi $vr26, 27" ::: "$vr26");			\
++    asm volatile ("vldi $vr27, 28" ::: "$vr27");			\
++    asm volatile ("vldi $vr28, 29" ::: "$vr28");			\
++    asm volatile ("vldi $vr29, 30" ::: "$vr29");			\
++    asm volatile ("vldi $vr30, 31" ::: "$vr30");			\
++    asm volatile ("vldi $vr31, 32" ::: "$vr31");
++#else
++  #define	LOAD_REGISTER_LSX()
++#endif
++
++#ifdef HAVE_LOONGARCH_VEC_COM
++  #define	SAVE_REGISTER_LSX()					\
++    int src_lsx[32][4];							\
++    int restore_lsx[32][4];						\
++    asm volatile ("vst $vr0, %0" :"=m"(restore_lsx[0]) :);		\
++    asm volatile ("vst $vr1, %0" :"=m"(restore_lsx[1]) :); 		\
++    asm volatile ("vst $vr2, %0" :"=m"(restore_lsx[2]) :); 		\
++    asm volatile ("vst $vr3, %0" :"=m"(restore_lsx[3]) :); 		\
++    asm volatile ("vst $vr4, %0" :"=m"(restore_lsx[4]) :); 		\
++    asm volatile ("vst $vr5, %0" :"=m"(restore_lsx[5]) :); 		\
++    asm volatile ("vst $vr6, %0" :"=m"(restore_lsx[6]) :); 		\
++    asm volatile ("vst $vr7, %0" :"=m"(restore_lsx[7]) :); 		\
++    asm volatile ("vst $vr8, %0" :"=m"(restore_lsx[8]) :); 		\
++    asm volatile ("vst $vr9, %0" :"=m"(restore_lsx[9]) :); 		\
++    asm volatile ("vst $vr10, %0" :"=m"(restore_lsx[10]) :);		\
++    asm volatile ("vst $vr11, %0" :"=m"(restore_lsx[11]) :);		\
++    asm volatile ("vst $vr12, %0" :"=m"(restore_lsx[12]) :);		\
++    asm volatile ("vst $vr13, %0" :"=m"(restore_lsx[13]) :);		\
++    asm volatile ("vst $vr14, %0" :"=m"(restore_lsx[14]) :);		\
++    asm volatile ("vst $vr15, %0" :"=m"(restore_lsx[15]) :);		\
++    asm volatile ("vst $vr16, %0" :"=m"(restore_lsx[16]) :);		\
++    asm volatile ("vst $vr17, %0" :"=m"(restore_lsx[17]) :);		\
++    asm volatile ("vst $vr18, %0" :"=m"(restore_lsx[18]) :);		\
++    asm volatile ("vst $vr19, %0" :"=m"(restore_lsx[19]) :);		\
++    asm volatile ("vst $vr20, %0" :"=m"(restore_lsx[20]) :);		\
++    asm volatile ("vst $vr21, %0" :"=m"(restore_lsx[21]) :);		\
++    asm volatile ("vst $vr22, %0" :"=m"(restore_lsx[22]) :);		\
++    asm volatile ("vst $vr23, %0" :"=m"(restore_lsx[23]) :);		\
++    asm volatile ("vst $vr24, %0" :"=m"(restore_lsx[24]) :);		\
++    asm volatile ("vst $vr25, %0" :"=m"(restore_lsx[25]) :);		\
++    asm volatile ("vst $vr26, %0" :"=m"(restore_lsx[26]) :);		\
++    asm volatile ("vst $vr27, %0" :"=m"(restore_lsx[27]) :);		\
++    asm volatile ("vst $vr28, %0" :"=m"(restore_lsx[28]) :);		\
++    asm volatile ("vst $vr29, %0" :"=m"(restore_lsx[29]) :);		\
++    asm volatile ("vst $vr30, %0" :"=m"(restore_lsx[30]) :);		\
++    asm volatile ("vst $vr31, %0" :"=m"(restore_lsx[31]) :);		\
++    for (int i = 0; i < 32; i++)					\
++      for (int j = 0; j < 4; j++)					\
++	{								\
++	  src_lsx[i][j] = 0x01010101 * (i + 1);				\
++	  if (src_lsx[i][j] != restore_lsx[i][j])			\
++	    abort ();							\
++	}
++#else
++  #define	SAVE_REGISTER_LSX()
++#endif
++
++#ifdef HAVE_LOONGARCH_VEC_COM
++  #define	LOAD_REGISTER_LASX()					\
++    /* Every byte in $xr0 is 1.  */					\
++    asm volatile ("xvldi $xr0, 1" ::: "$xr0");				\
++    asm volatile ("xvldi $xr1, 2" ::: "$xr1"); 				\
++    asm volatile ("xvldi $xr2, 3" ::: "$xr2"); 				\
++    asm volatile ("xvldi $xr3, 4" ::: "$xr3"); 				\
++    asm volatile ("xvldi $xr4, 5" ::: "$xr4"); 				\
++    asm volatile ("xvldi $xr5, 6" ::: "$xr5"); 				\
++    asm volatile ("xvldi $xr6, 7" ::: "$xr6"); 				\
++    asm volatile ("xvldi $xr7, 8" ::: "$xr7"); 				\
++    asm volatile ("xvldi $xr8, 9" ::: "$xr8"); 				\
++    asm volatile ("xvldi $xr9, 10" ::: "$xr9"); 			\
++    asm volatile ("xvldi $xr10, 11" ::: "$xr10");			\
++    asm volatile ("xvldi $xr11, 12" ::: "$xr11");			\
++    asm volatile ("xvldi $xr12, 13" ::: "$xr12");			\
++    asm volatile ("xvldi $xr13, 14" ::: "$xr13");			\
++    asm volatile ("xvldi $xr14, 15" ::: "$xr14");			\
++    asm volatile ("xvldi $xr15, 16" ::: "$xr15");			\
++    asm volatile ("xvldi $xr16, 17" ::: "$xr16");			\
++    asm volatile ("xvldi $xr17, 18" ::: "$xr17");			\
++    asm volatile ("xvldi $xr18, 19" ::: "$xr18");			\
++    asm volatile ("xvldi $xr19, 20" ::: "$xr19");			\
++    asm volatile ("xvldi $xr20, 21" ::: "$xr20");			\
++    asm volatile ("xvldi $xr21, 22" ::: "$xr21");			\
++    asm volatile ("xvldi $xr22, 23" ::: "$xr22");			\
++    asm volatile ("xvldi $xr23, 24" ::: "$xr23");			\
++    asm volatile ("xvldi $xr24, 25" ::: "$xr24");			\
++    asm volatile ("xvldi $xr25, 26" ::: "$xr25");			\
++    asm volatile ("xvldi $xr26, 27" ::: "$xr26");			\
++    asm volatile ("xvldi $xr27, 28" ::: "$xr27");			\
++    asm volatile ("xvldi $xr28, 29" ::: "$xr28");			\
++    asm volatile ("xvldi $xr29, 30" ::: "$xr29");			\
++    asm volatile ("xvldi $xr30, 31" ::: "$xr30");			\
++    asm volatile ("xvldi $xr31, 32" ::: "$xr31");
++#else
++  #define	LOAD_REGISTER_LASX()
++#endif
++
++#ifdef HAVE_LOONGARCH_VEC_COM
++  #define	SAVE_REGISTER_LASX()					\
++    int src_lasx[32][8];						\
++    int restore_lasx[32][8];						\
++    asm volatile ("xvst $xr0, %0" :"=m"(restore_lasx[0]) :);		\
++    asm volatile ("xvst $xr1, %0" :"=m"(restore_lasx[1]) :); 		\
++    asm volatile ("xvst $xr2, %0" :"=m"(restore_lasx[2]) :); 		\
++    asm volatile ("xvst $xr3, %0" :"=m"(restore_lasx[3]) :); 		\
++    asm volatile ("xvst $xr4, %0" :"=m"(restore_lasx[4]) :); 		\
++    asm volatile ("xvst $xr5, %0" :"=m"(restore_lasx[5]) :); 		\
++    asm volatile ("xvst $xr6, %0" :"=m"(restore_lasx[6]) :); 		\
++    asm volatile ("xvst $xr7, %0" :"=m"(restore_lasx[7]) :); 		\
++    asm volatile ("xvst $xr8, %0" :"=m"(restore_lasx[8]) :); 		\
++    asm volatile ("xvst $xr9, %0" :"=m"(restore_lasx[9]) :); 		\
++    asm volatile ("xvst $xr10, %0" :"=m"(restore_lasx[10]) :);		\
++    asm volatile ("xvst $xr11, %0" :"=m"(restore_lasx[11]) :);		\
++    asm volatile ("xvst $xr12, %0" :"=m"(restore_lasx[12]) :);		\
++    asm volatile ("xvst $xr13, %0" :"=m"(restore_lasx[13]) :);		\
++    asm volatile ("xvst $xr14, %0" :"=m"(restore_lasx[14]) :);		\
++    asm volatile ("xvst $xr15, %0" :"=m"(restore_lasx[15]) :);		\
++    asm volatile ("xvst $xr16, %0" :"=m"(restore_lasx[16]) :);		\
++    asm volatile ("xvst $xr17, %0" :"=m"(restore_lasx[17]) :);		\
++    asm volatile ("xvst $xr18, %0" :"=m"(restore_lasx[18]) :);		\
++    asm volatile ("xvst $xr19, %0" :"=m"(restore_lasx[19]) :);		\
++    asm volatile ("xvst $xr20, %0" :"=m"(restore_lasx[20]) :);		\
++    asm volatile ("xvst $xr21, %0" :"=m"(restore_lasx[21]) :);		\
++    asm volatile ("xvst $xr22, %0" :"=m"(restore_lasx[22]) :);		\
++    asm volatile ("xvst $xr23, %0" :"=m"(restore_lasx[23]) :);		\
++    asm volatile ("xvst $xr24, %0" :"=m"(restore_lasx[24]) :);		\
++    asm volatile ("xvst $xr25, %0" :"=m"(restore_lasx[25]) :);		\
++    asm volatile ("xvst $xr26, %0" :"=m"(restore_lasx[26]) :);		\
++    asm volatile ("xvst $xr27, %0" :"=m"(restore_lasx[27]) :);		\
++    asm volatile ("xvst $xr28, %0" :"=m"(restore_lasx[28]) :);		\
++    asm volatile ("xvst $xr29, %0" :"=m"(restore_lasx[29]) :);		\
++    asm volatile ("xvst $xr30, %0" :"=m"(restore_lasx[30]) :);		\
++    asm volatile ("xvst $xr31, %0" :"=m"(restore_lasx[31]) :);		\
++    for (int i = 0; i < 32; i++)					\
++      for (int j = 0; j < 8; j++)					\
++	{								\
++	  src_lasx[i][j] = 0x01010101 * (i + 1);			\
++	  if (src_lasx[i][j] != restore_lasx[i][j])			\
++	    abort ();							\
++	}
++#else
++  #define	SAVE_REGISTER_LASX()
++#endif
++
++#define BEFORE_TLSDESC_CALL()						\
++  uint64_t src;								\
++  double src_float[32];							\
++  uint64_t src_fcc[8];							\
++  for (int i = 0; i < 32; i++)						\
++    src_float[i] = i + 1;						\
++									\
++  SAVE_REGISTER (src);							\
++  LOAD_REGISTER_FCSR ();						\
++  SAVE_REGISTER_FCC(src_fcc)						\
++									\
++  if (hwcap & HWCAP_LOONGARCH_LASX)					\
++    {									\
++      LOAD_REGISTER_LASX ();						\
++    }									\
++  else if (hwcap & HWCAP_LOONGARCH_LSX)					\
++    {									\
++      LOAD_REGISTER_LSX ();						\
++    }									\
++  else									\
++    {									\
++      LOAD_REGISTER_FLOAT ();						\
++    }
++
++#define AFTER_TLSDESC_CALL()						\
++  uint64_t restore;							\
++  uint64_t src_fcsr = 0x01010101;					\
++  uint64_t restore_fcsr;						\
++  uint64_t restore_fcc[8];						\
++  SAVE_REGISTER (restore);						\
++  SAVE_REGISTER_FCSR ();						\
++  SAVE_REGISTER_FCC(restore_fcc)					\
++									\
++  /* memcmp_lasx/strlen_lasx corrupts LSX/LASX registers, */		\
++  /* compare LSX/LASX registers first.  */				\
++  if (hwcap & HWCAP_LOONGARCH_LASX)					\
++    {									\
++      SAVE_REGISTER_LASX ();						\
++    }									\
++  else if (hwcap & HWCAP_LOONGARCH_LSX)					\
++    {									\
++      SAVE_REGISTER_LSX	();						\
++    }									\
++  else									\
++    {									\
++      double restore_float[32];						\
++      SAVE_REGISTER_FLOAT ();						\
++									\
++      for (int i = 0; i < 32; i++)					\
++       if (src_float[i] != restore_float[i])				\
++	abort ();							\
++    }									\
++									\
++  if (src_fcsr != restore_fcsr)						\
++    abort ();								\
++									\
++  if (memcmp (src_fcc, restore_fcc, sizeof (src_fcc)) != 0)		\
++    abort ();								\
++									\
++  if (src != restore)							\
++    abort ();
++
++#endif /* #ifdef __loongarch_soft_float */
++
++#include_next <tst-gnu2-tls2.h>
+-- 
+2.43.0
+

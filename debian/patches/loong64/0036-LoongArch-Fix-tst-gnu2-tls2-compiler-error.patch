@@ -1,0 +1,64 @@
+From 27555b0942b3ed2c233fd822c3563ce5794086d7 Mon Sep 17 00:00:00 2001
+From: mengqinggang <mengqinggang@loongson.cn>
+Date: Mon, 20 May 2024 17:05:12 +0800
+Subject: [PATCH 12/23] LoongArch: Fix tst-gnu2-tls2 compiler error
+
+Add -mno-lsx to tst-gnu2-tlsmod*.c if gcc support -mno-lsx.
+Add escape character '\' in vector support test function.
+---
+ sysdeps/loongarch/Makefile     | 2 ++
+ sysdeps/loongarch/configure    | 3 +++
+ sysdeps/loongarch/configure.ac | 5 +++--
+ 3 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/sysdeps/loongarch/Makefile b/sysdeps/loongarch/Makefile
+index a4ee915e..b00c090f 100644
+--- a/sysdeps/loongarch/Makefile
++++ b/sysdeps/loongarch/Makefile
+@@ -35,10 +35,12 @@ sysdep-dl-routines += \
+ # Disable the compiler from using LSX for TLS descriptor tests, or storing into
+ # 16B TLS variable may clobber FP/vector registers and prevent us from checking
+ # their contents.
++ifeq (yes,$(loongarch-vec-com))
+ CFLAGS-tst-gnu2-tls2mod0.c += -mno-lsx
+ CFLAGS-tst-gnu2-tls2mod1.c += -mno-lsx
+ CFLAGS-tst-gnu2-tls2mod2.c += -mno-lsx
+ endif
++endif
+ 
+ # LoongArch's assembler also needs to know about PIC as it changes the
+ # definition of some assembler macros.
+diff --git a/sysdeps/loongarch/configure b/sysdeps/loongarch/configure
+index 731f7943..afcef6cd 100644
+--- a/sysdeps/loongarch/configure
++++ b/sysdeps/loongarch/configure
+@@ -143,3 +143,6 @@ then
+   printf "%s\n" "#define HAVE_LOONGARCH_VEC_COM 1" >>confdefs.h
+ 
+ fi
++config_vars="$config_vars
++loongarch-vec-com = $libc_cv_loongarch_vec_com"
++
+diff --git a/sysdeps/loongarch/configure.ac b/sysdeps/loongarch/configure.ac
+index 24fee55d..c56a2035 100644
+--- a/sysdeps/loongarch/configure.ac
++++ b/sysdeps/loongarch/configure.ac
+@@ -71,8 +71,8 @@ AC_CACHE_CHECK([for vector support in compiler],
+ AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+ void foo (void)
+ {
+-  asm volatile ("vldi $vr0, 1" ::: "$vr0");
+-  asm volatile ("xvldi $xr0, 1" ::: "$xr0");
++  asm volatile ("vldi \$vr0, 1" ::: "\$vr0");
++  asm volatile ("xvldi \$xr0, 1" ::: "\$xr0");
+ }
+ ]])],
+                 [libc_cv_loongarch_vec_com=yes],
+@@ -81,3 +81,4 @@ if test "$libc_cv_loongarch_vec_com" = yes ;
+ then
+   AC_DEFINE(HAVE_LOONGARCH_VEC_COM)
+ fi
++LIBC_CONFIG_VAR([loongarch-vec-com], [$libc_cv_loongarch_vec_com])
+-- 
+2.43.0
+

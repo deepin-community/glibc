@@ -1,0 +1,59 @@
+From 3d87f0b78cd29294d3f691021b18b58f90950ef8 Mon Sep 17 00:00:00 2001
+From: Xing Li <lixing@loongson.cn>
+Date: Thu, 24 Oct 2024 09:49:10 +0800
+Subject: [PATCH 20/23] elf: Remove LD_PROFILE for static binaries
+
+The _dl_non_dynamic_init does not parse LD_PROFILE, which does not
+enable profile for dlopen objects.  Since dlopen is deprecated for
+static objects, it is better to remove the support.
+
+It also allows to trim down libc.a of profile support.
+
+Checked on x86_64-linux-gnu.
+From: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+Reviewed-by: Siddhesh Poyarekar <siddhesh@sourceware.org>
+---
+ sysdeps/loongarch/dl-machine.h    | 2 ++
+ sysdeps/loongarch/dl-trampoline.h | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/sysdeps/loongarch/dl-machine.h b/sysdeps/loongarch/dl-machine.h
+index d934c77f..7fa3b4e9 100644
+--- a/sysdeps/loongarch/dl-machine.h
++++ b/sysdeps/loongarch/dl-machine.h
+@@ -362,6 +362,7 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
+ 	 to intercept the calls to collect information.  In this case we
+ 	 don't store the address in the GOT so that all future calls also
+ 	 end in this function.  */
++#ifdef SHARED
+       if (profile != 0)
+ 	{
+ #if !defined __loongarch_soft_float
+@@ -380,6 +381,7 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
+ 	    GL(dl_profile_map) = l;
+ 	}
+       else
++#endif
+ 	{
+ 	  /* This function will get called to fix up the GOT entry
+ 	     indicated by the offset on the stack, and then jump to
+diff --git a/sysdeps/loongarch/dl-trampoline.h b/sysdeps/loongarch/dl-trampoline.h
+index e298439d..1da70aeb 100644
+--- a/sysdeps/loongarch/dl-trampoline.h
++++ b/sysdeps/loongarch/dl-trampoline.h
+@@ -126,6 +126,7 @@ ENTRY (_dl_runtime_resolve)
+ 	jirl	zero, t1, 0
+ END (_dl_runtime_resolve)
+ 
++#ifdef SHARED
+ #include "dl-link.h"
+ 
+ ENTRY (_dl_runtime_profile)
+@@ -367,3 +368,4 @@ ENTRY (_dl_runtime_profile)
+ 	jirl	zero, ra, 0
+ 
+ END (_dl_runtime_profile)
++#endif /* SHARED */
+-- 
+2.43.0
+

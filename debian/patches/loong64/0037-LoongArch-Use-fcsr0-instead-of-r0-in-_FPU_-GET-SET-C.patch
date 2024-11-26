@@ -1,0 +1,37 @@
+From a2e30b84bfd2526e124effad855d8ab36f0a14cd Mon Sep 17 00:00:00 2001
+From: Xi Ruoyao <xry111@xry111.site>
+Date: Mon, 29 Apr 2024 15:26:24 +0800
+Subject: [PATCH 13/23] LoongArch: Use "$fcsr0" instead of "$r0" in
+ _FPU_{GET,SET}CW
+
+Clang inline-asm parser does not allow using "$r0" in
+movfcsr2gr/movgr2fcsr, so everything using _FPU_{GET,SET}CW is now
+failing to build with Clang on LoongArch.  As we now requires Binutils
+>= 2.41 which supports using "$fcsr0" here, use it instead of "$r0" to
+fix the issue.
+
+Link: https://github.com/loongson-community/discussions/issues/53#issuecomment-2081507390
+Link: https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=4142b2368353
+Signed-off-by: Xi Ruoyao <xry111@xry111.site>
+---
+ sysdeps/loongarch/fpu_control.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/sysdeps/loongarch/fpu_control.h b/sysdeps/loongarch/fpu_control.h
+index ffb01ca5..3c8ae8b5 100644
+--- a/sysdeps/loongarch/fpu_control.h
++++ b/sysdeps/loongarch/fpu_control.h
+@@ -91,8 +91,8 @@ typedef unsigned int fpu_control_t __attribute__ ((__mode__ (__SI__)));
+ /* Macros for accessing the hardware control word.  */
+ extern fpu_control_t __loongarch_fpu_getcw (void) __THROW;
+ extern void __loongarch_fpu_setcw (fpu_control_t) __THROW;
+-#define _FPU_GETCW(cw) __asm__ volatile ("movfcsr2gr %0,$r0" : "=r"(cw))
+-#define _FPU_SETCW(cw) __asm__ volatile ("movgr2fcsr $r0,%0" : : "r"(cw))
++#define _FPU_GETCW(cw) __asm__ volatile ("movfcsr2gr %0,$fcsr0" : "=r"(cw))
++#define _FPU_SETCW(cw) __asm__ volatile ("movgr2fcsr $fcsr0,%0" : : "r"(cw))
+ 
+ /* Default control word set at startup.  */
+ extern fpu_control_t __fpu_control;
+-- 
+2.43.0
+

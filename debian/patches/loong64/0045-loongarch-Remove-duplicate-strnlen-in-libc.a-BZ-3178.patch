@@ -1,0 +1,28 @@
+From d2c145a95235fead67f3389f0d755538b6f56006 Mon Sep 17 00:00:00 2001
+From: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+Date: Wed, 22 May 2024 10:21:10 -0300
+Subject: [PATCH 21/23] loongarch: Remove duplicate strnlen in libc.a (BZ
+ 31785)
+
+The generic version provides weak definitions of strnlen,
+which are already provided by the ifunc resolver.
+Reviewed-by: H.J. Lu <hjl.tools@gmail.com>
+---
+ sysdeps/loongarch/lp64/multiarch/strnlen-aligned.S | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/sysdeps/loongarch/lp64/multiarch/strnlen-aligned.S b/sysdeps/loongarch/lp64/multiarch/strnlen-aligned.S
+index a8296a1b..05837ce7 100644
+--- a/sysdeps/loongarch/lp64/multiarch/strnlen-aligned.S
++++ b/sysdeps/loongarch/lp64/multiarch/strnlen-aligned.S
+@@ -98,5 +98,7 @@ L(out):
+     jr          ra
+ END(STRNLEN)
+ 
++#if !IS_IN (libc)
+ weak_alias (STRNLEN, strnlen)
+ libc_hidden_builtin_def (STRNLEN)
++#endif
+-- 
+2.43.0
+
