@@ -2,14 +2,8 @@
 set -e
 
 if [ "$1" = remove ]; then
-    # When both the multiarch and the corresponding biarch packages are
-    # installed, removing the multiarch package will remove the dynamic
-    # linker. Recreate it in the postinst.
-    ARCH=${DPKG_MAINTSCRIPT_ARCH}
-    target=$(dpkg-query -L LIBC-${ARCH} 2>/dev/null | grep -E '/lib.+/(ld\.so|RTLD_SO)$' || true)
-    if [ -f "$target" ] && ! [ -f RTLDDIR/RTLD_SO ] ; then
-        ln -sf ${target#RTLDDIR/} RTLDDIR/RTLD_SO
-    fi
+    # Remove DEP17 M8 protective diversion
+    dpkg-divert --quiet --remove --no-rename --divert "RTLDDIR/RTLD_SO.usr-is-merged" "RTLDDIR/RTLD_SO"
 fi
 
 if [ "$1" = deconfigure ]; then

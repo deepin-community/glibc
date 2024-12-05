@@ -1,3 +1,10 @@
+glibc (2.38-6deepin8) unstable; urgency=medium
+
+  * DEP17: Move files to /usr.
+  * Add libc-upgrade and libc-major-upgrade trigger.
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Thu, 05 Dec 2024 10:39:00 +0800
+
 glibc (2.38-6deepin7) unstable; urgency=medium
 
   * Add LoongArch TLSDESC and tunable support from upstream.

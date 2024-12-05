@@ -2,13 +2,12 @@
 set -e
 
 if [ "$1" = remove ]; then
-    # Native multiarch packages declare a Replaces: on the corresponding
-    # biarch package. Therefore if both a biarch package and the corresponding
-    # multiarch package are installed, then the multiarch package is removed,
-    # and then the biarch package is removed, the dynamic linker symlink
-    # becomes a dangling symlink. Remove it in that case.
-    if [ -h RTLDDIR/RTLD_SO ] && [ ! -f RTLDDIR/RTLD_SO ]; then
-        rm RTLDDIR/RTLD_SO
+    # We manually installed this link in postinst if missing. It is also
+    # installed by the native multiarch package as a proper file. We have
+    # to remove it if we are the last package to provide it. Detect that
+    # situation by checking for a dangling link.
+    if [ -h /usrRTLDDIR/RTLD_SO ] && [ ! -f /usrRTLDDIR/RTLD_SO ]; then
+        rm /usrRTLDDIR/RTLD_SO
     fi
 fi
 

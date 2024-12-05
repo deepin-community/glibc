@@ -1,4 +1,4 @@
 etc/ld.so.conf.d
-lib*/ld*.so*
-lib/*/*.so*
+RTLDDIR/ld*.so* /usrRTLDDIR
+SLIBDIR/*.so* /usrSLIBDIR
 usr/lib/*/gconv
