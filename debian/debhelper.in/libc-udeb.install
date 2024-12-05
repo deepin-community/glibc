@@ -1,11 +1,11 @@
-lib*/ld*.so*
-lib/*/ld*.so*
-lib/*/libm.so.*
-lib/*/libmvec.so.*
-lib/*/libdl.so.*
-lib/*/libresolv.so.*
-lib/*/libc.so.*
-lib/*/librt.so.*
-lib/*/libpthread.so.*
-lib/*/libnss_dns.so.*
-lib/*/libnss_files.so.*
+RTLDDIR/ld*.so* /usrRTLDDIR
+SLIBDIR/ld*.so* /usrSLIBDIR
+SLIBDIR/libm.so.* /usrSLIBDIR
+SLIBDIR/libmvec.so.* /usrSLIBDIR
+SLIBDIR/libdl.so.* /usrSLIBDIR
+SLIBDIR/libresolv.so.* /usrSLIBDIR
+SLIBDIR/libc.so.* /usrSLIBDIR
+SLIBDIR/librt.so.* /usrSLIBDIR
+SLIBDIR/libpthread.so.* /usrSLIBDIR
+SLIBDIR/libnss_dns.so.* /usrSLIBDIR
+SLIBDIR/libnss_files.so.* /usrSLIBDIR

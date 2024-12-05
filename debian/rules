@@ -91,6 +91,7 @@ libdir=/usr/lib/$(DEB_HOST_MULTIARCH)
 mvec = no
 
 rtld_so=$(shell awk 'BEGIN {FS="="} /^ld\.so-version/ {print $$2}' $(DEB_BUILDDIR)/soversions.mk)
+rtld_target=$(shell readlink $(debian-tmp)$(rtlddir)/$(rtld_so))
 libc_so=$(shell awk 'BEGIN {FS="="} /^libc\.so-version/ {print "libc.so"$$2}' $(DEB_BUILDDIR)/soversions.mk)
 
 BASE_CC = gcc
