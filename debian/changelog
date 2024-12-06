@@ -1,3 +1,10 @@
+glibc (2.38-6deepin9) unstable; urgency=medium
+
+  * Declare Breaks against systemd and sysvinit (See: #1072373,
+    #1072375)
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Fri, 06 Dec 2024 16:14:54 +0800
+
 glibc (2.38-6deepin8) unstable; urgency=medium
 
   * DEP17: Move files to /usr.

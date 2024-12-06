@@ -165,7 +165,7 @@ Recommends: libidn2-0 (>= 2.0.5~)
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-any], libnss-nis, libnss-nisplus
 Provides: libc6-sparcv9b [sparc sparc64], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Conflicts: libc6-i686 [i386], libc6.1-alphaev67 [alpha]
-Breaks: nscd (<< 2.38), locales (<< 2.38), locales-all (<< 2.38), gnumach-image-1.8-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-486-dbg (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486-dbg (<< 2:1.8+git20210923~), hurd (<< 1:0.9.git20220301-2), python3-iptables (<< 1.0.0-2), fakechroot (<< 2.19-3.5), tinydns (<< 1:1.05-14), chrony (<< 4.2-3~), valgrind (<< 1:3.19.0-1~), firefox (<< 91~), firefox-esr (<< 91~)
+Breaks: nscd (<< 2.38), locales (<< 2.38), locales-all (<< 2.38), gnumach-image-1.8-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-486-dbg (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486-dbg (<< 2:1.8+git20210923~), hurd (<< 1:0.9.git20220301-2), python3-iptables (<< 1.0.0-2), fakechroot (<< 2.19-3.5), tinydns (<< 1:1.05-14), chrony (<< 4.2-3~), valgrind (<< 1:3.19.0-1~), firefox (<< 91~), firefox-esr (<< 91~), systemd (<< 255.2-4deepin4~), sysvinit (<< 3.09-2~)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
           libc0.3-i686 [hurd-i386],
@@ -237,7 +237,7 @@ Recommends: libidn2-0 (>= 2.0.5~)
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-any], libnss-nis, libnss-nisplus
 Provides: libc6-sparcv9b [sparc sparc64], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Conflicts: libc6-i686 [i386], libc6.1-alphaev67 [alpha]
-Breaks: nscd (<< 2.38), locales (<< 2.38), locales-all (<< 2.38), gnumach-image-1.8-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-486-dbg (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486-dbg (<< 2:1.8+git20210923~), hurd (<< 1:0.9.git20220301-2), python3-iptables (<< 1.0.0-2), fakechroot (<< 2.19-3.5), tinydns (<< 1:1.05-14), chrony (<< 4.2-3~), valgrind (<< 1:3.19.0-1~), firefox (<< 91~), firefox-esr (<< 91~)
+Breaks: nscd (<< 2.38), locales (<< 2.38), locales-all (<< 2.38), gnumach-image-1.8-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-486-dbg (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486-dbg (<< 2:1.8+git20210923~), hurd (<< 1:0.9.git20220301-2), python3-iptables (<< 1.0.0-2), fakechroot (<< 2.19-3.5), tinydns (<< 1:1.05-14), chrony (<< 4.2-3~), valgrind (<< 1:3.19.0-1~), firefox (<< 91~), firefox-esr (<< 91~), systemd (<< 255.2-4deepin4~), sysvinit (<< 3.09-2~)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
           libc0.3-i686 [hurd-i386],
@@ -309,7 +309,7 @@ Recommends: libidn2-0 (>= 2.0.5~)
 Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales [!hurd-any], libnss-nis, libnss-nisplus
 Provides: libc6-sparcv9b [sparc sparc64], libc0.3-i686 [hurd-i386], libc6-i686 [i386]
 Conflicts: libc6-i686 [i386], libc6.1-alphaev67 [alpha]
-Breaks: nscd (<< 2.38), locales (<< 2.38), locales-all (<< 2.38), gnumach-image-1.8-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-486-dbg (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486-dbg (<< 2:1.8+git20210923~), hurd (<< 1:0.9.git20220301-2), python3-iptables (<< 1.0.0-2), fakechroot (<< 2.19-3.5), tinydns (<< 1:1.05-14), chrony (<< 4.2-3~), valgrind (<< 1:3.19.0-1~), firefox (<< 91~), firefox-esr (<< 91~)
+Breaks: nscd (<< 2.38), locales (<< 2.38), locales-all (<< 2.38), gnumach-image-1.8-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-486-dbg (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486-dbg (<< 2:1.8+git20210923~), hurd (<< 1:0.9.git20220301-2), python3-iptables (<< 1.0.0-2), fakechroot (<< 2.19-3.5), tinydns (<< 1:1.05-14), chrony (<< 4.2-3~), valgrind (<< 1:3.19.0-1~), firefox (<< 91~), firefox-esr (<< 91~), systemd (<< 255.2-4deepin4~), sysvinit (<< 3.09-2~)
 Replaces: libc6-amd64 [amd64],
           libc6-i386 [i386],
           libc0.3-i686 [hurd-i386],
