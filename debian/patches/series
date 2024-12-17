@@ -156,3 +156,5 @@ loong64/0045-loongarch-Remove-duplicate-strnlen-in-libc.a-BZ-3178.patch
 loong64/0046-LoongArch-Change-tunable-for-2.38.patch
 loong64/0047-nptl-Add-thread_pointer.h-for-LoongArch.patch
 loong64/0048-nptl-fix-__builtin_thread_pointer-detection-on-Loong.patch
+
+iconvdata/add_GB18030-2022_charmap_and_test_the_entire_GB18030_charmap.patch
