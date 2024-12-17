@@ -1,3 +1,9 @@
+glibc (2.38-6deepin10) unstable; urgency=medium
+
+  * Add GB18030-2022 support from upstream.
+
+ -- renbin <renbin@uniontech.com>  Mon, 23 Dec 2024 09:32:45 +0800
+
 glibc (2.38-6deepin9) unstable; urgency=medium
 
   * Declare Breaks against systemd and sysvinit (See: #1072373,
