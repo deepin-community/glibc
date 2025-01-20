@@ -1,0 +1,50 @@
+From e2792bd9be6e2df3b12e887b90f0daebad971d4a Mon Sep 17 00:00:00 2001
+From: MayShao-oc <mayshao-oc@zhaoxin.com>
+Date: Thu, 16 Jan 2025 14:22:44 +0800
+Subject: [PATCH 3/3] x86: Set default non_temporal_threshold for Zhaoxin
+ processors
+
+Current 'non_temporal_threshold' set to 'non_temporal_threshold_lowbound'
+on Zhaoxin processors without ERMS. The default
+'non_temporal_threshold_lowbound' is too small for the KH-40000 and KX-7000
+Zhaoxin processors, this patch updates the value to
+'shared / cachesize_non_temporal_divisor'.
+
+Signed-off-by: MayShao-oc <mayshao-oc@zhaoxin.com>
+---
+ sysdeps/x86/cpu-features.c | 1 +
+ sysdeps/x86/dl-cacheinfo.h | 6 ++++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/sysdeps/x86/cpu-features.c b/sysdeps/x86/cpu-features.c
+index 43b5f562..f752ebd2 100644
+--- a/sysdeps/x86/cpu-features.c
++++ b/sysdeps/x86/cpu-features.c
+@@ -949,6 +949,7 @@ https://www.intel.com/content/www/us/en/support/articles/000059422/processors.ht
+ 
+ 	      /* Yongfeng and Shijidadao mircoarch tuning.  */
+ 	    case 0x5b:
++	      cpu_features->cachesize_non_temporal_divisor = 2;
+ 	    case 0x6b:
+ 	      cpu_features->preferred[index_arch_AVX_Fast_Unaligned_Load]
+ 		  &= ~bit_arch_AVX_Fast_Unaligned_Load;
+diff --git a/sysdeps/x86/dl-cacheinfo.h b/sysdeps/x86/dl-cacheinfo.h
+index cd4d0351..2c5b6d69 100644
+--- a/sysdeps/x86/dl-cacheinfo.h
++++ b/sysdeps/x86/dl-cacheinfo.h
+@@ -769,8 +769,10 @@ dl_init_cacheinfo (struct cpu_features *cpu_features)
+   /* If no ERMS, we use the per-thread L3 chunking. Normal cacheable stores run
+      a higher risk of actually thrashing the cache as they don't have a HW LRU
+      hint. As well, their performance in highly parallel situations is
+-     noticeably worse.  */
+-  if (!CPU_FEATURE_USABLE_P (cpu_features, ERMS))
++     noticeably worse. Zhaoxin processors are an exception, the lowbound is not
++     suitable for them based on actual test data.  */
++  if (!CPU_FEATURE_USABLE_P (cpu_features, ERMS)
++      && cpu_features->basic.kind != arch_kind_zhaoxin)
+     non_temporal_threshold = non_temporal_threshold_lowbound;
+   /* SIZE_MAX >> 4 because memmove-vec-unaligned-erms right-shifts the value of
+      'x86_non_temporal_threshold' by `LOG_4X_MEMCPY_THRESH` (4) and it is best
+-- 
+2.27.0
+
