@@ -1,0 +1,77 @@
+From bd766a57df22a8935470fa8e5f339947c0a11653 Mon Sep 17 00:00:00 2001
+From: MayShao-oc <mayshao-oc@zhaoxin.com>
+Date: Thu, 16 Jan 2025 14:15:31 +0800
+Subject: [PATCH 2/3] x86_64: Optimize large size copy in memmove-ssse3
+
+This patch optimizes large size copy using normal store when src > dst
+and overlap.  Make it the same as the logic in memmove-vec-unaligned-erms.S.
+
+Current memmove-ssse3 use '__x86_shared_cache_size_half' as the non-
+temporal threshold, this patch updates that value to
+'__x86_shared_non_temporal_threshold'.  Currently, the
+__x86_shared_non_temporal_threshold is cpu-specific, and different CPUs
+will have different values based on the related nt-benchmark results.
+However, in memmove-ssse3, the nontemporal threshold uses
+'__x86_shared_cache_size_half', which sounds unreasonable.
+
+The performance is not changed drastically although shows overall
+improvements without any major regressions or gains.
+
+Results on Zhaoxin KX-7000:
+
+bench-memcpy geometric_mean(N=20) New / Original: 0.999
+bench-memcpy-random geometric_mean(N=20) New / Original: 0.999
+bench-memcpy-large geometric_mean(N=20) New / Original: 0.978
+bench-memmove geometric_mean(N=20) New / Original: 1.000
+bench-memmmove-large geometric_mean(N=20) New / Original: 0.962
+
+Results on Intel Core i5-6600K:
+
+bench-memcpy geometric_mean(N=20) New / Original: 1.001
+bench-memcpy-random geometric_mean(N=20) New / Original: 0.999
+bench-memcpy-large geometric_mean(N=20) New / Original: 1.001
+bench-memmove geometric_mean(N=20) New / Original: 0.995
+bench-memmmove-large geometric_mean(N=20) New / Original: 0.936
+
+Signed-off-by: MayShao-oc <mayshao-oc@zhaoxin.com>
+---
+ sysdeps/x86_64/multiarch/memmove-ssse3.S | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/sysdeps/x86_64/multiarch/memmove-ssse3.S b/sysdeps/x86_64/multiarch/memmove-ssse3.S
+index 460b0ec0..69561628 100644
+--- a/sysdeps/x86_64/multiarch/memmove-ssse3.S
++++ b/sysdeps/x86_64/multiarch/memmove-ssse3.S
+@@ -151,13 +151,10 @@ L(more_2x_vec):
+ 	   loop.  */
+ 	movups	%xmm0, (%rdi)
+ 
+-# ifdef SHARED_CACHE_SIZE_HALF
+-	cmp	$SHARED_CACHE_SIZE_HALF, %RDX_LP
+-# else
+-	cmp	__x86_shared_cache_size_half(%rip), %rdx
+-# endif
++	cmp	__x86_shared_non_temporal_threshold(%rip), %rdx
+ 	ja	L(large_memcpy)
+ 
++L(loop_fwd):
+ 	leaq	-64(%rdi, %rdx), %r8
+ 	andq	$-16, %rdi
+ 	movl	$48, %edx
+@@ -199,6 +196,13 @@ L(large_memcpy):
+ 	movups	-64(%r9, %rdx), %xmm10
+ 	movups	-80(%r9, %rdx), %xmm11
+ 
++	/* Check if src and dst overlap. If they do use cacheable
++	   writes to potentially gain positive interference between
++	   the loads during the memmove.  */
++	subq	%rdi, %r9
++	cmpq	%rdx, %r9
++	jb	L(loop_fwd)
++
+ 	sall	$5, %ecx
+ 	leal	(%rcx, %rcx, 2), %r8d
+ 	leaq	-96(%rdi, %rdx), %rcx
+-- 
+2.27.0
+
