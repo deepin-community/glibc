@@ -1,3 +1,9 @@
+glibc (2.38-6deepin12) unstable; urgency=medium
+
+  * x86:Set preferred CPU features and default NT threshold for Zhaoxin processors.
+
+ -- May Shao <mayshao-oc@zhaoxin.com>  Mon, 20 Jan 2025 15:20:32 +0800
+
 glibc (2.38-6deepin11) unstable; urgency=medium
 
   * LoongArch: Force SHMLBA the same as kernel
