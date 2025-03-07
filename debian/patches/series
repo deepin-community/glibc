@@ -163,3 +163,5 @@ iconvdata/add_GB18030-2022_charmap_and_test_the_entire_GB18030_charmap.patch
 zhaoxin/0001-x86-Set-preferred-CPU-features-on-the-KH-40000-and-K.patch
 zhaoxin/0002-x86_64-Optimize-large-size-copy-in-memmove-ssse3.patch
 zhaoxin/0003-x86-Set-default-non_temporal_threshold-for-Zhaoxin-p.patch
+
+localedata/Unicode_15_1_0_support.patch
