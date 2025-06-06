@@ -1,3 +1,9 @@
+glibc (2.38-6deepin15) unstable; urgency=medium
+
+  * feat: add sw64 support 
+
+ -- hudeng <hudeng@deepin.org>  Thu, 24 Jul 2025 10:58:24 +0800
+
 glibc (2.38-6deepin14) unstable; urgency=medium
 
   * add patch from ultrarisc to fix issue with npctl/pthread_mutex_lock.c

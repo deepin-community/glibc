@@ -3,7 +3,7 @@ libc0_3_archs := hurd-i386 hurd-amd64
 libc6_archs   := amd64 arc arm64 armel armhf hppa i386 loong64 m68k \
                  mips mipsel mipsn32 mipsn32el mips64 mips64el mipsr6 mipsr6el \
                  mipsn32r6 mipsn32r6el mips64r6 mips64r6el nios2 powerpc ppc64 ppc64el riscv64 \
-                 sparc sparc64 s390x sh3 sh4 x32
+                 sparc sparc64 s390x sh3 sh4 sw64 x32
 libc6_1_archs := alpha ia64
 
 control_deps := $(wildcard debian/control.in/*) $(addprefix debian/control.in/, $(libc_packages))

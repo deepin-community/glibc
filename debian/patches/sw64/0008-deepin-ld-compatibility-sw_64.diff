@@ -1,0 +1,94 @@
+diff --git a/elf/dl-load.c b/elf/dl-load.c
+index 9a87fda9..ff2116b6 100644
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -1937,6 +1937,74 @@ open_path (const char *name, size_t namelen, int mode,
+   return -1;
+ }
+ 
++#ifdef __sw_64__
++/* Check if it is shims for old sunway elf.
++ * Note: it assumes that name is not equal soname. */
++static int
++_is_sunway_shims(const char *name, const char *soname)
++{
++  const char *shimList = "ld-linux.so.2\
++libm.so.6.1\
++libc.so.6.1\
++libdl.so.2.1\
++libutil.so.1.1\
++libresolv.so.2.1\
++libnsl.so.1.1\
++libcrypt.so.1.1\
++libBrokenLocale.so.1.1";
++
++  int ret = 0;
++  char *pos = strstr (shimList, name);
++  if (__glibc_unlikely (pos != NULL))
++    {
++      int i = pos - shimList;
++      switch (i)
++        {
++        case 0:
++          if (strcmp (soname, "ld-linux-sw-64.so.2") == 0)
++            ret = 1;
++         break;
++        case 13:
++          if (strcmp (soname, "libm.so.6") == 0)
++            ret = 1;
++          break;
++        case 24:
++          if (strcmp (soname, "libc.so.6") == 0)
++            ret = 1;
++          break;
++        case 35:
++          if (strcmp (soname, "libdl.so.2") == 0)
++            ret = 1;
++          break;
++        case 47:
++          if (strcmp (soname, "libutil.so.1") == 0)
++            ret = 1;
++          break;
++        case 61:
++          if (strcmp (soname, "libresolv.so.2") == 0)
++            ret = 1;
++          break;
++        case 77:
++          if (strcmp (soname, "libnsl.so.1") == 0)
++            ret = 1;
++          break;
++        case 90:
++          if (strcmp (soname, "libcrypt.so.1") == 0)
++            ret = 1;
++          break;
++        case 105:
++          if (strcmp (soname, "libBrokenLocale.so.1") == 0)
++            ret = 1;
++          break;
++        default:
++          break;
++        }
++    }
++
++  return ret;
++}
++#endif
++
+ /* Map in the shared object file NAME.  */
+ 
+ struct link_map *
+@@ -1972,10 +2040,13 @@ _dl_map_object (struct link_map *loader, const char *name,
+ 	  soname = ((const char *) D_PTR (l, l_info[DT_STRTAB])
+ 		    + l->l_info[DT_SONAME]->d_un.d_val);
+ 	  if (strcmp (name, soname) != 0)
++#ifdef __sw_64__
++            if (_is_sunway_shims(name, soname) == 0)
++#endif
+ 	    continue;
+ 
+ 	  /* We have a match on a new name -- cache it.  */
+-	  add_name_to_object (l, soname);
++	  add_name_to_object (l, name);
+ 	  l->l_soname_added = 1;
+ 	}
+ 

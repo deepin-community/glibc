@@ -1,0 +1,8 @@
+sw64/0001-feat-merge-sunway-patch-manually.patch
+sw64/0002-chore-clean-up-sunway-code.patch
+sw64/0003-feat-use-generic-implement-for-rt_sigaction-in-sunwa.patch
+sw64/0004-feat-add-lib64-support-for-sunway.patch
+sw64/0005-typo-correct-.arch-identifier.patch
+sw64/0006-fix-arch-guest-scripts.patch
+sw64/0007-submitted-dl-support.diff
+sw64/0008-deepin-ld-compatibility-sw_64.diff

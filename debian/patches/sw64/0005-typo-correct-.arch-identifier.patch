@@ -1,0 +1,95 @@
+From 090f56b30acfd6d0a655c084c65270440289cc27 Mon Sep 17 00:00:00 2001
+From: Changwei Miao <miaochangwei@uniontech.com>
+Date: Tue, 29 Oct 2024 00:20:54 +0800
+Subject: [PATCH 5/6] typo: correct .arch identifier.
+
+---
+ sysdeps/sw_64/sw6b/memcpy.S  | 2 +-
+ sysdeps/sw_64/sw6b/stxcpy.S  | 2 +-
+ sysdeps/sw_64/sw6b/stxncpy.S | 2 +-
+ sysdeps/sw_64/sw8a/memcpy.S  | 2 +-
+ sysdeps/sw_64/sw8a/stxcpy.S  | 2 +-
+ sysdeps/sw_64/sw8a/stxncpy.S | 2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/sysdeps/sw_64/sw6b/memcpy.S b/sysdeps/sw_64/sw6b/memcpy.S
+index e277839c..5c3bd8b4 100644
+--- a/sysdeps/sw_64/sw6b/memcpy.S
++++ b/sysdeps/sw_64/sw6b/memcpy.S
+@@ -33,7 +33,7 @@
+ 
+ #include <sysdep.h>
+ 
+-	.arch ev6
++	.arch sw6b
+ 	.set noreorder
+ 	.set noat
+         
+diff --git a/sysdeps/sw_64/sw6b/stxcpy.S b/sysdeps/sw_64/sw6b/stxcpy.S
+index a3cca303..b15e7c18 100644
+--- a/sysdeps/sw_64/sw6b/stxcpy.S
++++ b/sysdeps/sw_64/sw6b/stxcpy.S
+@@ -38,7 +38,7 @@
+ 
+ #include <sysdep.h>
+ 
+-	.arch ev6
++	.arch sw6b
+ 	.set noat
+ 	.set noreorder
+ 
+diff --git a/sysdeps/sw_64/sw6b/stxncpy.S b/sysdeps/sw_64/sw6b/stxncpy.S
+index 2675d179..161fc85a 100644
+--- a/sysdeps/sw_64/sw6b/stxncpy.S
++++ b/sysdeps/sw_64/sw6b/stxncpy.S
+@@ -45,7 +45,7 @@
+ 
+ #include <sysdep.h>
+ 
+-	.arch ev6
++	.arch sw6b
+ 	.set noat
+ 	.set noreorder
+ 
+diff --git a/sysdeps/sw_64/sw8a/memcpy.S b/sysdeps/sw_64/sw8a/memcpy.S
+index 8a7b7d12..20bb6e2c 100644
+--- a/sysdeps/sw_64/sw8a/memcpy.S
++++ b/sysdeps/sw_64/sw8a/memcpy.S
+@@ -33,7 +33,7 @@
+ 
+ #include <sysdep.h>
+ 
+-#	.arch ev6
++#	.arch sw8a
+ 	.set noreorder
+ 	.set noat
+  	.align  4
+diff --git a/sysdeps/sw_64/sw8a/stxcpy.S b/sysdeps/sw_64/sw8a/stxcpy.S
+index a3cca303..bec12c94 100644
+--- a/sysdeps/sw_64/sw8a/stxcpy.S
++++ b/sysdeps/sw_64/sw8a/stxcpy.S
+@@ -38,7 +38,7 @@
+ 
+ #include <sysdep.h>
+ 
+-	.arch ev6
++	.arch sw8a
+ 	.set noat
+ 	.set noreorder
+ 
+diff --git a/sysdeps/sw_64/sw8a/stxncpy.S b/sysdeps/sw_64/sw8a/stxncpy.S
+index 2675d179..e9cdc297 100644
+--- a/sysdeps/sw_64/sw8a/stxncpy.S
++++ b/sysdeps/sw_64/sw8a/stxncpy.S
+@@ -45,7 +45,7 @@
+ 
+ #include <sysdep.h>
+ 
+-	.arch ev6
++	.arch sw8a
+ 	.set noat
+ 	.set noreorder
+ 
+-- 
+2.20.1
+
