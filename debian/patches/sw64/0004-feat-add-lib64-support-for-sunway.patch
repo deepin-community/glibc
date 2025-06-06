@@ -1,0 +1,214 @@
+From 784a4d3f05502fe3bfaab95b3e0bd872de014d62 Mon Sep 17 00:00:00 2001
+From: Changwei Miao <miaochangwei@uniontech.com>
+Date: Tue, 29 Oct 2024 00:07:25 +0800
+Subject: [PATCH 4/6] feat: add lib64 support for sunway.
+
+---
+ elf/cache.c                                  |  3 +
+ sysdeps/generic/ldconfig.h                   |  1 +
+ sysdeps/unix/sysv/linux/sw_64/configure      | 13 +++++
+ sysdeps/unix/sysv/linux/sw_64/configure.ac   |  2 +
+ sysdeps/unix/sysv/linux/sw_64/dl-cache.h     | 46 +++++++++++++++
+ sysdeps/unix/sysv/linux/sw_64/readelflib.c   | 59 ++++++++++++++++++++
+ sysdeps/unix/sysv/linux/sw_64/shlib-versions | 15 +----
+ 7 files changed, 125 insertions(+), 14 deletions(-)
+ create mode 100644 sysdeps/unix/sysv/linux/sw_64/dl-cache.h
+ create mode 100644 sysdeps/unix/sysv/linux/sw_64/readelflib.c
+
+diff --git a/elf/cache.c b/elf/cache.c
+index 8149f889..83f22b9d 100644
+--- a/elf/cache.c
++++ b/elf/cache.c
+@@ -231,6 +231,9 @@ print_entry (const char *lib, int flag, uint64_t hwcap,
+     case FLAG_LARCH_FLOAT_ABI_DOUBLE:
+       fputs (",double-float", stdout);
+       break;
++    case FLAG_SW64_LIB64:
++      fputs (",SW-64", stdout);
++      break;
+     case 0:
+       break;
+     default:
+diff --git a/sysdeps/generic/ldconfig.h b/sysdeps/generic/ldconfig.h
+index 59da12ad..ef03fd39 100644
+--- a/sysdeps/generic/ldconfig.h
++++ b/sysdeps/generic/ldconfig.h
+@@ -47,6 +47,7 @@
+ #define FLAG_RISCV_FLOAT_ABI_DOUBLE	0x1000
+ #define FLAG_LARCH_FLOAT_ABI_SOFT	0x1100
+ #define FLAG_LARCH_FLOAT_ABI_DOUBLE	0x1200
++#define FLAG_SW64_LIB64			0x3000
+ 
+ /* Name of auxiliary cache.  */
+ #define _PATH_LDCONFIG_AUX_CACHE "/var/cache/ldconfig/aux-cache"
+diff --git a/sysdeps/unix/sysv/linux/sw_64/configure b/sysdeps/unix/sysv/linux/sw_64/configure
+index a8d00a78..5e0e85f9 100644
+--- a/sysdeps/unix/sysv/linux/sw_64/configure
++++ b/sysdeps/unix/sysv/linux/sw_64/configure
+@@ -3,3 +3,16 @@
+ 
+ # We did historically export the unwinder from glibc.
+ libc_cv_gcc_unwind_find_fde=yes
++
++test -n "$libc_cv_slibdir" ||
++case "$prefix" in
++/usr | /usr/)
++  libc_cv_slibdir='/lib64'
++  libc_cv_rtlddir='/lib'
++  if test "$libdir" = '${exec_prefix}/lib'; then
++    libdir='${exec_prefix}/lib64';
++    # Locale data cann be shared between 32-bit and 64-bit libraries.
++    libc_cv_complocaledir='${exec_prefix}/lib/locale'
++  fi
++  ;;
++esac
+diff --git a/sysdeps/unix/sysv/linux/sw_64/configure.ac b/sysdeps/unix/sysv/linux/sw_64/configure.ac
+index d837c72e..3d817e77 100644
+--- a/sysdeps/unix/sysv/linux/sw_64/configure.ac
++++ b/sysdeps/unix/sysv/linux/sw_64/configure.ac
+@@ -3,3 +3,5 @@ GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
+ 
+ # We did historically export the unwinder from glibc.
+ libc_cv_gcc_unwind_find_fde=yes
++
++LIBC_SLIBDIR_RTLDDIR([lib64], [lib])
+diff --git a/sysdeps/unix/sysv/linux/sw_64/dl-cache.h b/sysdeps/unix/sysv/linux/sw_64/dl-cache.h
+new file mode 100644
+index 00000000..d086bed4
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/sw_64/dl-cache.h
+@@ -0,0 +1,46 @@
++/* Support for reading /etc/ld.so.cache files written by Linux ldconfig.
++   Copyright (C) 2003-2023 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library.  If not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <ldconfig.h>
++
++# define _DL_CACHE_DEFAULT_ID    (FLAG_SW64_LIB64 | FLAG_ELF_LIBC6)
++
++#define _dl_cache_check_flags(flags)                    \
++  ((flags) == _DL_CACHE_DEFAULT_ID			\
++   || (flags) == FLAG_ELF_LIBC6)
++
++#define add_system_dir(dir) \
++  do								\
++    {								\
++      size_t len = strlen (dir);				\
++      char path[len + 6];					\
++      memcpy (path, dir, len + 1);				\
++      if (len >= 6 && ! memcmp (path + len - 6, "/lib64", 6))	\
++	{							\
++	  len -= 2;						\
++	  path[len] = '\0';					\
++	}							\
++      add_dir (path);						\
++      if (len >= 4 && ! memcmp (path + len - 4, "/lib", 4))	\
++	{							\
++	  memcpy (path + len, "64", 3);				\
++	  add_dir (path);					\
++	}							\
++    } while (0)
++
++#include_next <dl-cache.h>
+diff --git a/sysdeps/unix/sysv/linux/sw_64/readelflib.c b/sysdeps/unix/sysv/linux/sw_64/readelflib.c
+new file mode 100644
+index 00000000..22dd6af5
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/sw_64/readelflib.c
+@@ -0,0 +1,59 @@
++/* Copyright (C) 2022-2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++
++int process_elf32_file (const char *file_name, const char *lib,
++			int *flag, unsigned int *isa_level, char **soname,
++			void *file_contents, size_t file_length);
++int process_elf64_file (const char *file_name, const char *lib,
++			int *flag, unsigned int *isa_level, char **soname,
++			void *file_contents, size_t file_length);
++
++/* Returns 0 if everything is ok, != 0 in case of error.  */
++int
++process_elf_file (const char *file_name, const char *lib, int *flag,
++		  unsigned int *isa_level, char **soname, void *file_contents,
++		  size_t file_length)
++{
++  ElfW(Ehdr) *elf_header = (ElfW(Ehdr) *) file_contents;
++  int ret;
++
++  if (elf_header->e_ident [EI_CLASS] == ELFCLASS32)
++    return process_elf32_file (file_name, lib, flag, isa_level, soname,
++		    		file_contents, file_length);
++  else
++    {
++      ret = process_elf64_file (file_name, lib, flag, isa_level, soname,
++		      		file_contents, file_length);
++      /* Sunway 64bit libraries are always libc.so.6+.  */
++      if (!ret)
++	*flag = FLAG_SW64_LIB64|FLAG_ELF_LIBC6;
++      return ret;
++    }
++}
++
++#undef __ELF_NATIVE_CLASS
++#undef process_elf_file
++#define process_elf_file process_elf32_file
++#define __ELF_NATIVE_CLASS 32
++#include "elf/readelflib.c"
++
++#undef __ELF_NATIVE_CLASS
++#undef process_elf_file
++#define process_elf_file process_elf64_file
++#define __ELF_NATIVE_CLASS 64
++#include "elf/readelflib.c"
+diff --git a/sysdeps/unix/sysv/linux/sw_64/shlib-versions b/sysdeps/unix/sysv/linux/sw_64/shlib-versions
+index cd913c25..fdcd19c4 100644
+--- a/sysdeps/unix/sysv/linux/sw_64/shlib-versions
++++ b/sysdeps/unix/sysv/linux/sw_64/shlib-versions
+@@ -1,14 +1 @@
+-libm=6.1
+-libc=6.1
+-
+-ld=ld-linux.so.2
+-
+-libdl=2.1
+-
+-libutil=1.1
+-
+-libresolv=2.1
+-
+-libnsl=1.1
+-libcrypt=1.1
+-libBrokenLocale=1.1
++ld=ld-linux-sw-64.so.2
+-- 
+2.20.1
+
