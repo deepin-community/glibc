@@ -1,0 +1,79 @@
+From b6a6e1d6b781b986f0c7cc66c826ff1b796ca5de Mon Sep 17 00:00:00 2001
+From: Lixing <lixing@loongson.cn>
+Date: Tue, 17 Jun 2025 11:18:24 +0000
+Subject: [PATCH] LoongArch: Disable memcpy and memmove optimization for LA464
+
+---
+ sysdeps/loongarch/lp64/multiarch/ifunc-lasx.h | 31 +++++++++++++++++++
+ sysdeps/loongarch/lp64/multiarch/memcpy.c     |  2 +-
+ sysdeps/loongarch/lp64/multiarch/memmove.c    |  2 +-
+ 3 files changed, 33 insertions(+), 2 deletions(-)
+
+diff --git a/sysdeps/loongarch/lp64/multiarch/ifunc-lasx.h b/sysdeps/loongarch/lp64/multiarch/ifunc-lasx.h
+index 3be67da6..d9f14034 100644
+--- a/sysdeps/loongarch/lp64/multiarch/ifunc-lasx.h
++++ b/sysdeps/loongarch/lp64/multiarch/ifunc-lasx.h
+@@ -43,3 +43,34 @@ IFUNC_SELECTOR (void)
+   else
+     return OPTIMIZE (aligned);
+ }
++
++static uint32_t __cpucfg(int index) {
++  uint32_t ret;
++  asm volatile ("cpucfg %0, %1\n"
++                :"=r"(ret)
++                :"r"(index)
++	);
++  return ret;
++}
++
++static inline void *
++IFUNC_SELECTOR1 (void)
++{
++  uint32_t cpucfg_word = __cpucfg(0);
++  if ((cpucfg_word & 0xfffff0) == 0x14c010) {
++    if (SUPPORT_UAL)
++      return OPTIMIZE (unaligned);
++    return OPTIMIZE (aligned);
++  } else {
++#if !defined __loongarch_soft_float
++    if (SUPPORT_LASX)
++      return OPTIMIZE (lasx);
++    else if (SUPPORT_LSX)
++      return OPTIMIZE (lsx);
++    else
++#endif
++    if (SUPPORT_UAL)
++      return OPTIMIZE (unaligned);
++    return OPTIMIZE (aligned);
++  }
++}
+diff --git a/sysdeps/loongarch/lp64/multiarch/memcpy.c b/sysdeps/loongarch/lp64/multiarch/memcpy.c
+index 93b238ce..bc8d2d0f 100644
+--- a/sysdeps/loongarch/lp64/multiarch/memcpy.c
++++ b/sysdeps/loongarch/lp64/multiarch/memcpy.c
+@@ -27,7 +27,7 @@
+ # include "ifunc-lasx.h"
+ 
+ libc_ifunc_redirected (__redirect_memcpy, memcpy,
+-		       IFUNC_SELECTOR ());
++		       IFUNC_SELECTOR1 ());
+ 
+ # ifdef SHARED
+ __hidden_ver1 (memcpy, __GI_memcpy, __redirect_memcpy)
+diff --git a/sysdeps/loongarch/lp64/multiarch/memmove.c b/sysdeps/loongarch/lp64/multiarch/memmove.c
+index 7e3ca4c4..24aebd12 100644
+--- a/sysdeps/loongarch/lp64/multiarch/memmove.c
++++ b/sysdeps/loongarch/lp64/multiarch/memmove.c
+@@ -27,7 +27,7 @@
+ # include "ifunc-lasx.h"
+ 
+ libc_ifunc_redirected (__redirect_memmove, __libc_memmove,
+-		       IFUNC_SELECTOR ());
++		       IFUNC_SELECTOR1 ());
+ strong_alias (__libc_memmove, memmove);
+ 
+ # ifdef SHARED
+-- 
+2.41.0
+

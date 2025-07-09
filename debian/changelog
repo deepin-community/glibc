@@ -1,3 +1,9 @@
+glibc (2.38-6deepin14) unstable; urgency=medium
+
+  * Disable memcpy and memmove optimization for LA464
+
+ -- Cryolitia <cryolitia@deepin.org>  Wed, 09 Jul 2025 13:49:18 +0800
+
 glibc (2.38-6deepin13) unstable; urgency=medium
 
   * feat: backport Unicode 15.1.0 support from glibc 2.39

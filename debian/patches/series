@@ -157,6 +157,7 @@ loong64/0046-LoongArch-Change-tunable-for-2.38.patch
 loong64/0047-nptl-Add-thread_pointer.h-for-LoongArch.patch
 loong64/0048-nptl-fix-__builtin_thread_pointer-detection-on-Loong.patch
 loong64/0049-LoongArch-Force-SHMLBA-the-same-as-kernel.patch
+loong64/0050-LoongArch-Disable-memcpy-and-memmove-optimization-fo.patch
 
 iconvdata/add_GB18030-2022_charmap_and_test_the_entire_GB18030_charmap.patch
 
