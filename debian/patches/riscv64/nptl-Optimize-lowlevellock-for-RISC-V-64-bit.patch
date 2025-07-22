@@ -1,0 +1,127 @@
+From bf46ab94062eec57e8d04c3b170a25f5ed7b0f97 Mon Sep 17 00:00:00 2001
+From: dengtianmai <dengtianmai@ultrarisc.com>
+Date: Tue, 1 Jul 2025 15:37:35 +0800
+Subject: [PATCH] nptl: Optimize lowlevellock for RISC-V 64-bit
+
+Use compare-and-exchange operations instead of atomic_exchange_acquire
+for RISC-V 64-bit to reduce unnecessary writes and cache coherency traffic.
+This optimization leverages RISC-V's LR/SC instruction characteristics
+for better performance on conditional atomic operations.
+
+* nptl/lowlevellock.c (__lll_lock_wait_private): Use
+  atomic_compare_and_exchange_* for RISC-V 64-bit.
+  (__lll_lock_wait): Likewise.
+* sysdeps/nptl/lowlevellock.h (__lll_cond_lock): Likewise.
+* sysdeps/nptl/futex-internal.h (__futex_clocklock64): Likewise.
+* sysdeps/unix/sysv/linux/riscv/atomic-machine.h : Enable CAS atomic.
+---
+ nptl/lowlevellock.c                            | 14 ++++++++++++++
+ sysdeps/nptl/futex-internal.h                  |  7 +++++++
+ sysdeps/nptl/lowlevellock.h                    | 17 +++++++++++++++++
+ sysdeps/unix/sysv/linux/riscv/atomic-machine.h |  2 +-
+ 4 files changed, 39 insertions(+), 1 deletion(-)
+
+diff --git a/nptl/lowlevellock.c b/nptl/lowlevellock.c
+index 0b6da319..e1d3fe8b 100644
+--- a/nptl/lowlevellock.c
++++ b/nptl/lowlevellock.c
+@@ -27,7 +27,14 @@ __lll_lock_wait_private (int *futex)
+   if (atomic_load_relaxed (futex) == 2)
+     goto futex;
+ 
++#if defined(__riscv) && (__riscv_xlen == 64)
++/* Use compare-and-exchange for RISC-V 64-bit:
++ * better lock performance and stability */
++  atomic_compare_and_exchange_val_acq (futex, 2, 1);
++  while (atomic_compare_and_exchange_bool_acq (futex, 2, 0))
++#else
+   while (atomic_exchange_acquire (futex, 2) != 0)
++#endif
+     {
+     futex:
+       LIBC_PROBE (lll_lock_wait_private, 1, futex);
+@@ -42,7 +49,14 @@ __lll_lock_wait (int *futex, int private)
+   if (atomic_load_relaxed (futex) == 2)
+     goto futex;
+ 
++#if defined(__riscv) && (__riscv_xlen == 64)
++/* Use compare-and-exchange for RISC-V 64-bit:
++ * better lock performance and stability */
++  atomic_compare_and_exchange_val_acq (futex, 2, 1);
++  while (atomic_compare_and_exchange_bool_acq (futex, 2, 0))
++#else
+   while (atomic_exchange_acquire (futex, 2) != 0)
++#endif
+     {
+     futex:
+       LIBC_PROBE (lll_lock_wait, 1, futex);
+diff --git a/sysdeps/nptl/futex-internal.h b/sysdeps/nptl/futex-internal.h
+index 59e4901e..df127534 100644
+--- a/sysdeps/nptl/futex-internal.h
++++ b/sysdeps/nptl/futex-internal.h
+@@ -319,7 +319,14 @@ __futex_clocklock64 (int *futex, clockid_t clockid,
+ {
+   if (__glibc_unlikely (atomic_compare_and_exchange_bool_acq (futex, 1, 0)))
+     {
++#if defined(__riscv) && (__riscv_xlen == 64)
++/* Use compare-and-exchange for RISC-V 64-bit:
++ * better lock performance and stability */
++      atomic_compare_and_exchange_val_acq (futex, 2, 1);
++      while (atomic_compare_and_exchange_bool_acq (futex, 2, 0))
++#else
+       while (atomic_exchange_acquire (futex, 2) != 0)
++#endif
+         {
+ 	  int err = 0;
+           err = __futex_abstimed_wait64 ((unsigned int *) futex, 2, clockid,
+diff --git a/sysdeps/nptl/lowlevellock.h b/sysdeps/nptl/lowlevellock.h
+index 9ca504a6..e2a0f98f 100644
+--- a/sysdeps/nptl/lowlevellock.h
++++ b/sysdeps/nptl/lowlevellock.h
+@@ -115,6 +115,22 @@ libc_hidden_proto (__lll_lock_wait)
+    was 0 (not acquired) then return.  Otherwise, block until the lock is
+    acquired, at which point FUTEX is 2 (acquired, possibly with waiters).  The
+    lock is always acquired on return.  */
++#if defined(__riscv) && (__riscv_xlen == 64)
++/* RISC-V 64-bit optimized version:
++ * use compare-and-exchange for better lock performance and stability */
++#define __lll_cond_lock(futex, private)                                 \
++  ((void)                                                               \
++   ({                                                                   \
++     int *__futex = (futex);                                            \
++     if (__glibc_unlikely                                               \
++	 (atomic_compare_and_exchange_bool_acq (__futex, 2, 0)))        \
++       {                                                                \
++         atomic_compare_and_exchange_val_acq (__futex, 2, 1);           \
++         __lll_lock_wait (__futex, private);                            \
++       }                                                                \
++   }))
++#else
++/* Standard implementation for other architectures */
+ #define __lll_cond_lock(futex, private)                                 \
+   ((void)                                                               \
+    ({                                                                   \
+@@ -122,6 +138,7 @@ libc_hidden_proto (__lll_lock_wait)
+      if (__glibc_unlikely (atomic_exchange_acquire (__futex, 2) != 0))  \
+        __lll_lock_wait (__futex, private);                              \
+    }))
++#endif
+ #define lll_cond_lock(futex, private) __lll_cond_lock (&(futex), private)
+ 
+ 
+diff --git a/sysdeps/unix/sysv/linux/riscv/atomic-machine.h b/sysdeps/unix/sysv/linux/riscv/atomic-machine.h
+index 50ddc3bf..8a2fcf0b 100644
+--- a/sysdeps/unix/sysv/linux/riscv/atomic-machine.h
++++ b/sysdeps/unix/sysv/linux/riscv/atomic-machine.h
+@@ -25,7 +25,7 @@
+ 
+ # define __HAVE_64B_ATOMICS (__riscv_xlen >= 64)
+ # define USE_ATOMIC_COMPILER_BUILTINS 1
+-# define ATOMIC_EXCHANGE_USES_CAS 0
++# define ATOMIC_EXCHANGE_USES_CAS 1
+ 
+ /* Compare and exchange.
+    For all "bool" routines, we return FALSE if exchange successful.  */
+-- 
+2.43.0
+
