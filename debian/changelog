@@ -1,3 +1,10 @@
+glibc (2.38-6deepin14) unstable; urgency=medium
+
+  * add patch from ultrarisc to fix issue with npctl/pthread_mutex_lock.c
+  * add missing dependency libgdbm-compat-dev
+
+ -- Chang Yang <yangchang@deepin.org>  Tue, 22 Jul 2025 14:32:09 +0800
+
 glibc (2.38-6deepin13) unstable; urgency=medium
 
   * feat: backport Unicode 15.1.0 support from glibc 2.39
