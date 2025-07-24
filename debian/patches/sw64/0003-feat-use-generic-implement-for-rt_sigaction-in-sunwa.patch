@@ -1,0 +1,144 @@
+From 8faa9bbe26a844d98c19ea4b3831ba6de863c1f7 Mon Sep 17 00:00:00 2001
+From: Changwei Miao <miaochangwei@uniontech.com>
+Date: Mon, 28 Oct 2024 21:52:34 +0800
+Subject: [PATCH 3/6] feat: use generic implement for rt_sigaction in sunway.
+
+Unlike DEC/Alpha, sunway kernel does not provide a private
+rt_sigaction entry which requires 5th argument. So, customed
+sigaction function is meaningless.
+---
+ sysdeps/unix/sysv/linux/sw_64/Makefile        |  4 -
+ .../unix/sysv/linux/sw_64/kernel_sigaction.h  | 11 ---
+ sysdeps/unix/sysv/linux/sw_64/rt_sigaction.S  | 87 -------------------
+ 3 files changed, 102 deletions(-)
+ delete mode 100644 sysdeps/unix/sysv/linux/sw_64/kernel_sigaction.h
+ delete mode 100644 sysdeps/unix/sysv/linux/sw_64/rt_sigaction.S
+
+diff --git a/sysdeps/unix/sysv/linux/sw_64/Makefile b/sysdeps/unix/sysv/linux/sw_64/Makefile
+index 68cff24f..846a3bb6 100644
+--- a/sysdeps/unix/sysv/linux/sw_64/Makefile
++++ b/sysdeps/unix/sysv/linux/sw_64/Makefile
+@@ -11,10 +11,6 @@ sysdep_routines += ieee_get_fp_control ieee_set_fp_control \
+ CFLAGS-ioperm.c = -Wa,-msw6a
+ endif
+ 
+-ifeq ($(subdir),signal)
+-sysdep_routines += rt_sigaction
+-endif
+-
+ ifeq ($(subdir),math)
+ # These 2 routines are normally in libgcc{.a,_s.so.1}.
+ # However, sw_64 -mlong-double-128 libgcc relies on
+diff --git a/sysdeps/unix/sysv/linux/sw_64/kernel_sigaction.h b/sysdeps/unix/sysv/linux/sw_64/kernel_sigaction.h
+deleted file mode 100644
+index 679179b5..00000000
+--- a/sysdeps/unix/sysv/linux/sw_64/kernel_sigaction.h
++++ /dev/null
+@@ -1,11 +0,0 @@
+-#include <sysdeps/unix/sysv/linux/kernel_sigaction.h>
+-
+-void __syscall_rt_sigreturn (void) attribute_hidden;
+-void __syscall_sigreturn (void) attribute_hidden;
+-
+-#define STUB(act, sigsetsize) \
+-  (sigsetsize),						\
+-  (act) ? ((unsigned long)((act->sa_flags & SA_SIGINFO)	\
+-			    ? &__syscall_rt_sigreturn	\
+-			    : &__syscall_sigreturn))	\
+-	: 0
+diff --git a/sysdeps/unix/sysv/linux/sw_64/rt_sigaction.S b/sysdeps/unix/sysv/linux/sw_64/rt_sigaction.S
+deleted file mode 100644
+index 5aa76b44..00000000
+--- a/sysdeps/unix/sysv/linux/sw_64/rt_sigaction.S
++++ /dev/null
+@@ -1,87 +0,0 @@
+-/* Copyright (C) 1998-2021 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Richard Henderson <rth@cygnus.com>, 1998
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <https://www.gnu.org/licenses/>.  */
+-
+-#include <sysdep.h>
+-
+-/* To enable unwinding through the signal frame without special hackery
+-   elsewhere, describe the entire struct sigcontext with unwind info.
+-
+-   In order to minimize the size of the encoding, we set the CFA to the
+-   end of the sigcontext, which makes all of the registers have small
+-   negative offsets from that.  */
+-
+-	.macro SIGCONTEXT_REGS_I base, from=0
+-	cfi_offset (\from, \base + (4 + \from) * 8)
+-	.if	30-\from
+-	SIGCONTEXT_REGS_I \base, "(\from+1)"
+-	.endif
+-	.endm
+-
+-	.macro SIGCONTEXT_REGS_F base, from=32
+-	cfi_offset (\from, \base + (4 + 1 + \from) * 8)
+-	.if	62-\from
+-	SIGCONTEXT_REGS_F \base, "(\from+1)"
+-	.endif
+-	.endm
+-
+-	.macro SIGCONTEXT_REGS base
+-	SIGCONTEXT_REGS_I \base
+-	SIGCONTEXT_REGS_F \base
+-	cfi_offset (63, \base + (4 + 32 + 1 + 32) * 8)
+-	cfi_offset (64, \base + 2 * 8)
+-	.endm
+-
+-	cfi_startproc
+-	cfi_return_column (64)
+-	.cfi_signal_frame
+-	SIGCONTEXT_REGS -648
+-	cfi_def_cfa_offset (648)
+-
+-	/* While this frame is marked as a signal frame, that only applies
+-	   to how this return address is handled for the outer frame.
+-	   The return address that arrived here, from the inner frame, is
+-	   not marked as a signal frame and so the unwinder still tries to
+-	   fsubdract 1 to examine the presumed call insn.  Thus we must
+-	   extend the unwind info to a nop before the start.  */
+-	nop
+-	.align 4
+-
+-__syscall_sigreturn:
+-	mov	sp, a0
+-	ldi	v0, __NR_sigreturn
+-	sys_call 0x83
+-	.size	__syscall_sigreturn, .-__syscall_sigreturn
+-	.type	__syscall_sigreturn, @function
+-	.global __syscall_sigreturn;
+-	.hidden __syscall_sigreturn;
+-
+-	/* See above wrt including the nop.  */
+-	cfi_def_cfa_offset (176 + 648)
+-	nop
+-	.align 4
+-
+-__syscall_rt_sigreturn:
+-	mov	sp,a0
+-	ldi	v0,__NR_rt_sigreturn
+-	sys_call 0x83
+-	.size	__syscall_rt_sigreturn, .-__syscall_rt_sigreturn
+-	.type	__syscall_rt_sigreturn, @function
+-	.global __syscall_rt_sigreturn;
+-	.hidden __syscall_rt_sigreturn;
+-
+-	cfi_endproc
+-- 
+2.20.1
+

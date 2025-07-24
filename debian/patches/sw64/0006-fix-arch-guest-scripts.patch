@@ -1,0 +1,39 @@
+From c30ea1fd87d504c11667e18bf350da7fce4685eb Mon Sep 17 00:00:00 2001
+From: Changwei Miao <miaochangwei@uniontech.com>
+Date: Tue, 29 Oct 2024 00:24:15 +0800
+Subject: [PATCH 6/6] fix: arch guest scripts.
+
+---
+ scripts/config.guess | 3 +++
+ scripts/config.sub   | 1 +
+ 2 files changed, 4 insertions(+)
+
+diff --git a/scripts/config.guess b/scripts/config.guess
+index 1817bdce..3a4b34c0 100755
+--- a/scripts/config.guess
++++ b/scripts/config.guess
+@@ -1143,6 +1143,9 @@ EOF
+     sparc:Linux:*:* | sparc64:Linux:*:*)
+ 	GUESS=$UNAME_MACHINE-unknown-linux-$LIBC
+ 	;;
++    sw_64*:Linux:*:*)
++	GUESS=$UNAME_MACHINE-unknown-linux-$LIBC
++	;;
+     tile*:Linux:*:*)
+ 	GUESS=$UNAME_MACHINE-unknown-linux-$LIBC
+ 	;;
+diff --git a/scripts/config.sub b/scripts/config.sub
+index dba16e84..f5d0a946 100755
+--- a/scripts/config.sub
++++ b/scripts/config.sub
+@@ -1267,6 +1267,7 @@ case $cpu-$vendor in
+ 			| sparclite \
+ 			| sparcv8 | sparcv9 | sparcv9b | sparcv9v | sv1 | sx* \
+ 			| spu \
++			| sw_64* \
+ 			| tahoe \
+ 			| thumbv7* \
+ 			| tic30 | tic4x | tic54x | tic55x | tic6x | tic80 \
+-- 
+2.20.1
+

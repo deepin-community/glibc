@@ -1,0 +1,618 @@
+From 60116598ca6e99020e8a62752a615bd1515f1b28 Mon Sep 17 00:00:00 2001
+From: Changwei Miao <miaochangwei@uniontech.com>
+Date: Mon, 28 Oct 2024 21:20:12 +0800
+Subject: [PATCH 2/6] chore: clean up sunway code.
+
+- Delete useless osf_* files.
+- Improve subarch detection.
+- Delete ptrace.h, since it only works for osf.
+- Move regdef to sys/.
+---
+ sysdeps/sw_64/preconfigure                    |   7 +-
+ sysdeps/unix/sysv/linux/sw_64/Implies         |   2 -
+ sysdeps/unix/sysv/linux/sw_64/Makefile        |   7 +-
+ sysdeps/unix/sysv/linux/sw_64/osf_adjtime.c   | 131 ------------------
+ sysdeps/unix/sysv/linux/sw_64/osf_getitimer.c |  44 ------
+ sysdeps/unix/sysv/linux/sw_64/osf_getrusage.c |  39 ------
+ .../unix/sysv/linux/sw_64/osf_gettimeofday.c  |  48 -------
+ sysdeps/unix/sysv/linux/sw_64/osf_setitimer.c |  54 --------
+ .../unix/sysv/linux/sw_64/osf_settimeofday.c  |  50 -------
+ sysdeps/unix/sysv/linux/sw_64/osf_utimes.c    |  37 -----
+ sysdeps/unix/sysv/linux/sw_64/osf_wait4.c     |  41 ------
+ sysdeps/unix/sysv/linux/sw_64/sw_64/ptrace.h  |  18 ---
+ .../sysv/linux/sw_64/{sw_64 => sys}/regdef.h  |   0
+ sysdeps/unix/sysv/linux/sw_64/sysdep.h        |   2 +-
+ 14 files changed, 8 insertions(+), 472 deletions(-)
+ delete mode 100644 sysdeps/unix/sysv/linux/sw_64/osf_adjtime.c
+ delete mode 100644 sysdeps/unix/sysv/linux/sw_64/osf_getitimer.c
+ delete mode 100644 sysdeps/unix/sysv/linux/sw_64/osf_getrusage.c
+ delete mode 100644 sysdeps/unix/sysv/linux/sw_64/osf_gettimeofday.c
+ delete mode 100644 sysdeps/unix/sysv/linux/sw_64/osf_setitimer.c
+ delete mode 100644 sysdeps/unix/sysv/linux/sw_64/osf_settimeofday.c
+ delete mode 100644 sysdeps/unix/sysv/linux/sw_64/osf_utimes.c
+ delete mode 100644 sysdeps/unix/sysv/linux/sw_64/osf_wait4.c
+ delete mode 100644 sysdeps/unix/sysv/linux/sw_64/sw_64/ptrace.h
+ rename sysdeps/unix/sysv/linux/sw_64/{sw_64 => sys}/regdef.h (100%)
+
+diff --git a/sysdeps/sw_64/preconfigure b/sysdeps/sw_64/preconfigure
+index 62b74ab5..918b74b4 100644
+--- a/sysdeps/sw_64/preconfigure
++++ b/sysdeps/sw_64/preconfigure
+@@ -1,3 +1,8 @@
+ case "$machine" in
+-sw_64*)		base_machine=sw_64 machine=sw_64/$machine
++sw_64*)
++	archflag=`$CC $CFLAGS $CPPFLAGS -E -dM -xc /dev/null | grep -E '__sw_64_(sw6a|sw6b|sw8a)__' | sed -nE 's/#define __sw_64_(\w*)__ 1/\1/p'`
++
++	base_machine=sw_64
++	machine=sw_64/$archflag
++	;;
+ esac
+diff --git a/sysdeps/unix/sysv/linux/sw_64/Implies b/sysdeps/unix/sysv/linux/sw_64/Implies
+index 39fc59c0..1d42bc70 100644
+--- a/sysdeps/unix/sysv/linux/sw_64/Implies
++++ b/sysdeps/unix/sysv/linux/sw_64/Implies
+@@ -2,5 +2,3 @@ sw_64/nptl
+         unix/sysv/linux/wordsize-64
+         ieee754/ldbl-64-128
+         ieee754/ldbl-opt
+-        sw_64/sw6b
+-        
+diff --git a/sysdeps/unix/sysv/linux/sw_64/Makefile b/sysdeps/unix/sysv/linux/sw_64/Makefile
+index f18a7692..68cff24f 100644
+--- a/sysdeps/unix/sysv/linux/sw_64/Makefile
++++ b/sysdeps/unix/sysv/linux/sw_64/Makefile
+@@ -3,16 +3,11 @@ gen-as-const-headers += ucontext-offsets.sym
+ endif
+ 
+ ifeq ($(subdir),misc)
+-sysdep_headers += sw_64/ptrace.h sw_64/regdef.h sys/io.h
++sysdep_headers += sys/regdef.h sys/io.h
+ 
+ sysdep_routines += ieee_get_fp_control ieee_set_fp_control \
+ 		   ioperm
+ 
+-# Support old timeval32 entry points
+-sysdep_routines += osf_adjtime osf_gettimeofday osf_settimeofday \
+-		   osf_getitimer osf_setitimer osf_utimes \
+-		   osf_getrusage osf_wait4
+-
+ CFLAGS-ioperm.c = -Wa,-msw6a
+ endif
+ 
+diff --git a/sysdeps/unix/sysv/linux/sw_64/osf_adjtime.c b/sysdeps/unix/sysv/linux/sw_64/osf_adjtime.c
+deleted file mode 100644
+index 03347309..00000000
+--- a/sysdeps/unix/sysv/linux/sw_64/osf_adjtime.c
++++ /dev/null
+@@ -1,131 +0,0 @@
+-/* adjtime -- adjust the system clock.  Linux/SW_64/tv32 version.
+-   Copyright (C) 2019-2021 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <shlib-compat.h>
+-
+-#if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_1)
+-
+-#include <time.h>
+-#include <sys/time.h>
+-#include <sys/timex.h>
+-#include <string.h>
+-
+-struct timex32 {
+-	unsigned int modes;	/* mode selector */
+-	long offset;		/* time offset (usec) */
+-	long freq;		/* frequency offset (scaled ppm) */
+-	long maxerror;		/* maximum error (usec) */
+-	long esterror;		/* estimated error (usec) */
+-	int status;		/* clock command/status */
+-	long constant;		/* pll time constant */
+-	long precision;		/* clock precision (usec) (read only) */
+-	long tolerance;		/* clock frequency tolerance (ppm)
+-				 * (read only)
+-				 */
+-	struct __timeval32 time;	/* (read only) */
+-	long tick;		/* (modified) usecs between clock ticks */
+-
+-	long ppsfreq;           /* pps frequency (scaled ppm) (ro) */
+-	long jitter;            /* pps jitter (us) (ro) */
+-	int shift;              /* interval duration (s) (shift) (ro) */
+-	long stabil;            /* pps stability (scaled ppm) (ro) */
+-	long jitcnt;            /* jitter limit exceeded (ro) */
+-	long calcnt;            /* calibration intervals (ro) */
+-	long errcnt;            /* calibration errors (ro) */
+-	long stbcnt;            /* stability limit exceeded (ro) */
+-
+-	int  :32; int  :32; int  :32; int  :32;
+-	int  :32; int  :32; int  :32; int  :32;
+-	int  :32; int  :32; int  :32; int  :32;
+-};
+-
+-int
+-attribute_compat_text_section
+-__adjtime_tv32 (const struct __timeval32 *itv, struct __timeval32 *otv)
+-{
+-  struct timeval itv64 = valid_timeval32_to_timeval (*itv);
+-  struct timeval otv64;
+-
+-  if (__adjtime (&itv64, &otv64) == -1)
+-    return -1;
+-
+-  *otv = valid_timeval_to_timeval32 (otv64);
+-  return 0;
+-}
+-
+-int
+-attribute_compat_text_section
+-__adjtimex_tv32 (struct timex32 *tx)
+-{
+-  struct timex tx64;
+-  memset (&tx64, 0, sizeof tx64);
+-  tx64.modes     = tx->modes;
+-  tx64.offset    = tx->offset;
+-  tx64.freq      = tx->freq;
+-  tx64.maxerror  = tx->maxerror;
+-  tx64.esterror  = tx->esterror;
+-  tx64.status    = tx->status;
+-  tx64.constant  = tx->constant;
+-  tx64.precision = tx->precision;
+-  tx64.tolerance = tx->tolerance;
+-  tx64.tick      = tx->tick;
+-  tx64.ppsfreq   = tx->ppsfreq;
+-  tx64.jitter    = tx->jitter;
+-  tx64.shift     = tx->shift;
+-  tx64.stabil    = tx->stabil;
+-  tx64.jitcnt    = tx->jitcnt;
+-  tx64.calcnt    = tx->calcnt;
+-  tx64.errcnt    = tx->errcnt;
+-  tx64.stbcnt    = tx->stbcnt;
+-  tx64.time      = valid_timeval32_to_timeval (tx->time);
+-
+-  int status = __adjtimex (&tx64);
+-  if (status < 0)
+-    return status;
+-
+-  memset (tx, 0, sizeof *tx);
+-  tx->modes     = tx64.modes;
+-  tx->offset    = tx64.offset;
+-  tx->freq      = tx64.freq;
+-  tx->maxerror  = tx64.maxerror;
+-  tx->esterror  = tx64.esterror;
+-  tx->status    = tx64.status;
+-  tx->constant  = tx64.constant;
+-  tx->precision = tx64.precision;
+-  tx->tolerance = tx64.tolerance;
+-  tx->tick      = tx64.tick;
+-  tx->ppsfreq   = tx64.ppsfreq;
+-  tx->jitter    = tx64.jitter;
+-  tx->shift     = tx64.shift;
+-  tx->stabil    = tx64.stabil;
+-  tx->jitcnt    = tx64.jitcnt;
+-  tx->calcnt    = tx64.calcnt;
+-  tx->errcnt    = tx64.errcnt;
+-  tx->stbcnt    = tx64.stbcnt;
+-  tx->time      = valid_timeval_to_timeval32 (tx64.time);
+-
+-  return status;
+-}
+-
+-strong_alias (__adjtimex_tv32, __adjtimex_tv32_1);
+-strong_alias (__adjtimex_tv32, __adjtimex_tv32_2);
+-compat_symbol (libc, __adjtimex_tv32_1, __adjtimex, GLIBC_2_0);
+-compat_symbol (libc, __adjtimex_tv32_2, adjtimex, GLIBC_2_0);
+-compat_symbol (libc, __adjtime_tv32, adjtime, GLIBC_2_0);
+-
+-#endif /* SHLIB_COMPAT */
+diff --git a/sysdeps/unix/sysv/linux/sw_64/osf_getitimer.c b/sysdeps/unix/sysv/linux/sw_64/osf_getitimer.c
+deleted file mode 100644
+index 890a92a6..00000000
+--- a/sysdeps/unix/sysv/linux/sw_64/osf_getitimer.c
++++ /dev/null
+@@ -1,44 +0,0 @@
+-/* getitimer -- Get the state of an interval timer.  Linux/SW_64/tv32 version.
+-   Copyright (C) 2019-2021 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <shlib-compat.h>
+-
+-#if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_1)
+-
+-#include <time.h>
+-#include <sys/time.h>
+-#include <tv32-compat.h>
+-
+-int
+-attribute_compat_text_section
+-__getitimer_tv32 (int which, struct __itimerval32 *curr_value)
+-{
+-  struct itimerval curr_value_64;
+-  if (__getitimer (which, &curr_value_64) == -1)
+-    return -1;
+-
+-  /* Write all fields of 'curr_value' regardless of overflow.  */
+-  curr_value->it_interval
+-    = valid_timeval_to_timeval32 (curr_value_64.it_interval);
+-  curr_value->it_value
+-    = valid_timeval_to_timeval32 (curr_value_64.it_value);
+-  return 0;
+-}
+-
+-compat_symbol (libc, __getitimer_tv32, getitimer, GLIBC_2_0);
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/sw_64/osf_getrusage.c b/sysdeps/unix/sysv/linux/sw_64/osf_getrusage.c
+deleted file mode 100644
+index b7f0e6d0..00000000
+--- a/sysdeps/unix/sysv/linux/sw_64/osf_getrusage.c
++++ /dev/null
+@@ -1,39 +0,0 @@
+-/* utimes -- change file timestamps.  Linux/SW_64/tv32 version.
+-   Copyright (C) 2019-2021 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <shlib-compat.h>
+-
+-#if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_1)
+-
+-#include <sys/time.h>
+-#include <sys/resource.h>
+-#include <tv32-compat.h>
+-
+-int
+-__getrusage_tv32 (int who, struct __rusage32 *usage32)
+-{
+-  struct rusage usage;
+-  if (__getrusage (who, &usage) == -1)
+-    return -1;
+-
+-  rusage64_to_rusage32 (&usage, usage32);
+-  return 0;
+-}
+-
+-compat_symbol (libc, __getrusage_tv32, getrusage, GLIBC_2_0);
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/sw_64/osf_gettimeofday.c b/sysdeps/unix/sysv/linux/sw_64/osf_gettimeofday.c
+deleted file mode 100644
+index 22ef8f4a..00000000
+--- a/sysdeps/unix/sysv/linux/sw_64/osf_gettimeofday.c
++++ /dev/null
+@@ -1,48 +0,0 @@
+-/* gettimeofday -- Get the current time of day.  Linux/SW_64/tv32 version.
+-   Copyright (C) 2019-2021 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <shlib-compat.h>
+-
+-#if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_1)
+-
+-#include <time.h>
+-#include <string.h>
+-#include <time.h>
+-#include <sys/time.h>
+-
+-/* Get the current time of day and timezone information putting it
+-   into *TV and *TZ.  */
+-
+-int
+-attribute_compat_text_section
+-__gettimeofday_tv32 (struct __timeval32 *restrict tv32, void *restrict tz)
+-{
+-  if (__glibc_unlikely (tz != 0))
+-    memset (tz, 0, sizeof (struct timezone));
+-
+-  struct __timespec64 ts;
+-  __clock_gettime64 (CLOCK_REALTIME, &ts);
+-
+-  *tv32 = valid_timespec_to_timeval32 (ts);
+-  return 0;
+-}
+-
+-compat_symbol (libc, __gettimeofday_tv32, __gettimeofday, GLIBC_2_0);
+-strong_alias (__gettimeofday_tv32, __gettimeofday_tv32_1);
+-compat_symbol (libc, __gettimeofday_tv32_1, gettimeofday, GLIBC_2_0);
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/sw_64/osf_setitimer.c b/sysdeps/unix/sysv/linux/sw_64/osf_setitimer.c
+deleted file mode 100644
+index 9213b13a..00000000
+--- a/sysdeps/unix/sysv/linux/sw_64/osf_setitimer.c
++++ /dev/null
+@@ -1,54 +0,0 @@
+-/* getitimer -- Get the state of an interval timer.  Linux/SW_64/tv32 version.
+-   Copyright (C) 2019-2021 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <shlib-compat.h>
+-
+-#if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_1)
+-
+-#include <time.h>
+-#include <sys/time.h>
+-#include <tv32-compat.h>
+-
+-int
+-attribute_compat_text_section
+-__setitimer_tv32 (int which, const struct __itimerval32 *restrict new_value,
+-		  struct __itimerval32 *restrict old_value)
+-{
+-  struct itimerval new_value_64;
+-  new_value_64.it_interval
+-    = valid_timeval32_to_timeval (new_value->it_interval);
+-  new_value_64.it_value
+-    = valid_timeval32_to_timeval (new_value->it_value);
+-
+-  if (old_value == NULL)
+-    return __setitimer (which, &new_value_64, NULL);
+-
+-  struct itimerval old_value_64;
+-  if (__setitimer (which, &new_value_64, &old_value_64) == -1)
+-    return -1;
+-
+-  /* Write all fields of 'old_value' regardless of overflow.  */
+-  old_value->it_interval
+-     = valid_timeval_to_timeval32 (old_value_64.it_interval);
+-  old_value->it_value
+-     = valid_timeval_to_timeval32 (old_value_64.it_value);
+-  return 0;
+-}
+-
+-compat_symbol (libc, __setitimer_tv32, setitimer, GLIBC_2_0);
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/sw_64/osf_settimeofday.c b/sysdeps/unix/sysv/linux/sw_64/osf_settimeofday.c
+deleted file mode 100644
+index 1f2828b3..00000000
+--- a/sysdeps/unix/sysv/linux/sw_64/osf_settimeofday.c
++++ /dev/null
+@@ -1,50 +0,0 @@
+-/* settimeofday -- Set the current time of day.  Linux/SW_64/tv32 version.
+-   Copyright (C) 2019-2021 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <shlib-compat.h>
+-
+-#if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_1)
+-
+-#include <time.h>
+-#include <sys/time.h>
+-#include <time.h>
+-#include <errno.h>
+-
+-/* Set the current time of day and timezone information.
+-   This call is restricted to the super-user.  */
+-int
+-attribute_compat_text_section
+-__settimeofday_tv32 (const struct __timeval32 *tv32,
+-                     const struct timezone *tz)
+-{
+-  if (__glibc_unlikely (tz != 0))
+-    {
+-      if (tv32 != 0)
+-	{
+-	  __set_errno (EINVAL);
+-	  return -1;
+-	}
+-      return __settimezone (tz);
+-    }
+-
+-  struct timespec ts = valid_timeval32_to_timespec (*tv32);
+-  return __clock_settime (CLOCK_REALTIME, &ts);
+-}
+-
+-compat_symbol (libc, __settimeofday_tv32, settimeofday, GLIBC_2_0);
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/sw_64/osf_utimes.c b/sysdeps/unix/sysv/linux/sw_64/osf_utimes.c
+deleted file mode 100644
+index adf003d0..00000000
+--- a/sysdeps/unix/sysv/linux/sw_64/osf_utimes.c
++++ /dev/null
+@@ -1,37 +0,0 @@
+-/* utimes -- change file timestamps.  Linux/SW_64/tv32 version.
+-   Copyright (C) 2019-2021 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <shlib-compat.h>
+-
+-#if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_1)
+-
+-#include <time.h>
+-#include <sys/time.h>
+-
+-int
+-attribute_compat_text_section
+-__utimes_tv32 (const char *filename, const struct __timeval32 times32[2])
+-{
+-  struct timeval times[2];
+-  times[0] = valid_timeval32_to_timeval (times32[0]);
+-  times[1] = valid_timeval32_to_timeval (times32[1]);
+-  return __utimes (filename, times);
+-}
+-
+-compat_symbol (libc, __utimes_tv32, utimes, GLIBC_2_0);
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/sw_64/osf_wait4.c b/sysdeps/unix/sysv/linux/sw_64/osf_wait4.c
+deleted file mode 100644
+index ea8f6e04..00000000
+--- a/sysdeps/unix/sysv/linux/sw_64/osf_wait4.c
++++ /dev/null
+@@ -1,41 +0,0 @@
+-/* wait4 -- wait for process to change state.  Linux/SW_64/tv32 version.
+-   Copyright (C) 2019-2021 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#include <shlib-compat.h>
+-
+-#if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_1)
+-
+-#include <sys/time.h>
+-#include <sys/resource.h>
+-#include <sys/wait.h>
+-#include <tv32-compat.h>
+-
+-pid_t
+-attribute_compat_text_section
+-__wait4_tv32 (pid_t pid, int *status, int options, struct __rusage32 *usage32)
+-{
+-  struct rusage usage;
+-  pid_t child = __wait4 (pid, status, options, &usage);
+-
+-  if (child >= 0 && usage32 != NULL)
+-    rusage64_to_rusage32 (&usage, usage32);
+-  return child;
+-}
+-
+-compat_symbol (libc, __wait4_tv32, wait4, GLIBC_2_0);
+-#endif
+diff --git a/sysdeps/unix/sysv/linux/sw_64/sw_64/ptrace.h b/sysdeps/unix/sysv/linux/sw_64/sw_64/ptrace.h
+deleted file mode 100644
+index b594ed15..00000000
+--- a/sysdeps/unix/sysv/linux/sw_64/sw_64/ptrace.h
++++ /dev/null
+@@ -1,18 +0,0 @@
+-#ifndef __sw_64_ptrace_h__
+-#define __sw_64_ptrace_h__
+-
+-/*
+- * Mostly for OSF/1 compatibility.
+- */
+-
+-#define REG_BASE        0
+-#define NGP_REGS        32
+-#define NFP_REGS        32
+-
+-#define GPR_BASE        REG_BASE
+-#define FPR_BASE        (GPR_BASE+NGP_REGS)
+-#define PC              (FPR_BASE+NFP_REGS)
+-#define SPR_PS          (PC+1)
+-#define NPTRC_REGS      (SPR_PS+1)
+-
+-#endif /* __sw_64_ptrace_h__ */
+diff --git a/sysdeps/unix/sysv/linux/sw_64/sw_64/regdef.h b/sysdeps/unix/sysv/linux/sw_64/sys/regdef.h
+similarity index 100%
+rename from sysdeps/unix/sysv/linux/sw_64/sw_64/regdef.h
+rename to sysdeps/unix/sysv/linux/sw_64/sys/regdef.h
+diff --git a/sysdeps/unix/sysv/linux/sw_64/sysdep.h b/sysdeps/unix/sysv/linux/sw_64/sysdep.h
+index 6ef66e30..12d23ed9 100644
+--- a/sysdeps/unix/sysv/linux/sw_64/sysdep.h
++++ b/sysdeps/unix/sysv/linux/sw_64/sysdep.h
+@@ -37,7 +37,7 @@
+ 
+ #ifdef __ASSEMBLER__
+ #include <asm/hmcall.h>
+-#include <sw_64/regdef.h>
++#include <sys/regdef.h>
+ 
+ #define __LABEL(x)	x##:
+ 
+-- 
+2.20.1
+
