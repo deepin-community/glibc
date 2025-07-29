@@ -79,7 +79,6 @@ mips/submitted-rld_map.diff
 powerpc/local-powerpc8xx-dcbz.diff
 
 riscv64/git-risc-v-add-support-for-dl_runtime_profile.diff
-riscv64/nptl-Optimize-lowlevellock-for-RISC-V-64-bit.patch
 
 sh4/local-fpscr_values.diff
 
