@@ -43947,7 +43947,7 @@ index 00000000..cbfd1258
 +
 +sigstack	-	sigstack	2	sigstack
 +
-+getpriority	-	getpriority	i:ii	__getpriority	getpriority
++# getpriority	-	getpriority	i:ii	__getpriority	getpriority
 +
 +# proper socket implementations:
 +bind		-	bind		i:ipi	__bind		bind
