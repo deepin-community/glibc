@@ -1,0 +1,42 @@
+From 0f6c9bbed9fceb0486e45d985633714c97dc229f Mon Sep 17 00:00:00 2001
+From: caiyinyu <caiyinyu@loongson.cn>
+Date: Mon, 16 Mar 2026 14:10:56 +0800
+Subject: [PATCH 1/5] LoongArch: Fix build failure for loongarch64-linux-gnusf
+ toolchain. [BZ #32776]
+
+GCC parts:
+
+A GCC bug caused the loss of the search path: /usr/lib64/sf, and this
+bug has now been fixed in GCC.
+
+See:
+https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=9467435253948b83fcb5f7430f6cd571236960d8
+---
+ scripts/build-many-glibcs.py | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/scripts/build-many-glibcs.py b/scripts/build-many-glibcs.py
+index 73ffc57c..9abe37b8 100755
+--- a/scripts/build-many-glibcs.py
++++ b/scripts/build-many-glibcs.py
+@@ -219,13 +219,11 @@ class Context(object):
+                         first_gcc_cfg=['--with-system-libunwind'],
+                         binutils_cfg=['--enable-obsolete'])
+         self.add_config(arch='loongarch64',
+-                        os_name='linux-gnu',
+-                        variant='lp64d',
+-                        gcc_cfg=['--with-abi=lp64d','--disable-multilib'])
++                        os_name='linux-gnuf64',
++                        gcc_cfg=['--disable-multilib'])
+         self.add_config(arch='loongarch64',
+-                        os_name='linux-gnu',
+-                        variant='lp64s',
+-                        gcc_cfg=['--with-abi=lp64s','--disable-multilib'])
++                        os_name='linux-gnusf',
++                        gcc_cfg=['--disable-multilib'])
+         self.add_config(arch='m68k',
+                         os_name='linux-gnu',
+                         gcc_cfg=['--disable-multilib'])
+-- 
+2.43.7
+

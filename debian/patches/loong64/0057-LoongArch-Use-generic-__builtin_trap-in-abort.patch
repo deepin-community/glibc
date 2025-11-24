@@ -1,0 +1,22 @@
+From 5ce4a9e85ece45a60350290b6256784093067868 Mon Sep 17 00:00:00 2001
+From: caiyinyu <caiyinyu@loongson.cn>
+Date: Fri, 19 Dec 2025 16:23:03 +0800
+Subject: [PATCH 4/5] LoongArch: Use generic __builtin_trap in abort.
+
+Reviewed-by: Xi Ruoyao <xry111@xry111.site>
+---
+ sysdeps/loongarch/abort-instr.h | 2 --
+ 1 file changed, 2 deletions(-)
+ delete mode 100644 sysdeps/loongarch/abort-instr.h
+
+diff --git a/sysdeps/loongarch/abort-instr.h b/sysdeps/loongarch/abort-instr.h
+deleted file mode 100644
+index 46d3ad08..00000000
+--- a/sysdeps/loongarch/abort-instr.h
++++ /dev/null
+@@ -1,2 +0,0 @@
+-/* An instruction which should crash any program is a breakpoint.  */
+-#define ABORT_INSTRUCTION asm ("break 0")
+-- 
+2.43.7
+

@@ -1,0 +1,61 @@
+From fb7ee7cf7743ec8358678516e3e73471491a995f Mon Sep 17 00:00:00 2001
+From: "H.J. Lu" <hjl.tools@gmail.com>
+Date: Sat, 4 Jan 2025 05:53:19 +0800
+Subject: [PATCH 4/4] loongarch: Drop __GI_XXX for strcpy/stpcpy IFUNC
+ implementations
+
+There is no need for __GI_XXX symbols, like __GI___strcpy_aligned since
+__strcpy_aligned is used directly.
+
+Signed-off-by: H.J. Lu <hjl.tools@gmail.com>
+Reviewed-by: Sam James <sam@gentoo.org>
+---
+ sysdeps/loongarch/lp64/multiarch/strcpy-aligned.S   | 2 --
+ sysdeps/loongarch/lp64/multiarch/strcpy-lasx.S      | 1 -
+ sysdeps/loongarch/lp64/multiarch/strcpy-lsx.S       | 1 -
+ sysdeps/loongarch/lp64/multiarch/strcpy-unaligned.S | 1 -
+ 4 files changed, 5 deletions(-)
+
+diff --git a/sysdeps/loongarch/lp64/multiarch/strcpy-aligned.S b/sysdeps/loongarch/lp64/multiarch/strcpy-aligned.S
+index 4ed539fd..1913fa63 100644
+--- a/sysdeps/loongarch/lp64/multiarch/strcpy-aligned.S
++++ b/sysdeps/loongarch/lp64/multiarch/strcpy-aligned.S
+@@ -198,5 +198,3 @@ L(un_out):
+ #endif
+     jr          ra
+ END(STRCPY)
+-
+-libc_hidden_builtin_def (STRCPY)
+diff --git a/sysdeps/loongarch/lp64/multiarch/strcpy-lasx.S b/sysdeps/loongarch/lp64/multiarch/strcpy-lasx.S
+index c2825612..3f20d359 100644
+--- a/sysdeps/loongarch/lp64/multiarch/strcpy-lasx.S
++++ b/sysdeps/loongarch/lp64/multiarch/strcpy-lasx.S
+@@ -211,5 +211,4 @@ L(zero_byte):
+     jr              ra
+ END(STRCPY)
+ 
+-libc_hidden_builtin_def (STRCPY)
+ #endif
+diff --git a/sysdeps/loongarch/lp64/multiarch/strcpy-lsx.S b/sysdeps/loongarch/lp64/multiarch/strcpy-lsx.S
+index fc2498f7..b3e7ec89 100644
+--- a/sysdeps/loongarch/lp64/multiarch/strcpy-lsx.S
++++ b/sysdeps/loongarch/lp64/multiarch/strcpy-lsx.S
+@@ -208,5 +208,4 @@ L(INDEX):
+     .dword          0x0706050403020100
+     .dword          0x0f0e0d0c0b0a0908
+ 
+-libc_hidden_builtin_def (STRCPY)
+ #endif
+diff --git a/sysdeps/loongarch/lp64/multiarch/strcpy-unaligned.S b/sysdeps/loongarch/lp64/multiarch/strcpy-unaligned.S
+index 9e31883b..fee2a7c4 100644
+--- a/sysdeps/loongarch/lp64/multiarch/strcpy-unaligned.S
++++ b/sysdeps/loongarch/lp64/multiarch/strcpy-unaligned.S
+@@ -134,5 +134,4 @@ L(page_cross):
+     b           L(end)
+ END(STRCPY)
+ 
+-libc_hidden_builtin_def (STRCPY)
+ #endif
+-- 
+2.47.3
+
