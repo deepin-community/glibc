@@ -1,0 +1,41 @@
+From 2f82c397b06868c9e9405e5a955a05cc1ae36225 Mon Sep 17 00:00:00 2001
+From: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+Date: Thu, 13 Nov 2025 09:58:19 -0300
+Subject: [PATCH] math: Remove ldbl-96 fma implementation
+
+commit 42f07a44ef88e0c9ff1bd5343786013272467414 upstream.
+
+It is worse than the ldbl-64 version on recent x86 hardware.  With
+Zen3 and gcc-15:
+
+ldbl-96 removal
+reciprocal-throughput        master        patched   improvement
+x86_64                    1176.2200       289.4640         4.06x
+i686                      1476.0600       636.8660         2.32x
+
+latency                      master        patched   improvement
+x86_64                    1176.2200        293.7360        4.00x
+i686                      1480.0700        658.4160        2.25x
+
+Checked on x86_64-linux-gnu and i686-linux-gnu.
+
+Reviewed-by: Wilco Dijkstra  <Wilco.Dijkstra@arm.com>
+[ WangYuli: Resolved conflicts. ]
+Signed-off-by: WangYuli <wangyl5933@chinaunicom.cn>
+---
+ sysdeps/i386/i686/multiarch/s_fma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sysdeps/i386/i686/multiarch/s_fma.c b/sysdeps/i386/i686/multiarch/s_fma.c
+index 1b9ecb46..934a59e2 100644
+--- a/sysdeps/i386/i686/multiarch/s_fma.c
++++ b/sysdeps/i386/i686/multiarch/s_fma.c
+@@ -38,4 +38,4 @@ libm_alias_double_narrow (__fma, fma)
+ 
+ #define __fma __fma_ia32
+ 
+-#include <sysdeps/ieee754/ldbl-96/s_fma.c>
++#include <sysdeps/ieee754/dbl-64/s_fma.c>
+-- 
+2.51.0
+

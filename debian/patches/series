@@ -166,3 +166,5 @@ zhaoxin/0002-x86_64-Optimize-large-size-copy-in-memmove-ssse3.patch
 zhaoxin/0003-x86-Set-default-non_temporal_threshold-for-Zhaoxin-p.patch
 
 localedata/Unicode_15_1_0_support.patch
+
+all/math-Remove-ldbl-96-fma-implementation.patch
