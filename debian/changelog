@@ -1,3 +1,13 @@
+glibc (2.38-6deepin20) unstable; urgency=medium
+
+  * LoongArch: common sync from upstream
+    - Fix build failure for loongarch64-linux-gnusf
+    - malloc: Fix tst bug in malloc/tst-free-errno-malloc-hugetlb1
+    - Call elf_ifunc_invoke for R_LARCH_IRELATIVE in elf_machine_rela
+    - Use generic __builtin_trap in abort
+
+ -- Peng Fan <fanpeng@loongson.cn> Mon, 24 Nov 2025 02:08:11 +0000
+
 glibc (2.38-6deepin19) unstable; urgency=medium
 
   * Fix:  CVE-2026-0861 CVE-2026-0915 CVE-2025-15281

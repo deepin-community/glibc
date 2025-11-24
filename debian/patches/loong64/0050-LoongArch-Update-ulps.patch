@@ -1,0 +1,38 @@
+From c988fdee39681d2fc118126fe6ecc9704c1d704c Mon Sep 17 00:00:00 2001
+From: caiyinyu <caiyinyu@loongson.cn>
+Date: Mon, 11 Nov 2024 09:56:05 +0800
+Subject: [PATCH 1/4] LoongArch: Update ulps
+
+Needed for test-float-cacosh, test-float-csin, test-float32-cacosh and
+test-float32-csin.
+
+Signed-off-by: caiyinyu <caiyinyu@loongson.cn>
+Reviewed-by: Florian Weimer <fweimer@redhat.com>
+---
+ sysdeps/loongarch/lp64/libm-test-ulps | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/sysdeps/loongarch/lp64/libm-test-ulps b/sysdeps/loongarch/lp64/libm-test-ulps
+index 770bf36b..4ecc0e65 100644
+--- a/sysdeps/loongarch/lp64/libm-test-ulps
++++ b/sysdeps/loongarch/lp64/libm-test-ulps
+@@ -228,7 +228,7 @@ ldouble: 3
+ 
+ Function: Real part of "cacosh_upward":
+ double: 4
+-float: 3
++float: 4
+ ldouble: 6
+ 
+ Function: Imaginary part of "cacosh_upward":
+@@ -720,6 +720,7 @@ float: 1
+ ldouble: 1
+ 
+ Function: Imaginary part of "csin":
++float: 1
+ ldouble: 1
+ 
+ Function: Real part of "csin_downward":
+-- 
+2.47.3
+

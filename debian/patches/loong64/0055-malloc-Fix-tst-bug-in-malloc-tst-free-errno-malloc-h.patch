@@ -1,0 +1,49 @@
+From 847963855e242bc55309e6f6b6cdc099ff28adf6 Mon Sep 17 00:00:00 2001
+From: caiyinyu <caiyinyu@loongson.cn>
+Date: Thu, 14 Aug 2025 16:28:46 +0800
+Subject: [PATCH 2/5] malloc: Fix tst bug in
+ malloc/tst-free-errno-malloc-hugetlb1.
+
+When transparent hugepages (THP) are configured to 32MB on x86/loongarch
+systems, the current big_size value may not be sufficiently large to
+guarantee that free(ptr) [1] will call munmap(ptr_aligned, big_size).
+
+Tested on x86_64 and loongarch64.
+
+PS: Without this patch and using 32M THP, there is a about 50% chance
+that malloc/tst-free-errno-malloc-hugetlb1 will fail on both x86_64 and
+loongarch64.
+
+[1] malloc/tst-free-errno.c:
+...
+       errno = 1789;
+       /* This call to free() is supposed to call
+            munmap (ptr_aligned, big_size);
+          which increases the number of VMAs by 1, which is supposed
+          to fail.  */
+->     free (ptr);
+       TEST_VERIFY (get_errno () == 1789);
+     }
+...
+
+Reviewed-by: Wilco Dijkstra  <Wilco.Dijkstra@arm.com>
+---
+ malloc/tst-free-errno.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/malloc/tst-free-errno.c b/malloc/tst-free-errno.c
+index 55c5863d..37c4fbaf 100644
+--- a/malloc/tst-free-errno.c
++++ b/malloc/tst-free-errno.c
+@@ -88,7 +88,7 @@ do_test (void)
+ 	FAIL_EXIT1 ("cannot create temporary file");
+ 
+       /* Do a large memory allocation.  */
+-      size_t big_size = 0x1000000;
++      size_t big_size = 0x3000000;
+       void * volatile ptr = xmalloc (big_size - 0x100);
+       char *ptr_aligned = (char *) ((uintptr_t) ptr & ~(pagesize - 1));
+       /* This large memory allocation allocated a memory area
+-- 
+2.43.7
+

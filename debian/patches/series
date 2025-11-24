@@ -158,6 +158,14 @@ loong64/0046-LoongArch-Change-tunable-for-2.38.patch
 loong64/0047-nptl-Add-thread_pointer.h-for-LoongArch.patch
 loong64/0048-nptl-fix-__builtin_thread_pointer-detection-on-Loong.patch
 loong64/0049-LoongArch-Force-SHMLBA-the-same-as-kernel.patch
+loong64/0050-LoongArch-Update-ulps.patch
+loong64/0051-Add-HWCAP_LOONGARCH_LSPW-from-Linux-6.12-to-bits-hwc.patch
+loong64/0052-loongarch-Provide-stpcpy-in-stpcpy-aligned.S-for-rtl.patch
+loong64/0053-loongarch-Drop-__GI_XXX-for-strcpy-stpcpy-IFUNC-impl.patch
+loong64/0054-LoongArch-Fix-build-failure-for-loongarch64-linux-gn.patch
+loong64/0055-malloc-Fix-tst-bug-in-malloc-tst-free-errno-malloc-h.patch
+loong64/0056-LoongArch-Call-elf_ifunc_invoke-for-R_LARCH_IRELATIV.patch
+loong64/0057-LoongArch-Use-generic-__builtin_trap-in-abort.patch
 
 iconvdata/add_GB18030-2022_charmap_and_test_the_entire_GB18030_charmap.patch
 
