@@ -1,0 +1,29 @@
+From d505aa00528b702c9fb451ada22055598d8c76c8 Mon Sep 17 00:00:00 2001
+From: "H.J. Lu" <hjl.tools@gmail.com>
+Date: Sat, 4 Jan 2025 05:43:21 +0800
+Subject: [PATCH 3/4] loongarch: Provide stpcpy in stpcpy-aligned.S for rtld
+ [BZ #32512]
+
+When stpcpy-aligned.S is used in rtld, provide stpcpy as a weak alias of
+__stpcpy.  This fixes BZ #32512.
+
+Signed-off-by: H.J. Lu <hjl.tools@gmail.com>
+---
+ sysdeps/loongarch/lp64/multiarch/stpcpy-aligned.S | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/sysdeps/loongarch/lp64/multiarch/stpcpy-aligned.S b/sysdeps/loongarch/lp64/multiarch/stpcpy-aligned.S
+index 1f763db6..99f2c270 100644
+--- a/sysdeps/loongarch/lp64/multiarch/stpcpy-aligned.S
++++ b/sysdeps/loongarch/lp64/multiarch/stpcpy-aligned.S
+@@ -20,6 +20,7 @@
+ # define STPCPY __stpcpy_aligned
+ #else
+ # define STPCPY __stpcpy
++weak_alias (__stpcpy, stpcpy)
+ #endif
+ 
+ #define USE_AS_STPCPY
+-- 
+2.47.3
+
