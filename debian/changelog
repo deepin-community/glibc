@@ -1,3 +1,9 @@
+glibc (2.38-6deepin19) unstable; urgency=medium
+
+  * LoongArch: common sync from upstream
+
+ -- Peng Fan <fanpeng@loongson.cn> Mon, 24 Nov 2025 02:08:11 +0000
+
 glibc (2.38-6deepin18) unstable; urgency=medium
 
   * perf: Backport "math: Remove ldbl-96 fma implementation"
