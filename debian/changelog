@@ -1,3 +1,9 @@
+glibc (2.38-6deepin19) unstable; urgency=medium
+
+  * Fix:  CVE-2026-0861 CVE-2026-0915 CVE-2025-15281
+
+ -- lichenggang <lichenggang@deepin.org>  Tue, 27 Jan 2026 11:16:15 +0800
+
 glibc (2.38-6deepin18) unstable; urgency=medium
 
   * perf: Backport "math: Remove ldbl-96 fma implementation"
