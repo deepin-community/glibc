@@ -1,6 +1,6 @@
 /* Test scanf for languages with mapping pairs of alternate digits and
    separators.
-   Copyright (C) 2023 Free Software Foundation, Inc.
+   Copyright (C) 2023-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <array_length.h>
+#include <libc-diag.h>
 #include <stdio.h>
 #include <support/support.h>
 #include <support/check.h>
@@ -68,7 +69,11 @@ do_test (void)
   for (int i = 0; i < array_length (inputs); i++)
     {
       int n;
+      /* clang does not support 'I' specifier.  */
+      DIAG_PUSH_NEEDS_COMMENT_CLANG;
+      DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wformat");
       sscanf (inputs[i].str, "%Id", &n);
+      DIAG_POP_NEEDS_COMMENT_CLANG;
       TEST_COMPARE (n, inputs[i].n);
     }
 

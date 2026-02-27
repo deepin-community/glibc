@@ -1,4 +1,4 @@
-/* Copyright (C) 2008-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2008-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -63,7 +63,7 @@ do_test (void)
       makecontext (&ucp, (void (*) (void)) cf, 2, 78, 274);
       if (swapcontext (&ucp2, &ucp) != 0)
 	{
-	  puts ("setcontext failed");
+	  puts ("swapcontext failed");
 	  return 1;
 	}
 

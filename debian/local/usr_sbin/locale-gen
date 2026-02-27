@@ -23,6 +23,12 @@ is_entry_ok() {
 	fi
 }
 
+if [ -z "${I18NPATH:-}" ]; then
+  if [ -d "${USER_LOCALES}" ]; then
+    I18NPATH="${USER_LOCALES%%/locales*}/"
+  fi
+fi
+
 echo "Generating locales (this might take a while)..."
 while read -r locale charset; do
 	if [ -z "$locale" ] || [ "${locale#\#}" != "$locale" ]; then continue; fi
@@ -46,7 +52,7 @@ while read -r locale charset; do
 			input="$USER_LOCALES/$input"
 		fi
 	fi
-	localedef -i "$input" -c -f "$charset" -A /usr/share/locale/locale.alias "$locale" || :
+	I18NPATH="${I18NPATH}" localedef -i "$input" -c -f "$charset" "$locale" || :
 	echo " done"
 done < "$LOCALEGEN"
 echo "Generation complete."

@@ -1,15 +1,15 @@
 .TH UPDATE-LOCALE 8 "April 2006" "Debian GNU/Linux"
 .SH "NAME"
-.LP 
+.
 update-locale \- Modify global locale settings
 .SH "SYNTAX"
-.LP 
-update-locale 
+.
+update-locale
 .RI [ OPTIONS ]
 [\fIvar\fP=\fIlocale\fP | \fIvar\fP]
 [...]
 .SH "DESCRIPTION"
-.LP 
+.
 This program can be called by maintainer scripts when Debian packages are
 installed or removed, it updates the \fI/etc/locale.conf\fP file to
 reflect changes in system configuration related to global locale settings.
@@ -25,7 +25,8 @@ Display an help message and exit.
 Variables which are not set on command-line are cleared out.
 .TP
 .BI \-\-locale\-file " FILE"
-Define file containing locale variables.  (Default:
+Define file containing locale variables.
+(Default:
 .IR /etc/locale.conf )
 .TP
 .B \-\-no\-checks
@@ -38,12 +39,12 @@ The command
 .ft R
 sets \fBLANG\fP to \fBen_CA.UTF-8\fP and removes definitions for \fBLANGUAGE\fP.
 .SH "FILES"
-.TP 
+.TP
 .I /etc/locale.conf
 File where global locale settings are stored.
 .SH "AUTHOR"
-.LP 
+.
 Denis Barbier <barbier@linuxfr.org>
 .SH "SEE ALSO"
-.LP 
+.
 \fBlocale\-gen\fP(8), \fBlocale\fP(1)

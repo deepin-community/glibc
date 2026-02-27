@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -156,7 +156,11 @@ _IO_new_fdopen (int fd, const char *mode)
     {
       off64_t new_pos = _IO_SYSSEEK (&new_f->fp.file, 0, _IO_seek_end);
       if (new_pos == _IO_pos_BAD && errno != ESPIPE)
-	return NULL;
+	{
+	  _IO_un_link (&new_f->fp);
+	  free (new_f);
+	  return NULL;
+	}
     }
   return &new_f->fp.file;
 }

@@ -1,5 +1,5 @@
 /* Resolver state initialization and resolv.conf parsing.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -553,7 +553,7 @@ struct resolv_conf *
 __resolv_conf_load (struct __res_state *preinit,
                     struct file_change_detection *change)
 {
-  /* Ensure that /etc/hosts.conf has been loaded (once).  */
+  /* Ensure that /etc/host.conf has been loaded (once).  */
   _res_hconf_init ();
 
   FILE *fp = fopen (_PATH_RESCONF, "rce");
@@ -682,27 +682,30 @@ res_setoptions (struct resolv_conf_parser *parser, const char *options)
           {
             char str[22];
             uint8_t len;
-            uint8_t clear;
             unsigned long int flag;
           } options[] = {
 #define STRnLEN(str) str, sizeof (str) - 1
-            { STRnLEN ("rotate"), 0, RES_ROTATE },
-            { STRnLEN ("edns0"), 0, RES_USE_EDNS0 },
-            { STRnLEN ("single-request-reopen"), 0, RES_SNGLKUPREOP },
-            { STRnLEN ("single-request"), 0, RES_SNGLKUP },
-            { STRnLEN ("no_tld_query"), 0, RES_NOTLDQUERY },
-            { STRnLEN ("no-tld-query"), 0, RES_NOTLDQUERY },
-            { STRnLEN ("no-reload"), 0, RES_NORELOAD },
-            { STRnLEN ("use-vc"), 0, RES_USEVC },
-            { STRnLEN ("trust-ad"), 0, RES_TRUSTAD },
-            { STRnLEN ("no-aaaa"), 0, RES_NOAAAA },
+            { STRnLEN ("rotate"), RES_ROTATE },
+            { STRnLEN ("edns0"),  RES_USE_EDNS0 },
+            { STRnLEN ("single-request-reopen"), RES_SNGLKUPREOP },
+            { STRnLEN ("single-request"), RES_SNGLKUP },
+            { STRnLEN ("no_tld_query"), RES_NOTLDQUERY },
+            { STRnLEN ("no-tld-query"), RES_NOTLDQUERY },
+            { STRnLEN ("no-reload"), RES_NORELOAD },
+            { STRnLEN ("use-vc"),  RES_USEVC },
+            { STRnLEN ("trust-ad"), RES_TRUSTAD },
+            { STRnLEN ("no-aaaa"), RES_NOAAAA },
+            { STRnLEN ("strict-error"), RES_STRICTERR },
           };
 #define noptions (sizeof (options) / sizeof (options[0]))
+          bool negate_option = *cp == '-';
+          if (negate_option)
+            ++cp;
           for (int i = 0; i < noptions; ++i)
             if (strncmp (cp, options[i].str, options[i].len) == 0)
               {
-                if (options[i].clear)
-                  parser->template.options &= options[i].flag;
+                if (negate_option)
+                  parser->template.options &= ~options[i].flag;
                 else
                   parser->template.options |= options[i].flag;
                 break;

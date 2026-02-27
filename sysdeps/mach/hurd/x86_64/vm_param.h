@@ -1,4 +1,4 @@
-/* Copyright (C) 2020-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,7 +15,7 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#ifndef _X86_86_VM_PARAM_H
+#ifndef _X86_64_VM_PARAM_H
 #define _X86_64_VM_PARAM_H
 
 /* Arbitrary start of the brk. This is after usual binary and library mappings.  */

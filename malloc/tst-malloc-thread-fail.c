@@ -1,5 +1,5 @@
 /* Test allocation function behavior on allocation failure.
-   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+   Copyright (C) 2015-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@
 
 /* Wrapper for calloc with an optimization barrier.  */
 static void *
-__attribute__ ((noinline, noclone))
+__attribute_optimization_barrier__
 allocate_zeroed (size_t a, size_t b)
 {
   return calloc (a, b);

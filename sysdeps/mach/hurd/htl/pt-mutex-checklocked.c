@@ -1,5 +1,5 @@
 /* __pthread_mutex_checklocked.  Hurd version.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@
 #include <pt-internal.h>
 #include "pt-mutex.h"
 #include <hurdlock.h>
+#include <unistd.h>
 
 int
 __pthread_mutex_checklocked (pthread_mutex_t *mtxp)
@@ -49,3 +50,4 @@ __pthread_mutex_checklocked (pthread_mutex_t *mtxp)
 
   return ret;
 }
+libc_hidden_def (__pthread_mutex_checklocked)

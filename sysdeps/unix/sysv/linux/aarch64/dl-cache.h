@@ -1,5 +1,5 @@
 /* Support for reading /etc/ld.so.cache files written by Linux ldconfig.
-   Copyright (C) 2003-2023 Free Software Foundation, Inc.
+   Copyright (C) 2003-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,11 +18,7 @@
 
 #include <ldconfig.h>
 
-#ifdef __LP64__
-# define _DL_CACHE_DEFAULT_ID    (FLAG_AARCH64_LIB64 | FLAG_ELF_LIBC6)
-#else
-# define _DL_CACHE_DEFAULT_ID    (FLAG_AARCH64_LIB32 | FLAG_ELF_LIBC6)
-#endif
+#define _DL_CACHE_DEFAULT_ID    (FLAG_AARCH64_LIB64 | FLAG_ELF_LIBC6)
 
 #define _dl_cache_check_flags(flags)                    \
   ((flags) == _DL_CACHE_DEFAULT_ID)
@@ -38,17 +34,10 @@
 	  len -= 2;						\
 	  path[len] = '\0';					\
 	}							\
-      if (len >= 9 && ! memcmp (path + len - 9, "/libilp32", 9))\
-	{							\
-	  len -= 5;						\
-	  path[len] = '\0';					\
-	}							\
       add_dir (path);						\
       if (len >= 4 && ! memcmp (path + len - 4, "/lib", 4))	\
 	{							\
 	  memcpy (path + len, "64", 3);				\
-	  add_dir (path);					\
-	  memcpy (path + len, "ilp32", 6);			\
 	  add_dir (path);					\
 	}							\
     } while (0)

@@ -1,5 +1,5 @@
 /* Change access and modification times of open file.  Linux version.
-   Copyright (C) 2007-2023 Free Software Foundation, Inc.
+   Copyright (C) 2007-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -75,9 +75,6 @@ int
 __utimensat64 (int fd, const char *file, const struct __timespec64 tsp64[2],
                int flags)
 {
-  if (file == NULL)
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
-
   return __utimensat64_helper (fd, file, &tsp64[0], flags);
 }
 

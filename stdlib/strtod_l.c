@@ -1,5 +1,5 @@
 /* Convert string representing a number to float value, using given locale.
-   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -222,6 +222,7 @@ round_and_return (mp_limb_t *retval, intmax_t exponent, int negative,
 
       mp_size_t shift = MIN_EXP - 1 - exponent;
       bool is_tiny = true;
+      bool old_half_bit = (round_limb & (((mp_limb_t) 1) << round_bit)) != 0;
 
       more_bits |= (round_limb & ((((mp_limb_t) 1) << round_bit) - 1)) != 0;
       if (shift == MANT_DIG)
@@ -292,6 +293,7 @@ round_and_return (mp_limb_t *retval, intmax_t exponent, int negative,
 	  round_bit = shift - 1;
 	  (void) __mpn_rshift (retval, retval, RETURN_LIMB_SIZE, shift);
 	}
+      more_bits |= old_half_bit;
       /* This is a hook for the m68k long double format, where the
 	 exponent bias is the same for normalized and denormalized
 	 numbers.  */

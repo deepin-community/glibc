@@ -1,6 +1,6 @@
 /* Test CPU feature data against /proc/cpuinfo.
    This file is part of the GNU C Library.
-   Copyright (C) 2012-2023 Free Software Foundation, Inc.
+   Copyright (C) 2012-2025 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -246,7 +246,7 @@ do_test (int argc, char **argv)
   fails += CHECK_PROC (sgx, SGX);
   fails += CHECK_PROC (sgx_lc, SGX_LC);
   fails += CHECK_PROC (sha_ni, SHA);
-  fails += CHECK_PROC (shstk, SHSTK);
+  fails += CHECK_PROC (user_shstk, SHSTK);
   fails += CHECK_PROC (smap, SMAP);
   fails += CHECK_PROC (smep, SMEP);
   fails += CHECK_PROC (smx, SMX);
@@ -294,7 +294,10 @@ do_test (int argc, char **argv)
   fails += CHECK_PROC (waitpkg, WAITPKG);
   fails += CHECK_PROC (wbnoinvd, WBNOINVD);
   fails += CHECK_PROC (x2apic, X2APIC);
+#if 0
+  /* NB: /proc/cpuinfo doesn't report this feature.  */
   fails += CHECK_PROC (xfd, XFD);
+#endif
   fails += CHECK_PROC (xgetbv1, XGETBV_ECX_1);
   fails += CHECK_PROC (xop, XOP);
   fails += CHECK_PROC (xsave, XSAVE);

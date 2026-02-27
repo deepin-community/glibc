@@ -1,6 +1,6 @@
 /* Test for correct rounding of results of strtod and related
    functions.
-   Copyright (C) 2012-2023 Free Software Foundation, Inc.
+   Copyright (C) 2012-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
    declared in the headers.  */
 #define _LIBC_TEST 1
 #define __STDC_WANT_IEC_60559_TYPES_EXT__
+#include <errno.h>
 #include <fenv.h>
 #include <float.h>
 #include <math.h>
@@ -29,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math-tests.h>
+#include <tininess.h>
 
 #include "tst-strtod.h"
 
@@ -138,16 +140,26 @@
    gen-tst-strtod-round utility to select the appropriately
    rounded long double value for a given format.  */
 #define TEST(s,							\
-	     fx, fd, fdo, fn, fno, fz, fzo, fu, fuo,		\
-	     dx, dd, ddo, dn, dno, dz, dzo, du, duo,		\
-	     ld64ix, ld64id, ld64ido, ld64in, ld64ino,		\
-	     ld64iz, ld64izo, ld64iu, ld64iuo,			\
-	     ld64mx, ld64md, ld64mdo, ld64mn, ld64mno,		\
-	     ld64mz, ld64mzo, ld64mu, ld64muo,			\
-	     ld106x, ld106d, ld106do, ld106n, ld106no,		\
-	     ld106z, ld106zo, ld106u, ld106uo,			\
-	     ld113x, ld113d, ld113do, ld113n, ld113no,		\
-	     ld113z, ld113zo, ld113u, ld113uo)			\
+	     fx, fd, fdo, fdu, fn, fno, fnu,			\
+	     fz, fzo, fzu, fu, fuo, fuu,			\
+	     dx, dd, ddo, ddu, dn, dno, dnu,			\
+	     dz, dzo, dzu, du, duo, duu,			\
+	     ld64ix, ld64id, ld64ido, ld64idu,			\
+	     ld64in, ld64ino, ld64inu,				\
+	     ld64iz, ld64izo, ld64izu,				\
+	     ld64iu, ld64iuo, ld64iuu,				\
+	     ld64mx, ld64md, ld64mdo, ld64mdu,			\
+	     ld64mn, ld64mno, ld64mnu,				\
+	     ld64mz, ld64mzo, ld64mzu,				\
+	     ld64mu, ld64muo, ld64muu,				\
+	     ld106x, ld106d, ld106do, ld106du,			\
+	     ld106n, ld106no, ld106nu,				\
+	     ld106z, ld106zo, ld106zu,				\
+	     ld106u, ld106uo, ld106uu,				\
+	     ld113x, ld113d, ld113do, ld113du,			\
+	     ld113n, ld113no, ld113nu,				\
+	     ld113z, ld113zo, ld113zu,				\
+	     ld113u, ld113uo, ld113uu)				\
   {								\
     L_ (s),							\
     { XNTRY (fx, dx, ld64ix, ld64mx, ld106x, ld113x) },		\
@@ -162,6 +174,12 @@
     { XNTRY (fdo, ddo, ld64ido, ld64mdo, ld106do, ld113do) },	\
     { XNTRY (fzo, dzo, ld64izo, ld64mzo, ld106zo, ld113zo) },	\
     { XNTRY (fuo, duo, ld64iuo, ld64muo, ld106uo, ld113uo) }	\
+    },								\
+    {								\
+    { XNTRY (fnu, dnu, ld64inu, ld64mnu, ld106nu, ld113nu) },	\
+    { XNTRY (fdu, ddu, ld64idu, ld64mdu, ld106du, ld113du) },	\
+    { XNTRY (fzu, dzu, ld64izu, ld64mzu, ld106zu, ld113zu) },	\
+    { XNTRY (fuu, duu, ld64iuu, ld64muu, ld106uu, ld113uu) }	\
     }								\
   }
 
@@ -180,11 +198,17 @@ struct test_overflow
   STRUCT_FOREACH_FLOAT_BOOL
   };
 
+struct test_underflow
+  {
+  STRUCT_FOREACH_FLOAT_BOOL
+  };
+
 struct test {
   const CHAR *s;
   struct test_exactness exact;
   struct test_results r[4];
   struct test_overflow o[4];
+  struct test_underflow u[4];
 };
 
 /* Include the generated test data.  */
@@ -202,10 +226,16 @@ struct test {
 # define FE_OVERFLOW 0
 #endif
 
+#ifndef FE_UNDERFLOW
+# define FE_UNDERFLOW 0
+#endif
+
 #define GEN_ONE_TEST(FSUF, FTYPE, FTOSTR, LSUF, CSUF)		\
 {								\
   feclearexcept (FE_ALL_EXCEPT);				\
+  errno = 12345;						\
   FTYPE f = STRTO (FSUF) (s, NULL);				\
+  int new_errno = errno;					\
   if (f != expected->FSUF					\
       || (copysign ## CSUF) (1.0 ## LSUF, f)			\
 	 != (copysign ## CSUF) (1.0 ## LSUF, expected->FSUF))	\
@@ -254,6 +284,48 @@ struct test {
 		printf ("ignoring this exception error\n");	\
 	    }							\
 	}							\
+      if (overflow->FSUF && new_errno != ERANGE)		\
+	{							\
+	  printf (FNPFXS "to" #FSUF				\
+		  " (" STRM ") left errno == %d,"		\
+		  " not %d (ERANGE)\n",				\
+		  s, new_errno, ERANGE);			\
+	  result = 1;						\
+	}							\
+      if (FE_UNDERFLOW != 0)					\
+	{							\
+	  bool underflow_raised					\
+	    = fetestexcept (FE_UNDERFLOW) != 0;			\
+	  if (underflow_raised != underflow->FSUF)		\
+	    {							\
+	      printf (FNPFXS "to" #FSUF				\
+		      " (" STRM ") underflow %d "		\
+		      "not %d\n", s, underflow_raised,		\
+		      underflow->FSUF);				\
+	      if (EXCEPTION_TESTS (FTYPE))			\
+		result = 1;					\
+	      else						\
+		printf ("ignoring this exception error\n");	\
+	    }							\
+	}							\
+      if (underflow->FSUF && new_errno != ERANGE)		\
+	{							\
+	  printf (FNPFXS "to" #FSUF				\
+		  " (" STRM ") left errno == %d,"		\
+		  " not %d (ERANGE)\n",				\
+		  s, new_errno, ERANGE);			\
+	  result = 1;						\
+	}							\
+      if (!overflow->FSUF					\
+	  && !underflow->FSUF					\
+	  && new_errno != 12345)				\
+	{							\
+	  printf (FNPFXS "to" #FSUF				\
+		  " (" STRM ") set errno == %d,"		\
+		  " should be unchanged\n",			\
+		  s, new_errno);				\
+	  result = 1;						\
+	}							\
     }								\
 }
 
@@ -261,6 +333,7 @@ static int
 test_in_one_mode (const CHAR *s, const struct test_results *expected,
 		    const struct test_exactness *exact,
 		    const struct test_overflow *overflow,
+		    const struct test_underflow *underflow,
 		    const char *mode_name, int rnd_mode)
 {
   int result = 0;
@@ -296,6 +369,7 @@ do_test (void)
     {
       result |= test_in_one_mode (tests[i].s, &tests[i].r[modes[0].rnd_i],
 				  &tests[i].exact, &tests[i].o[modes[0].rnd_i],
+				  &tests[i].u[modes[0].rnd_i],
 				  modes[0].mode_name, modes[0].rnd_mode);
       for (const struct fetestmodes *m = &modes[1]; m->mode_name != NULL; m++)
 	{
@@ -303,7 +377,9 @@ do_test (void)
 	    {
 	      result |= test_in_one_mode (tests[i].s, &tests[i].r[m->rnd_i],
 					  &tests[i].exact,
-					  &tests[i].o[m->rnd_i], m->mode_name,
+					  &tests[i].o[m->rnd_i],
+					  &tests[i].u[m->rnd_i],
+					  m->mode_name,
 					  m->rnd_mode);
 	      fesetround (save_round_mode);
 	    }

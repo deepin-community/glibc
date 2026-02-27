@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -25,9 +25,11 @@
 #include <entry.h>
 #include <elf/elf.h>
 #include <sys/asm.h>
-#include <dl-tls.h>
+#include <dl-tlsdesc.h>
 #include <dl-static-tls.h>
 #include <dl-machine-rel.h>
+
+#include <cpu-features.c>
 
 #ifndef _RTLD_PROLOGUE
 # define _RTLD_PROLOGUE(entry)					\
@@ -52,6 +54,23 @@
 
 #define ELF_MACHINE_NO_REL 1
 #define ELF_MACHINE_NO_RELA 0
+
+#define DL_PLATFORM_INIT dl_platform_init ()
+
+static inline void __attribute__ ((unused))
+dl_platform_init (void)
+{
+  if (GLRO(dl_platform) != NULL && *GLRO(dl_platform) == '\0')
+    /* Avoid an empty string which would disturb us.  */
+    GLRO(dl_platform) = NULL;
+
+#ifdef SHARED
+  /* init_cpu_features has been called early from __libc_start_main in
+     static executable.  */
+  init_cpu_features (&GLRO(dl_larch_cpu_features));
+#endif
+}
+
 
 /* Return nonzero iff ELF header is compatible with the running host.  */
 static inline int
@@ -90,7 +109,7 @@ static inline ElfW (Addr) elf_machine_dynamic (void)
 	or	$a0, $sp, $zero   \n\
 	bl	_dl_start   \n\
 	# Stash user entry point in s0.   \n\
-	or	$s0, $v0, $zero   \n\
+	or	$s0, $a0, $zero   \n\
 	# Load the original argument count.   \n\
 	ld.d	$a1, $sp, 0   \n\
 	# Call _dl_init (struct link_map *main_map, int argc, \
@@ -187,6 +206,43 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
       *addr_field = TLS_TPREL_VALUE (sym_map, sym) + reloc->r_addend;
       break;
 
+    case __WORDSIZE == 64 ? R_LARCH_TLS_DESC64 : R_LARCH_TLS_DESC32:
+      {
+	struct tlsdesc volatile *td = (struct tlsdesc volatile *)addr_field;
+	if (sym == NULL)
+	  {
+	    td->arg = (void*)reloc->r_addend;
+	    td->entry = _dl_tlsdesc_undefweak;
+	  }
+	else
+	  {
+# ifndef SHARED
+	    CHECK_STATIC_TLS (map, sym_map);
+# else
+	    if (!TRY_STATIC_TLS (map, sym_map))
+	      {
+		td->arg = _dl_make_tlsdesc_dynamic (sym_map,
+			      sym->st_value + reloc->r_addend);
+# ifndef __loongarch_soft_float
+		if (RTLD_SUPPORT_LASX)
+		  td->entry = _dl_tlsdesc_dynamic_lasx;
+		else if (RTLD_SUPPORT_LSX)
+		  td->entry = _dl_tlsdesc_dynamic_lsx;
+		else
+# endif
+		td->entry = _dl_tlsdesc_dynamic;
+	      }
+	    else
+# endif
+	      {
+		td->arg = (void *)(TLS_TPREL_VALUE (sym_map, sym)
+			    + reloc->r_addend);
+		td->entry = _dl_tlsdesc_return;
+	      }
+	  }
+	break;
+      }
+
     case R_LARCH_COPY:
       {
 	  if (sym == NULL)
@@ -255,6 +311,26 @@ elf_machine_lazy_rel (struct link_map *map, struct r_scope_elem *scope[],
       else
 	*reloc_addr = map->l_mach.plt;
     }
+  else if (__glibc_likely (r_type == R_LARCH_TLS_DESC64)
+	    || __glibc_likely (r_type == R_LARCH_TLS_DESC32))
+    {
+      const Elf_Symndx symndx = ELFW (R_SYM) (reloc->r_info);
+      const ElfW (Sym) *symtab = (const void *)D_PTR (map, l_info[DT_SYMTAB]);
+      const ElfW (Sym) *sym = &symtab[symndx];
+      const struct r_found_version *version = NULL;
+
+      if (map->l_info[VERSYMIDX (DT_VERSYM)] != NULL)
+	{
+	  const ElfW (Half) *vernum = (const void *)D_PTR (map,
+					  l_info[VERSYMIDX (DT_VERSYM)]);
+	  version = &map->l_versions[vernum[symndx] & 0x7fff];
+	}
+
+      /* Always initialize TLS descriptors completely, because lazy
+	 initialization requires synchronization at every TLS access.  */
+      elf_machine_rela (map, scope, reloc, sym, version, reloc_addr,
+			skip_ifunc);
+    }
   else
     _dl_reloc_bad_type (map, r_type, 1);
 }
@@ -270,9 +346,11 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
   /* If using PLTs, fill in the first two entries of .got.plt.  */
   if (l->l_info[DT_JMPREL])
     {
-#if HAVE_LOONGARCH_VEC_ASM && !defined __loongarch_soft_float
+#if !defined __loongarch_soft_float
       extern void _dl_runtime_resolve_lasx (void) attribute_hidden;
       extern void _dl_runtime_resolve_lsx (void) attribute_hidden;
+      extern void _dl_runtime_profile_lasx (void) attribute_hidden;
+      extern void _dl_runtime_profile_lsx (void) attribute_hidden;
 #endif
       extern void _dl_runtime_resolve (void) attribute_hidden;
       extern void _dl_runtime_profile (void) attribute_hidden;
@@ -285,9 +363,17 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	 to intercept the calls to collect information.  In this case we
 	 don't store the address in the GOT so that all future calls also
 	 end in this function.  */
+#ifdef SHARED
       if (profile != 0)
 	{
-	   gotplt[0] = (ElfW(Addr)) &_dl_runtime_profile;
+#if !defined __loongarch_soft_float
+	  if (RTLD_SUPPORT_LASX)
+	    gotplt[0] = (ElfW(Addr)) &_dl_runtime_profile_lasx;
+	  else if (RTLD_SUPPORT_LSX)
+	    gotplt[0] = (ElfW(Addr)) &_dl_runtime_profile_lsx;
+	  else
+# endif
+	    gotplt[0] = (ElfW(Addr)) &_dl_runtime_profile;
 
 	  if (GLRO(dl_profile) != NULL
 	      && _dl_name_match_p (GLRO(dl_profile), l))
@@ -296,14 +382,15 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	    GL(dl_profile_map) = l;
 	}
       else
+#endif
 	{
 	  /* This function will get called to fix up the GOT entry
 	     indicated by the offset on the stack, and then jump to
 	     the resolved address.  */
-#if HAVE_LOONGARCH_VEC_ASM && !defined __loongarch_soft_float
-	  if (SUPPORT_LASX)
+#if !defined __loongarch_soft_float
+	  if (RTLD_SUPPORT_LASX)
 	    gotplt[0] = (ElfW(Addr)) &_dl_runtime_resolve_lasx;
-	  else if (SUPPORT_LSX)
+	  else if (RTLD_SUPPORT_LSX)
 	    gotplt[0] = (ElfW(Addr)) &_dl_runtime_resolve_lsx;
 	  else
 #endif

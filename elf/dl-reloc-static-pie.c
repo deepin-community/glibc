@@ -1,5 +1,5 @@
 /* Support for relocating static PIE.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,20 +37,37 @@ _dl_relocate_static_pie (void)
 {
   struct link_map *main_map = _dl_get_dl_main_map ();
 
-  /* Figure out the run-time load address of static PIE.  */
-  main_map->l_addr = elf_machine_load_address ();
-
-  /* Read our own dynamic section and fill in the info array.  */
-  main_map->l_ld = ((void *) main_map->l_addr + elf_machine_dynamic ());
-
+  /* NB: elf_machine_load_address () returns the run-time load address
+     of static PIE.  The l_addr field contains the difference between the
+     link-time load address in the ELF file and the run-time load address
+     in memory.  We must subtract the link-time load address of static PIE,
+     which can be non-zero, when computing the l_addr field.  Since static
+     PIE usually doesn't have PT_PHDR segment, use p_vaddr of the PT_LOAD
+     segment with offset == 0 as the load address of static PIE.  */
+  ElfW(Addr) file_p_vaddr = 0;
   const ElfW(Phdr) *ph, *phdr = GL(dl_phdr);
   size_t phnum = GL(dl_phnum);
   for (ph = phdr; ph < &phdr[phnum]; ++ph)
-    if (ph->p_type == PT_DYNAMIC)
+    switch (ph->p_type)
       {
+      case PT_LOAD:
+	/* Skip the empty PT_LOAD segment at offset 0.  */
+	if (ph->p_filesz != 0 && ph->p_offset == 0)
+	  file_p_vaddr = ph->p_vaddr;
+	break;
+      case PT_DYNAMIC:
 	main_map->l_ld_readonly = (ph->p_flags & PF_W) == 0;
 	break;
+      default:
+	break;
       }
+
+  /* Figure out the run-time load address of static PIE.  */
+  ElfW(Addr) l_addr = elf_machine_load_address ();
+  main_map->l_addr = l_addr - file_p_vaddr;
+
+  /* Read our own dynamic section and fill in the info array.  */
+  main_map->l_ld = ((void *) l_addr + elf_machine_dynamic ());
 
   elf_get_dynamic_info (main_map, false, true);
 

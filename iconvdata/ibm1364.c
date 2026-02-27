@@ -1,5 +1,5 @@
 /* Conversion from and to IBM1364.
-   Copyright (C) 2005-2023 Free Software Foundation, Inc.
+   Copyright (C) 2005-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -179,7 +179,7 @@ enum
 	    /* This is an illegal character.  */			      \
 	    if (! ignore_errors_p ())					      \
 	      {								      \
-		result = __GCONV_ILLEGAL_INPUT;				      \
+		result = __gconv_mark_illegal_input (step_data);	      \
 		break;							      \
 	      }								      \
 	    ++*irreversible;						      \
@@ -219,7 +219,7 @@ enum
 	    /* This is an illegal character.  */			      \
 	    if (! ignore_errors_p ())					      \
 	      {								      \
-		result = __GCONV_ILLEGAL_INPUT;				      \
+		result = __gconv_mark_illegal_input (step_data);	      \
 		break;							      \
 	      }								      \
 	    ++*irreversible;						      \
@@ -300,7 +300,7 @@ enum
 									      \
 	if (! ignore_errors_p ())					      \
 	  {								      \
-	    result = __GCONV_ILLEGAL_INPUT;				      \
+	    result = __gconv_mark_illegal_input (step_data);		      \
 	    break;							      \
 	  }								      \
 	++*irreversible;						      \
@@ -332,7 +332,7 @@ enum
 	    /* This is an illegal character.  */			      \
 	    if (! ignore_errors_p ())					      \
 	      {								      \
-		result = __GCONV_ILLEGAL_INPUT;				      \
+		result = __gconv_mark_illegal_input (step_data);	      \
 		break;							      \
 	      }								      \
 	    ++*irreversible;						      \

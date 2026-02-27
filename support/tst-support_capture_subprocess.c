@@ -1,5 +1,5 @@
 /* Test capturing output from a subprocess.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -238,7 +238,7 @@ do_subprogram (const struct test *test)
   args[argc]   = NULL;
   TEST_VERIFY (argc < argv_size);
 
-  return support_capture_subprogram (args[0], args);
+  return support_capture_subprogram (args[0], args, NULL);
 }
 
 enum test_type

@@ -1,0 +1,6 @@
+# libc-gconv-modules-extra has no dependency on libc6 to avoid creating a
+# dependency loop. Anyway those are just plugins for the gconv interface and
+# can't be executed otherwise than though libc6. The dependency can be re-added
+# once the transition is finished and the libc6 dependency on
+# libc-gconv-modules-extra is demoted to a recommends.
+undeclared-elf-prerequisites

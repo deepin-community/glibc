@@ -1,5 +1,5 @@
 /* mprotect with a memory protection key.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
 #include <sysdep.h>
 
 int
-pkey_mprotect (void *addr, size_t len, int prot, int pkey)
+__pkey_mprotect (void *addr, size_t len, int prot, int pkey)
 {
   if (pkey == -1)
     /* If the key is -1, the system call is precisely equivalent to
@@ -30,3 +30,5 @@ pkey_mprotect (void *addr, size_t len, int prot, int pkey)
     return __mprotect (addr, len, prot);
   return INLINE_SYSCALL_CALL (pkey_mprotect, addr, len, prot, pkey);
 }
+libc_hidden_def (__pkey_mprotect)
+weak_alias (__pkey_mprotect, pkey_mprotect)

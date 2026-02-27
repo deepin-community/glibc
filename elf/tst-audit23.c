@@ -1,5 +1,5 @@
 /* Check for expected la_objopen and la_objeclose for all objects.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <array_length.h>
+#include <endswith.h>
 #include <errno.h>
 #include <getopt.h>
 #include <link.h>
@@ -30,16 +31,21 @@
 #include <support/xstdio.h>
 #include <support/xdlfcn.h>
 #include <support/support.h>
+#include <support/test-driver.h>
 
 static int restart;
+static int do_dlclose;
 #define CMDLINE_OPTIONS \
-  { "restart", no_argument, &restart, 1 },
+  { "restart", no_argument, &restart, 1 }, \
+  { "dlclose", no_argument, &do_dlclose, 1 }, \
 
 static int
 handle_restart (void)
 {
   xdlopen ("tst-audit23mod.so", RTLD_NOW);
-  xdlmopen (LM_ID_NEWLM, LIBC_SO, RTLD_NOW);
+  void *handle = xdlmopen (LM_ID_NEWLM, LIBC_SO, RTLD_NOW);
+  if (do_dlclose)
+    xdlclose (handle);
 
   return 0;
 }
@@ -59,8 +65,8 @@ is_vdso (const char *str)
 	 || startswith (str, "linux-vdso");
 }
 
-static int
-do_test (int argc, char *argv[])
+static void
+do_one_test (int argc, char *argv[], bool pass_dlclose_flag)
 {
   /* We must have either:
      - One or four parameters left if called initially:
@@ -68,31 +74,46 @@ do_test (int argc, char *argv[])
        + "--library-path"      optional
        + the library path      optional
        + the application name  */
-  if (restart)
-    return handle_restart ();
-
-  char *spargv[9];
+  char *spargv[10];
   TEST_VERIFY_EXIT (((argc - 1) + 3) < array_length (spargv));
   int i = 0;
   for (; i < argc - 1; i++)
     spargv[i] = argv[i + 1];
   spargv[i++] = (char *) "--direct";
   spargv[i++] = (char *) "--restart";
+  if (pass_dlclose_flag)
+    spargv[i++] = (char *) "--dlclose";
   spargv[i] = NULL;
 
   setenv ("LD_AUDIT", "tst-auditmod23.so", 0);
   struct support_capture_subprocess result
-    = support_capture_subprogram (spargv[0], spargv);
+    = support_capture_subprogram (spargv[0], spargv, NULL);
   support_capture_subprocess_check (&result, "tst-audit22", 0, sc_allow_stderr);
+
+  {
+    FILE *fp = fmemopen (result.err.buffer, result.err.length, "r");
+    TEST_VERIFY (fp != NULL);
+    unsigned int line = 0;
+    char *buffer = NULL;
+    size_t buffer_length = 0;
+    puts ("info: *** audit log start ***");
+    while (xgetline (&buffer, &buffer_length, fp))
+      printf ("%6u\t%s", ++line, buffer);
+    puts ("info: *** audit log end ***");
+    free (buffer);
+    xfclose (fp);
+  }
 
   /* The expected la_objopen/la_objclose:
      1. executable
      2. loader
      3. libc.so
-     4. tst-audit23mod.so
-     5. libc.so (LM_ID_NEWLM).
-     6. vdso (optional and ignored).  */
-  enum { max_objs = 6 };
+     4. libgcc_s.so (one some architectures, for libsupport)
+     5. tst-audit23mod.so
+     6. libc.so (LM_ID_NEWLM).
+     7. loader (proxy link map in new namespace)
+        vdso (optional and ignored).  */
+  enum { max_objs = 7 };
   struct la_obj_t
   {
     char *lname;
@@ -115,8 +136,10 @@ do_test (int argc, char *argv[])
   TEST_VERIFY (out != NULL);
   char *buffer = NULL;
   size_t buffer_length = 0;
+  unsigned int line = 0;
   while (xgetline (&buffer, &buffer_length, out))
     {
+      ++line;
       if (startswith (buffer, "la_activity: "))
 	{
 	  uintptr_t cookie;
@@ -127,8 +150,14 @@ do_test (int argc, char *argv[])
 
 	  /* The cookie identifies the object at the head of the link map,
 	     so we only add a new namespace if it changes from the previous
-	     one.  This works since dlmopen is the last in the test body.  */
-	  if (cookie != last_act_cookie && last_act_cookie != -1)
+	     one.  This works since dlmopen is the last in the test body.
+
+	     Currently, this does not work as expected because there
+	     is no head link map if a namespace is completely deleted.
+	     No LA_ACT_CONSISTENT event is generated in that case.
+	     See the comment in _dl_audit_activity_nsid and bug 32068.  */
+	  if (cookie != last_act_cookie && last_act_cookie != -1
+	      && !pass_dlclose_flag)
 	    TEST_COMPARE (last_act, LA_ACT_CONSISTENT);
 
 	  if (this_act == LA_ACT_ADD && acts[nacts] != cookie)
@@ -174,8 +203,8 @@ do_test (int argc, char *argv[])
 	  if (is_vdso (lname))
 	    continue;
 	  if (nobjs == max_objs)
-	    FAIL_EXIT1 ("non expected la_objopen: %s %"PRIxPTR" %ld",
-			lname, laddr, lmid);
+	    FAIL_EXIT1 ("(line %u) non expected la_objopen: %s %"PRIxPTR" %ld",
+			line, lname, laddr, lmid);
 	  objs[nobjs].lname = lname;
 	  objs[nobjs].laddr = laddr;
 	  objs[nobjs].lmid = lmid;
@@ -217,11 +246,26 @@ do_test (int argc, char *argv[])
 	}
     }
 
+  Lmid_t lmid_other = LM_ID_NEWLM;
+  unsigned int other_namespace_count = 0;
   for (size_t i = 0; i < nobjs; i++)
     {
+      if (objs[i].lmid != LM_ID_BASE)
+	{
+	  if (lmid_other == LM_ID_NEWLM)
+	    lmid_other = objs[i].lmid;
+	  TEST_COMPARE (objs[i].lmid, lmid_other);
+	  ++other_namespace_count;
+	  if (!(endswith (objs[i].lname, "/" LIBC_SO)
+		|| endswith (objs[i].lname, "/" LD_SO)))
+	    FAIL ("unexpected object in secondary namespace: %s",
+		  objs[i].lname);
+	}
       TEST_COMPARE (objs[i].closed, true);
       free (objs[i].lname);
     }
+  /* Both libc.so and ld.so should be present.  */
+  TEST_COMPARE (other_namespace_count, 2);
 
   /* la_activity(LA_ACT_CONSISTENT) should be the last callback received.
      Since only one link map may be not-CONSISTENT at a time, this also
@@ -231,7 +275,16 @@ do_test (int argc, char *argv[])
 
   free (buffer);
   xfclose (out);
+}
 
+static int
+do_test (int argc, char *argv[])
+{
+  if (restart)
+    return handle_restart ();
+
+  do_one_test (argc, argv, false);
+  do_one_test (argc, argv, true);
   return 0;
 }
 

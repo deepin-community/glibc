@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2015-2023 Free Software Foundation, Inc.
+# Copyright (C) 2015-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -31,7 +31,11 @@ cat <<'EOF'
   Compile do_test without optimization: GCC 4.9/5.0/6.0 takes a long time
   to build this source. https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67396  */
 
+#ifdef __clang__
+__attribute__ ((optnone))
+#else
 __attribute__ ((optimize ("-O0")))
+#endif
 int do_test (void)
 {
     mtrace ();

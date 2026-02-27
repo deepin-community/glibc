@@ -15,6 +15,7 @@ GLIBC_PASSES += amd64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-amd64 libc6-dev-amd64
 libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
 amd64_configure_target = x86_64-linux-gnu
+amd64_extra_config_options = $(extra_config_options)
 amd64_CC = $(CC) -m64
 amd64_CXX = $(CXX) -m64
 amd64_mvec = yes

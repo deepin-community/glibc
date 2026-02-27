@@ -24,33 +24,35 @@ libc_hidden_proto (toupper)
    NL_CURRENT_INDIRECT.  */
 
 #  include "../locale/localeinfo.h"
-#  include <libc-tsd.h>
 
 #  ifndef CTYPE_EXTERN_INLINE	/* Used by ctype/ctype-info.c, which see.  */
 #   define CTYPE_EXTERN_INLINE extern inline
 #  endif
 
-__libc_tsd_define (extern, const uint16_t *, CTYPE_B)
-__libc_tsd_define (extern, const int32_t *, CTYPE_TOUPPER)
-__libc_tsd_define (extern, const int32_t *, CTYPE_TOLOWER)
+extern __thread const uint16_t * __libc_tsd_CTYPE_B
+  attribute_hidden attribute_tls_model_ie;
+extern __thread const int32_t * __libc_tsd_CTYPE_TOUPPER
+  attribute_hidden attribute_tls_model_ie;
+extern __thread const int32_t * __libc_tsd_CTYPE_TOLOWER
+  attribute_hidden attribute_tls_model_ie;
 
 
 CTYPE_EXTERN_INLINE const uint16_t ** __attribute__ ((const))
 __ctype_b_loc (void)
 {
-  return __libc_tsd_address (const uint16_t *, CTYPE_B);
+  return &__libc_tsd_CTYPE_B;
 }
 
 CTYPE_EXTERN_INLINE const int32_t ** __attribute__ ((const))
 __ctype_toupper_loc (void)
 {
-  return __libc_tsd_address (const int32_t *, CTYPE_TOUPPER);
+  return &__libc_tsd_CTYPE_TOUPPER;
 }
 
 CTYPE_EXTERN_INLINE const int32_t ** __attribute__ ((const))
 __ctype_tolower_loc (void)
 {
-  return __libc_tsd_address (const int32_t *, CTYPE_TOLOWER);
+  return &__libc_tsd_CTYPE_TOLOWER;
 }
 
 #  ifndef __NO_CTYPE
@@ -63,6 +65,11 @@ __ctype_tolower_loc (void)
 #   undef __isdigit_l
 #   define __isdigit_l(c, l) ({ int __c = (c); __c >= '0' && __c <= '9'; })
 #  endif  /* Not __NO_CTYPE.  */
+
+/* For use in initializers.  */
+extern const char _nl_C_LC_CTYPE_class[] attribute_hidden;
+extern const uint32_t _nl_C_LC_CTYPE_toupper[] attribute_hidden;
+extern const uint32_t _nl_C_LC_CTYPE_tolower[] attribute_hidden;
 
 # endif	/* IS_IN (libc).  */
 #endif  /* Not _ISOMAC.  */

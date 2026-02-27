@@ -1,5 +1,5 @@
 /* Rename a file using relative source and destination names.  Hurd version.
-   Copyright (C) 1991-2023 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,14 +37,27 @@ __renameat2 (int oldfd, const char *old, int newfd, const char *new,
   if (flags & RENAME_NOREPLACE)
     excl = 1;
 
-  olddir = __directory_name_split_at (oldfd, old, (char **) &oldname);
+  olddir = __file_name_split_at (oldfd, old, (char **) &oldname);
   if (olddir == MACH_PORT_NULL)
     return -1;
-  newdir = __directory_name_split_at (newfd, new, (char **) &newname);
+  if (!*oldname)
+    {
+      /* Trailing slash.  */
+      __mach_port_deallocate (__mach_task_self (), olddir);
+      return __hurd_fail (ENOTDIR);
+    }
+  newdir = __file_name_split_at (newfd, new, (char **) &newname);
   if (newdir == MACH_PORT_NULL)
     {
-       __mach_port_deallocate (__mach_task_self (), olddir);
+      __mach_port_deallocate (__mach_task_self (), olddir);
       return -1;
+    }
+  if (!*newname)
+    {
+      /* Trailing slash.  */
+      __mach_port_deallocate (__mach_task_self (), olddir);
+      __mach_port_deallocate (__mach_task_self (), newdir);
+      return __hurd_fail (ENOTDIR);
     }
 
   err = __dir_rename (olddir, oldname, newdir, newname, excl);

@@ -46,14 +46,43 @@ AC_CONFIG_SUBDIRS()
 AC_CANONICAL_HOST
 
 AC_PROG_CC
+AC_ARG_VAR([TEST_CC],
+	   [C compiler for testing])
+if test -z "$TEST_CC"; then
+  TEST_CC="$CC"
+fi
 if test $host != $build; then
   AC_CHECK_PROGS(BUILD_CC, gcc cc)
 fi
 AC_SUBST(cross_compiling)
 AC_PROG_CPP
 
-# We need the C++ compiler only for testing.
+# This will get text that should go into config.make.
+config_vars=
+
+AC_ARG_ENABLE([static-c++-tests],
+	      AS_HELP_STRING([--disable-static-c++-tests],
+			     [disable static C++ tests@<:@default=no@:>@]),
+	      [static_cxx_tests=$enableval],
+	      [static_cxx_tests=yes])
+LIBC_CONFIG_VAR([static-cxx-tests], [$static_cxx_tests])
+
+AC_ARG_ENABLE([static-c++-link-check],
+	      AS_HELP_STRING([--disable-static-c++-link-check],
+			     [disable static C++ link check @<:@default=no@:>@]),
+	      [static_cxx_link_check=$enableval],
+	      [static_cxx_link_check=yes])
+
+# We need the C++ compiler for testing and libsupport.
 AC_PROG_CXX
+AC_ARG_VAR([TEST_CXX],
+	   [C++ compiler for testing])
+saved_CXX="$CXX"
+if test -z "$TEST_CXX"; then
+  TEST_CXX="$CXX"
+else
+  CXX="$TEST_CXX"
+fi
 # It's useless to us if it can't link programs (e.g. missing -lstdc++).
 AC_CACHE_CHECK([whether $CXX can link programs], libc_cv_cxx_link_ok, [dnl
 AC_LANG_PUSH([C++])
@@ -61,10 +90,11 @@ AC_LANG_PUSH([C++])
 AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
 	       [libc_cv_cxx_link_ok=yes],
 	       [libc_cv_cxx_link_ok=no])
-# Static case.
-old_LDFLAGS="$LDFLAGS"
-LDFLAGS="$LDFLAGS -static"
-AC_LINK_IFELSE([AC_LANG_SOURCE([
+if test $static_cxx_link_check$static_cxx_tests = yesyes; then
+  # Static case.
+  old_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$LDFLAGS -static"
+  AC_LINK_IFELSE([AC_LANG_SOURCE([
 #include <iostream>
 
 int
@@ -74,18 +104,17 @@ main()
   return 0;
 }
 ])],
-	       [],
-	       [libc_cv_cxx_link_ok=no])
-LDFLAGS="$old_LDFLAGS"
+		 [],
+		 [libc_cv_cxx_link_ok=no])
+  LDFLAGS="$old_LDFLAGS"
+fi
 AC_LANG_POP([C++])])
-AS_IF([test $libc_cv_cxx_link_ok != yes], [CXX=])
+CXX="$saved_CXX"
+AS_IF([test $libc_cv_cxx_link_ok != yes], [CXX=; TEST_CXX=])
 
 if test "`cd $srcdir; pwd -P`" = "`pwd -P`"; then
   AC_MSG_ERROR([you must configure in a separate build directory])
 fi
-
-# This will get text that should go into config.make.
-config_vars=
 
 # Check for a --with-gd argument and set libgd-LDFLAGS in config.make.
 AC_ARG_WITH([gd],
@@ -167,6 +196,15 @@ AC_ARG_WITH([timeoutfactor],
 	    [timeoutfactor=$withval],
 	    [timeoutfactor=1])
 AC_DEFINE_UNQUOTED(TIMEOUTFACTOR, $timeoutfactor)
+
+man_pages_version=6.9.1
+
+AC_ARG_WITH([man-pages],
+	    AS_HELP_STRING([--with-man-pages=VERSION],
+			   [tie manual to a specific man-pages version]),
+	    [man_pages_version=$withval],
+	    [])
+AC_SUBST(man_pages_version)
 
 AC_ARG_ENABLE([sanity-checks],
 	      AS_HELP_STRING([--disable-sanity-checks],
@@ -277,16 +315,6 @@ else
   fi
 fi
 
-dnl For the development we sometimes want gcc to issue even more warnings.
-dnl This is not the default since many of the extra warnings are not
-dnl appropriate.
-AC_ARG_ENABLE([all-warnings],
-	      AS_HELP_STRING([--enable-all-warnings],
-			     [enable all useful warnings gcc can issue]),
-	      [all_warnings=$enableval],
-	      [])
-AC_SUBST(all_warnings)
-
 AC_ARG_ENABLE([werror],
 	      AS_HELP_STRING([--disable-werror],
 			     [do not build with -Werror]),
@@ -314,71 +342,6 @@ if test "$memory_tagging" = yes; then
   esac
 fi
 AC_SUBST(memory_tagging)
-
-AC_ARG_ENABLE([crypt],
-              AS_HELP_STRING([--enable-crypt],
-                             [build and install the legacy passphrase hashing library, libcrypt]),
-              [build_crypt=$enableval],
-              [build_crypt=no])
-AC_SUBST(build_crypt)
-
-AC_ARG_ENABLE([nss-crypt],
-	      AS_HELP_STRING([--enable-nss-crypt],
-			     [enable libcrypt to use nss]),
-	      [nss_crypt=$enableval],
-	      [nss_crypt=no])
-if test x$build_libcrypt = xno && test x$nss_crypt = xyes; then
-  AC_MSG_WARN([--enable-nss-crypt has no effect when libcrypt is disabled])
-  nss_crypt=no
-fi
-if test x$nss_crypt = xyes; then
-  nss_includes=-I$(nss-config --includedir 2>/dev/null)
-  if test $? -ne 0; then
-    AC_MSG_ERROR([cannot find include directory with nss-config])
-  fi
-  nspr_includes=-I$(nspr-config --includedir 2>/dev/null)
-  if test $? -ne 0; then
-    AC_MSG_ERROR([cannot find include directory with nspr-config])
-  fi
-  old_CFLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS $nss_includes $nspr_includes"
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([typedef int PRBool;
-#include <hasht.h>
-#include <nsslowhash.h>
-void f (void) { NSSLOW_Init (); }])],
-	     libc_cv_nss_crypt=yes,
-	     AC_MSG_ERROR([
-cannot find NSS headers with lowlevel hash function interfaces]))
-  old_LIBS="$LIBS"
-  old_LDFLAGS="$LDFLAGS"
-  LIBS="$LIBS -lfreebl3"
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([typedef int PRBool;
-#include <hasht.h>
-#include <nsslowhash.h>],
-				  [NSSLOW_Init();])],
-		 libc_cv_nss_crypt=yes,
-		 AC_MSG_ERROR([
-cannot link program using lowlevel NSS hash functions]))
-  # Check to see if there is a static NSS cryptographic library.
-  # If there isn't then we can't link anything with libcrypt.a,
-  # and that might mean disabling some static tests.
-  LDFLAGS="$LDFLAGS -static"
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([typedef int PRBool;
-#include <hasht.h>
-#include <nsslowhash.h>],
-				  [NSSLOW_Init();])],
-		 libc_cv_static_nss_crypt=yes,
-		 libc_cv_static_nss_crypt=no)
-  LDFLAGS="$old_LDFLAGS"
-  CFLAGS="$old_CFLAGS"
-  LIBS="$old_LIBS"
-else
-  libc_cv_nss_crypt=no
-  libc_cv_static_nss_crypt=no
-fi
-AC_SUBST(libc_cv_nss_crypt)
-AC_SUBST(libc_cv_static_nss_crypt)
-
 
 AC_ARG_ENABLE([systemtap],
               [AS_HELP_STRING([--enable-systemtap],
@@ -477,6 +440,12 @@ case "$enable_fortify_source" in
 *) AC_MSG_ERROR([Not a valid argument for --enable-fortify-source: "$enable_fortify_source"]);;
 esac
 
+AC_ARG_ENABLE([sframe],
+	      [AS_HELP_STRING([--enable-sframe],
+			      [Enable building with SFrame support @<:@default=no@:>@])],
+	      [use_sframe=$enableval],
+	      [use_sframe=no])
+
 # We keep the original values in `$config_*' and never modify them, so we
 # can write them unchanged into config.make.  Everything else uses
 # $machine, $vendor, and $os, and changes them whenever convenient.
@@ -517,6 +486,12 @@ libc_config_ok=no
 # whether to use such directories.
 with_fp_cond=1
 
+# A preconfigure script may define another name to TLS descriptor variant
+mtls_descriptor=gnu2
+
+# A preconfigure script may define another name to traditional TLS variant
+mtls_traditional=gnu
+
 dnl Let sysdeps/*/preconfigure act here.
 LIBC_PRECONFIGURE([$srcdir], [for sysdeps])
 
@@ -556,7 +531,7 @@ AC_PROG_LN_S
 
 LIBC_PROG_BINUTILS
 
-# Accept binutils 2.25 or newer.
+# Accept binutils 2.39 or newer.
 libc_cv_with_lld=no
 case $($LD --version) in
   "GNU gold"*)
@@ -577,7 +552,7 @@ case $($LD --version) in
   *)
     AC_CHECK_PROG_VER(LD, $LD, --version,
 		    [GNU ld.* \([0-9][0-9]*\.[0-9.]*\)],
-		    [2.1[0-9][0-9]*|2.2[5-9]*|2.[3-9][0-9]*|[3-9].*|[1-9][0-9]*],
+		    [2.[1-9][0-9][0-9]*|2.39*|2.[4-9][0-9]*|[3-9].*|[1-9][0-9]*],
 		    LD=: critic_missing="$critic_missing GNU ld")
     ;;
 esac
@@ -607,9 +582,10 @@ AC_CHECK_PROG_VER(BISON, bison, --version,
   [bison (GNU Bison) \([0-9]*\.[0-9.]*\)],
   [2.7*|[3-9].*|[1-9][0-9]*], critic_missing="$critic_missing bison")
 
+# Require GCC 12.1 to build.
 AC_CACHE_CHECK([if $CC is sufficient to build libc], libc_cv_compiler_ok, [
 AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[]], [[
-#if !defined __GNUC__ || __GNUC__ < 6 || (__GNUC__ == 6 && __GNUC_MINOR__ < 2)
+#if !defined __GNUC__ || __GNUC__ < 12 || (__GNUC__ == 12 && __GNUC_MINOR__ < 1)
 #error insufficient compiler
 #endif]])],
 	       [libc_cv_compiler_ok=yes],
@@ -675,11 +651,53 @@ fi
 rm -f conftest*])
 AC_SUBST(libc_cv_with_fp)
 
-AC_CACHE_CHECK(for -fstack-protector, libc_cv_ssp, [dnl
-LIBC_TRY_CC_OPTION([$CFLAGS $CPPFLAGS -Werror -fstack-protector],
-		   [libc_cv_ssp=yes],
-		   [libc_cv_ssp=no])
-])
+conftest_code="
+#ifndef __clang__
+#error Not Clang!
+#endif
+"
+
+dnl Check if clang is used to test glibc.
+LIBC_TRY_TEST_CC_COMMAND([for clang],
+  [$conftest_code],
+  [-c],
+  libc_cv_test_clang,
+  [libc_cv_test_clang=yes], [libc_cv_test_clang=no],
+)
+LIBC_CONFIG_VAR([have-test-clang], [$libc_cv_test_clang])
+
+dnl Check if clang++ is used to test glibc.
+LIBC_TRY_TEST_CXX_COMMAND([for clang++],
+  [$conftest_code],
+  [-c],
+  libc_cv_test_clangxx,
+  [libc_cv_test_clangxx=yes], [libc_cv_test_clangxx=no],
+)
+LIBC_CONFIG_VAR([have-test-clangxx], [$libc_cv_test_clangxx])
+
+if test "$libc_cv_test_clang" = "yes"; then
+  conftest_code="
+  #if __clang_major__ > 19
+  #error clang version > 19
+  #endif
+  "
+  LIBC_TRY_TEST_CC_COMMAND([for clang],
+    [$conftest_code],
+    [-c],
+    libc_cv_test_clang_19_or_less,
+    [libc_cv_test_clang_19_or_less=yes], [libc_cv_test_clang_19_or_less=no],
+  )
+fi
+LIBC_CONFIG_VAR([have-test-clang-19-or-less], [$libc_cv_test_clang_19_or_less])
+
+LIBC_TRY_CC_AND_TEST_CC_OPTION([for -fstack-protector],
+  [-Werror -fstack-protector],
+  libc_cv_ssp,
+  [libc_cv_ssp=yes],
+  [libc_cv_ssp=no],
+  libc_cv_test_ssp,
+  [libc_cv_test_ssp=yes],
+  [libc_cv_test_ssp=no])
 
 AC_CACHE_CHECK(for -fstack-protector-strong, libc_cv_ssp_strong, [dnl
 LIBC_TRY_CC_OPTION([$CFLAGS $CPPFLAGS -Werror -fstack-protector-strong],
@@ -699,6 +717,10 @@ if test "$libc_cv_ssp" = yes; then
   no_stack_protector="-fno-stack-protector -DSTACK_PROTECTOR_LEVEL=0"
   AC_DEFINE(HAVE_CC_NO_STACK_PROTECTOR)
 fi
+if test "$libc_cv_test_ssp" = yes; then
+  AC_DEFINE(HAVE_TEST_CC_NO_STACK_PROTECTOR)
+fi
+
 
 if test "$enable_stack_protector" = yes && test "$libc_cv_ssp" = yes; then
   stack_protector="-fstack-protector"
@@ -1113,7 +1135,9 @@ AC_SUBST(CXX_SYSINCLUDES)
 
 # Obtain some C++ header file paths.  This is used to make a local
 # copy of those headers in Makerules.
-if test -n "$CXX"; then
+if test -n "$TEST_CXX"; then
+  saved_CXX="$CXX"
+  CXX="$TEST_CXX"
   find_cxx_header () {
     echo "#include <$1>" | $CXX -H -fsyntax-only -x c++ - 2>&1 \
 	 | $AWK '$1 == "."{print $2}'
@@ -1121,6 +1145,7 @@ if test -n "$CXX"; then
   CXX_CSTDLIB_HEADER="$(find_cxx_header cstdlib)"
   CXX_CMATH_HEADER="$(find_cxx_header cmath)"
   CXX_BITS_STD_ABS_H="$(find_cxx_header bits/std_abs.h)"
+  CXX="$saved_CXX"
 fi
 AC_SUBST(CXX_CSTDLIB_HEADER)
 AC_SUBST(CXX_CMATH_HEADER)
@@ -1303,6 +1328,10 @@ if test $libc_cv_as_noexecstack = yes; then
 fi
 AC_SUBST(ASFLAGS_config)
 
+LIBC_LINKER_FEATURE([--no-error-execstack], [-Wl,--no-error-execstack],
+		    [libc_cv_no_error_execstack=yes], [libc_cv_no_error_execstack=no])
+AC_SUBST(libc_cv_no_error_execstack)
+
 LIBC_LINKER_FEATURE([-z execstack], [-Wl,-z,execstack],
 		    [libc_cv_z_execstack=yes], [libc_cv_z_execstack=no])
 AC_SUBST(libc_cv_z_execstack)
@@ -1326,12 +1355,14 @@ LIBC_LINKER_FEATURE([--no-dynamic-linker],
 		    [libc_cv_no_dynamic_linker=no])
 LIBC_CONFIG_VAR([have-no-dynamic-linker], [$libc_cv_no_dynamic_linker])
 
-AC_CACHE_CHECK(for -static-pie, libc_cv_static_pie, [dnl
-LIBC_TRY_CC_OPTION([-static-pie],
-		   [libc_cv_static_pie=yes],
-		   [libc_cv_static_pie=no])
-])
+LIBC_TRY_CC_AND_TEST_CC_OPTION(for -static-pie, [-static-pie],
+  libc_cv_static_pie,
+  [libc_cv_static_pie=yes], [libc_cv_static_pie=no],
+  libc_cv_test_static_pie,
+  [libc_cv_test_static_pie=yes], [libc_cv_test_static_pie=no]
+)
 LIBC_CONFIG_VAR([have-static-pie], [$libc_cv_static_pie])
+AC_SUBST(libc_cv_test_static_pie)
 
 AC_CACHE_CHECK(for -fpie, libc_cv_fpie, [dnl
 LIBC_TRY_CC_OPTION([-fpie], [libc_cv_fpie=yes], [libc_cv_fpie=no])
@@ -1362,47 +1393,56 @@ fi
 rm -f conftest*])
 AC_SUBST(libc_cv_has_glob_dat)
 
-AC_CACHE_CHECK([for -mtls-dialect=gnu2], libc_cv_mtls_dialect_gnu2,
-[dnl
-cat > conftest.c <<EOF
+conftest_code="
 __thread int i;
 void foo (void)
 {
   i = 10;
 }
-EOF
-if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS -fPIC -mtls-dialect=gnu2 -nostdlib -nostartfiles
-		   conftest.c -o conftest 1>&AS_MESSAGE_LOG_FD])
-then
-  libc_cv_mtls_dialect_gnu2=yes
-else
-  libc_cv_mtls_dialect_gnu2=no
-fi
-rm -f conftest*])
-AC_SUBST(libc_cv_mtls_dialect_gnu2)
-LIBC_CONFIG_VAR([have-mtls-dialect-gnu2], [$libc_cv_mtls_dialect_gnu2])
+"
+dnl Check if TEST_CC support tls descriptor.
+LIBC_TRY_TEST_CC_COMMAND([for tls descriptor support],
+  [$conftest_code],
+  [-fPIC -mtls-dialect=$mtls_descriptor -nostdlib -nostartfiles -shared],
+  libc_cv_test_mtls_descriptor,
+  [libc_cv_test_mtls_descriptor=$mtls_descriptor],
+  [libc_cv_test_mtls_descriptor=no])
+LIBC_CONFIG_VAR([have-test-mtls-descriptor],
+		[$libc_cv_test_mtls_descriptor])
+
+dnl Check if TEST_CC support traditional tls.
+LIBC_TRY_TEST_CC_COMMAND([for traditional tls support],
+  [$conftest_code],
+  [-fPIC -mtls-dialect=$mtls_traditional -nostdlib -nostartfiles -shared],
+  libc_cv_test_mtls_traditional,
+  [libc_cv_test_mtls_traditional=$mtls_traditional],
+  [libc_cv_test_mtls_traditional=no])
+LIBC_CONFIG_VAR([have-test-mtls-traditional],
+		[$libc_cv_test_mtls_traditional])
 
 dnl clang emits an warning for a double alias redirection, to warn the
 dnl original symbol is sed even when weak definition overrides it.
 dnl It is a usual pattern for weak_alias, where multiple alias point to
 dnl same symbol.
-AC_CACHE_CHECK([if -Wno-ignored-attributes is required for aliases],
-	       libc_cv_wno_ignored_attributes, [dnl
-cat > conftest.c <<EOF
+conftest_code="
 void __foo (void)
 {
 }
 extern __typeof (__foo) foo __attribute__ ((weak, alias ("__foo")));
 extern __typeof (__foo) bar __attribute__ ((weak, alias ("foo")));
-EOF
-libc_cv_wno_ignored_attributes=""
-if ! AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS -Werror -c conftest.c])
-then
-  libc_cv_wno_ignored_attributes="-Wno-ignored-attributes"
-fi
-rm -f conftest*])
+"
+LIBC_TRY_CC_AND_TEST_CC_COMMAND([if -Wno-ignored-attributes is required for aliases],
+  [$conftest_code],
+  [-c -Werror -Wno-ignored-attributes],
+  libc_cv_wno_ignored_attributes,
+  [libc_cv_wno_ignored_attributes="-Wno-ignored-attributes"],
+  [libc_cv_wno_ignored_attributes=],
+  libc_cv_test_wno_ignored_attributes,
+  [libc_cv_test_wno_ignored_attributes="-Wno-ignored-attributes"],
+  [libc_cv_test_wno_ignored_attributes=])
 LIBC_CONFIG_VAR([config-cflags-wno-ignored-attributes],
 		[$libc_cv_wno_ignored_attributes])
+AC_SUBST(libc_cv_test_wno_ignored_attributes)
 
 AC_CACHE_CHECK(whether cc puts quotes around section names,
 	       libc_cv_have_section_quotes,
@@ -1489,32 +1529,189 @@ fi
 AC_SUBST(libc_cv_cc_submachine)
 
 dnl Determine if compiler supports -fsignaling-nans
-AC_CACHE_CHECK([for compiler option that -fsignaling-nans],
-	       libc_cv_cc_signaling_nans, [dnl
-LIBC_TRY_CC_OPTION([-Werror -fsignaling-nans],
-		   [libc_cv_cc_signaling_nans=-fsignaling-nans],
-		   [libc_cv_cc_signaling_nans=])
-])
+LIBC_TRY_CC_AND_TEST_CC_OPTION([for compiler option that -fsignaling-nans],
+  [-Werror -fsignaling-nans],
+  libc_cv_cc_signaling_nans,
+  [libc_cv_cc_signaling_nans=-fsignaling-nans],
+  [libc_cv_cc_signaling_nans=],
+  libc_cv_test_cc_signaling_nans,
+  [libc_cv_test_cc_signaling_nans=-fsignaling-nans],
+  [libc_cv_test_cc_signaling_nans=])
 LIBC_CONFIG_VAR([config-cflags-signaling-nans],
 		[$libc_cv_cc_signaling_nans])
+AC_SUBST(libc_cv_test_cc_signaling_nans)
 
-AC_CACHE_CHECK(if $CC accepts -fno-tree-loop-distribute-patterns with \
-__attribute__ ((__optimize__)), libc_cv_cc_loop_to_function, [dnl
-cat > conftest.c <<EOF
+dnl Check if TEST_CC supports -fsemantic-interposition.
+LIBC_TRY_TEST_CC_OPTION([-fsemantic-interposition],
+  [-c -Werror -fsemantic-interposition],
+  libc_cv_test_cc_cflags_fsemantic_interposition,
+  [libc_cv_test_cc_cflags_fsemantic_interposition=yes],
+  [libc_cv_test_cc_cflags_fsemantic_interposition=no]
+)
+LIBC_CONFIG_VAR(have-test-cc-cflags-fsemantic-interposition,
+		$libc_cv_test_cc_cflags_fsemantic_interposition)
+
+dnl Determine if TEST_CC supports -ffloat-store.
+LIBC_TRY_TEST_CC_OPTION([for -ffloat-store],
+  [-Werror -ffloat-store],
+  libc_cv_test_cc_float_store,
+  [libc_cv_test_cc_float_store="-ffloat-store"],
+  [libc_cv_test_cc_float_store=])
+LIBC_CONFIG_VAR([test-config-cflags-float-store],
+		[$libc_cv_test_cc_float_store])
+
+conftest_code="
 void
-__attribute__ ((__optimize__ ("-fno-tree-loop-distribute-patterns")))
+__attribute__ ((__optimize__ (\"-fno-tree-loop-distribute-patterns\")))
 foo (void) {}
-EOF
-libc_cv_cc_loop_to_function=no
-if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS -c conftest.c])
-then
-  libc_cv_cc_loop_to_function=yes
-fi
-rm -f conftest*])
+"
+LIBC_TRY_CC_AND_TEST_CC_COMMAND([if __attribute__ ((__optimize__("-fno-tree-loop-distribute-patterns"))) works],
+  [$conftest_code],
+  [-c -Werror],
+  libc_cv_cc_loop_to_function,
+  [libc_cv_cc_loop_to_function=yes],
+  [libc_cv_cc_loop_to_function=no],
+  libc_cv_test_cc_loop_to_function,
+  [libc_cv_test_cc_loop_to_function=yes],
+  [libc_cv_test_cc_loop_to_function=no])
 if test $libc_cv_cc_loop_to_function = yes; then
   AC_DEFINE(HAVE_CC_INHIBIT_LOOP_TO_LIBCALL)
 fi
+if test $libc_cv_test_cc_loop_to_function = yes; then
+  AC_DEFINE(HAVE_TEST_CC_INHIBIT_LOOP_TO_LIBCALL)
+fi
 AC_SUBST(libc_cv_cc_loop_to_function)
+
+LIBC_TRY_CC_AND_TEST_CC_OPTION([for -Wimplicit-fallthrough],
+  [-Werror -Wimplicit-fallthrough],
+  libc_cv_cc_wimplicit_fallthrough,
+  [libc_cv_cc_wimplicit_fallthrough=-Wimplicit-fallthrough],
+  [libc_cv_cc_wimplicit_fallthrough=],
+  libc_cv_test_cc_wimplicit_fallthrough,
+  [libc_cv_test_cc_wimplicit_fallthrough=-Wimplicit-fallthrough],
+  [libc_cv_test_cc_wimplicit_fallthrough=])
+LIBC_CONFIG_VAR([cc-option-wimplicit-fallthrough],
+		[$libc_cv_cc_wimplicit_fallthrough])
+AC_SUBST(libc_cv_test_cc_wimplicit_fallthrough)
+
+LIBC_TRY_CC_AND_TEST_CC_OPTION([for -Wfree-labels],
+  [-Werror -Wfree-labels],
+  libc_cv_cc_wfree_labels,
+  [libc_cv_cc_wfree_labels=-Wfree-labels],
+  [libc_cv_cc_wfree_labels=],
+  libc_cv_test_cc_wfree_labels,
+  [libc_cv_test_cc_wfree_labels=-Wfree-labels],
+  [libc_cv_test_cc_wfree_labels=])
+LIBC_CONFIG_VAR([cc-option-wfree-labels], [$libc_cv_cc_wfree_labels])
+AC_SUBST(libc_cv_test_cc_wfree_labels)
+
+LIBC_TRY_CC_AND_TEST_CC_OPTION([for -Wmissing-parameter-name],
+  [-Werror -Wmissing-parameter-name],
+  libc_cv_cc_wmissing_parameter_name,
+  [libc_cv_cc_wmissing_parameter_name=-Wmissing-parameter-name],
+  [libc_cv_cc_wmissing_parameter_name=],
+  libc_cv_test_cc_wmissing_parameter_name,
+  [libc_cv_test_cc_wmissing_parameter_name=-Wmissing-parameter-name],
+  [libc_cv_test_cc_wmissing_parameter_name=])
+LIBC_CONFIG_VAR([cc-option-wmissing-parameter-name],
+		[$libc_cv_cc_wmissing_parameter_name])
+AC_SUBST(libc_cv_test_cc_wmissing_parameter_name)
+
+conftest_code="
+void bar (void (*callback) (void));
+int foo (void)
+{
+  int var = 0;
+  void callback (void) { var = 1; }
+  bar (callback);
+  return var;
+}
+"
+
+dnl Check if TEST_CC support trampolines.
+LIBC_TRY_TEST_CC_COMMAND([support for trampolines],
+  [$conftest_code],
+  [-c -Werror],
+  libc_cv_test_cc_trampolines,
+  [libc_cv_test_cc_trampolines=yes],
+  [libc_cv_test_cc_trampolines=no]
+)
+LIBC_CONFIG_VAR([have-test-cc-trampoline],
+		[$libc_cv_test_cc_trampolines])
+
+dnl Check if TEST_CC supports -Wno-restrict.
+LIBC_TRY_TEST_CC_OPTION([-Wno-restrict],
+  [-c -Werror -Wno-restrict],
+  libc_cv_test_cflags_wno_restrict,
+  [libc_cv_test_cflags_wno_restrict=-Wno-restrict],
+  [libc_cv_test_cflags_wno_restrict=]
+)
+LIBC_CONFIG_VAR([test-config-cflags-wno-restrict],
+		[$libc_cv_test_cflags_wno_restrict])
+
+dnl Check if TEST_CC supports -Wno-fortify-source.
+LIBC_TRY_TEST_CC_OPTION([-Wno-fortify-source],
+  [-c -Werror -Wno-fortify-source],
+  libc_cv_test_cflags_wno_fortify_source,
+  [libc_cv_test_cflags_wno_fortify_source=-Wno-fortify-source],
+  [libc_cv_test_cflags_wno_fortify_source=]
+)
+LIBC_CONFIG_VAR([test-config-cflags-wno-fortify-source],
+		[$libc_cv_test_cflags_wno_fortify_source])
+
+dnl Check if TEST_CC supports -finput-charset=ascii.
+LIBC_TRY_TEST_CC_OPTION([-finput-charset=ascii],
+  [-c -Werror -finput-charset=ascii],
+  libc_cv_test_cflags_finput_charset_ascii,
+  [libc_cv_test_cflags_finput_charset_ascii="-finput-charset=ascii"],
+  [libc_cv_test_cflags_finput_charset_ascii=]
+)
+LIBC_CONFIG_VAR(test-config-cflags-finput-charset-ascii,
+		$libc_cv_test_cflags_finput_charset_ascii)
+
+dnl Check if TEST_CXX supports -finput-charset=ascii.
+LIBC_TRY_TEST_CXX_OPTION([$CXX -finput-charset=ascii],
+  [-c -Werror -finput-charset=ascii],
+  libc_cv_test_cxxflags_finput_charset_ascii,
+  [libc_cv_test_cxxflags_finput_charset_ascii="-finput-charset=ascii"],
+  [libc_cv_test_cxxflags_finput_charset_ascii=]
+)
+LIBC_CONFIG_VAR(test-config-cxxflags-finput-charset-ascii,
+		$libc_cv_test_cxxflags_finput_charset_ascii)
+
+conftest_code="
+extern int not_exist (void);
+
+inline int make_unique (void)
+{
+  /* Static variables in inline functions and classes
+     generate STB_GNU_UNIQUE symbols.  */
+  static int unique;
+  return ++unique;
+}
+
+int foo (void)
+{
+  return make_unique () + not_exist ();
+}
+"
+
+dnl Check if TEST_CXX supports STB_GNU_UNIQUE.
+LIBC_TRY_TEST_CXX_COMMAND([for STB_GNU_UNIQUE],
+  [$conftest_code],
+  [-c],
+  libc_cv_test_stb_gnu_unique,
+  [
+if LC_ALL=C $READELF -sW conftest \
+   | grep -q "UNIQUE.* _ZZ11make_uniquevE6unique"; then
+  libc_cv_test_stb_gnu_unique=yes
+else
+  libc_cv_test_stb_gnu_unique=no
+fi
+  ],
+  [libc_cv_test_stb_gnu_unique=no],
+)
+LIBC_CONFIG_VAR([have-test-stb-gnu-unique], [$libc_cv_test_stb_gnu_unique])
 
 dnl Check whether we have the gd library available.
 AC_MSG_CHECKING(for libgd)
@@ -1575,15 +1772,18 @@ dnl If not, then don't use it.
 dnl Note that _FORTIFY_SOURCE may have been set through FLAGS too.
 dnl _FORTIFY_SOURCE value will be selectively disabled for function that can't
 dnl support it
-no_fortify_source="-Wp,-U_FORTIFY_SOURCE"
+no_fortify_source="-U_FORTIFY_SOURCE"
 fortify_source="${no_fortify_source}"
 
-AC_CACHE_CHECK([for maximum supported _FORTIFY_SOURCE level],
-	       [libc_cv_supported_fortify_source], [
-    AC_LINK_IFELSE([AC_LANG_PROGRAM([], [__builtin_dynamic_object_size("", 0)])],
-        [libc_cv_supported_fortify_source=3],
-        [libc_cv_supported_fortify_source=2])
-])
+LIBC_TRY_CC_AND_TEST_LINK([for maximum supported _FORTIFY_SOURCE level],
+  [__builtin_dynamic_object_size("", 0)],
+  libc_cv_supported_fortify_source,
+  [libc_cv_supported_fortify_source=3],
+  [libc_cv_supported_fortify_source=2],
+  libc_cv_test_supported_fortify_source,
+  [libc_cv_test_supported_fortify_source=3],
+  [libc_cv_test_supported_fortify_source=2])
+AC_SUBST(libc_cv_test_supported_fortify_source)
 
 AS_CASE([$enable_fortify_source],
         [yes], [libc_cv_fortify_source=yes enable_fortify_source=$libc_cv_supported_fortify_source],
@@ -1594,7 +1794,7 @@ AS_CASE([$enable_fortify_source],
         [libc_cv_fortify_source=no])
 
 AS_IF([test "$libc_cv_fortify_source" = yes],
-      [fortify_source="${fortify_source},-D_FORTIFY_SOURCE=${enable_fortify_source}"]
+      [fortify_source="${fortify_source} -D_FORTIFY_SOURCE=${enable_fortify_source}"]
       )
 
 AC_SUBST(enable_fortify_source)
@@ -1602,6 +1802,30 @@ AC_SUBST(libc_cv_fortify_source)
 AC_SUBST(no_fortify_source)
 AC_SUBST(fortify_source)
 LIBC_CONFIG_VAR([supported-fortify], [$libc_cv_supported_fortify_source])
+
+dnl Check if compiler define _FILE_OFFSET_BITS by default
+AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[]], [[
+#ifndef _FILE_OFFSET_BITS
+# error _FILE_OFFSET_BITS not defined
+#endif]])],
+	       [libc_cv_compiler_default_file_offset_bits=yes],
+	       [libc_cv_compiler_default_file_offset_bits=no])
+AS_IF([test "$libc_cv_compiler_default_file_offset_bits" = yes],
+      [no_file_offset_bits_source="-U_FILE_OFFSET_BITS"])
+AC_SUBST(no_file_offset_bits_source)
+LIBC_CONFIG_VAR([no-file-offset-bits-source], [$no_file_offset_bits_source])
+
+dnl Check if compiler define _TIME_BITS by default
+AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[]], [[
+#ifndef _TIME_BITS
+# error _TIME_BITS not defined
+#endif]])],
+	       [libc_cv_compiler_default_time_bits=yes],
+	       [libc_cv_compiler_default_time_bits=no])
+AS_IF([test "$libc_cv_compiler_default_time_bits" = yes],
+      [no_time_bits_source="-U_TIME_BITS"])
+AC_SUBST(no_time_bits_source)
+LIBC_CONFIG_VAR([no-time-bits-source], [$no_time_bits_source])
 
 dnl Starting with binutils 2.35, GAS can attach multiple symbol versions
 dnl to one symbol (PR 23840).
@@ -1642,6 +1866,17 @@ fi],[])])
 if test $libc_cv_builtin_trap = yes; then
   AC_DEFINE([HAVE_BUILTIN_TRAP])
 fi
+
+dnl Check if
+AC_CACHE_CHECK([whether the compiler supports __attribute__ ((aligned (65536)))],
+	       libc_cv_aligned_65536, [
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+char bss[0xb5dce8] __attribute__ ((aligned (65536)));
+])],
+	       [libc_cv_aligned_65536=yes],
+	       [libc_cv_aligned_65536=no])
+])
+LIBC_CONFIG_VAR([aligned-65536], [$libc_cv_aligned_65536])
 
 dnl C++ feature tests.
 AC_LANG_PUSH([C++])
@@ -1778,6 +2013,60 @@ fi
 rm -f conftest.*])
 LIBC_CONFIG_VAR([cc-pie-default], [$libc_cv_cc_pie_default])
 
+# Get Position Dependent Executable (PDE) load address to be used to
+# load static Position Independent Executable (PIE) at a known working
+# non-zero load address.  This is only used by glibc tests to verify
+# that PIE and static PIE with non-zero load address work correctly.
+AC_CACHE_CHECK([PDE load address],
+	       libc_cv_pde_load_address, [dnl
+cat > conftest.S <<EOF
+.globl _start
+_start:
+.globl __start
+__start:
+	.byte 0
+EOF
+if test $libc_cv_cc_pie_default = yes; then
+  pde_ld_flags="-no-pie"
+fi
+if ${CC-cc} $pde_ld_flags $CFLAGS $CPPFLAGS $LDFLAGS \
+	    -nostartfiles -nostdlib $no_ssp \
+	    -o conftest conftest.S 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD; then
+  # Get the load address of the first PT_LOAD segment.
+  libc_cv_pde_load_address=$(LC_ALL=C $READELF -Wl conftest \
+			     | $AWK '/LOAD/ { print $3; exit 0; }')
+else
+  AC_MSG_ERROR([${CC-cc} can not create PDE])
+fi
+rm -f conftest*])
+LIBC_CONFIG_VAR([pde-load-address], [$libc_cv_pde_load_address])
+
+# Get the linker command-line option to load executable at a non-zero
+# load address.  This is only used by glibc tests to verify that PIE and
+# static PIE with non-zero load address work correctly.
+LIBC_LINKER_FEATURE([-Ttext-segment=$libc_cv_pde_load_address],
+		    [-Wl,-Ttext-segment=$libc_cv_pde_load_address],
+		    [libc_cv_load_address_ldflag=-Wl,-Ttext-segment],
+		    [libc_cv_load_address_ldflag=])
+LIBC_CONFIG_VAR([load-address-ldflag], [$libc_cv_load_address_ldflag])
+
+# Check if compilers support GCS in branch protection:
+LIBC_TRY_CC_AND_TEST_CC_OPTION([if compiler supports -mbranch-protection=gcs],
+  [-Werror -mbranch-protection=gcs],
+  libc_cv_cc_gcs,
+  [libc_cv_cc_gcs=yes],
+  [libc_cv_cc_gcs=no],
+  libc_cv_test_cc_gcs,
+  [libc_cv_test_cc_gcs=yes],
+  [libc_cv_test_cc_gcs=no])
+LIBC_CONFIG_VAR([have-cc-gcs], [$libc_cv_cc_gcs])
+LIBC_CONFIG_VAR([have-test-cc-gcs], [$libc_cv_test_cc_gcs])
+
+# Check if linker supports GCS marking
+LIBC_LINKER_FEATURE([-z gcs=always], [-Wl,-z,gcs=always],
+		    [libc_cv_ld_gcs=yes], [libc_cv_ld_gcs=no])
+LIBC_CONFIG_VAR([have-ld-gcs], [$libc_cv_ld_gcs])
+
 AC_MSG_CHECKING(if we can build programs as PIE)
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([[#ifdef PIE_UNSUPPORTED
 # error PIE is not supported
@@ -1814,6 +2103,67 @@ if test "$libc_cv_static_pie" = "yes"; then
   AC_DEFINE(ENABLE_STATIC_PIE)
 fi
 LIBC_CONFIG_VAR([enable-static-pie], [$libc_cv_static_pie])
+
+# Check if we can link support functionality against libgcc_s.
+# Must not be used for linking installed binaries, to produce the
+# same binaries for bootstrapped and bootstrapping builds (the latter
+# with a GCC that does not build libgcc_s).
+AC_CACHE_CHECK([whether $CC can link against -lgcc_s], libc_cv_have_libgcc_s, [dnl
+  old_LIBS="$LIBS"
+  LIBS="$LIBS -lgcc_s"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
+		 [libc_cv_have_libgcc_s=yes], [libc_cv_have_libgcc_s=no])
+  LIBS="$old_LIBS"])
+LIBC_CONFIG_VAR([have-libgcc_s], [$libc_cv_have_libgcc_s])
+
+# Support configure.ac under sysdeps.
+AC_SUBST(libc_cv_test_cc_mprefer_vector_width)
+AC_SUBST(test_enable_cet)
+AC_SUBST(libc_cv_test_x86_have_amx_tile)
+
+enable_gsframe=no
+if test $use_sframe = yes; then
+  # SFrame requires to be explicit enabled by the architecture
+  if test -z $libc_cv_support_sframe; then
+    AC_MSG_FAILURE([the architecture doesn't support SFrame])
+  fi
+
+  # SFrame requires binutils 2.45 or higher.
+  libc_cv_sframe_readelf_version=yes
+  AC_CHECK_PROG_VER(READELF, $READELF, --version,
+    [GNU readelf.* \([0-9][0-9]*\.[0-9.]*\)],
+    [2.4[5-9]*|2.[5-9][0-9]*|2.[1-9][0-9][0-9]*|[3-9]*|[1-9][0-9]*],
+    libc_cv_sframe_readelf_version=no)
+  if test $libc_cv_sframe_readelf_version = no; then
+    AC_MSG_FAILURE([binutils too old to enable SFrame])
+  fi
+
+  # Check if the current toolchain supports SFrame
+  AC_CACHE_CHECK([for SFrame support], libc_cv_default_sframe,
+  [dnl
+cat > conftest.c <<EOF
+int test_function(void)
+{
+  return 42;
+}
+EOF
+    libc_cv_default_sframe=no
+    if ${CC} -c conftest.c -o conftest.o -Wa,--gsframe >/dev/null 2>&1 && \
+       # Check if .sframe section is present and if version > 1
+       $READELF --sframe conftest.o | grep "SFRAME_VER" | grep -qv "VERSION_1"; then
+      libc_cv_default_sframe=yes
+    fi
+    rm -f conftest.c conftest.o
+  ])
+
+  if test $libc_cv_default_sframe = no; then
+    AC_MSG_FAILURE([toolchain doesn't support SFrame v2 or higher])
+  fi
+
+  enable_gsframe=yes
+  AC_DEFINE(ENABLE_SFRAME)
+fi
+LIBC_CONFIG_VAR([enable-gsframe], [$enable_gsframe])
 
 # Set the `multidir' variable by grabbing the variable from the compiler.
 # We do it once and save the result in a generated makefile.

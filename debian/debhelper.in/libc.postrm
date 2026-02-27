@@ -6,10 +6,6 @@ if [ "$1" = remove ]; then
     dpkg-divert --quiet --remove --no-rename --divert "RTLDDIR/RTLD_SO.usr-is-merged" "RTLDDIR/RTLD_SO"
 fi
 
-if [ "$1" = deconfigure ]; then
-    :; # blah, do something useful with ldso
-fi
-
 #DEBHELPER#
 
 exit 0

@@ -1,5 +1,5 @@
 /* Test freopen with mmap stdio.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <libc-diag.h>
 
 #include <support/check.h>
 #include <support/temp_file.h>
@@ -41,7 +42,10 @@ static void
 do_test_basic (void)
 {
   const char * const test = "Let's test freopen.\n";
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (3.4, "-Wgnu-folding-constant");
   char temp[strlen (test) + 1];
+  DIAG_POP_NEEDS_COMMENT_CLANG;
 
   FILE *f = fdopen (fd, "w");
   if (f == NULL)

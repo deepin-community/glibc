@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -47,8 +47,12 @@ __bind  (int fd, __CONST_SOCKADDR_ARG addrarg, socklen_t len)
       if (dir == MACH_PORT_NULL)
 	return -1;
 
-      /* Create a new, unlinked node in the target directory.  */
-      err = __dir_mkfile (dir, O_CREAT, 0666 & ~_hurd_umask, &node);
+      if (! *n)
+	/* Can't bind on the existing directory itself.  */
+	err = ENOTDIR;
+      else
+	/* Create a new, unlinked node in the target directory.  */
+	err = __dir_mkfile (dir, O_CREAT, 0666 & ~_hurd_umask, &node);
 
       if (! err)
 	{
@@ -62,7 +66,7 @@ __bind  (int fd, __CONST_SOCKADDR_ARG addrarg, socklen_t len)
 	  if (! err)
 	    {
 	      enum retry_type doretry;
-	      char retryname[1024];
+	      string_t retryname;
 	      /* Get a port to the ifsock translator.  */
 	      err = __dir_lookup (node, "", 0, 0, &doretry, retryname, &ifsock);
 	      if (! err && (doretry != FS_RETRY_NORMAL || retryname[0] != '\0'))

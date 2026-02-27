@@ -1,5 +1,5 @@
 /* {wcs|wcp|str|stp}ncpy with 256/512-bit EVEX instructions.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@
 #  define VPTEST	vptestmd
 #  define CHAR_SIZE	4
 
-#  define REP_MOVS	rep movsd
+#  define REP_MOVS	rep movsl
 #  define REP_STOS	rep stosl
 
 #  define USE_WIDE_CHAR

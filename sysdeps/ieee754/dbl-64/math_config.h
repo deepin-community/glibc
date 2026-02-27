@@ -1,5 +1,5 @@
 /* Configuration for double precision math routines.
-   Copyright (C) 2018-2023 Free Software Foundation, Inc.
+   Copyright (C) 2018-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -109,6 +109,7 @@ issignaling_inline (double x)
 #define BIT_WIDTH       64
 #define MANTISSA_WIDTH  52
 #define EXPONENT_WIDTH  11
+#define EXPONENT_BIAS   1023
 #define MANTISSA_MASK   UINT64_C(0x000fffffffffffff)
 #define EXPONENT_MASK   UINT64_C(0x7ff0000000000000)
 #define EXP_MANT_MASK   UINT64_C(0x7fffffffffffffff)
@@ -121,10 +122,22 @@ is_nan (uint64_t x)
   return (x & EXP_MANT_MASK) > EXPONENT_MASK;
 }
 
+static inline bool
+is_inf (uint64_t x)
+{
+  return (x << 1) == (EXPONENT_MASK << 1);
+}
+
 static inline uint64_t
 get_mantissa (uint64_t x)
 {
   return x & MANTISSA_MASK;
+}
+
+static inline int
+get_exponent (uint64_t x)
+{
+  return (int)((x >> MANTISSA_WIDTH & 0x7ff) - EXPONENT_BIAS);
 }
 
 /* Convert integer number X, unbiased exponent EP, and sign S to double:
@@ -164,6 +177,8 @@ attribute_hidden double __math_divzero (uint32_t);
 
 /* Invalid input unless it is a quiet NaN.  */
 attribute_hidden double __math_invalid (double);
+attribute_hidden int __math_invalid_i (int);
+attribute_hidden long int __math_invalid_li (long int);
 
 /* Error handling using output checking, only for errno setting.  */
 
@@ -195,12 +210,18 @@ check_uflow (double x)
 extern const struct exp_data
 {
   double invln2N;
-  double shift;
   double negln2hiN;
   double negln2loN;
   double poly[4]; /* Last four coefficients.  */
+  double shift;
+
   double exp2_shift;
   double exp2_poly[EXP2_POLY_ORDER];
+
+  double neglog10_2hiN;
+  double neglog10_2loN;
+  double exp10_poly[5];
+  double invlog10_2N;
   uint64_t tab[2*(1 << EXP_TABLE_BITS)];
 } __exp_data attribute_hidden;
 

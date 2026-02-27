@@ -1,15 +1,15 @@
 macro-constant SIG_DFL {void(*)(int)}
 macro-constant SIG_ERR {void(*)(int)}
-#if !defined ISO && !defined ISO99 && !defined ISO11 && !defined POSIX && !defined POSIX2008
+#if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23 && !defined POSIX && !defined POSIX2008
 macro-constant SIG_HOLD {void(*)(int)}
 #endif
 macro-constant SIG_IGN {void(*)(int)}
 
 type sig_atomic_t
-#if !defined ISO && !defined ISO99 && !defined ISO11
+#if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23
 type sigset_t
 #endif
-#if !defined ISO && !defined ISO99 && !defined ISO11 && !defined POSIX
+#if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23 && !defined POSIX
 type pid_t
 #elif defined POSIX
 # define pid_t __pid_t
@@ -24,8 +24,7 @@ type mcontext_t
 
 type ucontext_t
 element ucontext_t {ucontext_t*} uc_link
-// Bug 21634: uc_sigmask has wrong type.
-xfail[ia64-linux]-element ucontext_t sigset_t uc_sigmask
+element ucontext_t sigset_t uc_sigmask
 element ucontext_t stack_t uc_stack
 // Bug 21635: uc_mcontext has wrong type.
 xfail[powerpc32-linux]-element ucontext_t mcontext_t uc_mcontext
@@ -69,7 +68,7 @@ macro-int-constant SIGTERM {int} > 0
 function void (*signal (int, void(*)(int)))(int)
 function int raise (int)
 
-#if !defined ISO && !defined ISO99 && !defined ISO11
+#if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23
 macro-int-constant SIGALRM {int} > 0
 macro-int-constant SIGHUP {int} > 0
 macro-int-constant SIGKILL {int} > 0
@@ -138,8 +137,7 @@ constant SIGSTKSZ
 type ucontext_t
 
 element ucontext_t {ucontext_t*} uc_link
-// Bug 21634: uc_sigmask has wrong type.
-xfail[ia64-linux]-element ucontext_t sigset_t uc_sigmask
+element ucontext_t sigset_t uc_sigmask
 element ucontext_t stack_t uc_stack
 // Bug 21635: uc_mcontext has wrong type.
 xfail[powerpc32-linux]-element ucontext_t mcontext_t uc_mcontext

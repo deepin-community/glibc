@@ -1,6 +1,6 @@
 /* Define symbols used to communicate dynamic linker state to the
    debugger at runtime.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,3 +38,4 @@
 _r_debug:
 _r_debug_extended:
 	.zero	R_DEBUG_EXTENDED_SIZE
+rtld_hidden_def (_r_debug)

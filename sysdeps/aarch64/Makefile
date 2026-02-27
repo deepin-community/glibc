@@ -9,7 +9,9 @@ LDFLAGS-rtld += -Wl,-z,force-bti,--fatal-warnings
 endif
 
 ifeq ($(subdir),elf)
-sysdep-dl-routines += dl-bti
+sysdep-dl-routines += \
+  dl-bti \
+  dl-gcs
 
 tests += tst-audit26 \
 	 tst-audit27
@@ -35,20 +37,27 @@ endif
 ifeq ($(subdir),elf)
 sysdep-rtld-routines += dl-start
 sysdep-dl-routines += tlsdesc dl-tlsdesc
-gen-as-const-headers += dl-link.sym
+gen-as-const-headers += \
+  dl-link.sym \
+  rtld-global-offsets.sym
 
-tests-internal += tst-ifunc-arg-1 tst-ifunc-arg-2
+tests-internal += \
+  tst-ifunc-arg-1 \
+  tst-ifunc-arg-2 \
+  tst-ifunc-arg-3 \
+  tst-ifunc-arg-4 \
+  # tests-internal
 
-ifeq (yes,$(aarch64-variant-pcs))
 tests += tst-vpcs
 modules-names += tst-vpcs-mod
 LDFLAGS-tst-vpcs-mod.so = -Wl,-z,lazy
 $(objpfx)tst-vpcs: $(objpfx)tst-vpcs-mod.so
 endif
-endif
 
 ifeq ($(subdir),csu)
-gen-as-const-headers += tlsdesc.sym
+gen-as-const-headers += \
+  tlsdesc.sym \
+  rtld-global-offsets.sym
 endif
 
 ifeq ($(subdir),gmon)
@@ -62,8 +71,16 @@ endif
 
 ifeq ($(subdir),misc)
 sysdep_headers += sys/ifunc.h
-sysdep_routines += __mtag_tag_zero_region \
-		   __mtag_tag_region
+sysdep_routines += \
+  __mtag_tag_zero_region \
+  __mtag_tag_region \
+  __arm_za_disable \
+  __alloc_gcs
+
+tests += \
+  tst-sme-jmp \
+  tst-sme-za-state \
+  # tests
 endif
 
 ifeq ($(subdir),malloc)

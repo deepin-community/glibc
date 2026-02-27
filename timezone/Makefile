@@ -1,4 +1,4 @@
-# Copyright (C) 1998-2023 Free Software Foundation, Inc.
+# Copyright (C) 1998-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -48,6 +48,13 @@ endif
 
 include ../Rules
 
+
+$(objpfx)zic.o: $(objpfx)tzdir.h
+
+# In glibc this file is an empty placeholder,
+# as tz-cflags defines TZDEFAULT and TZDIR.
+$(objpfx)tzdir.h:
+	> $@
 
 $(objpfx)zic.o $(objpfx)zdump.o: $(objpfx)version.h
 

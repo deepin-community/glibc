@@ -1,5 +1,5 @@
 /* Check DTAUDIT and vDSO interaction.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -83,7 +83,7 @@ do_test (int argc, char *argv[])
 
   setenv ("LD_AUDIT", "tst-auditmod22.so", 0);
   struct support_capture_subprocess result
-    = support_capture_subprogram (spargv[0], spargv);
+    = support_capture_subprogram (spargv[0], spargv, NULL);
   support_capture_subprocess_check (&result, "tst-audit22", 0, sc_allow_stderr);
 
   /* The respawned process should always print the vDSO address (otherwise it

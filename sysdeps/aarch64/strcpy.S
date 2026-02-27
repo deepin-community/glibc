@@ -1,5 +1,5 @@
 /* strcpy/stpcpy - copy a string returning pointer to start/end.
-   Copyright (C) 2013-2023 Free Software Foundation, Inc.
+   Copyright (C) 2013-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -69,8 +69,6 @@
    exactly which byte matched.  */
 
 ENTRY (STRCPY)
-	PTR_ARG (0)
-	PTR_ARG (1)
 	bic	src, srcin, 15
 	ld1	{vdata.16b}, [src]
 	cmeq	vhas_nul.16b, vdata.16b, 0

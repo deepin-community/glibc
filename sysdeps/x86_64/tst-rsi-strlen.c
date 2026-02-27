@@ -1,5 +1,5 @@
 /* Test strlen with 0 in the RSI register.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ typedef struct
 } parameter_t;
 
 size_t
-__attribute__ ((weak, noinline, noclone))
+__attribute__ ((weak)) __attribute_optimization_barrier__
 do_strlen (parameter_t *a, int zero, const CHAR *str)
 {
   return CALL (a, str);

@@ -1,4 +1,5 @@
-# Copyright (C) 2015-2023 Free Software Foundation, Inc.
+# Copyright (C) 2015-2025 Free Software Foundation, Inc.
+# Copyright The GNU Toolchain Authors.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -35,12 +36,13 @@
 # files for making modifications.
 
 
-UNICODE_VERSION = 15.0.0
+UNICODE_VERSION = 16.0.0
 
 PYTHON3 = python3
 WGET = wget
 
-DOWNLOADS = UnicodeData.txt DerivedCoreProperties.txt EastAsianWidth.txt PropList.txt
+DOWNLOADS = UnicodeData.txt DerivedCoreProperties.txt EastAsianWidth.txt HangulSyllableType.txt
+LICENSE = unicode-license.txt
 GENERATED = i18n_ctype tr_TR UTF-8 translit_combining translit_compat translit_circle translit_cjk_compat translit_font translit_fraction
 REPORTS = i18n_ctype-report UTF-8-report
 
@@ -90,10 +92,12 @@ tr_TR: gen_unicode_ctype.py
 	  -d DerivedCoreProperties.txt -i ../locales/tr_TR -o $@ \
 	  --unicode_version $(UNICODE_VERSION) --turkish
 
-UTF-8: UnicodeData.txt EastAsianWidth.txt
+UTF-8: UnicodeData.txt DerivedCoreProperties.txt EastAsianWidth.txt HangulSyllableType.txt
 UTF-8: utf8_gen.py
 	$(PYTHON3) utf8_gen.py -u UnicodeData.txt \
-	-e EastAsianWidth.txt -p PropList.txt \
+	-d DerivedCoreProperties.txt \
+	-e EastAsianWidth.txt \
+	-k HangulSyllableType.txt \
 	--unicode_version $(UNICODE_VERSION)
 
 UTF-8-report: UTF-8 ../charmaps/UTF-8
@@ -137,9 +141,12 @@ translit_fraction: gen_translit_fraction.py
 	-o $@ --unicode_version $(UNICODE_VERSION)
 
 .PHONY: downloads clean-downloads
-downloads: $(DOWNLOADS)
+downloads: $(DOWNLOADS) $(LICENSE)
 clean-downloads:
-	-rm -f $(DOWNLOADS)
+	-rm -f $(DOWNLOADS) $(LICENSE)
 
 $(DOWNLOADS):
 	$(WGET) http://www.unicode.org/Public/$(UNICODE_VERSION)/ucd/$@
+
+$(LICENSE):
+	$(WGET) https://www.unicode.org/license.txt --output-document=$@

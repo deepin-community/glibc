@@ -67,24 +67,24 @@ No topgit branch, TODO?
  sysdeps/unix/sysv/linux/netinet/if_ether.h |  105 ----------------
  17 files changed, 815 insertions(+), 1310 deletions(-)
 
-Index: glibc-2.27/sysdeps/gnu/Makefile
+Index: glibc-2.41/sysdeps/gnu/Makefile
 ===================================================================
---- glibc-2.27.orig/sysdeps/gnu/Makefile
-+++ glibc-2.27/sysdeps/gnu/Makefile
-@@ -87,3 +87,7 @@ librt-sysdep_routines += rt-unwind-resum
- 		  bits/types/struct_msqid_ds.h \
- 		  bits/types/struct_shmid_ds.h
+--- glibc-2.41.orig/sysdeps/gnu/Makefile
++++ glibc-2.41/sysdeps/gnu/Makefile
+@@ -80,3 +80,7 @@ sysdep_headers += \
+   bits/types/struct_shmid_ds.h
+   # sysdep_headers
  endif
 +
 +ifeq ($(subdir),socket)
 +sysdep_headers += net/ethernet.h net/if_arp.h net/if_ether.h
 +endif
-Index: glibc-2.27/sysdeps/gnu/net/ethernet.h
+Index: glibc-2.41/sysdeps/gnu/net/ethernet.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.27/sysdeps/gnu/net/ethernet.h
++++ glibc-2.41/sysdeps/gnu/net/ethernet.h
 @@ -0,0 +1,83 @@
-+/* Copyright (C) 1997-2023 Free Software Foundation, Inc.
++/* Copyright (C) 1997-2025 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -167,13 +167,13 @@ Index: glibc-2.27/sysdeps/gnu/net/ethernet.h
 +__END_DECLS
 +
 +#endif	/* net/ethernet.h */
-Index: glibc-2.27/sysdeps/gnu/net/if_arp.h
+Index: glibc-2.41/sysdeps/gnu/net/if_arp.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.27/sysdeps/gnu/net/if_arp.h
++++ glibc-2.41/sysdeps/gnu/net/if_arp.h
 @@ -0,0 +1,184 @@
 +/* Definitions for Address Resolution Protocol.
-+   Copyright (C) 1997-2023 Free Software Foundation, Inc.
++   Copyright (C) 1997-2025 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -356,12 +356,12 @@ Index: glibc-2.27/sysdeps/gnu/net/if_arp.h
 +__END_DECLS
 +
 +#endif	/* net/if_arp.h */
-Index: glibc-2.27/sysdeps/gnu/net/if_ether.h
+Index: glibc-2.41/sysdeps/gnu/net/if_ether.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.27/sysdeps/gnu/net/if_ether.h
++++ glibc-2.41/sysdeps/gnu/net/if_ether.h
 @@ -0,0 +1,115 @@
-+/* Copyright (C) 1997-2023 Free Software Foundation, Inc.
++/* Copyright (C) 1997-2025 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -476,10 +476,10 @@ Index: glibc-2.27/sysdeps/gnu/net/if_ether.h
 +} __attribute__((packed));
 +
 +#endif	/* net/if_ether.h */
-Index: glibc-2.27/sysdeps/gnu/net/if_ppp.h
+Index: glibc-2.41/sysdeps/gnu/net/if_ppp.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.27/sysdeps/gnu/net/if_ppp.h
++++ glibc-2.41/sysdeps/gnu/net/if_ppp.h
 @@ -0,0 +1,171 @@
 +/*	From: if_ppp.h,v 1.3 1995/06/12 11:36:50 paulus Exp */
 +
@@ -652,12 +652,12 @@ Index: glibc-2.27/sysdeps/gnu/net/if_ppp.h
 +__END_DECLS
 +
 +#endif /* net/if_ppp.h */
-Index: glibc-2.27/sysdeps/gnu/netinet/if_ether.h
+Index: glibc-2.41/sysdeps/gnu/netinet/if_ether.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.27/sysdeps/gnu/netinet/if_ether.h
++++ glibc-2.41/sysdeps/gnu/netinet/if_ether.h
 @@ -0,0 +1,103 @@
-+/* Copyright (C) 1996-2023 Free Software Foundation, Inc.
++/* Copyright (C) 1996-2025 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
 +   The GNU C Library is free software; you can redistribute it and/or
@@ -760,11 +760,11 @@ Index: glibc-2.27/sysdeps/gnu/netinet/if_ether.h
 +#endif /* __USE_MISC */
 +
 +#endif /* netinet/if_ether.h */
-Index: glibc-2.27/sysdeps/mach/hurd/Makefile
+Index: glibc-2.41/sysdeps/mach/hurd/Makefile
 ===================================================================
---- glibc-2.27.orig/sysdeps/mach/hurd/Makefile
-+++ glibc-2.27/sysdeps/mach/hurd/Makefile
-@@ -202,7 +202,7 @@ ifeq ($(subdir),sunrpc)
+--- glibc-2.41.orig/sysdeps/mach/hurd/Makefile
++++ glibc-2.41/sysdeps/mach/hurd/Makefile
+@@ -228,7 +228,7 @@ sysdep_headers += nfs/nfs.h
  endif
  
  ifeq ($(subdir),socket)
@@ -773,12 +773,12 @@ Index: glibc-2.27/sysdeps/mach/hurd/Makefile
  endif
  
  ifeq ($(subdir),nis)
-Index: glibc-2.27/sysdeps/mach/hurd/net/ethernet.h
+Index: glibc-2.41/sysdeps/mach/hurd/net/ethernet.h
 ===================================================================
---- glibc-2.27.orig/sysdeps/mach/hurd/net/ethernet.h
+--- glibc-2.41.orig/sysdeps/mach/hurd/net/ethernet.h
 +++ /dev/null
 @@ -1,76 +0,0 @@
--/* Copyright (C) 1997-2023 Free Software Foundation, Inc.
+-/* Copyright (C) 1997-2025 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -854,13 +854,13 @@ Index: glibc-2.27/sysdeps/mach/hurd/net/ethernet.h
 -__END_DECLS
 -
 -#endif /* net/ethernet.h */
-Index: glibc-2.27/sysdeps/mach/hurd/net/if_arp.h
+Index: glibc-2.41/sysdeps/mach/hurd/net/if_arp.h
 ===================================================================
---- glibc-2.27.orig/sysdeps/mach/hurd/net/if_arp.h
+--- glibc-2.41.orig/sysdeps/mach/hurd/net/if_arp.h
 +++ /dev/null
 @@ -1,144 +0,0 @@
 -/* Definitions for Address Resolution Protocol.
--   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+-   Copyright (C) 1997-2025 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -1003,12 +1003,12 @@ Index: glibc-2.27/sysdeps/mach/hurd/net/if_arp.h
 -__END_DECLS
 -
 -#endif	/* net/if_arp.h */
-Index: glibc-2.27/sysdeps/mach/hurd/net/if_ether.h
+Index: glibc-2.41/sysdeps/mach/hurd/net/if_ether.h
 ===================================================================
---- glibc-2.27.orig/sysdeps/mach/hurd/net/if_ether.h
+--- glibc-2.41.orig/sysdeps/mach/hurd/net/if_ether.h
 +++ /dev/null
 @@ -1,84 +0,0 @@
--/* Copyright (C) 1997-2023 Free Software Foundation, Inc.
+-/* Copyright (C) 1997-2025 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -1092,11 +1092,11 @@ Index: glibc-2.27/sysdeps/mach/hurd/net/if_ether.h
 -};
 -
 -#endif	/* net/if_ether.h */
-Index: glibc-2.27/sysdeps/unix/sysv/linux/Makefile
+Index: glibc-2.41/sysdeps/unix/sysv/linux/Makefile
 ===================================================================
---- glibc-2.27.orig/sysdeps/unix/sysv/linux/Makefile
-+++ glibc-2.27/sysdeps/unix/sysv/linux/Makefile
-@@ -118,10 +118,7 @@ $(objpfx)tst-signal-numbers.out: \
+--- glibc-2.41.orig/sysdeps/unix/sysv/linux/Makefile
++++ glibc-2.41/sysdeps/unix/sysv/linux/Makefile
+@@ -453,10 +453,7 @@ endif
  ifeq ($(subdir),socket)
  sysdep_headers += \
    bits/socket-constants.h \
@@ -1107,12 +1107,12 @@ Index: glibc-2.27/sysdeps/unix/sysv/linux/Makefile
    net/if_shaper.h \
    net/if_slip.h \
    net/ppp-comp.h \
-Index: glibc-2.27/sysdeps/unix/sysv/linux/net/ethernet.h
+Index: glibc-2.41/sysdeps/unix/sysv/linux/net/ethernet.h
 ===================================================================
---- glibc-2.27.orig/sysdeps/unix/sysv/linux/net/ethernet.h
+--- glibc-2.41.orig/sysdeps/unix/sysv/linux/net/ethernet.h
 +++ /dev/null
 @@ -1,83 +0,0 @@
--/* Copyright (C) 1997-2023 Free Software Foundation, Inc.
+-/* Copyright (C) 1997-2025 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -1195,13 +1195,13 @@ Index: glibc-2.27/sysdeps/unix/sysv/linux/net/ethernet.h
 -__END_DECLS
 -
 -#endif	/* net/ethernet.h */
-Index: glibc-2.27/sysdeps/unix/sysv/linux/net/if_arp.h
+Index: glibc-2.41/sysdeps/unix/sysv/linux/net/if_arp.h
 ===================================================================
---- glibc-2.27.orig/sysdeps/unix/sysv/linux/net/if_arp.h
+--- glibc-2.41.orig/sysdeps/unix/sysv/linux/net/if_arp.h
 +++ /dev/null
 @@ -1,184 +0,0 @@
 -/* Definitions for Address Resolution Protocol.
--   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+-   Copyright (C) 1997-2025 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or
@@ -1384,10 +1384,10 @@ Index: glibc-2.27/sysdeps/unix/sysv/linux/net/if_arp.h
 -__END_DECLS
 -
 -#endif	/* net/if_arp.h */
-Index: glibc-2.27/sysdeps/unix/sysv/linux/net/if_ether.h
+Index: glibc-2.41/sysdeps/unix/sysv/linux/net/if_ether.h
 ===================================================================
 --- /dev/null
-+++ glibc-2.27/sysdeps/unix/sysv/linux/net/if_ether.h
++++ glibc-2.41/sysdeps/unix/sysv/linux/net/if_ether.h
 @@ -0,0 +1,7 @@
 +#ifndef _NET_IF_ETHER_H
 +#define _NET_IF_ETHER_H 1
@@ -1396,9 +1396,9 @@ Index: glibc-2.27/sysdeps/unix/sysv/linux/net/if_ether.h
 +#include <linux/if_ether.h>
 +
 +#endif /* net/if_ether.h */
-Index: glibc-2.27/sysdeps/unix/sysv/linux/net/if_ppp.h
+Index: glibc-2.41/sysdeps/unix/sysv/linux/net/if_ppp.h
 ===================================================================
---- glibc-2.27.orig/sysdeps/unix/sysv/linux/net/if_ppp.h
+--- glibc-2.41.orig/sysdeps/unix/sysv/linux/net/if_ppp.h
 +++ /dev/null
 @@ -1,171 +0,0 @@
 -/*	From: if_ppp.h,v 1.3 1995/06/12 11:36:50 paulus Exp */
@@ -1572,12 +1572,12 @@ Index: glibc-2.27/sysdeps/unix/sysv/linux/net/if_ppp.h
 -__END_DECLS
 -
 -#endif /* net/if_ppp.h */
-Index: glibc-2.27/sysdeps/unix/sysv/linux/netinet/if_ether.h
+Index: glibc-2.41/sysdeps/unix/sysv/linux/netinet/if_ether.h
 ===================================================================
---- glibc-2.27.orig/sysdeps/unix/sysv/linux/netinet/if_ether.h
+--- glibc-2.41.orig/sysdeps/unix/sysv/linux/netinet/if_ether.h
 +++ /dev/null
 @@ -1,104 +0,0 @@
--/* Copyright (C) 1996-2023 Free Software Foundation, Inc.
+-/* Copyright (C) 1996-2025 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -
 -   The GNU C Library is free software; you can redistribute it and/or

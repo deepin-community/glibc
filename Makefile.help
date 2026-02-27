@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2023 Free Software Foundation, Inc.
+# Copyright (C) 2019-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -32,6 +32,10 @@ test
 		make test t=wcsmbs/test-wcsnlen
 	Note that this will rebuild the test if needed, but will not
 	rebuild what "make all" would have rebuilt.
+
+build-math-static-tests
+	Enable extra math tests for static linking.  Use like this:
+		make test t=math/test-float-exp10-static build-math-static-tests=yes
 
 --
 Other useful hints:

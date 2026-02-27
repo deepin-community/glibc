@@ -1,4 +1,4 @@
-/* Copyright (C) 2020-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -40,9 +40,6 @@
 #define zva_val	x4
 
 ENTRY (__libc_mtag_tag_zero_region)
-	PTR_ARG (0)
-	SIZE_ARG (1)
-
 	add	dstend, dstin, count
 
 	cmp	count, 96

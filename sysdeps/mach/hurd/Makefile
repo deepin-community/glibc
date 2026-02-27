@@ -1,4 +1,4 @@
-# Copyright (C) 1993-2023 Free Software Foundation, Inc.
+# Copyright (C) 1993-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -66,26 +66,32 @@ errno.texinfo = $(..)manual/errno.texi
 
 hurd = $(..)sysdeps/mach/hurd
 
-define mach-errno-h
-($(foreach h,mach/message.h \
+mach-errno-h = \
+	     mach/message.h \
 	     mach/kern_return.h \
 	     mach/mig_errors.h \
-	     device/device_types.h,\
- echo '#include <$h>';\
- ))
-endef
+	     device/device_types.h
 
 # We use the compiler to generate a list of absolute file names for
 # the headers we want to search for Mach error codes, listed above (and
 # incidentally, all other headers those include).
 -include $(common-objpfx)errnos.d
 $(common-objpfx)errnos.d: $(mach-errnos-deps)
-	$(mach-errno-h) | \
-	$(CC) $(CFLAGS) \
-	    $(subst -include $(common-objpfx)libc-modules.h,,$(CPPFLAGS)) \
-	    -M -x c - | \
-	sed $(sed-remove-objpfx) -e 's,- *:,mach-errnos-deps :=,' \
-	    -e 's, \.\./, $(..),g' > $@t
+	echo -n "mach-errnos-deps := " > $@t
+	for h in $(mach-errno-h) ; do \
+		echo "#include <$$h>" \
+		| $(CC) $(CFLAGS) \
+		    $(subst -include $(common-objpfx)libc-modules.h,,$(CPPFLAGS)) \
+		    -M -x c - \
+		| sed $(sed-remove-objpfx) \
+		    -e 's, \.\./, $(..),g' \
+		    -e 's,\\$$,,g' \
+		    -e 's, ,\n,g' \
+		| grep "$$h$$" \
+		| tr '\n' ' ' \
+		  >> $@t ; \
+	done
+	echo >> $@t
 	mv -f $@t $@
 
 $(hurd)/bits/errno.h: $(common-objpfx)stamp-errnos ;
@@ -294,17 +300,48 @@ ifeq ($(subdir),elf)
 check-execstack-xfail += ld.so libc.so libpthread.so
 # We always create a thread for signals
 test-xfail-tst-single_threaded-pthread-static = yes
+# Bug 25263
+test-xfail-tst-origin = yes
+
+CFLAGS-tst-execstack.c += -DDEFAULT_RWX_STACK=1
 endif
 
 # For bug 30166
 # (missing RLIMIT_AS support)
+ifeq ($(subdir),htl)
+tests-unsupported += tst-basic7
+endif
+ifeq ($(subdir),libio)
+tests-unsupported += tst-asprintf-null
+endif
 ifeq ($(subdir),malloc)
 tests-unsupported += tst-malloc-thread-fail
 tests-unsupported += tst-malloc-thread-fail-malloc-check
 tests-unsupported += tst-malloc-thread-fail-mcheck
 tests-unsupported += tst-malloc-thread-fail-malloc-hugetlb1
 tests-unsupported += tst-malloc-thread-fail-malloc-hugetlb2
+tests-unsupported += tst-malloc-thread-fail-malloc-largetcache
 tests-unsupported += tst-dynarray-fail
+endif
+ifeq ($(subdir),misc)
+tests-unsupported += bug18240
+endif
+ifeq ($(subdir),stdio-common)
+tests-unsupported += tst-getline-enomem
+tests-unsupported += tst-getline-enomem-mem
+tests-unsupported += tst-vfprintf-width-prec
+tests-unsupported += tst-vfprintf-width-prec-mem
+tests-unsupported += tst-vfprintf-width-prec-alloc
+endif
+ifeq ($(subdir),stdlib)
+tests-unsupported += test-bz22786 tst-strtod-overflow
+# pthread_cleanup_combined_push/pthread_cleanup_combined_pop requires cleanup
+# support (BZ 32058).
+test-xfail-tst-qsort7-mem = yes
+test-xfail-tst-qsortx7-mem = yes
+endif
+ifeq ($(subdir),timezone)
+tests-unsupported += tst-tzset
 endif
 
 # For bug 30167

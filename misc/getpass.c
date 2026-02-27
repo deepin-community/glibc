@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -83,7 +83,7 @@ getpass (const char *prompt)
       s = t;
       /* Tricky, tricky. */
       t.c_lflag &= ~(ECHO|ISIG);
-      tty_changed = (tcsetattr (fileno (in), TCSAFLUSH|TCSASOFT, &t) == 0);
+      tty_changed = (__tcsetattr (fileno (in), TCSAFLUSH|TCSASOFT, &t) == 0);
     }
   else
     tty_changed = 0;
@@ -110,7 +110,7 @@ getpass (const char *prompt)
 
   /* Restore the original setting.  */
   if (tty_changed)
-    (void) tcsetattr (fileno (in), TCSAFLUSH|TCSASOFT, &s);
+    (void) __tcsetattr (fileno (in), TCSAFLUSH|TCSASOFT, &s);
 
   funlockfile (out);
 

@@ -4,10 +4,11 @@ solution is to drop those dependencies and make sure that MAKEINFO=:
 so that no target depends on manual/*.texi files.
 
 ---
+ elf/Makefile               |    3 
  manual/Makefile            |  182 +++++++++++++++++++++++++++++++++++++++++++++
  stdio-common/Makefile      |    2 
  sysdeps/mach/hurd/Makefile |    2 
- 3 files changed, 184 insertions(+), 2 deletions(-)
+ 4 files changed, 185 insertions(+), 4 deletions(-)
 
 --- /dev/null
 +++ b/manual/Makefile
@@ -196,8 +197,8 @@ so that no target depends on manual/*.texi files.
 +	$(ETAGS) -o $@ $^
 --- a/stdio-common/Makefile
 +++ b/stdio-common/Makefile
-@@ -251,7 +251,7 @@
-   # generated
+@@ -335,7 +335,7 @@
+ endif
  endif # $(run-built-tests)
  
 -tests-special += $(objpfx)tst-errno-manual.out
@@ -207,8 +208,8 @@ so that no target depends on manual/*.texi files.
  
 --- a/sysdeps/mach/hurd/Makefile
 +++ b/sysdeps/mach/hurd/Makefile
-@@ -88,7 +88,7 @@
- 	    -e 's, \.\./, $(..),g' > $@t
+@@ -94,7 +94,7 @@
+ 	echo >> $@t
  	mv -f $@t $@
  
 -$(hurd)/bits/errno.h: $(common-objpfx)stamp-errnos ;
@@ -216,3 +217,16 @@ so that no target depends on manual/*.texi files.
  $(common-objpfx)stamp-errnos: $(hurd)/errnos.awk $(errno.texinfo) \
  			      $(mach-errnos-deps) $(common-objpfx)errnos.d
  	mkdir -p $(hurd-objpfx)bits
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -2833,9 +2833,8 @@
+ 		$(objpfx)tst-ro-dynamic-mod.os
+ 
+ $(objpfx)tst-rtld-list-diagnostics.out: tst-rtld-list-diagnostics.py \
+-  $(..)manual/dynlink.texi $(objpfx)$(rtld-installed-name)
++  $(objpfx)$(rtld-installed-name)
+ 	$(PYTHON) tst-rtld-list-diagnostics.py \
+-	  --manual=$(..)manual/dynlink.texi \
+ 	  "$(test-wrapper-env) $(objpfx)$(rtld-installed-name) --list-diagnostics" \
+ 	  > $@; \
+ 	$(evaluate-test)

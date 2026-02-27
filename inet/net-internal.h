@@ -1,5 +1,5 @@
 /* Network-related functions for internal library use.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -106,7 +106,7 @@ __deadline_is_infinite (struct deadline deadline)
  *    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91691
  */
 DIAG_PUSH_NEEDS_COMMENT;
-DIAG_IGNORE_NEEDS_COMMENT (9, "-Wmaybe-uninitialized");
+DIAG_IGNORE_NEEDS_COMMENT_GCC (9, "-Wmaybe-uninitialized");
 
 /* Return true if the current time is at the deadline or past it.  */
 static inline bool

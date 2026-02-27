@@ -2,21 +2,22 @@
 # This file is distributed under the same license as the glibc package.
 # Erçin EKER <erc.caldera@gmx.net>, 2004, 2007.
 # Mert Dirik <mertdirik@gmail.com>, 2014.
+# Atila KOÇ <koc@artielektronik.com.tr>, 2022, 2025.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glibc\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2023-01-03 21:34+0100\n"
-"PO-Revision-Date: 2022-12-29 14:56+0300\n"
+"POT-Creation-Date: 2025-01-02 16:30+0000\n"
+"PO-Revision-Date: 2025-02-28 14:16+0300\n"
 "Last-Translator: Atila KOÇ <koc@artielektronik.com.tr>\n"
-"Language: tr\n"
 "Language-Team: debian-l10n-turkish <debian-l10n-turkish@lists.debian.org>\n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.2\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.5\n"
 
 #. Type: multiselect
 #. Choices
@@ -49,9 +50,19 @@ msgid ""
 "default, particularly for new installations. Other character sets may be "
 "useful for backwards compatibility with older systems and software."
 msgstr ""
-"Hangi yerellerin oluşturulacağını seçin. Yeni kurulumlar için ön tanımlı "
-"olarak UTF-8 yereller seçilecektir. Daha eski sistemler ve yazılımlar ile "
-"uyumluluk için başka karakter setleri de yararlı olabilir."
+"Lütfen hangi yerellerin oluşturulacağını seçin. Özellikle yeni kurulumlar "
+"için UTF-8 yereller öntanımlı olarak seçilmelidir. Daha eski sistemler ve "
+"yazılımlar ile uyumluluk için başka karakter setleri de yararlı olabilir."
+
+#. Type: multiselect
+#. Description
+#: ../debhelper.in/locales.templates:1002
+msgid ""
+"Please note that the C, C.UTF-8 and POSIX locales are always available and "
+"do not need to be generated."
+msgstr ""
+"Bilmelisiniz ki; C, C.UTF-8 ve POSIX yerelleri her zaman hazır olup "
+"üretilmeleri gerekmemektedir."
 
 #. Type: select
 #. Choices
@@ -63,7 +74,7 @@ msgstr "Hiçbiri"
 #. Description
 #: ../debhelper.in/locales.templates:2002
 msgid "Default locale for the system environment:"
-msgstr "Sistemin kullanacağı ön tanımlı yerel:"
+msgstr "Sistemin kullanacağı öntanımlı yerel:"
 
 #. Type: select
 #. Description
@@ -75,7 +86,7 @@ msgid ""
 msgstr ""
 "Debian paketleri sizinle düzgün iletişim kurmak amacıyla seçeceği dili "
 "belirlerken, yerelleri kullanır. Eklediğiniz yereller arasından sisteminiz "
-"için ön tanımlı bir yerel seçebilirsiniz."
+"için öntanımlı bir yerel seçebilirsiniz."
 
 #. Type: select
 #. Description
@@ -85,9 +96,9 @@ msgid ""
 "is a multi-user system where not all users are able to speak the default "
 "language, they will experience difficulties."
 msgstr ""
-"Bu seçim, sisteminizin tümünde kullanılacak olan ön tanımlı dili "
+"Bu seçim, sisteminizin tümünde kullanılacak olan öntanımlı dili "
 "belirleyecektir. Sisteminiz aynı dili konuşmayan kullanıcılar tarafından "
-"kullanıyorsa, ön tanımlı yerel dilini kullanmayan kullanıcılar bazı "
+"kullanıLIyorsa, öntanımlı yerel dilini kullanmayan kullanıcılar bazı "
 "zorluklarla karşılaşabilir."
 
 #. Type: boolean
@@ -111,7 +122,7 @@ msgstr ""
 "NSS kullanan hizmetler ve programlar yeniden başlatılmalıdır. "
 "Başlatılmazlarsa, kimlik arama veya doğrulama gibi işlemleri düzgün "
 "yapamayacaklardır. Kurulum süreci ssh ve telnetd gibi bazı hizmetleri "
-"yeniden başlatmayı başarabilmekle birlikte, her hizmeti kendiliğinden "
+"yeniden başlatmayı başarabilmekle birlikte; her hizmeti kendiliğinden "
 "yeniden başlatamaz. glibc yükseltmesinden sonra elle yeniden başlatmanız "
 "gereken hizmetlerden biri de xdm'dir. Çünkü onun kendiliğinden yeniden "
 "başlatılması, açılmış X11 oturumlarının kopmasına sebep olabilir."
@@ -123,7 +134,7 @@ msgid ""
 "This script detected the following installed services which must be stopped "
 "before the upgrade: ${services}"
 msgstr ""
-"Bu betik, yükseltme işlemi yapılmadan önce bu hizmetlerin yeniden "
+"Bu betik, yükseltme işlemi yapılmadan önce şu hizmetlerin yeniden "
 "başlatılması gerektiğini algıladı: ${services}"
 
 #. Type: boolean
@@ -133,7 +144,7 @@ msgid ""
 "If you want to interrupt the upgrade now and continue later, please answer "
 "No to the question below."
 msgstr ""
-"Eğer yükseltme işlemini şimdi durdurup sonra sürdürmek istiyorsanız, "
+"Eğer yükseltme işlemini şimdi durdurup sonra sürdürmek istiyorsanız, lütfen "
 "aşağıdaki soruya \"Hayır\" yanıtını verin."
 
 #. Type: string
@@ -155,9 +166,9 @@ msgid ""
 msgstr ""
 "NSS kullanan hizmetler ve programlar yeniden başlatılmalıdır. "
 "Başlatılmazlarsa, kimlik arama veya doğrulama gibi işlemleri düzgün "
-"yapamayacaklardır. Örneğin ssh hizmeti ile oturum açamayabilirsiniz. Yeniden "
-"başlatılacak hizmetlere ilişkin init.d betiklerinin boşluklarla ayrılmış "
-"aşağıdaki listesini inceleyin ve gerekiyorsa düzeltin."
+"yapamayacaklardır. Örneğin ssh hizmeti ile oturum açamayabilirsiniz. Lütfen "
+"yeniden başlatılacak hizmetlere ilişkin init.d betiklerinin boşluklarla "
+"ayrılmış aşağıdaki listesini inceleyin ve gerekiyorsa düzeltin."
 
 #. Type: string
 #. Description
@@ -165,7 +176,7 @@ msgstr ""
 msgid ""
 "Note: restarting sshd/telnetd should not affect any existing connections."
 msgstr ""
-"Not: sshd/telnetd hizmetlerinin yeniden başlatılması varolan bağlantıları "
+"Not: sshd/telnetd hizmetlerinin yeniden başlatılması, varolan bağlantıları "
 "etkilemez."
 
 #. Type: error
@@ -191,7 +202,7 @@ msgid ""
 "You will need to start these manually by running 'invoke-rc.d <service> "
 "start'."
 msgstr ""
-"Bu hizmetleri \"invoke-rc.d <hizmet> start\" komutunu kullanarak elle "
+"Bu hizmetleri \"invoke-rc.d <hizmet_adı> start\" komutunu kullanarak elle "
 "başlatmanız gerekecektedir."
 
 #. Type: error
@@ -240,7 +251,7 @@ msgid ""
 "necessary restarts will be done for you automatically so you can avoid being "
 "asked questions on each library upgrade."
 msgstr ""
-"Sisteminizde libpam, libc ve libssl gibi bazı kitaplıklar yükseltildiğinde "
+"Sisteminizde libpam, libc ve libssl gibi bazı kitaplıkların yükseltildiğinde "
 "yeniden başlatılması gereken hizmetler kurulu. Yeniden başlatma işlemleri "
 "sisteminizin sunduğu hizmetlerde kesintilere neden olabileceğinden dolayı "
 "her yükseltme işlemi sırasında yeniden başlatmak istediğiniz hizmetler için "
@@ -263,7 +274,7 @@ msgid ""
 "later.  Please upgrade your kernel and reboot before installing glibc. You "
 "may need to use \"apt -f install\" after reboot to solve dependencies."
 msgstr ""
-"GNU libc kitaplığının bu sürümü ${kernel_ver} çekirdek sürümü ya da daha "
+"GNU libc kitaplığının bu sürümü ${kernel_ver} çekirdek sürümü veya daha "
 "yenisi ile çalışabilmektedir. GNU libc kurulumu öncesinde çekirdek "
 "sürümünüzü güncelleyin ve sisteminizi yeniden başlatın. Bağımlılık "
 "sorunlarını gidermek için, yeniden başlatmanız sonrasında \"apt -f install\" "
@@ -283,7 +294,7 @@ msgid ""
 "later.  Older versions might work but are not officially supported by "
 "Debian.  Please consider upgrading your kernel."
 msgstr ""
-"GNU libc kitaplığının bu sürümü ${kernel_ver} çekirdek sürümü ya da daha "
-"yenisi ile çalışabilmektedir. Eski sürümler ile çalışabilse de, eski "
+"GNU libc kitaplığının bu sürümü ${kernel_ver} çekirdek sürümü veya daha "
+"yenisi ile çalışabilmektedir. Eski sürümler ile çalışabilse de, bu önceki "
 "sürümler Debian tarafından desteklenmemektedir. Çekirdek sürümünüzü "
 "güncelleme konusunu değerlendirin."

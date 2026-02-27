@@ -1,5 +1,5 @@
 /* Global test failure counter.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -111,4 +111,14 @@ support_record_failure_is_failed (void)
   /* Relaxed MO is sufficient because we need (blocking) external
      synchronization for reliable test error reporting anyway.  */
   return __atomic_load_n (&state->failed, __ATOMIC_RELAXED);
+}
+
+void
+support_record_failure_barrier (void)
+{
+  if (__atomic_load_n (&state->failed, __ATOMIC_RELAXED))
+    {
+      puts ("error: exiting due to previous errors");
+      exit (1);
+    }
 }

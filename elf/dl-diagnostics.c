@@ -1,5 +1,5 @@
 /* Print diagnostics data in ld.so.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,6 @@
 #include <dl-diagnostics.h>
 #include <dl-hwcaps.h>
 #include <dl-main.h>
-#include <dl-procinfo.h>
 #include <dl-sysdep.h>
 #include <ldsodefs.h>
 #include "trusted-dirs.h"
@@ -233,8 +232,9 @@ _dl_print_diagnostics (char **environ)
 {
   _dl_diagnostics_print_labeled_string ("dl_dst_lib", DL_DST_LIB);
   _dl_diagnostics_print_labeled_value ("dl_hwcap", GLRO (dl_hwcap));
-  _dl_diagnostics_print_labeled_value ("dl_hwcap_important", HWCAP_IMPORTANT);
   _dl_diagnostics_print_labeled_value ("dl_hwcap2", GLRO (dl_hwcap2));
+  _dl_diagnostics_print_labeled_value ("dl_hwcap3", GLRO (dl_hwcap3));
+  _dl_diagnostics_print_labeled_value ("dl_hwcap4", GLRO (dl_hwcap4));
   _dl_diagnostics_print_labeled_string
     ("dl_hwcaps_subdirs", _dl_hwcaps_subdirs);
   _dl_diagnostics_print_labeled_value
@@ -243,8 +243,6 @@ _dl_print_diagnostics (char **environ)
   _dl_diagnostics_print_labeled_string ("dl_platform", GLRO (dl_platform));
   _dl_diagnostics_print_labeled_string
     ("dl_profile_output", GLRO (dl_profile_output));
-  _dl_diagnostics_print_labeled_value
-    ("dl_string_platform", _dl_string_platform ( GLRO (dl_platform)));
 
   _dl_diagnostics_print_labeled_string ("dso.ld", LD_SO);
   _dl_diagnostics_print_labeled_string ("dso.libc", LIBC_SO);

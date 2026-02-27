@@ -1,5 +1,5 @@
 /* Test for utimensat.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,10 +22,6 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
-#ifndef struct_stat
-# define struct_stat struct stat64
-#endif
-
 static int
 test_utimesat_helper (const char *testfile, int fd, const char *testlink,
                       const struct timespec *ts)
@@ -33,35 +29,70 @@ test_utimesat_helper (const char *testfile, int fd, const char *testlink,
   {
     TEST_VERIFY_EXIT (utimensat (fd, testfile, ts, 0) == 0);
 
-    struct_stat st;
-    xfstat (fd, &st);
+    struct statx st;
+    xstatx (fd, "", AT_EMPTY_PATH, STATX_BASIC_STATS, &st);
 
     /* Check if seconds for atime match */
-    TEST_COMPARE (st.st_atime, ts[0].tv_sec);
+    TEST_COMPARE (st.stx_atime.tv_sec, ts[0].tv_sec);
 
     /* Check if seconds for mtime match */
-    TEST_COMPARE (st.st_mtime, ts[1].tv_sec);
+    TEST_COMPARE (st.stx_mtime.tv_sec, ts[1].tv_sec);
+  }
+
+  /* Alter the timestamp using a NULL path.  */
+  {
+    struct timespec ts1[2] = {ts[0], ts[1]};
+    ts1[0].tv_sec ^= 1;
+    ts1[1].tv_sec ^= 1;
+
+    TEST_VERIFY_EXIT (utimensat (fd, NULL, ts1, 0) == 0);
+
+    struct statx st;
+    xstatx (fd, "", AT_EMPTY_PATH, STATX_BASIC_STATS, &st);
+
+    /* Check if seconds for atime match */
+    TEST_COMPARE (st.stx_atime.tv_sec, ts[0].tv_sec ^ 1);
+
+    /* Check if seconds for mtime match */
+    TEST_COMPARE (st.stx_mtime.tv_sec, ts[1].tv_sec ^ 1);
+  }
+
+  /* And switch it back using a NULL path.  */
+  {
+    TEST_VERIFY_EXIT (utimensat (fd, NULL, ts, 0) == 0);
+
+    struct statx st;
+    xstatx (fd, "", AT_EMPTY_PATH, STATX_BASIC_STATS, &st);
+
+    /* Check if seconds for atime match */
+    TEST_COMPARE (st.stx_atime.tv_sec, ts[0].tv_sec);
+
+    /* Check if seconds for mtime match */
+    TEST_COMPARE (st.stx_mtime.tv_sec, ts[1].tv_sec);
   }
 
   {
-    struct_stat stfile_orig;
-    xlstat (testfile, &stfile_orig);
+    struct statx stfile_orig;
+    xstatx (AT_FDCWD, testfile, AT_SYMLINK_NOFOLLOW, STATX_BASIC_STATS,
+	    &stfile_orig);
 
     TEST_VERIFY_EXIT (utimensat (0 /* ignored  */, testlink, ts,
 				 AT_SYMLINK_NOFOLLOW)
 		       == 0);
-    struct_stat stlink;
-    xlstat (testlink, &stlink);
+    struct statx stlink;
+    xstatx (AT_FDCWD, testlink, AT_SYMLINK_NOFOLLOW, STATX_BASIC_STATS,
+	    &stlink);
 
-    TEST_COMPARE (stlink.st_atime, ts[0].tv_sec);
-    TEST_COMPARE (stlink.st_mtime, ts[1].tv_sec);
+    TEST_COMPARE (stlink.stx_atime.tv_sec, ts[0].tv_sec);
+    TEST_COMPARE (stlink.stx_mtime.tv_sec, ts[1].tv_sec);
 
     /* Check if the timestamp from original file is not changed.  */
-    struct_stat stfile;
-    xlstat (testfile, &stfile);
+    struct statx stfile;
+    xstatx (AT_FDCWD, testfile, AT_SYMLINK_NOFOLLOW, STATX_BASIC_STATS,
+	    &stfile);
 
-    TEST_COMPARE (stfile_orig.st_atime, stfile.st_atime);
-    TEST_COMPARE (stfile_orig.st_mtime, stfile.st_mtime);
+    TEST_COMPARE (stfile_orig.stx_atime.tv_sec, stfile.stx_atime.tv_sec);
+    TEST_COMPARE (stfile_orig.stx_mtime.tv_sec, stfile.stx_mtime.tv_sec);
   }
 
   return 0;

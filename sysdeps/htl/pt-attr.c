@@ -1,5 +1,5 @@
 /* Default attributes.  Generic version.
-   Copyright (C) 2000-2023 Free Software Foundation, Inc.
+   Copyright (C) 2000-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,3 +37,4 @@ struct __pthread_attr __pthread_default_attr = {
   __contentionscope: PTHREAD_SCOPE_SYSTEM,
   __schedpolicy: SCHED_OTHER
 };
+libc_hidden_data_def (__pthread_default_attr)

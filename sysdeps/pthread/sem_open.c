@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,17 +26,19 @@
 #include <futex-internal.h>
 #include <libc-lock.h>
 
+
 #if !PTHREAD_IN_LIBC
 /* The private names are not exported from libc.  */
 # define __link link
 # define __unlink unlink
 #endif
 
+#define SEM_OPEN_FLAGS (O_RDWR | O_NOFOLLOW | O_CLOEXEC)
+
 sem_t *
 __sem_open (const char *name, int oflag, ...)
 {
   int fd;
-  int open_flags;
   sem_t *result;
 
   /* Check that shared futexes are supported.  */
@@ -56,19 +58,13 @@ __sem_open (const char *name, int oflag, ...)
     }
 
   /* Disable asynchronous cancellation.  */
-#ifdef __libc_ptf_call
-  int state;
-  __libc_ptf_call (__pthread_setcancelstate,
-                   (PTHREAD_CANCEL_DISABLE, &state), 0);
-#endif
+  int state = __pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
 
   /* If the semaphore object has to exist simply open it.  */
   if ((oflag & O_CREAT) == 0 || (oflag & O_EXCL) == 0)
     {
-      open_flags = O_RDWR | O_NOFOLLOW | O_CLOEXEC;
-      open_flags |= (oflag & ~(O_CREAT|O_ACCMODE));
     try_again:
-      fd = __open (dirname.name, open_flags);
+      fd = __open (dirname.name, (oflag & O_EXCL) | SEM_OPEN_FLAGS);
 
       if (fd == -1)
 	{
@@ -77,6 +73,7 @@ __sem_open (const char *name, int oflag, ...)
 	    goto try_create;
 
 	  /* Return.  errno is already set.  */
+	  result = SEM_FAILED;
 	}
       else
 	/* Check whether we already have this semaphore mapped and
@@ -135,8 +132,7 @@ __sem_open (const char *name, int oflag, ...)
 	    }
 
 	  /* Open the file.  Make sure we do not overwrite anything.  */
-	  open_flags = O_RDWR | O_CREAT | O_EXCL | O_CLOEXEC;
-	  fd = __open (tmpfname, open_flags, mode);
+	  fd = __open (tmpfname, O_CREAT | O_EXCL | SEM_OPEN_FLAGS, mode);
 	  if (fd == -1)
 	    {
 	      if (errno == EEXIST)
@@ -215,9 +211,7 @@ __sem_open (const char *name, int oflag, ...)
     }
 
 out:
-#ifdef __libc_ptf_call
-  __libc_ptf_call (__pthread_setcancelstate, (state, NULL), 0);
-#endif
+  __pthread_setcancelstate (state, NULL);
 
   return result;
 }

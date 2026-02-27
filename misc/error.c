@@ -1,5 +1,5 @@
 /* Error handler for noninteractive utilities
-   Copyright (C) 1990-2023 Free Software Foundation, Inc.
+   Copyright (C) 1990-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -212,7 +212,6 @@ error_tail (int status, int errnum, const char *message, va_list args,
 #else
   vfprintf (stderr, message, args);
 #endif
-  va_end (args);
 
   ++error_message_count;
   if (errnum)

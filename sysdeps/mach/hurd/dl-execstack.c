@@ -1,5 +1,5 @@
 /* Stack executability handling for GNU dynamic linker.  Hurd version.
-   Copyright (C) 2004-2023 Free Software Foundation, Inc.
+   Copyright (C) 2004-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,12 +26,11 @@ extern struct hurd_startup_data *_dl_hurd_data attribute_hidden;
    so as to mprotect it.  */
 
 int
-_dl_make_stack_executable (void **stack_endp)
+_dl_make_stack_executable (const void *stack_endp)
 {
   /* Challenge the caller.  */
-  if (__builtin_expect (*stack_endp != __libc_stack_end, 0))
+  if (__glibc_unlikely (stack_endp != __libc_stack_end))
     return EPERM;
-  *stack_endp = NULL;
 
 #if IS_IN (rtld)
   if (__mprotect ((void *)_dl_hurd_data->stack_base, _dl_hurd_data->stack_size,
@@ -47,4 +46,3 @@ _dl_make_stack_executable (void **stack_endp)
   return ENOSYS;
 #endif
 }
-rtld_hidden_def (_dl_make_stack_executable)

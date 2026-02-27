@@ -1,5 +1,5 @@
 /* Basic tests for stat, lstat, fstat, and fstatat.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@
 #include <sys/sysmacros.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 static void
 stat_check (int fd, const char *path, struct stat *st)
@@ -56,7 +57,20 @@ fstatat_check (int fd, const char *path, struct stat *st)
   TEST_COMPARE (fstatat (fd, "", st, 0), -1);
   TEST_COMPARE (errno, ENOENT);
 
+  TEST_COMPARE (fstatat (AT_FDCWD, "_non_existing_file", st, 0), -1);
+  TEST_COMPARE (errno, ENOENT);
+
   TEST_COMPARE (fstatat (fd, path, st, 0), 0);
+}
+
+static void
+fstatat_link (const char *path, struct stat *st)
+{
+  TEST_COMPARE (fstatat (AT_FDCWD, path, st, 0), -1);
+  TEST_COMPARE (errno, ENOENT);
+
+  TEST_COMPARE (fstatat (AT_FDCWD, path, st, AT_SYMLINK_NOFOLLOW), 0);
+  TEST_COMPARE (!S_ISLNK(st->st_mode), 0);
 }
 
 typedef void (*test_t)(int, const char *path, struct stat *);
@@ -65,6 +79,8 @@ static int
 do_test (void)
 {
   char *path;
+  char *tempdir = support_create_temp_directory ("tst-stat-");
+  char *linkname = xasprintf ("%s/tst-fstat.linkname", tempdir);
   int fd = create_temp_file ("tst-fstat.", &path);
   TEST_VERIFY_EXIT (fd >= 0);
   support_write_file_string (path, "abc");
@@ -78,13 +94,13 @@ do_test (void)
     printf ("warning: timestamp with nanoseconds not supported\n");
 
   struct statx stx;
+  struct stat st;
   TEST_COMPARE (statx (fd, path, 0, STATX_BASIC_STATS, &stx), 0);
 
   test_t tests[] = { stat_check, lstat_check, fstat_check, fstatat_check };
 
   for (int i = 0; i < array_length (tests); i++)
     {
-      struct stat st;
       tests[i](fd, path, &st);
 
       TEST_COMPARE (stx.stx_dev_major, major (st.st_dev));
@@ -107,6 +123,13 @@ do_test (void)
 	  TEST_COMPARE (stx.stx_mtime.tv_nsec, st.st_mtim.tv_nsec);
 	}
     }
+
+  TEST_COMPARE (symlink ("tst-fstat.target", linkname), 0);
+  add_temp_file (linkname);
+  fstatat_link (linkname, &st);
+
+  free (linkname);
+  free (tempdir);
 
   return 0;
 }

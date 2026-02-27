@@ -1,5 +1,5 @@
 /* Special use of signals internally.  Linux version.
-   Copyright (C) 2014-2023 Free Software Foundation, Inc.
+   Copyright (C) 2014-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -90,6 +90,15 @@ internal_signal_restore_set (const internal_sigset_t *set)
 			 __NSIG_BYTES);
 }
 
+static inline void
+internal_signal_unblock_signal (int sig)
+{
+  internal_sigset_t set;
+  internal_sigemptyset (&set);
+  internal_sigaddset (&set, sig);
+  INTERNAL_SYSCALL_CALL (rt_sigprocmask, SIG_UNBLOCK, &set, NULL,
+			 __NSIG_BYTES);
+}
 
 /* It is used on timer_create code directly on sigwaitinfo call, so it can not
    use the internal_sigset_t definitions.  */

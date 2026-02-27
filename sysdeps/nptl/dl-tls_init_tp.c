@@ -1,5 +1,5 @@
 /* Completion of TCB initialization after TLS_INIT_TP.  NPTL version.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 #include <tls.h>
 #include <rseq-internal.h>
 #include <thread_pointer.h>
+#include <dl-symbol-redir-ifunc.h>
 
 #define TUNABLE_NAMESPACE pthread
 #include <dl-tunables.h>
@@ -45,8 +46,8 @@ rtld_mutex_dummy (pthread_mutex_t *lock)
 #endif
 
 const unsigned int __rseq_flags;
-const unsigned int __rseq_size attribute_relro;
-const ptrdiff_t __rseq_offset attribute_relro;
+
+size_t _rseq_align attribute_hidden;
 
 void
 __tls_pre_init_tp (void)
@@ -74,7 +75,7 @@ __tls_init_tp (void)
    /* Early initialization of the TCB.   */
    pd->tid = INTERNAL_SYSCALL_CALL (set_tid_address, &pd->tid);
    THREAD_SETMEM (pd, specific[0], &pd->specific_1stblock[0]);
-   THREAD_SETMEM (pd, user_stack, true);
+   THREAD_SETMEM (pd, stack_mode, ALLOCATE_GUARD_USER);
 
   /* Before initializing GL (dl_stack_user), the debugger could not
      find us and had to set __nptl_initial_report_events.  Propagate
@@ -101,25 +102,14 @@ __tls_init_tp (void)
   }
 
   {
-    bool do_rseq = true;
-    do_rseq = TUNABLE_GET (rseq, int, NULL);
-    if (rseq_register_current_thread (pd, do_rseq))
-      {
-        /* We need a writable view of the variables.  They are in
-           .data.relro and are not yet write-protected.  */
-        extern unsigned int size __asm__ ("__rseq_size");
-        size = sizeof (pd->rseq_area);
-      }
-
-#ifdef RSEQ_SIG
-    /* This should be a compile-time constant, but the current
-       infrastructure makes it difficult to determine its value.  Not
-       all targets support __thread_pointer, so set __rseq_offset only
-       if the rseq registration may have happened because RSEQ_SIG is
-       defined.  */
-    extern ptrdiff_t offset __asm__ ("__rseq_offset");
-    offset = (char *) &pd->rseq_area - (char *) __thread_pointer ();
-#endif
+    /* If the registration fails or is disabled by tunable, the public
+       '__rseq_size' will be set to '0' regardless of the feature size of the
+       allocated rseq area.  An rseq area of at least 32 bytes is always
+       allocated since application code is allowed to check the status of the
+       rseq registration by reading the content of the 'cpu_id' field.  */
+    bool do_rseq = TUNABLE_GET (rseq, int, NULL);
+    if (!rseq_register_current_thread (pd, do_rseq))
+      _rseq_size = 0;
   }
 
   /* Set initial thread's stack block from 0 up to __libc_stack_end.

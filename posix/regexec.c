@@ -1,5 +1,5 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
@@ -2277,7 +2277,7 @@ merge_state_with_log (reg_errcode_t *err, re_match_context_t *mctx,
       mctx->state_log[cur_idx] = next_state;
       mctx->state_log_top = cur_idx;
     }
-  else if (mctx->state_log[cur_idx] == 0)
+  else if (mctx->state_log[cur_idx] == NULL)
     {
       mctx->state_log[cur_idx] = next_state;
     }

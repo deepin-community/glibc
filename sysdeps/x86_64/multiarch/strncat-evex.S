@@ -1,5 +1,5 @@
 /* {wcs|str}ncat  with 256/512-bit EVEX.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@
 #  define VPCMPEQ	vpcmpeqd
 #  define CHAR_SIZE	4
 
-#  define REP_MOVS	rep movsd
+#  define REP_MOVS	rep movsl
 
 #  define VMASK_REG	VR10
 #  define FIND_FIRST_ONE(src, dst)	movl $CHAR_PER_VEC, %dst; bsf %src, %dst
@@ -514,7 +514,7 @@ L(page_cross_small):
 	cmova	%edx, %ecx
 
 # ifdef USE_AS_WCSCPY
-	rep	movsd
+	rep	movsl
 # else
 	rep	movsb
 # endif

@@ -83,13 +83,13 @@ CFLAGS-w_j1l.c += -fno-builtin-j1f64x -fno-builtin-j1f128
 CFLAGS-w_jnl.c += -fno-builtin-jnf64x -fno-builtin-jnf128
 CFLAGS-s_ldexpl.c += -fno-builtin-ldexpf64x -fno-builtin-ldexpf128
 CFLAGS-w_lgammal.c += -fno-builtin-lgammaf64x -fno-builtin-lgammaf128
-CFLAGS-w_lgammal_r.c += -fno-builtin-lgammaf64x_r
+CFLAGS-w_lgammal_r.c += -fno-builtin-lgammaf64x_r -fno-builtin-lgammaf128_r
 CFLAGS-w_llogbl.c += -fno-builtin-llogbf64x -fno-builtin-llogbf128
 CFLAGS-s_llrintl.c += -fno-builtin-llrintf64x -fno-builtin-llrintf128
 CFLAGS-s_llroundl.c += -fno-builtin-llroundf64x -fno-builtin-llroundf128
 CFLAGS-e_logl.c += -fno-builtin-logf64x -fno-builtin-logf128
 CFLAGS-w_log10l.c += -fno-builtin-log10f64x -fno-builtin-log10f128
-CFLAGS-w_log1pl.c += -fno-builtin-log1pf64x -fno-builtin-log1pf128
+CFLAGS-w_log1pl.c += -fno-builtin-log1pf64x -fno-builtin-log1pf128 -fno-builtin-logp1f64x -fno-builtin-logp1f128
 CFLAGS-e_log2l.c += -fno-builtin-log2f64x -fno-builtin-log2f128
 CFLAGS-s_logbl.c += -fno-builtin-logbf64x -fno-builtin-logbf128
 CFLAGS-s_lrintl.c += -fno-builtin-lrintf64x -fno-builtin-lrintf128
@@ -125,4 +125,8 @@ CFLAGS-s_ufromfpxl.c += -fno-builtin-ufromfpxf64x -fno-builtin-ufromfpxf128
 CFLAGS-s_y0l.c += -fno-builtin-y0f64x -fno-builtin-y0f128
 CFLAGS-s_y1l.c += -fno-builtin-y1f64x -fno-builtin-y1f128
 CFLAGS-s_ynl.c += -fno-builtin-ynf64x -fno-builtin-ynf128
+endif
+
+ifeq ($(subdir),stdio-common)
+fmt-xscanf-real-convs += ldouble
 endif

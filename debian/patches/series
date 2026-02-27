@@ -23,27 +23,8 @@ arm/local-sigaction.diff
 arm/unsubmitted-ldso-multilib.diff
 arm/local-arm-futex.diff
 
-hppa/local-inlining.diff
-
-# Committed for 2.39
-hurd-i386/git-realpath_NULL.diff
-hurd-i386/git-tst-realpath-toolong.diff
-hurd-i386/git-hidden_chk.diff
-hurd-i386/git-glob_dirent.diff
-hurd-i386/git-powerpc-longjmp.diff
-hurd-i386/git-jemalloc.diff
-hurd-i386/git-jemalloc2.diff
-hurd-i386/git-error_t.diff
-hurd-i386/git-tls_dtors.diff
-hurd-i386/git-main_stack.diff
-hurd-i386/git-ucontext.diff
-hurd-i386/git-clean_ports.diff
-hurd-i386/git-statfs_f_ffree.patch
-hurd-i386/git-send_interrupt.diff
-hurd-i386/git-exec-intr.diff
-hurd-i386/git-ioctls-bsd.diff
-hurd-i386/git-dtable_reauth.diff
-hurd-i386/git-64bit-abi.diff
+hurd-i386/local-pthread_once.diff
+hurd-i386/local-64b-align.diff
 
 hurd-i386/local-enable-ldconfig.diff
 hurd-i386/tg-sysvshm.diff
@@ -53,7 +34,6 @@ hurd-i386/tg-sendmsg-SCM_CREDS.diff
 hurd-i386/tg-mach-hurd-link.diff
 hurd-i386/local-ED.diff
 hurd-i386/local-madvise_warn.diff
-#hurd-i386/tg-hooks.diff
 hurd-i386/local-usr.diff
 hurd-i386/tg-ifaddrs_v6.diff
 hurd-i386/unsubmitted-clock_t_centiseconds.diff
@@ -62,30 +42,36 @@ hurd-i386/submitted-bind_umask2.diff
 hurd-i386/tg-bootstrap.diff
 hurd-i386/tg-libc_rwlock_recursive.diff
 hurd-i386/local-no_unsupported_ioctls.diff
-hurd-i386/local-exec_filename.diff
-hurd-i386/proc_reauth.diff
 hurd-i386/local-stack_chk_guard.diff
+
+# committed for 2.43
+hurd-i386/git-sigreturn-SEGV.diff
+hurd-i386/git-rlimit-as.diff
+hurd-i386/git-run-iconv-test.sh.diff
+hurd-i386/git-elf-ordering.diff
+hurd-i386/git-rename.diff
+hurd-i386/git-signal-SSE-MMX.diff
+hurd-i386/git-sigreturn-xmm.diff
+hurd-i386/git-cancel-stack.diff
+
+# committed for 2.44
+hurd-i386/git-fork-gdb.diff
+hurd-i386/git-sig-sig-mmx-fix.diff
+hurd-i386/git-cancel-sig.diff
 
 i386/local-biarch.diff
 i386/unsubmitted-quiet-ldconfig.diff
 i386/local-setcontext-revert-eax-ecx-edx.patch
 
-m68k/local-dwarf2-buildfix.diff
 m68k/local-reloc.diff
-m68k/submitted-gcc34-seccomment.diff
 
 mips/submitted-rld_map.diff
 
 powerpc/local-powerpc8xx-dcbz.diff
 
-riscv64/git-risc-v-add-support-for-dl_runtime_profile.diff
-riscv64/nptl-Optimize-lowlevellock-for-RISC-V-64-bit.patch
-
 sh4/local-fpscr_values.diff
 
-all/local-alias-et_EE.diff
 all/local-remove-manual.diff
-all/local-ru_RU.diff
 all/local-ldd.diff
 
 any/local-asserth-decls.diff
@@ -103,73 +89,7 @@ any/local-revert-bz13979.diff
 any/unsubmitted-ldso-machine-mismatch.diff
 any/local-ldconfig-ignore-ld.so.diff
 any/local-bootstrap-headers.diff
-any/local-cudacc-float128.diff
 any/local-test-install.diff
 any/local-cross.patch
-any/git-c-utf-8-language.diff
-any/local-qsort-memory-corruption.patch
-
-loong64/0001-LoongArch-Fix-static-PIE-condition-for-toolchain-boo.patch
-loong64/0002-LoongArch-Redefine-macro-LEAF-ENTRY.patch
-loong64/0003-Loongarch-Add-ifunc-support-and-add-different-versio.patch
-loong64/0004-elf-Add-new-LoongArch-reloc-types-101-to-108-into-el.patch
-loong64/0005-Loongarch-Add-ifunc-support-for-strchr-aligned-lsx-l.patch
-loong64/0006-Loongarch-Add-ifunc-support-for-memcpy-aligned-unali.patch
-loong64/0007-LoongArch-Add-ifunc-support-for-strnlen-aligned-lsx-.patch
-loong64/0008-LoongArch-Add-ifunc-support-for-strcmp-aligned-lsx.patch
-loong64/0009-LoongArch-Add-ifunc-support-for-strncmp-aligned-lsx.patch
-loong64/0010-LoongArch-Add-minuimum-binutils-required-version.patch
-loong64/0011-LoongArch-Simplify-the-autoconf-check-for-static-PIE.patch
-loong64/0012-LoongArch-Remove-support-code-for-old-linker-in-star.patch
-loong64/0013-LoongArch-Micro-optimize-LD_PCREL.patch
-loong64/0014-LoongArch-Add-ifunc-support-for-rawmemchr-aligned-ls.patch
-loong64/0015-LoongArch-Add-ifunc-support-for-memchr-aligned-lsx-l.patch
-loong64/0016-LoongArch-Add-ifunc-support-for-memrchr-lsx-lasx.patch
-loong64/0017-LoongArch-Add-ifunc-support-for-memset-aligned-unali.patch
-loong64/0018-LoongArch-Add-ifunc-support-for-memcmp-aligned-lsx-l.patch
-loong64/0019-LoongArch-Change-loongarch-to-LoongArch-in-comments.patch
-loong64/0020-LoongArch-Add-lasx-lsx-support-for-_dl_runtime_profi.patch
-loong64/0021-LoongArch-Replace-deprecated-v0-with-a0-to-eliminate.patch
-loong64/0022-LoongArch-Add-ifunc-support-for-strcpy-stpcpy-aligne.patch
-loong64/0023-LoongArch-Add-ifunc-support-for-strrchr-aligned-lsx-.patch
-loong64/0024-LoongArch-Change-to-put-magic-number-to-.rodata-sect.patch
-loong64/0025-LoongArch-elf-Add-new-LoongArch-reloc-types-109-into.patch
-loong64/0026-LoongArch-Add-glibc.cpu.hwcap-support.patch
-loong64/0027-Revert-LoongArch-Add-glibc.cpu.hwcap-support.patch
-loong64/0028-LoongArch-Unify-Register-Names.patch
-loong64/0029-LoongArch-Update-hwcap.h-to-sync-with-LoongArch-kern.patch
-loong64/0030-linux-Sync-Linux-6.6-elf.h.patch
-loong64/0031-Decrease-value-of-arch_minimum_kernel-with-LoongArch.patch
-loong64/0032-LoongArch-Use-builtins-for-ffs-and-ffsll.patch
-loong64/0033-elf-Add-new-LoongArch-reloc-types-110-to-126-into-el.patch
-loong64/0034-LoongArch-Add-glibc.cpu.hwcap-support.patch
-loong64/0035-LoongArch-Add-support-for-TLS-Descriptors.patch
-loong64/0036-LoongArch-Fix-tst-gnu2-tls2-compiler-error.patch
-loong64/0037-LoongArch-Use-fcsr0-instead-of-r0-in-_FPU_-GET-SET-C.patch
-loong64/0038-LoongArch-Ensure-sp-16-byte-aligned-for-tlsdesc.patch
-loong64/0039-LoongArch-Fix-_dl_tlsdesc_dynamic-in-LSX-case.patch
-loong64/0040-LoongArch-Fix-tst-gnu2-tls2-test-case.patch
-loong64/0041-LoongArch-Add-cfi-instructions-for-_dl_tlsdesc_dynam.patch
-loong64/0042-LoongArch-Fix-macro-redefined-warning-in-tls-desc.S.patch
-loong64/0043-LoongArch-Undef-__NR_fstat-and-__NR_newfstatat.patch
-loong64/0044-elf-Remove-LD_PROFILE-for-static-binaries.patch
-loong64/0045-loongarch-Remove-duplicate-strnlen-in-libc.a-BZ-3178.patch
-loong64/0046-LoongArch-Change-tunable-for-2.38.patch
-loong64/0047-nptl-Add-thread_pointer.h-for-LoongArch.patch
-loong64/0048-nptl-fix-__builtin_thread_pointer-detection-on-Loong.patch
-loong64/0049-LoongArch-Force-SHMLBA-the-same-as-kernel.patch
-
-iconvdata/add_GB18030-2022_charmap_and_test_the_entire_GB18030_charmap.patch
-
-zhaoxin/0001-x86-Set-preferred-CPU-features-on-the-KH-40000-and-K.patch
-zhaoxin/0002-x86_64-Optimize-large-size-copy-in-memmove-ssse3.patch
-zhaoxin/0003-x86-Set-default-non_temporal_threshold-for-Zhaoxin-p.patch
-
-localedata/Unicode_15_1_0_support.patch
-
-all/math-Remove-ldbl-96-fma-implementation.patch
-
-#Fix CVE
-CVE-2026-0861.patch
-CVE-2026-0915.patch
-CVE-2025-15281.patch
+any/git-ldd-set-u.diff
+any/git-linux-termios.diff

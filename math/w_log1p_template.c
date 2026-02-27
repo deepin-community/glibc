@@ -1,5 +1,5 @@
 /* Wrapper for __log1p that handles setting errno.
-   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+   Copyright (C) 2015-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,3 +33,5 @@ M_DECL_FUNC (__w_log1p) (FLOAT x)
   return M_SUF (__log1p) (x);
 }
 declare_mgen_alias (__w_log1p, log1p)
+strong_alias (M_SUF (__w_log1p), M_SUF (__w_logp1))
+declare_mgen_alias (__w_logp1, logp1)

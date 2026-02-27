@@ -1,5 +1,5 @@
 /* pthread_mutex_getprioceiling.  Hurd version.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,19 +16,25 @@
    License along with the GNU C Library;  if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <pthread.h>
+#include <pthreadP.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <pt-internal.h>
 #include "pt-mutex.h"
 #include <hurdlock.h>
+#include <shlib-compat.h>
 
 int
-pthread_mutex_getprioceiling (const pthread_mutex_t *mtxp, int *clp)
+__pthread_mutex_getprioceiling (const pthread_mutex_t *mtxp, int *clp)
 {
   (void) mtxp;
   (void) clp;
   return ENOSYS;
 }
+libc_hidden_def (__pthread_mutex_getprioceiling)
+versioned_symbol (libc, __pthread_mutex_getprioceiling, pthread_mutex_getprioceiling, GLIBC_2_42);
 
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_42)
+compat_symbol (libpthread, __pthread_mutex_getprioceiling,pthread_mutex_getprioceiling, GLIBC_2_12);
+#endif
 stub_warning (pthread_mutex_getprioceiling)

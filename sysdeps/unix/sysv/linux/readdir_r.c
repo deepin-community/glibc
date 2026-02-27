@@ -1,5 +1,5 @@
 /* Read a directory in reentrant mode.  Linux no-LFS version.
-   Copyright (C) 2018-2023 Free Software Foundation, Inc.
+   Copyright (C) 2018-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,14 +25,22 @@ __readdir_r (DIR *dirp, struct dirent *entry, struct dirent **result)
 {
   struct dirent *dp;
   size_t reclen;
+  int saved_errno = errno;
 
   __libc_lock_lock (dirp->lock);
 
   while (1)
     {
+      /* If errno is changed from 0, the NULL return value indicates
+	 an actual error.  It overrides a pending ENAMETOOLONG error.  */
+      __set_errno (0);
       dp = __readdir_unlocked (dirp);
       if (dp == NULL)
-	break;
+	{
+	  if (errno != 0)
+	    dirp->errcode = errno;
+	  break;
+	}
 
       reclen = dp->d_reclen;
       if (reclen <= offsetof (struct dirent, d_name) + NAME_MAX + 1)
@@ -61,6 +69,7 @@ __readdir_r (DIR *dirp, struct dirent *entry, struct dirent **result)
 
   __libc_lock_unlock (dirp->lock);
 
+  __set_errno (saved_errno);
   return dp != NULL ? 0 : dirp->errcode;
 }
 

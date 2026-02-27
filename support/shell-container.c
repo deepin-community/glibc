@@ -1,5 +1,5 @@
 /* Minimal /bin/sh for in-container use.
-   Copyright (C) 2018-2023 Free Software Foundation, Inc.
+   Copyright (C) 2018-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -119,7 +119,7 @@ copy_func (char **argv)
       goto out;
     }
 
-  if (support_copy_file_range (sfd, 0, dfd, 0, st.st_size, 0) != st.st_size)
+  if (support_copy_file_range (sfd, NULL, dfd, NULL, st.st_size, 0) != st.st_size)
     {
       fprintf (stderr, "cp: cannot copy file %s to %s: %s\n",
 	       sname, dname, strerror (errno));
@@ -145,7 +145,7 @@ exit_func (char **argv)
 {
   int exit_val = 0;
 
-  if (argv[0] != 0)
+  if (argv[0] != NULL)
     exit_val = atoi (argv[0]) & 0xff;
   exit (exit_val);
   return 0;

@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -601,7 +601,7 @@ _IO_unsave_wmarkers (FILE *fp)
   struct _IO_marker *mark = fp->_markers;
   if (mark)
     {
-      fp->_markers = 0;
+      fp->_markers = NULL;
     }
 
   if (_IO_have_backup (fp))

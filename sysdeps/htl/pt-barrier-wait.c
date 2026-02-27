@@ -1,5 +1,5 @@
 /* pthread_barrier_wait.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,11 +18,11 @@
 
 #include <pthread.h>
 #include <assert.h>
-
+#include <shlib-compat.h>
 #include <pt-internal.h>
 
 int
-pthread_barrier_wait (pthread_barrier_t *barrier)
+__pthread_barrier_wait (pthread_barrier_t *barrier)
 {
   __pthread_spin_wait (&barrier->__lock);
   if (--barrier->__pending == 0)
@@ -68,3 +68,9 @@ pthread_barrier_wait (pthread_barrier_t *barrier)
       return 0;
     }
 }
+libc_hidden_def (__pthread_barrier_wait)
+versioned_symbol (libc, __pthread_barrier_wait, pthread_barrier_wait, GLIBC_2_42);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_42)
+compat_symbol (libpthread, __pthread_barrier_wait, pthread_barrier_wait, GLIBC_2_12);
+#endif

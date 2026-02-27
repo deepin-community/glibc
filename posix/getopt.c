@@ -1,5 +1,5 @@
 /* Getopt for GNU.
-   Copyright (C) 1987-2023 Free Software Foundation, Inc.
+   Copyright (C) 1987-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library and is also part of gnulib.
    Patches to this file should be submitted to both projects.
 
@@ -729,7 +729,7 @@ _getopt_internal (int argc, char **argv, const char *optstring,
   NAME (int argc, char *const *argv, const char *optstring)	\
   {								\
     return _getopt_internal (argc, (char **)argv, optstring,	\
-			     0, 0, 0, POSIXLY_CORRECT);		\
+			     NULL, NULL, 0, POSIXLY_CORRECT);	\
   }
 
 #ifdef _LIBC

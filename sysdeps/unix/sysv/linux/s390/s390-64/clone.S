@@ -1,5 +1,5 @@
 /* Wrapper around clone system call.  64 bit S/390 version.
-   Copyright (C) 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 2001-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -54,6 +54,7 @@ ENTRY(__clone)
 	br	%r14
 error:
 	lghi	%r2,-EINVAL
+	lmg	%r6,%r7,48(%r15)	/* Restore registers.  */
 	jg	SYSCALL_ERROR_LABEL
 PSEUDO_END (__clone)
 

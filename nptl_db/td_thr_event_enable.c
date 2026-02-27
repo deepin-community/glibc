@@ -1,5 +1,5 @@
 /* Enable event process-wide.
-   Copyright (C) 1999-2023 Free Software Foundation, Inc.
+   Copyright (C) 1999-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ td_thr_event_enable (const td_thrhandle_t *th, int onoff)
 {
   LOG ("td_thr_event_enable");
 
-  if (th->th_unique != 0)
+  if (th->th_unique != NULL)
     {
       /* Write the new value into the thread data structure.  */
       td_err_e err = DB_PUT_FIELD (th->th_ta_p, th->th_unique, pthread,

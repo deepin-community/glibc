@@ -1,5 +1,5 @@
 /* Test for proper error/errno handling in clone.
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,17 +16,16 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-/* BZ #2386 */
+/* BZ #2386, BZ #31402 */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sched.h>
+#include <stackinfo.h>  /* For _STACK_GROWS_{UP,DOWN}.  */
+#include <support/check.h>
 
-#ifdef __ia64__
-extern int __clone2 (int (*__fn) (void *__arg), void *__child_stack_base,
-		     size_t __child_stack_size, int __flags, void *__arg, ...);
-#endif
+volatile unsigned v = 0xdeadbeef;
 
 int child_fn(void *arg)
 {
@@ -35,26 +34,67 @@ int child_fn(void *arg)
 }
 
 static int
-do_test (void)
+__attribute__((noinline))
+do_clone (int (*fn)(void *), void *stack)
 {
   int result;
+  unsigned int a = v;
+  unsigned int b = v;
+  unsigned int c = v;
+  unsigned int d = v;
+  unsigned int e = v;
+  unsigned int f = v;
+  unsigned int g = v;
+  unsigned int h = v;
+  unsigned int i = v;
+  unsigned int j = v;
+  unsigned int k = v;
+  unsigned int l = v;
+  unsigned int m = v;
+  unsigned int n = v;
+  unsigned int o = v;
 
-#ifdef __ia64__
-  result = __clone2 (child_fn, NULL, 0, 0, NULL, NULL, NULL);
+  result = clone (fn, stack, 0, NULL);
+
+  /* Check that clone does not clobber call-saved registers.  */
+  TEST_VERIFY (a == v && b == v && c == v && d == v && e == v && f == v
+	       && g == v && h == v && i == v && j == v && k == v && l == v
+	       && m == v && n == v && o == v);
+
+  return result;
+}
+
+static void
+__attribute__((noinline))
+do_test_single (int (*fn)(void *), void *stack)
+{
+  printf ("%s (fn=%p, stack=%p)\n", __FUNCTION__, fn, stack);
+  errno = 0;
+
+  int result = do_clone (fn, stack);
+
+  TEST_COMPARE (errno, EINVAL);
+  TEST_COMPARE (result, -1);
+}
+
+static int
+do_test (void)
+{
+  char st[128 * 1024] __attribute__ ((aligned));
+  void *stack = NULL;
+#if _STACK_GROWS_DOWN
+  stack = st + sizeof (st);
+#elif _STACK_GROWS_UP
+  stack = st;
 #else
-  result = clone (child_fn, NULL, 0, NULL);
+# error "Define either _STACK_GROWS_DOWN or _STACK_GROWS_UP"
 #endif
 
-  if (errno != EINVAL || result != -1)
-    {
-      printf ("FAIL: clone()=%d (wanted -1) errno=%d (wanted %d)\n",
-              result, errno, EINVAL);
-      return 1;
-    }
+  do_test_single (child_fn, NULL);
+  do_test_single (NULL, stack);
+  do_test_single (NULL, NULL);
 
-  puts ("All OK");
   return 0;
 }
 
-#define TEST_FUNCTION do_test ()
-#include "../test-skeleton.c"
+#include <support/test-driver.c>

@@ -12,21 +12,21 @@ Part of the original fix was committed, the other hasn't been yet, see Roland's
 https://sourceware.org/ml/libc-alpha/2014-08/msg00408.html
 
 ---
- bind.c |   17 +++++++++++------
+ sysdeps/mach/hurd/bind.c |   17 +++++++++++------
  1 file changed, 11 insertions(+), 6 deletions(-)
 
 --- a/sysdeps/mach/hurd/bind.c
 +++ b/sysdeps/mach/hurd/bind.c
-@@ -48,7 +48,7 @@ __bind  (int fd, __CONST_SOCKADDR_ARG ad
- 	return -1;
- 
-       /* Create a new, unlinked node in the target directory.  */
--      err = __dir_mkfile (dir, O_CREAT, 0666 & ~_hurd_umask, &node);
-+      err = __dir_mkfile (dir, O_CREAT, 0666, &node);
+@@ -52,7 +52,7 @@
+ 	err = ENOTDIR;
+       else
+ 	/* Create a new, unlinked node in the target directory.  */
+-	err = __dir_mkfile (dir, O_CREAT, 0666 & ~_hurd_umask, &node);
++	err = __dir_mkfile (dir, O_CREAT, 0666, &node);
  
        if (! err)
  	{
-@@ -76,11 +76,16 @@ __bind  (int fd, __CONST_SOCKADDR_ARG ad
+@@ -80,11 +80,16 @@
  		err = EGRATUITOUS;
  	      if (! err)
  		{

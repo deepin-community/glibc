@@ -1,5 +1,5 @@
 /* Test malloc with concurrent thread termination.
-   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+   Copyright (C) 2015-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ static int inner_thread_count = 4;
 static size_t malloc_size = 32;
 
 static void
-__attribute__ ((noinline, noclone))
+__attribute_optimization_barrier__
 unoptimized_free (void *ptr)
 {
   free (ptr);

@@ -1,5 +1,5 @@
 /* fxstatat used on fstatat, Linux implementation.
-   Copyright (C) 2005-2023 Free Software Foundation, Inc.
+   Copyright (C) 2005-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ __fxstatat (int vers, int fd, const char *file, struct stat *st, int flag)
 {
 #if STAT_IS_KERNEL_STAT
   /* New kABIs which uses generic pre 64-bit time Linux ABI, e.g.
-     csky, nios2  */
+     csky.  */
   if (vers == _STAT_VER_KERNEL)
     {
       int r = INLINE_SYSCALL_CALL (fstatat64, fd, file, st, flag);

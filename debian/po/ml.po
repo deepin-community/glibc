@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Glibc 2007_05_26\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2023-01-03 21:34+0100\n"
+"POT-Creation-Date: 2025-01-02 16:30+0000\n"
 "PO-Revision-Date: 2007-05-26 15:09+0530\n"
 "Last-Translator: അനൂപ്|Anoop പി|P <gnuanu@gmail.com>, ലാലു|Lalu കെആര്‍|KR "
 "<frecolalu@gmail.com>,സജീവ് |Sajeev പിആര്‍|PR <saju_rrk@yahoo.com>\n"
@@ -55,6 +55,14 @@ msgstr ""
 "ദയവായി സൃഷ്ടിക്കേണ്ട ലൊക്കേലുകള്‍ തിരഞ്ഞെടുക്കുക. പുതിയ ഇന്‍സ്റ്റാലേഷനുകള്‍ക്ക് സ്വതേ തിരഞ്ഞെടുക്കുന്നത് "
 "UTF-8 ലൊക്കേലുകള്‍ ആയിരിക്കും. മറ്റ്  അക്ഷരക്കൂട്ടങ്ങള്‍ പഴയ സിസ്റ്റങ്ങളും സോഫ്റ്റ്‌വെയറുകളുമായി "
 "പിന്നോട്ടുള്ള പൊരുത്തത്തിനായി ഉപയോഗപ്രദമായേയ്ക്കാം. "
+
+#. Type: multiselect
+#. Description
+#: ../debhelper.in/locales.templates:1002
+msgid ""
+"Please note that the C, C.UTF-8 and POSIX locales are always available and "
+"do not need to be generated."
+msgstr ""
 
 #. Type: select
 #. Choices

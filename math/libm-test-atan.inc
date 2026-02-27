@@ -1,5 +1,5 @@
 /* Test atan.
-   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,8 +20,6 @@
 
 static const struct test_f_f_data atan_test_data[] =
   {
-    TEST_f_f (atan, plus_infty, lit_pi_2_d, ERRNO_UNCHANGED),
-    TEST_f_f (atan, minus_infty, -lit_pi_2_d, ERRNO_UNCHANGED),
     TEST_f_f (atan, qnan_value, qnan_value, NO_INEXACT_EXCEPTION|ERRNO_UNCHANGED),
     TEST_f_f (atan, -qnan_value, qnan_value, NO_INEXACT_EXCEPTION|ERRNO_UNCHANGED),
     TEST_f_f (atan, snan_value, qnan_value, INVALID_EXCEPTION),

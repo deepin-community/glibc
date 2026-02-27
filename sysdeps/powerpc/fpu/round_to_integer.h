@@ -1,5 +1,5 @@
 /* Round to integer generic implementation.
-   Copyright (C) 2019-2023 Free Software Foundation, Inc.
+   Copyright (C) 2019-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -42,14 +42,14 @@ set_fenv_mode (enum round_mode mode)
   switch (mode)
   {
   case CEIL:
-    __fesetround_inline_nocheck (FE_UPWARD);
+    __fesetround_inline_disable_inexact (FE_UPWARD);
     break;
   case FLOOR:
-    __fesetround_inline_nocheck (FE_DOWNWARD);
+    __fesetround_inline_disable_inexact (FE_DOWNWARD);
     break;
   case TRUNC:
   case ROUND:
-    __fesetround_inline_nocheck (FE_TOWARDZERO);
+    __fesetround_inline_disable_inexact (FE_TOWARDZERO);
     break;
   case NEARBYINT:
     /*  Disable FE_INEXACT exception  */

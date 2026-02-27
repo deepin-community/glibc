@@ -1,5 +1,5 @@
 /* Acquire a rwlock for writing.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,8 +19,8 @@
 #include <pthread.h>
 #include <assert.h>
 #include <time.h>
-
 #include <pt-internal.h>
+#include <shlib-compat.h>
 
 /* Acquire RWLOCK for writing blocking until *ABSTIME if we cannot get
    it.  As a special GNU extension, if ABSTIME is NULL then the wait
@@ -105,7 +105,12 @@ __pthread_rwlock_timedwrlock (struct __pthread_rwlock *rwlock,
 {
   return __pthread_rwlock_timedwrlock_internal (rwlock, CLOCK_REALTIME, abstime);
 }
-weak_alias (__pthread_rwlock_timedwrlock, pthread_rwlock_timedwrlock)
+libc_hidden_def (__pthread_rwlock_timedwrlock)
+versioned_symbol (libc, __pthread_rwlock_timedwrlock, pthread_rwlock_timedwrlock, GLIBC_2_42);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_42)
+compat_symbol (libpthread, __pthread_rwlock_timedwrlock, pthread_rwlock_timedwrlock, GLIBC_2_12);
+#endif
 
 int
 __pthread_rwlock_clockwrlock (struct __pthread_rwlock *rwlock,
@@ -114,4 +119,9 @@ __pthread_rwlock_clockwrlock (struct __pthread_rwlock *rwlock,
 {
   return __pthread_rwlock_timedwrlock_internal (rwlock, clockid, abstime);
 }
-weak_alias (__pthread_rwlock_clockwrlock, pthread_rwlock_clockwrlock)
+libc_hidden_def (__pthread_rwlock_clockwrlock)
+versioned_symbol (libc, __pthread_rwlock_clockwrlock, pthread_rwlock_clockwrlock, GLIBC_2_42);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_32, GLIBC_2_42)
+compat_symbol (libpthread, __pthread_rwlock_clockwrlock, pthread_rwlock_clockwrlock, GLIBC_2_32);
+#endif

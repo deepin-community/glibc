@@ -1,5 +1,5 @@
 /* Acquire a rwlock for reading.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
 
 #include <pthread.h>
 #include <pt-internal.h>
+#include <shlib-compat.h>
 
 /* Implemented in pt-rwlock-timedrdlock.c.  */
 extern int __pthread_rwlock_timedrdlock_internal (struct __pthread_rwlock
@@ -32,4 +33,9 @@ __pthread_rwlock_rdlock (struct __pthread_rwlock *rwlock)
 {
   return __pthread_rwlock_timedrdlock_internal (rwlock, -1, 0);
 }
-weak_alias (__pthread_rwlock_rdlock, pthread_rwlock_rdlock);
+libc_hidden_def (__pthread_rwlock_rdlock)
+versioned_symbol (libc, __pthread_rwlock_rdlock, pthread_rwlock_rdlock, GLIBC_2_42);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_42)
+compat_symbol (libpthread, __pthread_rwlock_rdlock, pthread_rwlock_rdlock, GLIBC_2_12);
+#endif

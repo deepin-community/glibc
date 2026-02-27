@@ -1,5 +1,5 @@
 /* pthread_mutexattr_setrobust.  Hurd version.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,15 +16,16 @@
    License along with the GNU C Library;  if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <pthread.h>
+#include <pthreadP.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <pt-internal.h>
 #include "pt-mutex.h"
 #include <hurdlock.h>
+#include <shlib-compat.h>
 
 int
-pthread_mutexattr_setrobust (pthread_mutexattr_t *attrp, int robust)
+__pthread_mutexattr_setrobust (pthread_mutexattr_t *attrp, int robust)
 {
   if (robust != PTHREAD_MUTEX_ROBUST && robust != PTHREAD_MUTEX_STALLED)
     return EINVAL;
@@ -32,5 +33,11 @@ pthread_mutexattr_setrobust (pthread_mutexattr_t *attrp, int robust)
   attrp->__prioceiling |= robust;
   return 0;
 }
+libc_hidden_def (__pthread_mutexattr_setrobust)
+versioned_symbol (libc, __pthread_mutexattr_setrobust, pthread_mutexattr_setrobust, GLIBC_2_41);
+versioned_symbol (libc, __pthread_mutexattr_setrobust, pthread_mutexattr_setrobust_np, GLIBC_2_41);
 
-weak_alias (pthread_mutexattr_setrobust, pthread_mutexattr_setrobust_np)
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_32, GLIBC_2_41)
+compat_symbol (libpthread, __pthread_mutexattr_setrobust,pthread_mutexattr_setrobust, GLIBC_2_32);
+compat_symbol (libpthread, __pthread_mutexattr_setrobust,pthread_mutexattr_setrobust_np, GLIBC_2_32);
+#endif

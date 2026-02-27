@@ -1,21 +1,21 @@
 Source: glibc
 Section: libs
 Priority: required
-Build-Depends: gettext, dpkg (>= 1.18.7), dpkg-dev (>= 1.17.14), xz-utils, file, quilt,
+Build-Depends: gettext, xz-utils, file, quilt,
  autoconf, gawk, debhelper-compat (= 13), rdfind, symlinks, netbase, gperf, bison,
- linux-libc-dev (>= 3.9) [linux-any],
- libaudit-dev [linux-any], libcap-dev [linux-any] <!stage2>, libselinux1-dev [linux-any] <!stage2>,
+ linux-libc-dev [linux-any],
+ libaudit-dev [linux-any] <!nocheck> <!stage1 !stage2>, libcap-dev [linux-any] <!stage2>, libselinux1-dev [linux-any] <!stage2>,
  mig-for-host (>= 1.8+git20200618-7~) [hurd-any], gnumach-dev (>= 2:1.8+git20200710-2~) [hurd-any],
  hurd-dev (>= 1:0.9.git20201127-4~) [hurd-any] | hurd-headers-dev [hurd-any],
- binutils-for-host (>= 2.38),
- g++-12 <!cross>, g++-12 (>= 12.3.0-17deepin5) [alpha] <!cross>, g++-12-multilib [amd64 i386 mips mipsel mipsn32 mipsn32el mips64 mips64el mipsr6 mipsr6el mipsn32r6 mipsn32r6el mips64r6 mips64r6el powerpc ppc64 s390x sparc sparc64 x32] <!nobiarch>,
- @GPP_CROSS_DEP@
+ binutils-for-host,
+ gcc@DEB_GCC_VERSION@-for-host, gcc@DEB_GCC_VERSION@-multilib [amd64 i386 mips mipsel mipsn32 mipsn32el mips64 mips64el mipsr6 mipsr6el mipsn32r6 mipsn32r6el mips64r6 mips64r6el powerpc ppc64 sparc sparc64 x32] <!nobiarch>,
+ g++@DEB_GCC_VERSION@-for-host <!nocheck>, g++@DEB_GCC_VERSION@-multilib [amd64 i386 mips mipsel mipsn32 mipsn32el mips64 mips64el mipsr6 mipsr6el mipsn32r6 mipsn32r6el mips64r6 mips64r6el powerpc ppc64 sparc sparc64 x32] <!nobiarch !nocheck>,
  python3:native,
- libidn2-0 (>= 2.0.5~) <!nocheck>,
+ libidn2-0 <!nocheck>,
  libc-bin (>= @DEB_VERSION_UPSTREAM@) <cross>,
  libgd-dev <!stage1 !stage2>,
-Build-Depends-Indep: perl, po-debconf (>= 1.0)
-Rules-Requires-Root: no
+ systemtap-sdt-dev [linux-any] <!stage1 !stage2 !pkg.glibc.nosystemtap>,
+Build-Depends-Indep: perl, po-debconf
 Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
 Uploaders: Clint Adams <clint@debian.org>, Aurelien Jarno <aurel32@debian.org>, Samuel Thibault <sthibault@debian.org>
 Standards-Version: 4.6.2
@@ -30,7 +30,6 @@ Priority: required
 Essential: yes
 Multi-Arch: foreign
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Breaks: dh-lua (<< 27+nmu1~)
 Recommends: manpages
 Build-Profiles: <!stage1>
 Description: GNU C Library: Binaries
@@ -49,7 +48,8 @@ Section: libdevel
 Priority: optional
 Multi-Arch: foreign
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: manpages, manpages-dev, libc-devtools (>> @DEB_VERSION_UPSTREAM@)
+Recommends: manpages, manpages-dev
+Suggests: libc-devtools (>> @DEB_VERSION_UPSTREAM@)
 Build-Profiles: <!stage1>
 Description: GNU C Library: Development binaries
  This package contains utility programs related to the GNU C Library
@@ -63,9 +63,7 @@ Section: devel
 Priority: optional
 Multi-Arch: foreign
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Breaks: libc-dev-bin (<< 2.31-8)
-Replaces: libc-dev-bin (<< 2.31-8)
-Recommends: manpages, manpages-dev
+Recommends: libc-dev (= ${binary:Version}), manpages, manpages-dev
 Build-Profiles: <!stage1> <!stage2>
 Description: GNU C Library: Development tools
  This package contains development tools shipped by the GNU C
@@ -75,6 +73,20 @@ Description: GNU C Library: Development tools
   * mtrace: interpret the malloc trace log
   * sotruss: trace shared library calls
   * sprof: display shared object profiling data
+
+Package: libc-gconv-modules-extra
+Architecture: any
+Section: libs
+Priority: optional
+Multi-Arch: same
+Depends: ${misc:Depends}
+Breaks: libc6 (<< 2.42-1) [!alpha !hurd-any], libc6.1 (<< 2.42-1) [alpha], libc0.3 (<< 2.42-1) [hurd-any]
+Replaces: libc6 (<< 2.42-1) [!alpha !hurd-any], libc6.1 (<< 2.42-1) [alpha], libc0.3 (<< 2.42-1) [hurd-any]
+Build-Profiles: <!stage1>
+Description: GNU C Library: Non-essential gconv modules
+ This package provides additional character set conversion modules for the GNU
+ C Library's gconv facility, to support encodings other than Latin-1 and UTF
+ based.
 
 Package: libc-l10n
 Architecture: all
@@ -96,9 +108,8 @@ Depends: ${misc:Depends}
 Suggests: glibc-doc-reference
 Build-Profiles: <!stage1>
 Description: GNU C Library: Documentation
- Contains man pages for libpthread functions and the complete GNU C Library
- ChangeLog.  The GNU C Library Reference manual has been moved into
- glibc-doc-reference for licensing reasons.
+ Contains the complete GNU C Library ChangeLog.  The GNU C Library Reference
+ manual has been moved into glibc-doc-reference for licensing reasons.
 
 Package: glibc-source
 Architecture: all
@@ -148,10 +159,10 @@ Multi-Arch: foreign
 Priority: optional
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Pre-Depends: ${misc:Pre-Depends}
-Build-Profiles: <!stage1>
+Conflicts: unscd
+Build-Profiles: <!stage1 !stage2>
 Description: GNU C Library: Name Service Cache Daemon
  A daemon which handles passwd, group and host lookups
  for running programs and caches the results for the next
  query. You should install this package only if you use
  slow services like LDAP, NIS or NIS+.
-

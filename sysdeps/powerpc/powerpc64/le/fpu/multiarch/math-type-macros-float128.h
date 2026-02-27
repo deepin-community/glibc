@@ -1,5 +1,5 @@
 /* _Float128 overrides for float128 in ppc64le multiarch env.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -78,9 +78,12 @@ F128_REDIR (__ldexpf128);
 F128_REDIR (__cargf128);
 F128_REDIR (__cimagf128);
 F128_REDIR (__crealf128);
+F128_REDIR (__compoundnf128);
 F128_REDIR (__conjf128);
 F128_REDIR (__cprojf128);
 F128_REDIR (__cabsf128);
+F128_REDIR (__exp10m1f128);
+F128_REDIR (__exp2m1f128);
 F128_REDIR (__fdimf128);
 F128_REDIR (__fminf128);
 F128_REDIR (__fmaxf128);
@@ -89,6 +92,7 @@ F128_REDIR (__llogbf128);
 F128_REDIR (__log2f128);
 F128_REDIR (__exp10f128);
 F128_REDIR (__exp2f128);
+F128_REDIR (__expm1f128);
 F128_REDIR (__j0f128);
 F128_REDIR (__j1f128);
 F128_REDIR (__jnf128);
@@ -106,11 +110,13 @@ F128_REDIR (__remainderf128);
 extern _Float128 __wrap_scalbnf128 (_Float128, int);
 extern _Float128 __w_scalblnf128 (_Float128, long int);
 extern _Float128 __w_log1pf128 (_Float128);
+extern _Float128 __w_logp1f128 (_Float128);
 extern _Float128 __scalbf128 (_Float128, _Float128);
 F128_REDIR (__scalbf128);
 F128_REDIR (__wrap_scalbnf128);
 F128_REDIR (__w_scalblnf128);
 F128_REDIR (__w_log1pf128);
+F128_REDIR (__w_logp1f128);
 
 /* Include the redirects shared with math_private.h users.  */
 #include <float128-ifunc-redirects.h>

@@ -1,5 +1,5 @@
 /* Run a test case in an isolated namespace.
-   Copyright (C) 2018-2023 Free Software Foundation, Inc.
+   Copyright (C) 2018-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@
 #include <errno.h>
 #include <error.h>
 #include <libc-pointer-arith.h>
+#include <ftw.h>
 
 #ifdef __linux__
 #include <sys/mount.h>
@@ -405,32 +406,19 @@ file_exists (char *path)
   return 0;
 }
 
+static int
+unlink_cb (const char *fpath, const struct stat *sb, int typeflag,
+	   struct FTW *ftwbuf)
+{
+  return remove (fpath);
+}
+
 static void
 recursive_remove (char *path)
 {
-  pid_t child;
-  int status;
-
-  child = fork ();
-
-  switch (child) {
-  case -1:
-    perror("fork");
-    FAIL_EXIT1 ("Unable to fork");
-  case 0:
-    /* Child.  */
-    execlp ("rm", "rm", "-rf", path, NULL);
-    FAIL_EXIT1 ("exec rm: %m");
-  default:
-    /* Parent.  */
-    waitpid (child, &status, 0);
-    /* "rm" would have already printed a suitable error message.  */
-    if (! WIFEXITED (status)
-	|| WEXITSTATUS (status) != 0)
-      FAIL_EXIT1 ("exec child returned status: %d", status);
-
-    break;
-  }
+  int r = nftw (path, unlink_cb, 1000, FTW_DEPTH | FTW_PHYS);
+  if (r == -1)
+    FAIL_EXIT1 ("recursive_remove failed");
 }
 
 /* Used for both rsync and the mytest.script "cp" command.  */
@@ -452,7 +440,7 @@ copy_one_file (const char *sname, const char *dname)
   if (dfd < 0)
     FAIL_EXIT1 ("unable to open %s for writing\n", dname);
 
-  xcopy_file_range (sfd, 0, dfd, 0, st.st_size, 0);
+  xcopy_file_range (sfd, NULL, dfd, NULL, st.st_size, 0);
 
   xclose (sfd);
   xclose (dfd);
@@ -694,6 +682,8 @@ check_for_unshare_hints (int require_pidns)
     { "/proc/sys/kernel/unprivileged_userns_clone", 0, 1, 0 },
     /* ALT Linux has an alternate way of doing the same.  */
     { "/proc/sys/kernel/userns_restrict", 1, 0, 0 },
+    /* AppArmor can also disable unprivileged user namespaces.  */
+    { "/proc/sys/kernel/apparmor_restrict_unprivileged_userns", 1, 0, 0 },
     /* Linux kernel >= 4.9 has a configurable limit on the number of
        each namespace.  Some distros set the limit to zero to disable the
        corresponding namespace as a "security policy".  */
@@ -750,7 +740,7 @@ main (int argc, char **argv)
   char *command_basename;
   char *so_base;
   int do_postclean = 0;
-  bool do_ldconfig = false;
+  bool do_ldconfig = true;
   char *change_cwd = NULL;
 
   int pipes[2];
@@ -1120,10 +1110,11 @@ main (int argc, char **argv)
     {
       /* Older kernels may not support all the options, or security
 	 policy may block this call.  */
-      if (errno == EINVAL || errno == EPERM || errno == ENOSPC)
+      if (errno == EINVAL || errno == EPERM
+          || errno == ENOSPC || errno == EACCES)
 	{
 	  int saved_errno = errno;
-	  if (errno == EPERM || errno == ENOSPC)
+	  if (errno == EPERM || errno == ENOSPC || errno == EACCES)
 	    check_for_unshare_hints (require_pidns);
 	  FAIL_UNSUPPORTED ("unable to unshare user/fs: %s", strerror (saved_errno));
 	}
@@ -1160,6 +1151,9 @@ main (int argc, char **argv)
   devmount (new_root_path, "null");
   devmount (new_root_path, "zero");
   devmount (new_root_path, "urandom");
+#ifdef __linux__
+  devmount (new_root_path, "ptmx");
+#endif
 
   /* We're done with the "old" root, switch to the new one.  */
   if (chroot (new_root_path) < 0)
@@ -1225,6 +1219,14 @@ main (int argc, char **argv)
   setenv ("PID_OUTSIDE_CONTAINER", pid_buf, 0);
 
   maybe_xmkdir ("/tmp", 0755);
+
+#ifdef __linux__
+  maybe_xmkdir ("/dev/pts", 0777);
+  if (mount ("/dev/pts", "/dev/pts", "devpts", 0, "newinstance,ptmxmode=0666,mode=0666") < 0)
+    FAIL_EXIT1 ("can't mount /dev/pts: %m\n");
+  if (mount ("/dev/pts/ptmx", "/dev/ptmx", "", MS_BIND | MS_REC, NULL) < 0)
+    FAIL_EXIT1 ("can't mount /dev/ptmx\n");
+#endif
 
   if (require_pidns)
     {

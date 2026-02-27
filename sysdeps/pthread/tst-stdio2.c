@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -75,7 +75,7 @@ do_test (void)
       exit (1);
     }
 
-  puts ("join returned succsefully");
+  puts ("join returned successfully");
 
   return 0;
 }

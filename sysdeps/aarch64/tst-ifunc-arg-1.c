@@ -1,5 +1,5 @@
 /* Test STT_GNU_IFUNC resolver with second argument.
-   Copyright (C) 2019-2023 Free Software Foundation, Inc.
+   Copyright (C) 2019-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -57,6 +57,21 @@ do_test (void)
   TEST_COMPARE (saved_arg2._size, sizeof (__ifunc_arg_t));
   TEST_COMPARE (saved_arg2._hwcap, getauxval (AT_HWCAP));
   TEST_COMPARE (saved_arg2._hwcap2, getauxval (AT_HWCAP2));
+  TEST_COMPARE (saved_arg2._hwcap3, getauxval (AT_HWCAP3));
+  TEST_COMPARE (saved_arg2._hwcap4, getauxval (AT_HWCAP4));
+
+  const unsigned long *saved_arg2_ptr = (const unsigned long *)&saved_arg2;
+
+  TEST_COMPARE (__ifunc_hwcap (1, saved_arg1, saved_arg2_ptr),
+		getauxval (AT_HWCAP));
+  TEST_COMPARE (__ifunc_hwcap (2, saved_arg1, saved_arg2_ptr),
+                getauxval (AT_HWCAP2));
+  TEST_COMPARE (__ifunc_hwcap (3, saved_arg1, saved_arg2_ptr),
+                getauxval (AT_HWCAP3));
+  TEST_COMPARE (__ifunc_hwcap (4, saved_arg1, saved_arg2_ptr),
+                getauxval (AT_HWCAP4));
+
+
   return 0;
 }
 

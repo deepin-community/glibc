@@ -1,0 +1,16 @@
+diff --git a/misc/getauxval.c b/misc/getauxval.c
+index a973956760..ccedaddeb5 100644
+--- a/misc/getauxval.c
++++ b/misc/getauxval.c
+@@ -37,6 +38,11 @@ __getauxval2 (unsigned long int type, unsigned long int *result)
+       *result = GLRO(dl_hwcap2);
+       return true;
+     }
++  else if (type == AT_PAGESZ)
++    {
++      *result = __getpagesize ();
++      return true;
++    }
+ 
+ #ifdef HAVE_AUX_VECTOR
+   for (p = GLRO(dl_auxv); p->a_type != AT_NULL; p++)

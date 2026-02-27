@@ -1,5 +1,5 @@
 /* FPU control word bits.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -91,8 +91,8 @@ typedef unsigned int fpu_control_t __attribute__ ((__mode__ (__SI__)));
 /* Macros for accessing the hardware control word.  */
 extern fpu_control_t __loongarch_fpu_getcw (void) __THROW;
 extern void __loongarch_fpu_setcw (fpu_control_t) __THROW;
-#define _FPU_GETCW(cw) __asm__ volatile ("movfcsr2gr %0,$r0" : "=r"(cw))
-#define _FPU_SETCW(cw) __asm__ volatile ("movgr2fcsr $r0,%0" : : "r"(cw))
+#define _FPU_GETCW(cw) __asm__ volatile ("movfcsr2gr %0,$fcsr0" : "=r"(cw))
+#define _FPU_SETCW(cw) __asm__ volatile ("movgr2fcsr $fcsr0,%0" : : "r"(cw))
 
 /* Default control word set at startup.  */
 extern fpu_control_t __fpu_control;

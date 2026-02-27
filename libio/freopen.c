@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -63,6 +63,10 @@ freopen (const char *filename, const char *mode, FILE *fp)
 	 up here. */
       _IO_old_file_close_it (fp);
       _IO_JUMPS_FUNC_UPDATE (fp, &_IO_old_file_jumps);
+      fp->_flags2 &= ~(_IO_FLAGS2_MMAP
+		       | _IO_FLAGS2_NOTCANCEL
+		       | _IO_FLAGS2_CLOEXEC);
+      fp->_mode = 0;
       result = _IO_old_file_fopen (fp, gfilename, mode);
     }
   else
@@ -72,6 +76,10 @@ freopen (const char *filename, const char *mode, FILE *fp)
       _IO_JUMPS_FILE_plus (fp) = &_IO_file_jumps;
       if (_IO_vtable_offset (fp) == 0 && fp->_wide_data != NULL)
 	fp->_wide_data->_wide_vtable = &_IO_wfile_jumps;
+      fp->_flags2 &= ~(_IO_FLAGS2_MMAP
+		       | _IO_FLAGS2_NOTCANCEL
+		       | _IO_FLAGS2_CLOEXEC);
+      fp->_mode = 0;
       result = _IO_file_fopen (fp, gfilename, mode, 1);
       if (result != NULL)
 	result = __fopen_maybe_mmap (result);
@@ -79,9 +87,6 @@ freopen (const char *filename, const char *mode, FILE *fp)
   fp->_flags2 &= ~_IO_FLAGS2_NOCLOSE;
   if (result != NULL)
     {
-      /* unbound stream orientation */
-      result->_mode = 0;
-
       if (fd != -1 && _IO_fileno (result) != fd)
 	{
 	  /* At this point we have both file descriptors already allocated,
@@ -108,5 +113,7 @@ freopen (const char *filename, const char *mode, FILE *fp)
 
 end:
   _IO_release_lock (fp);
+  if (result == NULL && (fp->_flags & _IO_IS_FILEBUF) != 0)
+    _IO_deallocate_file (fp);
   return result;
 }

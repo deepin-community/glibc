@@ -1,5 +1,5 @@
 /* Test for localedef path name handling and normalization.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -84,7 +84,7 @@ run_test (void *closure)
   support_capture_subprocess_free (&result);
 
   /* Verify path is present and is a directory.  */
-  xstat (path, &fs);
+  xstat64 (path, &fs);
   if (!S_ISDIR (fs.st_mode))
     {
       support_record_failure ();

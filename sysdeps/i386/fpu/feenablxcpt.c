@@ -1,5 +1,5 @@
 /* Enable floating-point exceptions.
-   Copyright (C) 1999-2023 Free Software Foundation, Inc.
+   Copyright (C) 1999-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,7 +19,6 @@
 #include <fenv.h>
 #include <unistd.h>
 #include <ldsodefs.h>
-#include <dl-procinfo.h>
 
 int
 feenableexcept (int excepts)

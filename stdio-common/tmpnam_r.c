@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
+#include "tmpdir.h"
 
 /* Generate a unique filename in P_tmpdir.  If S is NULL return NULL.
    This makes this function thread safe.  */

@@ -1,5 +1,5 @@
 /* Completion of TCB initialization after TLS_INIT_TP.  Generic version.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,32 +18,11 @@
 
 #include <ldsodefs.h>
 
-#if defined SHARED && defined _LIBC_REENTRANT \
-    && defined __rtld_lock_default_lock_recursive
-static void
-rtld_lock_default_lock_recursive (void *lock)
-{
-  __rtld_lock_default_lock_recursive (lock);
-}
-
-static void
-rtld_lock_default_unlock_recursive (void *lock)
-{
-  __rtld_lock_default_unlock_recursive (lock);
-}
-#endif
-
 void
 __tls_pre_init_tp (void)
 {
 #if !PTHREAD_IN_LIBC
   GL(dl_init_static_tls) = &_dl_nothread_init_static_tls;
-#endif
-
-#if defined SHARED && defined _LIBC_REENTRANT \
-    && defined __rtld_lock_default_lock_recursive
-  GL(dl_rtld_lock_recursive) = rtld_lock_default_lock_recursive;
-  GL(dl_rtld_unlock_recursive) = rtld_lock_default_unlock_recursive;
 #endif
 }
 

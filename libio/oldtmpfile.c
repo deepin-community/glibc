@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <iolibio.h>
+#include <stdio-common/tmpdir.h>
 
 /* This returns a new stream opened on a temporary file (generated
    by tmpnam).  The file is opened with mode "w+b" (binary read/write).

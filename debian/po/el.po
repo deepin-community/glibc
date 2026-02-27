@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: el\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2023-01-03 21:34+0100\n"
+"POT-Creation-Date: 2025-01-02 16:30+0000\n"
 "PO-Revision-Date: 2017-07-06 21:00+0300\n"
 "Last-Translator: Vangelis Skarmoutsos <skarmoutsosv@gmail.com>\n"
 "Language-Team: Greek <debian-l10n-greek@lists.debian.org>\n"
@@ -62,6 +62,14 @@ msgstr ""
 "UTF-8 πρέπει να επιλέγονται εξ ορισμού, ειδικά για νέες εγκαταστάσεις. Άλλα "
 "σύνολα χαρακτήρων μπορεί να είναι χρήσιμα, για συμβατότητα προς τα πίσω, με "
 "συστήματα και λογισμικό."
+
+#. Type: multiselect
+#. Description
+#: ../debhelper.in/locales.templates:1002
+msgid ""
+"Please note that the C, C.UTF-8 and POSIX locales are always available and "
+"do not need to be generated."
+msgstr ""
 
 #. Type: select
 #. Choices

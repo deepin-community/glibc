@@ -6,19 +6,20 @@
 # Denis Barbier 2001-2006.
 # Christian Perrier <bubulle@debian.org>, 2007, 2008, 2009, 2011, 2015.
 # Alban Vidal <alban.vidal@zordhak.fr>, 2017.
+# Baptiste Jammet <baptiste@mailoo.org>, 2025
 msgid ""
 msgstr ""
-"Project-Id-Version: glibc 2.24-14\n"
+"Project-Id-Version: glibc 2.41-12\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2023-01-03 21:34+0100\n"
-"PO-Revision-Date: 2017-08-04 14:44+0100\n"
+"POT-Creation-Date: 2025-01-02 16:30+0000\n"
+"PO-Revision-Date: 2025-10-04 19:41+0200\n"
 "Last-Translator: Alban Vidal <alban.vidal@zordhak.fr>\n"
 "Language-Team: French <debian-l10n-french@lists.debian.org>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 2.0\n"
+"X-Generator: Lokalize 25.04.0\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #. Type: multiselect
@@ -56,6 +57,16 @@ msgstr ""
 "utilisant l'encodage UTF-8 devraient être le choix par défaut, notamment "
 "pour de nouvelles installations. Les autres jeux de caractères peuvent être "
 "utiles pour conserver la compatibilité avec d'anciens systèmes ou logiciels."
+
+#. Type: multiselect
+#. Description
+#: ../debhelper.in/locales.templates:1002
+msgid ""
+"Please note that the C, C.UTF-8 and POSIX locales are always available and "
+"do not need to be generated."
+msgstr ""
+"Veuillez noter que les locales C, C.UTF-8 et POSIX sont toujours disponibles "
+"et n'ont pas besoin d'être générées."
 
 #. Type: select
 #. Choices
@@ -231,8 +242,8 @@ msgstr ""
 #: ../debhelper.in/libc.templates:5001
 msgid "Restart services during package upgrades without asking?"
 msgstr ""
-"Redémarrer inconditionnellement les services lors des mises à niveau de "
-"paquets ?"
+"Faut-il redémarrer inconditionnellement les services lors des mises à niveau "
+"de paquets ?"
 
 #. Type: boolean
 #. Description
@@ -263,7 +274,6 @@ msgstr "Mise à niveau du noyau nécessaire"
 #. Type: error
 #. Description
 #: ../debhelper.in/libc.templates:6001
-#, fuzzy
 #| msgid ""
 #| "This version of the GNU libc requires kernel version ${kernel_ver} or "
 #| "later.  Please upgrade your kernel before installing glibc."
@@ -272,9 +282,10 @@ msgid ""
 "later.  Please upgrade your kernel and reboot before installing glibc. You "
 "may need to use \"apt -f install\" after reboot to solve dependencies."
 msgstr ""
-"Cette version de la bibliothèque C de GNU nécessite au minimum la "
-"version ${kernel_ver} du noyau. Veuillez mettre le noyau à niveau avant "
-"l'installation de glibc."
+"Cette version de la bibliothèque C de GNU nécessite au minimum la version $"
+"{kernel_ver} du noyau. Veuillez mettre le noyau à niveau et redémarrer avant "
+"l'installation de glibc. Vous pourriez avoir besoin d'exécuter « apt -f "
+"install » après le redémarrage pour résoudre les dépendances."
 
 #. Type: note
 #. Description
@@ -290,7 +301,7 @@ msgid ""
 "later.  Older versions might work but are not officially supported by "
 "Debian.  Please consider upgrading your kernel."
 msgstr ""
-"Cette version de la bibliothèque C de GNU nécessite au minimum la "
-"version ${kernel_ver} du noyau. Des versions antérieures pourraient "
-"fonctionner, mais ne sont pas officiellement gérées par Debian. Veuillez "
-"prévoir la mise à niveau du noyau."
+"Cette version de la bibliothèque C de GNU nécessite au minimum la version $"
+"{kernel_ver} du noyau. Des versions antérieures pourraient fonctionner, mais "
+"ne sont pas officiellement gérées par Debian. Veuillez prévoir la mise à "
+"niveau du noyau."

@@ -1,5 +1,5 @@
 /* Dynamic linker system dependencies for Linux.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,7 +21,6 @@
 #include <dl-auxv.h>
 #include <dl-osinfo.h>
 #include <dl-parse_auxv.h>
-#include <dl-procinfo.h>
 #include <dl-tunables.h>
 #include <elf.h>
 #include <errno.h>
@@ -40,6 +39,7 @@
 #include <sys/utsname.h>
 #include <tls.h>
 #include <unistd.h>
+#include <dl-symbol-redir-ifunc.h>
 
 #include <dl-machine.h>
 #include <dl-hwcap-check.h>
@@ -112,7 +112,7 @@ _dl_sysdep_start (void **start_argptr,
   /* Initialize DSO sorting algorithm after tunables.  */
   _dl_sort_maps_init ();
 
-  __brk (0);			/* Initialize the break.  */
+  __brk (NULL);			/* Initialize the break.  */
 
 #ifdef DL_PLATFORM_INIT
   DL_PLATFORM_INIT;
@@ -184,7 +184,10 @@ _dl_show_auxv (void)
 	  [AT_GID - 2] =		{ "GID:               ", dec },
 	  [AT_EGID - 2] =		{ "EGID:              ", dec },
 	  [AT_PLATFORM - 2] =		{ "PLATFORM:          ", str },
-	  [AT_HWCAP - 2] =		{ "HWCAP:             ", hex },
+	  [AT_HWCAP - 2] =		{ "HWCAP:             0x", hex },
+	  [AT_HWCAP2 - 2] =		{ "HWCAP2:            0x", hex },
+	  [AT_HWCAP3 - 2] =		{ "HWCAP3:            0x", hex },
+	  [AT_HWCAP4 - 2] =		{ "HWCAP4:            0x", hex },
 	  [AT_CLKTCK - 2] =		{ "CLKTCK:            ", dec },
 	  [AT_FPUCW - 2] =		{ "FPUCW:             ", hex },
 	  [AT_DCACHEBSIZE - 2] =	{ "DCACHEBSIZE:       0x", hex },
@@ -196,7 +199,8 @@ _dl_show_auxv (void)
 	  [AT_SYSINFO - 2] =		{ "SYSINFO:           0x", hex },
 	  [AT_SYSINFO_EHDR - 2] =	{ "SYSINFO_EHDR:      0x", hex },
 	  [AT_RANDOM - 2] =		{ "RANDOM:            0x", hex },
-	  [AT_HWCAP2 - 2] =		{ "HWCAP2:            0x", hex },
+	  [AT_RSEQ_FEATURE_SIZE - 2] =	{ "RSEQ_FEATURE_SIZE: ", dec },
+	  [AT_RSEQ_ALIGN - 2] =		{ "RSEQ_ALIGN:        ", dec },
 	  [AT_MINSIGSTKSZ - 2] =	{ "MINSIGSTKSZ:       ", dec },
 	  [AT_L1I_CACHESIZE - 2] =	{ "L1I_CACHESIZE:     ", dec },
 	  [AT_L1I_CACHEGEOMETRY - 2] =	{ "L1I_CACHEGEOMETRY: 0x", hex },
@@ -216,10 +220,6 @@ _dl_show_auxv (void)
 
       assert (AT_NULL == 0);
       assert (AT_IGNORE == 1);
-
-      /* Some entries are handled in a special way per platform.  */
-      if (_dl_procinfo (av->a_type, av->a_un.a_val) == 0)
-	continue;
 
       if (idx < sizeof (auxvars) / sizeof (auxvars[0])
 	  && auxvars[idx].form != unknown)

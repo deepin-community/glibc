@@ -1,5 +1,5 @@
 /* Data for s390 version of processor capability information.
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,9 +15,6 @@
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
-
-/* The hwcap and platform strings are now in
-   sysdeps/s390/dl-procinfo-s390.c.  */
 
 /* Needed by sysdeps/unix/sysv/linux/dl-vdso-setup.c (as included from
    sysdeps/generic/ldsodefs.h).  */

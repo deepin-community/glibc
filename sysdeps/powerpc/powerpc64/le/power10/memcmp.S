@@ -1,5 +1,5 @@
 /* Optimized memcmp implementation for POWER10.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,26 +18,10 @@
 
 #include <sysdep.h>
 
-/* TODO: Replace macros by the actual instructions when minimum binutils becomes
-   >= 2.35.  This is used to keep compatibility with older versions.  */
-#define VEXTRACTBM(rt,vrb)	 \
-	.long(((4)<<(32-6))	 \
-	      | ((rt)<<(32-11))  \
-	      | ((8)<<(32-16))	 \
-	      | ((vrb)<<(32-21)) \
-	      | 1602)
-
-#define LXVP(xtp,dq,ra)			   \
-	.long(((6)<<(32-6))		   \
-	      | ((((xtp)-32)>>1)<<(32-10)) \
-	      | ((1)<<(32-11))		   \
-	      | ((ra)<<(32-16))		   \
-	      | dq)
-
 /* Compare 32 bytes.  */
 #define COMPARE_32(vr1,vr2,offset,tail_1,tail_2)\
-	LXVP(32+vr1,offset,r3);		\
-	LXVP(32+vr2,offset,r4);		\
+	lxvp      32+vr1,offset(r3);	\
+	lxvp      32+vr2,offset(r4);	\
 	vcmpneb.  v5,vr1+1,vr2+1;	\
 	bne	  cr6,L(tail_2);	\
 	vcmpneb.  v4,vr1,vr2;		\
@@ -56,7 +40,7 @@
 #ifndef MEMCMP
 # define MEMCMP memcmp
 #endif
-	.machine  power9
+	.machine  power10
 ENTRY_TOCLESS (MEMCMP, 4)
 	CALL_MCOUNT 3
 

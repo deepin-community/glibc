@@ -1,5 +1,5 @@
 /* Memchr for aarch64, default version for internal use.
-   Copyright (C) 2018-2023 Free Software Foundation, Inc.
+   Copyright (C) 2018-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -23,6 +23,9 @@
 /* Do not hide the generic version of memchr, we use it internally.  */
 # undef libc_hidden_builtin_def
 # define libc_hidden_builtin_def(name)
+
+# undef weak_alias
+# define weak_alias(a, b)
 
 /* Add a hidden definition for use within libc.so.  */
 # ifdef SHARED

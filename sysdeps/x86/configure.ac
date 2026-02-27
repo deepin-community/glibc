@@ -1,49 +1,6 @@
 GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
 # Local configure fragment for sysdeps/x86.
 
-if test $enable_cet != no; then
-  # Check if CET can be enabled.
-  AC_CACHE_CHECK(whether CET can be enabled,
-		 libc_cv_x86_cet_available, [dnl
-cat > conftest.c <<EOF
-#if !defined __CET__ || __CET__ != 3
-# error CET isn't available.
-#endif
-EOF
-		 if AC_TRY_COMMAND(${CC-cc} -c $CFLAGS -fcf-protection -include cet.h conftest.c 1>&AS_MESSAGE_LOG_FD); then
-		   libc_cv_x86_cet_available=yes
-		 else
-		   libc_cv_x86_cet_available=no
-		 fi
-		 rm -rf conftest*])
-  if test $libc_cv_x86_cet_available != yes; then
-    AC_MSG_ERROR([$CC doesn't support CET])
-  fi
-fi
-if test $enable_cet != no; then
-  # Check if assembler supports CET.
-  AC_CACHE_CHECK(whether assembler supports CET,
-		 libc_cv_x86_cet_as, [dnl
-cat > conftest.s <<EOF
-	incsspd %ecx
-EOF
-		 if AC_TRY_COMMAND(${CC-cc} -c $CFLAGS conftest.s -o conftest.o 1>&AS_MESSAGE_LOG_FD); then
-		   libc_cv_x86_cet_as=yes
-		 else
-		   libc_cv_x86_cet_as=no
-		 fi
-		 rm -rf conftest*])
-  if test $libc_cv_x86_cet_as = no; then
-    AC_MSG_ERROR([$AS doesn't support CET])
-  fi
-fi
-if test $enable_cet = yes; then
-  AC_DEFINE(DEFAULT_DL_X86_CET_CONTROL, cet_elf_property)
-elif test $enable_cet = permissive; then
-  AC_DEFINE(DEFAULT_DL_X86_CET_CONTROL, cet_permissive)
-fi
-LIBC_CONFIG_VAR([enable-cet], [$enable_cet])
-
 # Check if linker supports x86 ISA level.
 AC_CACHE_CHECK([for linker x86 ISA level support],
 	       libc_cv_include_x86_isa_level, [dnl
@@ -115,6 +72,7 @@ if test $libc_cv_include_x86_isa_level = yes; then
     fi])
   if test $libc_cv_have_x86_lahf_sahf = yes; then
     AC_DEFINE(HAVE_X86_LAHF_SAHF)
+    ISAFLAG="-DHAVE_X86_LAHF_SAHF"
   fi
   AC_CACHE_CHECK([for MOVBE instruction support],
 		 libc_cv_have_x86_movbe, [dnl
@@ -124,9 +82,55 @@ if test $libc_cv_include_x86_isa_level = yes; then
     fi])
   if test $libc_cv_have_x86_movbe = yes; then
     AC_DEFINE(HAVE_X86_MOVBE)
+    ISAFLAG="$ISAFLAG -DHAVE_X86_MOVBE"
   fi
+
+  # Check for ISA level support.
+  AC_CACHE_CHECK([for ISA level support],
+		 libc_cv_have_x86_isa_level, [dnl
+cat > conftest.c <<EOF
+#include <sysdeps/x86/isa-level.h>
+#if MINIMUM_X86_ISA_LEVEL >= 4
+libc_cv_have_x86_isa_level=4
+#elif MINIMUM_X86_ISA_LEVEL == 3
+libc_cv_have_x86_isa_level=3
+#elif MINIMUM_X86_ISA_LEVEL == 2
+libc_cv_have_x86_isa_level=2
+#elif defined __x86_64__
+libc_cv_have_x86_isa_level=baseline
+#elif MINIMUM_X86_ISA_LEVEL == 1
+libc_cv_have_x86_isa_level=1
+#else
+libc_cv_have_x86_isa_level=0
+#endif
+EOF
+		 eval `${CC-cc} $CFLAGS $CPPFLAGS $ISAFLAG -I$srcdir -E conftest.c | grep libc_cv_have_x86_isa_level`
+		 rm -rf conftest*])
+elif test $base_machine = x86_64; then
+  libc_cv_have_x86_isa_level=baseline
+else
+  libc_cv_have_x86_isa_level=0
 fi
+if test $libc_cv_have_x86_isa_level = baseline; then
+  AC_DEFINE_UNQUOTED(MINIMUM_X86_ISA_LEVEL, 1)
+else
+  AC_DEFINE_UNQUOTED(MINIMUM_X86_ISA_LEVEL, $libc_cv_have_x86_isa_level)
+fi
+LIBC_CONFIG_VAR([have-x86-isa-level], [$libc_cv_have_x86_isa_level])
+LIBC_CONFIG_VAR([x86-isa-level-2-or-above], [2 3 4])
+LIBC_CONFIG_VAR([x86-isa-level-3-or-above], [3 4])
+LIBC_CONFIG_VAR([x86-isa-level-4-or-above], [4])
 LIBC_CONFIG_VAR([enable-x86-isa-level], [$libc_cv_include_x86_isa_level])
+
+dnl Check if TEST_CC supports -mfpmath=387
+LIBC_TRY_TEST_CC_OPTION([if -mfpmath=387 works],
+  [-c -Werror -mfpmath=387],
+  libc_cv_have_test_cc_cflags_mfpmath_387,
+  [libc_cv_have_test_cc_cflags_mfpmath_387=yes],
+  [libc_cv_have_test_cc_cflags_mfpmath_387=no]
+)
+LIBC_CONFIG_VAR(have-test-cc-cflags-mfpmath-387,
+		$libc_cv_have_test_cc_cflags_mfpmath_387)
 
 dnl Static PIE is supported.
 AC_DEFINE(SUPPORT_STATIC_PIE)

@@ -1,5 +1,5 @@
 /* Restartable Sequences tests header.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,11 +23,12 @@
 #include <syscall.h>
 #include <sys/rseq.h>
 #include <tls.h>
+#include <rseq-internal.h>
 
 static inline bool
 rseq_thread_registered (void)
 {
-  return THREAD_GETMEM_VOLATILE (THREAD_SELF, rseq_area.cpu_id) >= 0;
+  return RSEQ_GETMEM_ONCE (cpu_id) >= 0;
 }
 
 static inline int

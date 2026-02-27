@@ -1,3 +1,3 @@
-Tests: rebuild
-Depends: @builddeps@, fakeroot, @triggers@
+Tests: upstream-testsuite
+Depends: @builddeps@, @triggers@
 Restrictions: allow-stderr

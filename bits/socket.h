@@ -1,5 +1,5 @@
 /* System-specific socket constants and types.  4.4 BSD version.
-   Copyright (C) 1991-2023 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -149,7 +149,7 @@ enum __socket_type
 #include <bits/sockaddr.h>
 
 /* Structure describing a generic socket address.  */
-struct sockaddr
+struct __attribute_struct_may_alias__ sockaddr
   {
     __SOCKADDR_COMMON (sa_);	/* Common data: address family and length.  */
     char sa_data[14];		/* Address data.  */
@@ -166,7 +166,7 @@ struct sockaddr
 #define _SS_PADSIZE \
   (_SS_SIZE - __SOCKADDR_COMMON_SIZE - sizeof (__ss_aligntype))
 
-struct sockaddr_storage
+struct __attribute_struct_may_alias__ sockaddr_storage
   {
     __SOCKADDR_COMMON (ss_);	/* Address family, etc.  */
     char __ss_padding[_SS_PADSIZE];
@@ -221,17 +221,13 @@ struct cmsghdr
 				   of cmsghdr structure.  */
     int cmsg_level;		/* Originating protocol.  */
     int cmsg_type;		/* Protocol specific type.  */
-#if __glibc_c99_flexarr_available
-    __extension__ unsigned char __cmsg_data __flexarr; /* Ancillary data.  */
-#endif
+ /* This field is to be aligned with CMSG_ALIGN */
+ /* __extension__ unsigned char __cmsg_data __flexarr; */ /* Ancillary data.  */
   };
 
 /* Ancillary data object manipulation macros.  */
-#if __glibc_c99_flexarr_available
-# define CMSG_DATA(cmsg) ((cmsg)->__cmsg_data)
-#else
-# define CMSG_DATA(cmsg) ((unsigned char *) ((struct cmsghdr *) (cmsg) + 1))
-#endif
+#define CMSG_DATA(cmsg) \
+  ((unsigned char *) (cmsg) + CMSG_ALIGN (sizeof (struct cmsghdr)))
 
 #define CMSG_NXTHDR(mhdr, cmsg) __cmsg_nxthdr (mhdr, cmsg)
 

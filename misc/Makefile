@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2023 Free Software Foundation, Inc.
+# Copyright (C) 1991-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -23,62 +23,62 @@ subdir	:= misc
 
 include ../Makeconfig
 
-headers	:= \
-  sys/uio.h \
-  bits/uio-ext.h \
-  bits/uio_lim.h \
-  sys/ioctl.h \
-  bits/ioctls.h \
-  bits/ioctl-types.h \
-  sys/ptrace.h \
-  sys/file.h \
-  sys/dir.h \
-  sys/cdefs.h \
-  ar.h \
+headers := \
   a.out.h \
-  libgen.h \
-  stab.h \
-  bits/stab.def \
-  sgtty.h \
-  ttyent.h \
-  paths.h \
-  sys/reboot.h \
-  sys/mman.h \
-  sys/param.h \
-  bits/param.h \
-  fstab.h \
-  mntent.h \
-  search.h \
-  err.h \
-  error.h \
-  sys/queue.h \
-  sysexits.h \
-  syscall.h \
-  sys/syscall.h \
-  sys/swap.h \
-  sys/select.h \
-  sys/sysinfo.h \
-  regexp.h \
-  bits/select.h \
-  bits/mman.h \
-  sys/xattr.h \
-  syslog.h \
-  sys/syslog.h \
-  bits/syslog-decl.h \
-  bits/syslog.h \
-  bits/syslog-ldbl.h \
-  bits/syslog-path.h \
-  bits/error.h \
-  bits/select-decl.h \
-  bits/select2.h \
-  bits/hwcap.h \
-  sys/auxv.h \
-  sys/sysmacros.h \
-  bits/sysmacros.h \
-  bits/types/struct_iovec.h \
+  ar.h \
   bits/err-ldbl.h \
   bits/error-ldbl.h \
+  bits/error.h \
+  bits/hwcap.h \
+  bits/ioctl-types.h \
+  bits/ioctls.h \
+  bits/mman.h \
+  bits/param.h \
+  bits/select-decl.h \
+  bits/select.h \
+  bits/select2.h \
+  bits/stab.def \
+  bits/syslog-decl.h \
+  bits/syslog-ldbl.h \
+  bits/syslog-path.h \
+  bits/syslog.h \
+  bits/sysmacros.h \
+  bits/types/struct_iovec.h \
+  bits/uio-ext.h \
+  bits/uio_lim.h \
+  err.h \
+  error.h \
+  fstab.h \
+  libgen.h \
+  mntent.h \
+  paths.h \
+  regexp.h \
+  search.h \
+  sgtty.h \
+  stab.h \
+  sys/auxv.h \
+  sys/cdefs.h \
+  sys/dir.h \
+  sys/file.h \
+  sys/ioctl.h \
+  sys/mman.h \
+  sys/param.h \
+  sys/ptrace.h \
+  sys/queue.h \
+  sys/reboot.h \
+  sys/select.h \
   sys/single_threaded.h \
+  sys/swap.h \
+  sys/syscall.h \
+  sys/sysinfo.h \
+  sys/syslog.h \
+  sys/sysmacros.h \
+  sys/uio.h \
+  sys/xattr.h \
+  syscall.h \
+  sysexits.h \
+  syslog.h \
+  ttyent.h \
   # headers
 
 routines := \
@@ -214,12 +214,18 @@ routines_no_fortify += \
   syslog \
   # routines_no_fortify
 
+ifeq ($(run-built-tests),yes)
+ifeq (yes,$(build-shared))
+ifneq ($(PERL),no)
 generated += \
   tst-allocate_once-mem.out \
   tst-allocate_once.mtrace \
   tst-error1-mem.out \
   tst-error1.mtrace \
   # generated
+endif
+endif
+endif
 
 aux := init-misc
 install-lib := libg.a
@@ -251,6 +257,8 @@ tests := \
   tst-mntent-blank-passno \
   tst-mntent-escape \
   tst-mntent2 \
+  tst-mremap1 \
+  tst-mremap2 \
   tst-preadvwritev \
   tst-preadvwritev2 \
   tst-preadvwritev64 \
@@ -284,12 +292,27 @@ tests-static := tst-empty
 tests-internal += tst-fd_to_filename
 tests-static += tst-fd_to_filename
 
+# Tests with long run times.
+xtests += \
+  tst-mkstemp-fuse \
+  tst-mkstemp-fuse-parallel \
+  # xtests
+
 ifeq ($(run-built-tests),yes)
-tests-special += $(objpfx)tst-error1-mem.out \
-  $(objpfx)tst-allocate_once-mem.out
+ifeq (yes,$(build-shared))
+ifneq ($(PERL),no)
+tests-special += \
+  $(objpfx)tst-allocate_once-mem.out \
+  $(objpfx)tst-error1-mem.out \
+  # tests-special
+endif
+endif
 endif
 
-tests-container := tst-syslog
+tests-container := \
+  tst-syslog \
+  tst-syslog-long-progname \
+  # tests-container
 
 CFLAGS-select.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-tsearch.c += $(uses-callbacks)
@@ -351,7 +374,11 @@ $(objpfx)tst-allocate_once-mem.out: $(objpfx)tst-allocate_once.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-allocate_once.mtrace > $@; \
 	$(evaluate-test)
 
+tst-syslog-long-progname-ENV = GLIBC_TUNABLES=glibc.malloc.check=3 \
+			       LD_PRELOAD=libc_malloc_debug.so.0
+
 $(objpfx)tst-select: $(librt)
 $(objpfx)tst-select-time64: $(librt)
 $(objpfx)tst-pselect: $(librt)
 $(objpfx)tst-pselect-time64: $(librt)
+$(objpfx)tst-mkstemp-fuse-parallel: $(shared-thread-library)

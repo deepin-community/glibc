@@ -1,5 +1,5 @@
 /* Multiple versions of tan.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,15 +16,18 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <libm-alias-double.h>
+#include <sysdeps/x86/isa-level.h>
+#if MINIMUM_X86_ISA_LEVEL < AVX2_X86_ISA_LEVEL
+# include <libm-alias-double.h>
 
 extern double __redirect_tan (double);
 
-#define SYMBOL_NAME tan
-#include "ifunc-avx-fma4.h"
+# define SYMBOL_NAME tan
+# include "ifunc-avx-fma4.h"
 
 libc_ifunc_redirected (__redirect_tan, __tan, IFUNC_SELECTOR ());
 libm_alias_double (__tan, tan)
 
-#define __tan __tan_sse2
+# define __tan __tan_sse2
+#endif
 #include <sysdeps/ieee754/dbl-64/s_tan.c>

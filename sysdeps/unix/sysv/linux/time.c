@@ -1,5 +1,5 @@
 /* time -- Get number of seconds since Epoch.  Linux version.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,11 +33,10 @@ time_syscall (time_t *t)
 }
 
 # undef INIT_ARCH
-# define INIT_ARCH() \
-  void *vdso_time = dl_vdso_vsym (HAVE_TIME_VSYSCALL);
+# define INIT_ARCH()
 libc_ifunc (time,
-	    vdso_time ? VDSO_IFUNC_RET (vdso_time)
-		      : (void *) time_syscall);
+	    GLRO(dl_vdso_time) != NULL ? VDSO_IFUNC_RET (GLRO(dl_vdso_time))
+				       : (void *) time_syscall);
 
 # else
 time_t

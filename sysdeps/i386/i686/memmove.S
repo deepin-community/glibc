@@ -1,7 +1,7 @@
 /* Copy memory block and return pointer to beginning of destination block
    For Intel 80x86, x>=6.
    This file is part of the GNU C Library.
-   Copyright (C) 2003-2023 Free Software Foundation, Inc.
+   Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@
 #define SRC	DEST+4
 #define LEN	SRC+4
 
-#if defined PIC && IS_IN (libc)
+#if defined SHARED && IS_IN (libc)
 ENTRY_CHK (__memmove_chk)
 	movl	12(%esp), %eax
 	cmpl	%eax, 16(%esp)

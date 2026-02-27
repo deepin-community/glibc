@@ -1,5 +1,5 @@
 /* Internal libc stuff for floating point environment routines.
-   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -68,6 +68,14 @@ extern const fenv_t *__fe_mask_env (void) attribute_hidden;
     __fr;								\
   })
 
+/* Starting with GCC 14 __builtin_set_fpscr_rn can be used to return the
+   FPSCR fields as a double.  This support is available
+   on Power9 when the __SET_FPSCR_RN_RETURNS_FPSCR__ macro is defined.
+   To retain backward compatibility with older GCC, we still retain the
+   old inline assembly implementation.*/
+#ifdef __SET_FPSCR_RN_RETURNS_FPSCR__
+#define __fe_mffscrn(rn)  __builtin_set_fpscr_rn (rn)
+#else
 #define __fe_mffscrn(rn)						\
   ({register fenv_union_t __fr;						\
     if (__builtin_constant_p (rn))					\
@@ -83,6 +91,7 @@ extern const fenv_t *__fe_mask_env (void) attribute_hidden;
     }									\
     __fr.fenv;								\
   })
+#endif
 
 /* Like fegetenv_control, but also sets the rounding mode.  */
 #ifdef _ARCH_PWR9
@@ -173,19 +182,13 @@ __fesetround_inline (int round)
   return 0;
 }
 
-/* Same as __fesetround_inline, however without runtime check to use DFP
-   mtfsfi syntax (as relax_fenv_state) or if round value is valid.  */
+/* Same as __fesetround_inline, and it also disable the floating-point
+   inexact execption (bit 60 - XE, assuming NI is 0).  It does not check
+   if ROUND is a valid value.  */
 static inline void
-__fesetround_inline_nocheck (const int round)
+__fesetround_inline_disable_inexact (const int round)
 {
-#ifdef _ARCH_PWR9
-  __fe_mffscrn (round);
-#else
-  if (__glibc_likely (GLRO(dl_hwcap2) & PPC_FEATURE2_ARCH_3_00))
-    __fe_mffscrn (round);
-  else
-    asm volatile ("mtfsfi 7,%0" : : "n" (round));
-#endif
+  asm volatile ("mtfsfi 7,%0" : : "n" (round));
 }
 
 #define FPSCR_MASK(bit) (1 << (31 - (bit)))

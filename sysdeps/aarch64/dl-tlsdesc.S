@@ -1,6 +1,6 @@
 /* Thread-local storage handling in the ELF dynamic linker.
    AArch64 version.
-   Copyright (C) 2011-2023 Free Software Foundation, Inc.
+   Copyright (C) 2011-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -74,10 +74,9 @@
 	cfi_startproc
 	.align 2
 _dl_tlsdesc_return:
-	BTI_C
-	PTR_ARG (0)
-	ldr	PTR_REG (0), [x0, #PTR_SIZE]
-	RET
+	bti	c
+	ldr	x0, [x0, 8]
+	ret
 	cfi_endproc
 	.size	_dl_tlsdesc_return, .-_dl_tlsdesc_return
 
@@ -96,16 +95,15 @@ _dl_tlsdesc_return:
 	cfi_startproc
 	.align  2
 _dl_tlsdesc_undefweak:
-	BTI_C
+	bti	c
 	str	x1, [sp, #-16]!
 	cfi_adjust_cfa_offset (16)
-	PTR_ARG (0)
-	ldr	PTR_REG (0), [x0, #PTR_SIZE]
+	ldr	x0, [x0, 8]
 	mrs	x1, tpidr_el0
-	sub	PTR_REG (0), PTR_REG (0), PTR_REG (1)
+	sub	x0, x0, x1
 	ldr	x1, [sp], #16
 	cfi_adjust_cfa_offset (-16)
-	RET
+	ret
 	cfi_endproc
 	.size	_dl_tlsdesc_undefweak, .-_dl_tlsdesc_undefweak
 
@@ -121,20 +119,19 @@ _dl_tlsdesc_undefweak:
 	   object referenced by the argument.
 
 	   ptrdiff_t
-	   __attribute__ ((__regparm__ (1)))
 	   _dl_tlsdesc_dynamic (struct tlsdesc *tdp)
 	   {
 	     struct tlsdesc_dynamic_arg *td = tdp->arg;
-	     dtv_t *dtv = *(dtv_t **)((char *)__thread_pointer + TCBHEAD_DTV);
+	     dtv_t *dtv = *(dtv_t **)((char *)__thread_pointer() + TCBHEAD_DTV);
 	     if (__builtin_expect (td->gen_count <= dtv[0].counter
 		&& (dtv[td->tlsinfo.ti_module].pointer.val
 		    != TLS_DTV_UNALLOCATED),
 		1))
 	       return dtv[td->tlsinfo.ti_module].pointer.val
 		+ td->tlsinfo.ti_offset
-		- __thread_pointer;
+		- __thread_pointer();
 
-	     return ___tls_get_addr (&td->tlsinfo) - __thread_pointer;
+	     return __tls_get_addr (&td->tlsinfo) - __thread_pointer();
 	   }
 	 */
 
@@ -144,8 +141,8 @@ _dl_tlsdesc_undefweak:
 	cfi_startproc
 	.align 2
 _dl_tlsdesc_dynamic:
-	BTI_C
-	PTR_ARG (0)
+	paciasp
+	cfi_negate_ra_state
 
 	/* Save just enough registers to support fast path, if we fall
 	   into slow path we will save additional registers.  */
@@ -158,26 +155,28 @@ _dl_tlsdesc_dynamic:
 	cfi_rel_offset (x4, 24)
 
 	mrs	x4, tpidr_el0
-	ldr	PTR_REG (1), [x0,#TLSDESC_ARG]
-	ldr	PTR_REG (0), [x4,#TCBHEAD_DTV]
-	ldr	PTR_REG (3), [x1,#TLSDESC_GEN_COUNT]
-	ldr	PTR_REG (2), [x0,#DTV_COUNTER]
-	cmp	PTR_REG (3), PTR_REG (2)
+	ldr	x1, [x0, TLSDESC_ARG]
+	ldr	x0, [x4, TCBHEAD_DTV]
+	ldr	x3, [x1, TLSDESC_GEN_COUNT]
+	ldr	x2, [x0, DTV_COUNTER]
+	cmp	x3, x2
 	b.hi	2f
 	/* Load r2 = td->tlsinfo.ti_module and r3 = td->tlsinfo.ti_offset.  */
-	ldp	PTR_REG (2), PTR_REG (3), [x1,#TLSDESC_MODID]
-	add	PTR_REG (0), PTR_REG (0), PTR_REG (2), lsl #(PTR_LOG_SIZE + 1)
-	ldr	PTR_REG (0), [x0] /* Load val member of DTV entry.  */
-	cmp	PTR_REG (0), #TLS_DTV_UNALLOCATED
+	ldp	x2, x3, [x1, TLSDESC_MODID]
+	add	x0, x0, x2, lsl 4
+	ldr	x0, [x0] /* Load val member of DTV entry.  */
+	cmp	x0, TLS_DTV_UNALLOCATED
 	b.eq	2f
 	cfi_remember_state
-	sub	PTR_REG (3), PTR_REG (3), PTR_REG (4)
-	add	PTR_REG (0), PTR_REG (0), PTR_REG (3)
+	sub	x3, x3, x4
+	add	x0, x0, x3
 1:
 	ldp	 x3,  x4, [sp, #16]
 	ldp	 x1,  x2, [sp], #32
+	autiasp
+	cfi_negate_ra_state
 	cfi_adjust_cfa_offset (-32)
-	RET
+	ret
 2:
 	/* This is the slow path. We need to call __tls_get_addr() which
 	   means we need to save and restore all the register that the
@@ -185,10 +184,6 @@ _dl_tlsdesc_dynamic:
 
 	/* Save the remaining registers that we must treat as caller save.  */
 	cfi_restore_state
-# if HAVE_AARCH64_PAC_RET
-	PACIASP
-	cfi_window_save
-# endif
 # define NSAVEXREGPAIRS 8
 	stp	x29, x30, [sp,#-16*NSAVEXREGPAIRS]!
 	cfi_adjust_cfa_offset (16*NSAVEXREGPAIRS)
@@ -220,10 +215,10 @@ _dl_tlsdesc_dynamic:
 	SAVE_Q_REGISTERS
 
 	mov	x0, x1
-	bl	__tls_get_addr
+	bl	HIDDEN_JUMPTARGET(__tls_get_addr)
 
 	mrs	x1, tpidr_el0
-	sub	PTR_REG (0), PTR_REG (0), PTR_REG (1)
+	sub	x0, x0, x1
 
 	RESTORE_Q_REGISTERS
 
@@ -239,12 +234,9 @@ _dl_tlsdesc_dynamic:
 	cfi_adjust_cfa_offset (-16*NSAVEXREGPAIRS)
 	cfi_restore (x29)
 	cfi_restore (x30)
-# if HAVE_AARCH64_PAC_RET
-	AUTIASP
-	cfi_window_save
-# endif
 	b	1b
 	cfi_endproc
 	.size	_dl_tlsdesc_dynamic, .-_dl_tlsdesc_dynamic
+	.hidden HIDDEN_JUMPTARGET(__tls_get_addr)
 # undef NSAVEXREGPAIRS
 #endif

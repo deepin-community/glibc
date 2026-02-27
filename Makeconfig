@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2023 Free Software Foundation, Inc.
+# Copyright (C) 1991-2025 Free Software Foundation, Inc.
 # Copyright The GNU Toolchain Authors.
 # This file is part of the GNU C Library.
 
@@ -360,6 +360,8 @@ whole-archive = -Wl,--whole-archive
 # Installed name of the startup code.
 # The ELF convention is that the startfile is called crt1.o
 start-installed-name = crt1.o
+# Similar to crt1.o, but without _IO_stdin_used.
+start-name-2.0 = crt1-2.0.o
 # On systems that do not need a special startfile for statically linked
 # binaries, simply set it to the normal name.
 ifndef static-start-installed-name
@@ -440,7 +442,8 @@ ifndef +link-pie
 	     $(filter-out $(addprefix $(csu-objpfx),start.o \
 						    S$(start-installed-name))\
 			  $(+preinit) $(link-extra-libs) \
-			  $(common-objpfx)libc% $(+postinit),$^) \
+			  $(common-objpfx)libc% $(+postinit) \
+			  $(+nolink-deps),$^) \
 	     $(link-extra-libs)
 +link-pie-after-libc = $(+postctorS) $(+postinit)
 define +link-pie
@@ -471,7 +474,8 @@ ifndef +link-static
 	      $(filter-out $(addprefix $(csu-objpfx),start.o \
 						     $(start-installed-name))\
 			   $(+preinit) $(link-extra-libs-static) \
-			   $(common-objpfx)libc% $(+postinit),$^) \
+			   $(common-objpfx)libc% $(+postinit) \
+			   $(+nolink-deps), $^) \
 	      $(link-extra-libs-static)
 +link-static-after-libc = $(+postctorT) $(+postinit)
 define +link-static
@@ -507,7 +511,8 @@ else  # not build-pie-default
 	      $(filter-out $(addprefix $(csu-objpfx),start.o \
 						     $(start-installed-name))\
 			   $(+preinit) $(link-extra-libs) \
-			   $(common-objpfx)libc% $(+postinit),$^) \
+			   $(common-objpfx)libc% $(+postinit) \
+			   $(+nolink-deps),$^) \
 	      $(link-extra-libs)
 +link-after-libc = $(+postctor) $(+postinit)
 define +link
@@ -536,6 +541,26 @@ else  # build-static
 +link-printers-tests = $(+link-static-tests)
 endif  # build-shared
 endif  # +link
+
+# Command for linking test programs with crt1.o from glibc 2.0.
++link-2.0-before-inputs = -nostdlib -nostartfiles $(no-pie-ldflag) \
+	      $(sysdep-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F)) \
+	      $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
+	      $(firstword $(CRT-$(@F)) $(csu-objpfx)$(start-name-2.0)) \
+	      $(+preinit) $(+prector)
++link-2.0-before-libc = -o $@ $(+link-2.0-before-inputs) \
+	      $(filter-out $(addprefix $(csu-objpfx),start.o \
+						     $(start-name-2.0))\
+			   $(+preinit) $(link-extra-libs) \
+			   $(common-objpfx)libc% $(+postinit) \
+			   $(+nolink-deps),$^) \
+	      $(link-extra-libs)
++link-after-libc = $(+postctor) $(+postinit)
+define +link-2.0-tests
+$(CC) $(+link-2.0-before-libc) $(rtld-tests-LDFLAGS) $(link-libc-tests) \
+  $(+link-after-libc)
+$(call after-link,$@)
+endef
 
 # The pretty printer test programs need to be compiled without optimizations
 # so they won't confuse gdb.  We could use either the 'GCC optimize' pragma
@@ -586,10 +611,13 @@ link-libc-rpath-link = -Wl,-rpath-link=$(rpath-link)
 # before the expansion of LDLIBS-* variables).
 
 # Tests use -Wl,-rpath instead of -Wl,-rpath-link for
-# build-hardcoded-path-in-tests.
+# build-hardcoded-path-in-tests.  Add -Wl,--disable-new-dtags to force
+# DT_RPATH instead of DT_RUNPATH which only applies to DT_NEEDED entries
+# in the executable and doesn't applies to DT_NEEDED entries in shared
+# libraries which are loaded via DT_NEEDED entries in the executable.
 ifeq (yes,$(build-hardcoded-path-in-tests))
-link-libc-tests-rpath-link = $(link-libc-rpath)
-link-test-modules-rpath-link = $(link-libc-rpath)
+link-libc-tests-rpath-link = $(link-libc-rpath) -Wl,--disable-new-dtags
+link-test-modules-rpath-link = $(link-libc-rpath) -Wl,--disable-new-dtags
 else
 link-libc-tests-rpath-link = $(link-libc-rpath-link)
 link-test-modules-rpath-link =
@@ -609,9 +637,9 @@ link-libc-printers-tests = $(link-libc-rpath) \
 			   $(link-libc-tests-after-rpath-link)
 
 # This is how to find at build-time things that will be installed there.
-rpath-dirs = math elf dlfcn nss nis rt resolv mathvec support
+rpath-dirs = math elf dlfcn nss nis rt resolv mathvec support misc debug
 rpath-link = \
-$(common-objdir):$(subst $(empty) ,:,$(patsubst ../$(subdir),.,$(rpath-dirs:%=$(common-objpfx)%)))
+$(common-objdir):$(subst $(empty) ,:,$(patsubst ../$(subdir),.,$(rpath-dirs:%=$(common-objpfx)%))):$(gnulib-extralibdir)
 else  # build-static
 link-libc = $(common-objpfx)libc.a $(otherlibs) $(gnulib) $(common-objpfx)libc.a $(gnulib)
 link-libc-tests = $(common-objpfx)libc.a $(otherlibs) $(gnulib-tests) $(common-objpfx)libc.a $(gnulib-tests)
@@ -668,6 +696,11 @@ link-libc-static-tests = -Wl,--start-group $(common-objpfx)libc.a $(static-gnuli
 # some cases and it is preferable to link with libgcc_eh or libgcc_s
 # so that the testing is as similar as possible to how programs will
 # be built with the installed glibc.
+# This leads to moderate difficulties, also since distributions may
+# install libgcc_s.so in directories only found via ld.so.conf, e.g.
+# to be able to switch between gcc versions. We need to add the
+# corresponding directory to the library search path to make sure
+# our test programs can find it.
 #
 # Some architectures have architecture-specific systems for exception
 # handling that may involve undefined references to
@@ -685,6 +718,7 @@ libgcc_eh := -Wl,--as-needed -lgcc_s $(libunwind) -Wl,--no-as-needed
 gnulib-arch =
 gnulib = -lgcc $(gnulib-arch)
 gnulib-tests := -lgcc $(libgcc_eh)
+gnulib-extralibdir = $(dir $(shell $(CC) -print-file-name=libgcc_s.so$(libgcc_s.so-version)))
 static-gnulib-arch =
 # By default, elf/static-stubs.o, instead of -lgcc_eh, is used to
 # statically link programs.  When --disable-shared is used, we use
@@ -705,13 +739,15 @@ endif
 +prectorS = `$(CC) $(sysdep-LDFLAGS) --print-file-name=crtbeginS.o`
 +postctorS = `$(CC) $(sysdep-LDFLAGS) --print-file-name=crtendS.o`
 # Variants of the two previous definitions for statically linking programs.
+static-prector = `$(CC) $(sysdep-LDFLAGS) --print-file-name=crtbeginT.o`
+static-postctor = `$(CC) $(sysdep-LDFLAGS) --print-file-name=crtend.o`
 ifeq (yes,$(enable-static-pie))
 # Static PIE must use PIE variants.
-+prectorT = $(+prectorS)
-+postctorT = $(+postctorS)
++prectorT = $(if $($(@F)-no-pie),$(static-prector),$(+prectorS))
++postctorT = $(if $($(@F)-no-pie),$(static-postctor),$(+postctorS))
 else
-+prectorT = `$(CC) $(sysdep-LDFLAGS) --print-file-name=crtbeginT.o`
-+postctorT = `$(CC) $(sysdep-LDFLAGS) --print-file-name=crtend.o`
++prectorT = $(static-prector)
++postctorT =$(static-postctor)
 endif
 csu-objpfx = $(common-objpfx)csu/
 elf-objpfx = $(common-objpfx)elf/
@@ -742,6 +778,11 @@ run-built-tests = yes
 endif
 endif
 
+# Whether to build the static math tests
+ifndef build-math-static-tests
+build-math-static-tests = no
+endif
+
 # Whether to stop immediately when a test fails.  Nonempty means to
 # stop, empty means not to stop.
 ifndef stop-on-test-failure
@@ -750,10 +791,12 @@ endif
 
 # How to run a program we just linked with our library.
 # The program binary is assumed to be $(word 2,$^).
+# We may require additional libraries from gcc (e.g. libgcc_s.so for exception
+# handling), which unfortunately somewhat breaks the isolation.
 built-program-file = $(dir $(word 2,$^))$(notdir $(word 2,$^))
 rtld-prefix = $(elf-objpfx)$(rtld-installed-name)			      \
 	      --library-path						      \
-	      $(rpath-link)$(patsubst %,:%,$(sysdep-library-path))
+	      $(rpath-link)$(patsubst %,:%,$(sysdep-library-path)):$(gnulib-extralibdir)
 ifeq (yes,$(build-shared))
 comma = ,
 sysdep-library-path = \
@@ -857,16 +900,12 @@ host-test-program-cmd = $(host-built-program-cmd)
 endif
 
 # Extra flags to pass to GCC.
-ifeq ($(all-warnings),yes)
-+gccwarn := -Wall -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wmissing-noreturn -Wmissing-prototypes -Wmissing-declarations -Wcomment -Wcomments -Wtrigraphs -Wsign-compare -Wfloat-equal -Wmultichar
-else
-+gccwarn := -Wall -Wwrite-strings
-endif
-+gccwarn += -Wundef
++gccwarn := -Wall -Wwrite-strings -Wundef $(cc-option-wimplicit-fallthrough)
 ifeq ($(enable-werror),yes)
 +gccwarn += -Werror
 endif
-+gccwarn-c = -Wstrict-prototypes -Wold-style-definition
++gccwarn-c = -Wstrict-prototypes -Wold-style-definition \
+  $(cc-option-wfree-labels) $(cc-option-wmissing-parameter-name)
 
 # We do not depend on the address of constants in different files to be
 # actually different, so allow the compiler to merge them all.
@@ -878,9 +917,10 @@ endif
 +math-flags = -frounding-math
 
 # Logically only "libnldbl", "nonlib" and "testsuite" should be using
-# -fno-math-errno. However due to GCC bug #88576, only "libm" can use
-# -fno-math-errno.
-+extra-math-flags = $(if $(filter libm,$(in-module)),-fno-math-errno,-fmath-errno)
+# -fno-math-errno. However due to GCC bug #88576, only "libm" and
+# "libmvec" can use -fno-math-errno.
++extra-math-flags = $(if $(filter libmvec libm,$(in-module)),\
+                      -fno-math-errno,-fmath-errno)
 
 # Use 64 bit time_t support for installed programs
 installed-modules = nonlib nscd ldconfig locale_programs \
@@ -984,6 +1024,18 @@ else
 +cflags += $(no-fortify-source)
 endif
 
+# Filter out LFS flags if compiler defines it by default.
++cflags += $(no-file-offset-bits-source)
+
+# Filter out 64 bit time_t flags if compiler defines it by default.
++cflags += $(no-time-bits-source)
+
+# Enable SFrame while compiling for stack backtracing.
+ifeq ($(enable-gsframe),yes)
+as-sframe = -Wa,--gsframe
+endif
++cflags += $(as-sframe)
+
 # Each sysdeps directory can contain header files that both will be
 # used to compile and will be installed.  Each can also contain an
 # include/ subdirectory, whose header files will be used to compile
@@ -998,7 +1050,8 @@ endif
 # current directory.
 +includes = -I$(..)include $(if $(subdir),$(objpfx:%/=-I%)) \
 	    $(+sysdep-includes) $(includes) \
-	    $(patsubst %/,-I%,$(..)) $(libio-include) -I. $(sysincludes)
+	    $(patsubst %/,-I%,$(..)) $(libio-include) \
+	    $(if $($(<F)-no-include-dot),,-I.) $(sysincludes)
 
 # Since libio has several internal header files, we use a -I instead
 # of many little headers in the include directory.
@@ -1131,11 +1184,7 @@ endif
 ifndef ASFLAGS
 ASFLAGS := $(filter -g% -fdebug-prefix-map=%,$(CFLAGS))
 endif
-override ASFLAGS += -Werror=undef $(ASFLAGS-config) $(asflags-cpu)
-
-ifndef BUILD_CC
-BUILD_CC = $(CC)
-endif
+override ASFLAGS += -Werror=undef $(ASFLAGS-config) $(asflags-cpu) $(as-sframe)
 
 move-if-change = $(SHELL) $(..)scripts/move-if-change
 
@@ -1238,7 +1287,7 @@ $(common-objpfx)dl-tunable-list.stmp: \
 		$(..)elf/dl-tunables.list \
 		$(wildcard $(subdirs:%=$(..)%/dl-tunables.list)) \
 		$(wildcard $(sysdirs:%=%/dl-tunables.list))
-	$(AWK) -f $^ > ${@:stmp=T}
+	LC_ALL=C $(AWK) -f $^ > ${@:stmp=T}
 	$(move-if-change) ${@:stmp=T} ${@:stmp=h}
 	touch $@
 
@@ -1357,15 +1406,10 @@ endif
 # dependencies and generate sorted-subdirs dynamically.
 all-subdirs = csu assert ctype locale intl catgets math setjmp signal	    \
 	      stdlib stdio-common libio malloc string wcsmbs time dirent    \
-	      grp pwd posix io termios resource misc socket sysvipc gmon    \
-	      gnulib iconv iconvdata wctype manual shadow gshadow po argp   \
+	      posix io termios resource misc socket sysvipc gmon            \
+	      gnulib iconv iconvdata wctype manual po argp                  \
 	      localedata timezone rt conform debug mathvec support	    \
 	      dlfcn elf
-
-ifeq ($(build-crypt),yes)
-all-subdirs += crypt
-rpath-dirs += crypt
-endif
 
 ifndef avoid-generated
 # sysd-sorted itself will contain rules making the sysd-sorted target

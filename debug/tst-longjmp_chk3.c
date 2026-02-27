@@ -1,5 +1,5 @@
 /* Make sure longjmp fortification catches bad signal stacks.
-   Copyright (C) 2013-2023 Free Software Foundation, Inc.
+   Copyright (C) 2013-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,13 +18,13 @@
 
 #include <setjmp.h>
 #include <signal.h>
+#include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
-static int do_test (void);
-#define TEST_FUNCTION do_test ()
-#include "../test-skeleton.c"
+#include <support/support.h>
 
-static char buf[SIGSTKSZ * 4];
+static char *buf;
 static jmp_buf jb;
 
 static void
@@ -53,8 +53,10 @@ do_test (void)
   set_fortify_handler (handler);
 
   /* Create a valid signal stack and enable it.  */
+  size_t bufsize = SIGSTKSZ * 4;
+  buf = xmalloc (bufsize);
   ss.ss_sp = buf;
-  ss.ss_size = sizeof (buf);
+  ss.ss_size = bufsize;
   ss.ss_flags = 0;
   if (sigaltstack (&ss, NULL) < 0)
     {
@@ -69,8 +71,8 @@ do_test (void)
 
   /* Shrink the signal stack so the jmpbuf is now invalid.
      We adjust the start & end to handle stacks that grow up & down.  */
-  ss.ss_sp = buf + sizeof (buf) / 2;
-  ss.ss_size = sizeof (buf) / 4;
+  ss.ss_sp = buf + bufsize / 2;
+  ss.ss_size = bufsize / 4;
   if (sigaltstack (&ss, NULL) < 0)
     {
       printf ("second sigaltstack failed: %m\n");
@@ -83,3 +85,5 @@ do_test (void)
   puts ("longjmp returned and shouldn't");
   return 1;
 }
+
+#include <support/test-driver.c>

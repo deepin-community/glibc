@@ -1,4 +1,4 @@
-/* Copyright (C) 2000-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2000-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@ ENTRY(__clone)
 	br	%r14
 error:
 	lhi	%r2,-EINVAL
+	lm	%r6,%r7,24(%r15)	/* Load registers.  */
 	j	SYSCALL_ERROR_LABEL
 PSEUDO_END (__clone)
 

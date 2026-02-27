@@ -1,4 +1,4 @@
-/* Copyright (C) 2017-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ static long int linux_sysconf (int name);
 long int
 __sysconf (int name)
 {
-  unsigned ctr;
+  uint64_t ctr;
 
   /* Unfortunately, the registers that contain the actual cache info
      (CCSIDR_EL1, CLIDR_EL1, and CSSELR_EL1) are protected by the Linux

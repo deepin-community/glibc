@@ -22,6 +22,10 @@ ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
                                --enable-hacker-mode
 endif
 
+ifneq ($(filter stage1 stage2,$(DEB_BUILD_PROFILES)),)
+    libc_extra_config_options += --disable-build-nscd
+endif
+
 ifdef WITH_SYSROOT
     libc_extra_config_options += --with-headers=$(WITH_SYSROOT)/$(includedir)
 endif
@@ -43,10 +47,6 @@ $(stamp)configure_%: $(stamp)config_sub_guess $(stamp)patch $(KERNEL_HEADER_DIR)
 	rm -f $(DEB_BUILDDIR)/configparms
 	echo "MIG = $(call xx,MIG)"               >> $(DEB_BUILDDIR)/configparms
 	echo "BUILD_CC = $(BUILD_CC)"             >> $(DEB_BUILDDIR)/configparms
-	echo "BUILD_CXX = $(BUILD_CXX)"           >> $(DEB_BUILDDIR)/configparms
-	echo "CFLAGS = $(HOST_CFLAGS)"            >> $(DEB_BUILDDIR)/configparms
-	echo "ASFLAGS = $(HOST_CFLAGS)"           >> $(DEB_BUILDDIR)/configparms
-	echo "BUILD_CFLAGS = $(BUILD_CFLAGS)"     >> $(DEB_BUILDDIR)/configparms
 	echo "LDFLAGS = "                         >> $(DEB_BUILDDIR)/configparms
 	echo "BASH := /bin/bash"                  >> $(DEB_BUILDDIR)/configparms
 	echo "KSH := /bin/bash"                   >> $(DEB_BUILDDIR)/configparms
@@ -98,8 +98,11 @@ endif
 	echo "---------------"; \
 	cd $(DEB_BUILDDIR) && \
 		CC="$(call xx,CC) -U_FILE_OFFSET_BITS -U_TIME_BITS" \
-		CXX=$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),:,"$(call xx,CXX)") \
+		CXX=$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),:,"$(call xx,CXX) -U_FILE_OFFSET_BITS -U_TIME_BITS") \
 		MIG="$(call xx,MIG)" \
+		CFLAGS="$(HOST_CFLAGS)" \
+		ASFLAGS="$(HOST_CFLAGS)" \
+		BUILD_CFLAGS="$(BUILD_CFLAGS)" \
 		AUTOCONF=false \
 		MAKEINFO=: \
 		$(CURDIR)/configure \
@@ -178,7 +181,7 @@ $(stamp)check_%: $(stamp)build_%
 	    echo "+---------------------------------------------------------------------+" ; \
 	    grep -E '^FAIL:' $(DEB_BUILDDIR)/tests.sum | sort ; \
 	    if ! echo $(DEB_VERSION) | grep -q -E '^Version:.*\+deb[0-9]+u[0-9]+' ; then \
-	        touch $@_failed ; \
+	        grep -E '^FAIL:' $(DEB_BUILDDIR)/tests.sum | sort > $@_failed ; \
 	    fi ; \
 	  else \
 	    echo "+---------------------------------------------------------------------+" ; \
@@ -200,6 +203,7 @@ build-arch-post-check: $(patsubst %,$(stamp)check_%,$(GLIBC_PASSES))
 	for pass in $(patsubst %,$(stamp)check_%,$(GLIBC_PASSES)); do \
 	  if [ -f $${pass}_failed ]; then \
 	    echo "check for $$(basename $$pass) failed"; \
+	    sed -e 's/^/  /' $${pass}_failed ; \
 	    fail=1; \
 	  fi; \
 	done; \
@@ -210,14 +214,14 @@ build-arch-post-check: $(patsubst %,$(stamp)check_%,$(GLIBC_PASSES))
 # build-dependency makes sure that the correct version is used, as
 # the format might change between upstream versions.
 ifeq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
-ICONVCONFIG = $(CURDIR)/$(DEB_BUILDDIRLIBC)/elf/ld.so --library-path $(CURDIR)/$(DEB_BUILDDIRLIBC) \
+ICONVCONFIG = $(CURDIR)/$(DEB_BUILDDIRLIBC)/elf/ld.so --library-path $(CURDIR)/$(DEB_BUILDDIRLIBC):$(CURDIR)/$(DEB_BUILDDIRLIBC)/mach:$(CURDIR)/$(DEB_BUILDDIRLIBC)/hurd \
 	      $(CURDIR)/$(DEB_BUILDDIRLIBC)/iconv/iconvconfig
 else
 ICONVCONFIG = /usr/sbin/iconvconfig
 endif
 
 $(patsubst %,install_%,$(GLIBC_PASSES)) :: install_% : $(stamp)install_%
-$(stamp)install_%: $(stamp)build_%
+$(stamp)install_%: $(stamp)build_libc $(stamp)build_%
 	@echo Installing $(curpass)
 	rm -rf $(CURDIR)/$(debian-tmp)
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
@@ -271,11 +275,9 @@ endif
 	  conffile="$(debian-tmp)/etc/ld.so.conf.d/$(DEB_HOST_MULTIARCH).conf"; \
 	  echo "# Multiarch support" > $$conffile; \
 	  echo "/usr/local/lib/$(DEB_HOST_MULTIARCH)" >> $$conffile; \
-	  echo "$(call xx,slibdir)" >> $$conffile; \
 	  echo "$(call xx,libdir)" >> $$conffile; \
 	  if [ "$(DEB_HOST_GNU_TYPE)" != "$(DEB_HOST_MULTIARCH)" ]; then \
 	    echo "/usr/local/lib/$(DEB_HOST_GNU_TYPE)" >> $$conffile; \
-	    echo "/lib/$(DEB_HOST_GNU_TYPE)" >> $$conffile; \
 	    echo "/usr/lib/$(DEB_HOST_GNU_TYPE)" >> $$conffile; \
 	  fi; \
 	  mkdir -p $(debian-tmp)/usr/include/$(DEB_HOST_MULTIARCH); \
@@ -299,7 +301,6 @@ ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	  mkdir -p $(debian-tmp)/etc/ld.so.conf.d; \
 	  conffile="$(debian-tmp)/etc/ld.so.conf.d/zz_$(curpass)-biarch-compat.conf"; \
 	  echo "# Legacy biarch compatibility support" > $$conffile; \
-	  echo "$(call xx,slibdir)" >> $$conffile; \
 	  echo "$(call xx,libdir)" >> $$conffile; \
 	  ;; \
 	esac
@@ -350,7 +351,7 @@ ifeq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
 LOCALEDEF = I18NPATH=$(CURDIR)/localedata \
 	    GCONV_PATH=$(CURDIR)/$(DEB_BUILDDIRLIBC)/iconvdata \
 	    LC_ALL=C \
-	    $(CURDIR)/$(DEB_BUILDDIRLIBC)/elf/ld.so --library-path $(CURDIR)/$(DEB_BUILDDIRLIBC) \
+	    $(CURDIR)/$(DEB_BUILDDIRLIBC)/elf/ld.so --library-path $(CURDIR)/$(DEB_BUILDDIRLIBC):$(CURDIR)/$(DEB_BUILDDIRLIBC)/mach:$(CURDIR)/$(DEB_BUILDDIRLIBC)/hurd \
 	    $(CURDIR)/$(DEB_BUILDDIRLIBC)/locale/localedef
 else
 LOCALEDEF = I18NPATH=$(CURDIR)/localedata \

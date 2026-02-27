@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -134,8 +134,9 @@ __tzfile_read (const char *file, size_t extra, char **extrap)
 	 and which is not the system wide default TZDEFAULT.  */
       if (__libc_enable_secure
 	  && ((*file == '/'
-	       && memcmp (file, TZDEFAULT, sizeof TZDEFAULT)
-	       && memcmp (file, default_tzdir, sizeof (default_tzdir) - 1))
+	       && strcmp (file, TZDEFAULT) != 0
+	       && (strncmp (file, default_tzdir, sizeof (default_tzdir) - 1)
+		   != 0))
 	      || strstr (file, "../") != NULL))
 	/* This test is certainly a bit too restrictive but it should
 	   catch all critical cases.  */

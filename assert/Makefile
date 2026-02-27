@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2023 Free Software Foundation, Inc.
+# Copyright (C) 1991-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -35,9 +35,11 @@ routines := \
 
 tests := \
   test-assert \
+  test-assert-2 \
   test-assert-perr \
   tst-assert-c++ \
   tst-assert-g++ \
+  tst-assert-sa-2025-0001 \
   # tests
 
 ifeq ($(have-cxx-thread_local),yes)

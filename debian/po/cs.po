@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glibc\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2023-01-03 21:34+0100\n"
+"POT-Creation-Date: 2025-01-02 16:30+0000\n"
 "PO-Revision-Date: 2023-01-09 16:49+0100\n"
 "Last-Translator: Miroslav Kure <kurem@debian.cz>\n"
 "Language-Team: Czech <debian-l10n-czech@lists.debian.org>\n"
@@ -57,6 +57,14 @@ msgstr ""
 "Vyberte, které locales se mají vygenerovat. Přednostně byste měli vybírat "
 "locales v kódování UTF-8 (obzvláště u nových instalací). Ostatní znakové "
 "sady jsou užitečné pro zpětnou kompatibilitu se staršími systémy a programy."
+
+#. Type: multiselect
+#. Description
+#: ../debhelper.in/locales.templates:1002
+msgid ""
+"Please note that the C, C.UTF-8 and POSIX locales are always available and "
+"do not need to be generated."
+msgstr ""
 
 #. Type: select
 #. Choices

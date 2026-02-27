@@ -1,5 +1,5 @@
 /* pthread_condattr_getclock.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,13 +17,18 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <pthread.h>
+#include <shlib-compat.h>
 #include <time.h>
-
 #include <pt-internal.h>
 
 int
-pthread_condattr_getclock (const pthread_condattr_t *attr, clockid_t * clock)
+__pthread_condattr_getclock (const pthread_condattr_t *attr, clockid_t * clock)
 {
   *clock = attr->__clock;
   return 0;
 }
+versioned_symbol (libc, __pthread_condattr_getclock, pthread_condattr_getclock, GLIBC_2_41);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_41)
+compat_symbol (libpthread, __pthread_condattr_getclock, pthread_condattr_getclock, GLIBC_2_12);
+#endif

@@ -1,5 +1,5 @@
 /* Return the canonical absolute name of a given file.
-   Copyright (C) 1996-2023 Free Software Foundation, Inc.
+   Copyright (C) 1996-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -36,17 +36,19 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <eloop-threshold.h>
 #include <filename.h>
 #include <idx.h>
 #include <intprops.h>
 #include <scratch_buffer.h>
 
 #ifdef _LIBC
+# include <min-eloop-threshold.h>
 # include <shlib-compat.h>
 # define GCC_LINT 1
 # define _GL_ATTRIBUTE_PURE __attribute__ ((__pure__))
 #else
+# include <eloop-threshold.h>
+# define MIN_ELOOP_THRESHOLD __eloop_threshold ()
 # define __canonicalize_file_name canonicalize_file_name
 # define __realpath realpath
 # define __strdup strdup
@@ -310,7 +312,7 @@ realpath_stk (const char *name, char *resolved, struct realpath_bufs *bufs)
             }
           if (0 <= n)
             {
-              if (++num_links > __eloop_threshold ())
+              if (++num_links > MIN_ELOOP_THRESHOLD)
                 {
                   __set_errno (ELOOP);
                   goto error;

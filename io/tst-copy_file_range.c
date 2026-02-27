@@ -1,5 +1,5 @@
 /* Tests for copy_file_range.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -117,7 +117,7 @@ simple_file_copy (void)
     TEST_COMPARE (xlseek (outfd, 0, SEEK_CUR), 6 + length);
 
   struct stat64 st;
-  xfstat (outfd, &st);
+  xfstat64 (outfd, &st);
   if (length > 0)
     TEST_COMPARE (st.st_size, out_skipped + length);
   else

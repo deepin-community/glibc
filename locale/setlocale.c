@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -52,7 +52,7 @@ static char *const _nl_current_used[] =
 # undef	DEFINE_CATEGORY
   };
 
-# define CATEGORY_USED(category)	(_nl_current_used[category] != 0)
+# define CATEGORY_USED(category)	(_nl_current_used[category] != NULL)
 
 #else
 

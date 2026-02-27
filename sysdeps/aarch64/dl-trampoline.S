@@ -1,4 +1,4 @@
-/* Copyright (C) 2005-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2005-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -22,12 +22,11 @@
 #include "dl-link.h"
 
 #define ip0 x16
-#define ip0l PTR_REG (16)
 #define ip1 x17
 #define lr  x30
 
 /* RELA relocatons are 3 pointers */
-#define RELA_SIZE (PTR_SIZE * 3)
+#define RELA_SIZE 24
 
 	.text
 	.globl _dl_runtime_resolve
@@ -35,7 +34,7 @@
 	cfi_startproc
 	.align 2
 _dl_runtime_resolve:
-	BTI_C
+	bti	c
 	/* AArch64 we get called with:
 	   ip0		&PLTGOT[2]
 	   ip1		temp(dl resolver entry point)
@@ -85,7 +84,7 @@ _dl_runtime_resolve:
 	cfi_rel_offset (q1, 80+7*16)
 
 	/* Get pointer to linker struct.  */
-	ldr	PTR_REG (0), [ip0, #-PTR_SIZE]
+	ldr	x0, [ip0, -8]
 
 	/* Prepare to call _dl_fixup().  */
 	ldr	x1, [sp, 80+8*16]	/* Recover &PLTGOT[n] */
@@ -122,18 +121,14 @@ _dl_runtime_resolve:
 
 	cfi_endproc
 	.size _dl_runtime_resolve, .-_dl_runtime_resolve
-#ifndef PROF
+#if !defined PROF && defined SHARED
 	.globl _dl_runtime_profile
 	.type _dl_runtime_profile, #function
 	cfi_startproc
 	.align 2
 _dl_runtime_profile:
-# if HAVE_AARCH64_PAC_RET
-	PACIASP
-	cfi_window_save
-# else
-	BTI_C
-# endif
+	paciasp
+	cfi_negate_ra_state
 	/* AArch64 we get called with:
 	   ip0		&PLTGOT[2]
 	   ip1		temp(dl resolver entry point)
@@ -209,7 +204,7 @@ _dl_runtime_profile:
 	stp	x0, x1, [x29, #OFFSET_RG + DL_OFFSET_RG_SP]
 
 	/* Get pointer to linker struct.  */
-	ldr	PTR_REG (0), [ip0, #-PTR_SIZE]
+	ldr	x0, [ip0, -8]
 
 	/* Prepare to call _dl_profile_fixup().  */
 	ldr	x1, [x29, OFFSET_PLTGOTN]	/* Recover &PLTGOT[n] */
@@ -228,8 +223,8 @@ _dl_runtime_profile:
 	add	x4, x29, #OFFSET_FS		/* address of framesize */
 	bl	_dl_profile_fixup
 
-	ldr	ip0l, [x29, #OFFSET_FS]		/* framesize == 0 */
-	cmp	ip0l, #0
+	ldr	ip0, [x29, #OFFSET_FS]		/* framesize == 0 */
+	cmp	ip0, #0
 	bge	1f
 	cfi_remember_state
 
@@ -252,17 +247,12 @@ _dl_runtime_profile:
 	cfi_restore(x29)
 	cfi_restore(x30)
 
-# if HAVE_AARCH64_PAC_RET
 	add	sp, sp, SF_SIZE
 	cfi_adjust_cfa_offset (-SF_SIZE)
-	AUTIASP
-	cfi_window_save
+	autiasp
+	cfi_negate_ra_state
 	add	sp, sp, 16
 	cfi_adjust_cfa_offset (-16)
-# else
-	add	sp, sp, SF_SIZE + 16
-	cfi_adjust_cfa_offset (- SF_SIZE - 16)
-# endif
 
 	/* Jump to the newly found address.  */
 	br	ip0
@@ -271,7 +261,7 @@ _dl_runtime_profile:
 1:
 	/* The new frame size is in ip0.  */
 
-	sub	PTR_REG (1), PTR_REG (29), ip0l
+	sub	x1, x29, ip0
 	and	sp, x1, #0xfffffffffffffff0
 
 	str	x0, [x29, #OFFSET_T1]
@@ -322,10 +312,8 @@ _dl_runtime_profile:
 	/* LR from within La_aarch64_reg */
 	ldr	lr, [x29, #OFFSET_RG + DL_OFFSET_RG_LR]
 	cfi_restore(lr)
-# if HAVE_AARCH64_PAC_RET
 	/* Note: LR restored from La_aarch64_reg has no PAC.  */
-	cfi_window_save
-# endif
+	cfi_negate_ra_state
 	mov	sp, x29
 	cfi_def_cfa_register (sp)
 	ldr	x29, [x29, #0]

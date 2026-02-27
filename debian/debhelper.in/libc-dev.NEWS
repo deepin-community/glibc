@@ -1,3 +1,13 @@
+glibc (2.42-7) unstable; urgency=medium
+
+  Starting with glibc 2.42, the termio interface has been removed. This means
+  that the <termio.h> header and the definition of struct termio in
+  <sys/ioctl.h> are no longer available. The termio interface has been obsolete
+  since the very first version of POSIX.1 in 1988, and is replaced by the
+  termios interface.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 04 Jan 2026 10:07:24 +0100
+
 glibc (2.34-1) unstable; urgency=medium
 
   Starting with glibc 2.31, Sun RPC is removed from glibc. This includes the

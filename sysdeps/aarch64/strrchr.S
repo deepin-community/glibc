@@ -1,6 +1,6 @@
 /* strrchr: find the last instance of a character in a string.
 
-   Copyright (C) 2014-2023 Free Software Foundation, Inc.
+   Copyright (C) 2014-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -55,7 +55,6 @@
    if the relevant byte matched the NUL end of string.  */
 
 ENTRY (strrchr)
-	PTR_ARG (0)
 	bic	src, srcin, 15
 	dup	vrepchr.16b, chrin
 	movi	vrepmask.16b, 0x33

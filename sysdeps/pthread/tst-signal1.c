@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@
 #include <sys/wait.h>
 
 #include <support/xunistd.h>
+#include <support/xsignal.h>
 
 static sigset_t ss;
 static pthread_barrier_t *b;
@@ -93,6 +94,8 @@ receiver (void)
 static int
 do_test (void)
 {
+  xsignal (SIGINT, SIG_DFL);
+
   char tmp[] = "/tmp/tst-signal1-XXXXXX";
 
   int fd = mkstemp (tmp);

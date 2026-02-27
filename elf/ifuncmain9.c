@@ -1,5 +1,5 @@
 /* Test for IFUNC handling with local definitions.
-   Copyright (C) 2019-2023 Free Software Foundation, Inc.
+   Copyright (C) 2019-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,9 +20,11 @@
 
 #include <config.h>
 
-# include <stdbool.h>
-# include <stdio.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <libc-diag.h>
 
+#if __GNUC_PREREQ (5, 5)
 /* Do not use the test framework, so that the process setup is not
    disturbed.  */
 
@@ -40,6 +42,8 @@ implementation (void)
   return random_constant;
 }
 
+DIAG_PUSH_NEEDS_COMMENT_CLANG;
+DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wunused-function");
 static __typeof__ (implementation) *
 inhibit_stack_protector
 resolver (void)
@@ -49,6 +53,7 @@ resolver (void)
 }
 
 static int magic (void) __attribute__ ((ifunc ("resolver")));
+DIAG_POP_NEEDS_COMMENT_CLANG;
 
 int
 main (void)
@@ -90,3 +95,12 @@ main (void)
 
   return errors;
 }
+#else
+#include <support/test-driver.h>
+
+int
+main (void)
+{
+  return EXIT_UNSUPPORTED;
+}
+#endif

@@ -1,5 +1,5 @@
 /* Test memset functions.
-   Copyright (C) 1999-2023 Free Software Foundation, Inc.
+   Copyright (C) 1999-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -64,7 +64,7 @@ IMPL (MEMSET, 1)
 
 /* Naive implementation to verify results.  */
 CHAR *
-inhibit_loop_to_libcall
+test_cc_inhibit_loop_to_libcall
 SIMPLE_MEMSET (CHAR *s, int c, size_t n)
 {
   CHAR *r = s, *end = s + n;

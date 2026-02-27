@@ -1,5 +1,5 @@
 /* Test handling of CNAMEs with non-host domain names (bug 12154).
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -310,8 +310,8 @@ check_reverse (int af, int bits, int count)
   socklen_t addrlen;
   if (af == AF_INET)
     {
-      addr[0] = 192;
-      addr[1] = 168;
+      addr[0] = (char) 192;
+      addr[1] = (char) 168;
       addr[2] = count;
       addr[3] = bits;
       addrlen = 4;

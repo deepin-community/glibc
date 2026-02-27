@@ -1,7 +1,7 @@
 /* copy no more than N bytes from SRC to DEST, returning the address of
    the terminating '\0' in DEST.
    For Intel 80x86, x>=3.
-   Copyright (C) 1994-2023 Free Software Foundation, Inc.
+   Copyright (C) 1994-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -139,4 +139,6 @@ L(9):	popl %esi		/* restore saved register content */
 END (__stpncpy)
 
 libc_hidden_def (__stpncpy)
+#ifndef __stpncpy
 weak_alias (__stpncpy, stpncpy)
+#endif

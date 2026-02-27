@@ -1,5 +1,5 @@
 /* Add two struct timespec values.
-   Copyright (C) 2011-2023 Free Software Foundation, Inc.
+   Copyright (C) 2011-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library and is also part of gnulib.
    Patches to this file should be submitted to both projects.
 
@@ -20,7 +20,6 @@
 /* Return the sum of two timespec values A and B.  On overflow, return
    an extremal value.  This assumes 0 <= tv_nsec < TIMESPEC_HZ.  */
 
-#include <config.h>
 #include "timespec.h"
 
 #include "intprops.h"

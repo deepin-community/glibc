@@ -1,4 +1,4 @@
-# Copyright (C) 1995-2023 Free Software Foundation, Inc.
+# Copyright (C) 1995-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -160,9 +160,11 @@ tests := \
   test-wcsncmp \
   test-wcsncpy \
   test-wcsnlen \
+  test-wcsnlen-nonarray \
   test-wcspbrk \
   test-wcsrchr \
   test-wcsspn \
+  test-wcsstr \
   test-wmemchr \
   test-wmemcmp \
   test-wmemset \
@@ -179,27 +181,34 @@ tests := \
   tst-wcpncpy \
   tst-wcrtomb \
   tst-wcslcat \
+  tst-wcslcat2 \
   tst-wcslcpy \
+  tst-wcslcpy2 \
   tst-wcsnlen \
   tst-wcstod-nan-locale \
   tst-wcstod-nan-sign \
   tst-wcstod-round \
   tst-wcstof \
   tst-wcstol-binary-c11 \
-  tst-wcstol-binary-c2x \
+  tst-wcstol-binary-c23 \
   tst-wcstol-binary-gnu11 \
-  tst-wcstol-binary-gnu2x \
+  tst-wcstol-binary-gnu23 \
   tst-wcstol-locale \
   tst-wprintf-binary \
   tst-wprintf-intn \
   tst-wscanf-binary-c11 \
-  tst-wscanf-binary-c2x \
+  tst-wscanf-binary-c23 \
   tst-wscanf-binary-gnu11 \
   tst-wscanf-binary-gnu89 \
+  tst-wscanf-intn \
   tst-wscanf-to_inpunct \
   wcsatcliff \
   wcsmbs-tst1 \
   # tests
+
+# This test runs for a long time.
+xtests += test-wcsncmp-nonarray
+
 
 include ../Rules
 
@@ -255,7 +264,7 @@ CFLAGS-wcstod_l.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
 CFLAGS-wcstold_l.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
 CFLAGS-wcstof128_l.c += $(strtox-CFLAGS)
 CFLAGS-wcstof_l.c += $(strtox-CFLAGS) $(config-cflags-wno-ignored-attributes)
-CPPFLAGS-tst-wchar-h.c += $(no-fortify-source),-D_FORTIFY_SOURCE=2
+CPPFLAGS-tst-wchar-h.c += $(no-fortify-source) -D_FORTIFY_SOURCE=2
 
 CFLAGS-wcschr.c += $(config-cflags-wno-ignored-attributes)
 CFLAGS-wmemchr.c += $(config-cflags-wno-ignored-attributes)
@@ -282,14 +291,15 @@ CPPFLAGS-wcstold_l.c += -I../stdlib
 $(objpfx)tst-wcstod-nan-locale: $(libm)
 $(objpfx)tst-wcstod-nan-sign: $(libm)
 
-# Some versions of GCC supported for building glibc do not support -std=c2x
-# or -std=gnu2x, so the tests for those versions use -std=c11 and -std=gnu11
-# and then _ISOC2X_SOURCE is defined in the test as needed.
+# Some versions of GCC supported for building glibc do not support -std=c23
+# or -std=gnu23 (added in GCC 14), or the older names -std=c2x or -std=gnu2x
+# (added in GCC 9), so the tests for those versions use -std=c11 and -std=gnu11
+# and then _ISOC23_SOURCE is defined in the test as needed.
 CFLAGS-tst-wcstol-binary-c11.c += -std=c11
-CFLAGS-tst-wcstol-binary-c2x.c += -std=c11
+CFLAGS-tst-wcstol-binary-c23.c += -std=c11
 CFLAGS-tst-wcstol-binary-gnu11.c += -std=gnu11
-CFLAGS-tst-wcstol-binary-gnu2x.c += -std=gnu11
+CFLAGS-tst-wcstol-binary-gnu23.c += -std=gnu11
 CFLAGS-tst-wscanf-binary-c11.c += -std=c11 -DOBJPFX=\"$(objpfx)\"
-CFLAGS-tst-wscanf-binary-c2x.c += -std=c11 -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-wscanf-binary-c23.c += -std=c11 -DOBJPFX=\"$(objpfx)\"
 CFLAGS-tst-wscanf-binary-gnu11.c += -std=gnu11 -DOBJPFX=\"$(objpfx)\"
 CFLAGS-tst-wscanf-binary-gnu89.c += -std=gnu89 -DOBJPFX=\"$(objpfx)\"

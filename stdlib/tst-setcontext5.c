@@ -1,5 +1,5 @@
 /* Check multiple setcontext calls.
-   Copyright (C) 2018-2023 Free Software Foundation, Inc.
+   Copyright (C) 2018-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ static volatile int done;
 static void f2 (void);
 
 static void
-__attribute__ ((noinline, noclone))
+__attribute_optimization_barrier__
 f1 (void)
 {
   printf ("start f1\n");
@@ -35,7 +35,7 @@ f1 (void)
 }
 
 static void
-__attribute__ ((noinline, noclone))
+__attribute_optimization_barrier__
 f2 (void)
 {
   printf ("start f2\n");

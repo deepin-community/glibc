@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@
 # pragma weak __nss_module_freeres
 # pragma weak __nss_action_freeres
 # pragma weak __nss_database_freeres
-# pragma weak __dl_libc_freemem
 # pragma weak __hdestroy
 # pragma weak __gconv_cache_freemem
 # pragma weak __gconv_conf_freemem
@@ -136,7 +135,6 @@ __libc_freeres (void)
       _IO_cleanup ();
 
       /* We run the resource freeing after IO cleanup.  */
-      call_function_static_weak (__dl_libc_freemem);
       call_function_static_weak (__hdestroy);
       call_function_static_weak (__gconv_cache_freemem);
       call_function_static_weak (__gconv_conf_freemem);

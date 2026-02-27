@@ -1,5 +1,5 @@
 /* pthread_mutexattr_destroy.  Hurd version.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,5 +29,5 @@ __pthread_mutexattr_destroy (pthread_mutexattr_t *attrp)
   (void) attrp;
   return 0;
 }
-
+hidden_def (__pthread_mutexattr_destroy)
 weak_alias (__pthread_mutexattr_destroy, pthread_mutexattr_destroy)

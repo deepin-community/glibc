@@ -1,5 +1,5 @@
 /* Test locale dependence of strfmon_l.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -181,12 +181,12 @@ static const struct locale_pair tests[] =
       "hr_HR.UTF-8",
       {
         {
-          "HRK 1.234.567,89", "1.234.567,89 kn",
-          "HRK 1234567,89", "1234567,89 kn"
+          "EUR 1.234.567,89", "1.234.567,89 €",
+          "EUR 1234567,89", "1234567,89 €"
         },
         {
-          "-HRK 1.234.567,89", "-1.234.567,89 kn",
-          "-HRK 1234567,89", "-1234567,89 kn"
+          "-EUR 1.234.567,89", "-1.234.567,89 €",
+          "-EUR 1234567,89", "-1234567,89 €"
         }
       }
     },

@@ -1,5 +1,5 @@
 /* Bits in the PREFERRED_FEATURE_INDEX_1 bitfield of <cpu-features.h>.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,3 +33,5 @@ BIT (Prefer_No_AVX512)
 BIT (MathVec_Prefer_No_AVX512)
 BIT (Prefer_FSRM)
 BIT (Avoid_Short_Distance_REP_MOVSB)
+BIT (Avoid_Non_Temporal_Memset)
+BIT (Avoid_STOSB)

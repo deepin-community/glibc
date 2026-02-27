@@ -1,13 +1,13 @@
 # Translation of glibc debconf templates to German
-# Copyright (C) Helge Kreutzmann <debian@helgefjell.de>, 2006-2009, 2011, 2016, 2017, 2023.
+# Copyright (C) Helge Kreutzmann <debian@helgefjell.de>, 2006-2009, 2011, 2016, 2017, 2023, 2025.
 # This file is distributed under the same license as the glibc package.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: glibc 2.36-7\n"
+"Project-Id-Version: glibc 2.40-5\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2023-01-03 21:34+0100\n"
-"PO-Revision-Date: 2023-01-03 09:57+0100\n"
+"POT-Creation-Date: 2025-01-02 16:30+0000\n"
+"PO-Revision-Date: 2025-01-07 09:11+0100\n"
 "Last-Translator: Helge Kreutzmann <debian@helgefjell.de>\n"
 "Language-Team: de <debian-l10n-german@lists.debian.org>\n"
 "Language: German\n"
@@ -50,6 +50,16 @@ msgstr ""
 "sollten standardmäßig ausgewählt werden, insbesondere für neue "
 "Installationen. Andere Zeichensätze könnten für Rückkompatibilität mit "
 "älteren Systemen und Software nützlich sein."
+
+#. Type: multiselect
+#. Description
+#: ../debhelper.in/locales.templates:1002
+msgid ""
+"Please note that the C, C.UTF-8 and POSIX locales are always available and "
+"do not need to be generated."
+msgstr ""
+"Bitte beachten Sie, dass die Locales C, C.UTF-8 und POSIX immer verfügbar "
+"sind und nicht erstellt werden müssen."
 
 #. Type: select
 #. Choices

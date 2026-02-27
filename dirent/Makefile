@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2023 Free Software Foundation, Inc.
+# Copyright (C) 1991-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -22,16 +22,64 @@ subdir		:= dirent
 
 include ../Makeconfig
 
-headers		:= dirent.h bits/dirent.h bits/dirent_ext.h
-routines	:= opendir closedir readdir readdir_r rewinddir \
-		   seekdir telldir scandir alphasort versionsort \
-		   getdents getdents64 dirfd readdir64 readdir64_r scandir64 \
-		   alphasort64 versionsort64 fdopendir \
-		   scandirat scandirat64 \
-		   scandir-cancel scandir-tail scandir64-tail
+headers := \
+  bits/dirent.h \
+  bits/dirent_ext.h \
+  dirent.h \
+  # headers
+routines := \
+  alphasort \
+  alphasort64 \
+  closedir \
+  dirfd \
+  fdopendir \
+  getdents \
+  getdents64 \
+  opendir \
+  readdir \
+  readdir64 \
+  readdir64_r \
+  readdir_r \
+  rewinddir \
+  scandir \
+  scandir-cancel \
+  scandir-tail \
+  scandir64 \
+  scandir64-tail \
+  scandirat \
+  scandirat64 \
+  seekdir \
+  telldir \
+  versionsort \
+  versionsort64 \
+  # routines
 
-tests	   := list tst-seekdir opendir-tst1 bug-readdir1 tst-fdopendir \
-	      tst-fdopendir2 tst-scandir tst-scandir64
+tests := \
+  bug-readdir1 \
+  list \
+  opendir-tst1 \
+  tst-closedir-leaks \
+  tst-fdopendir \
+  tst-fdopendir2 \
+  tst-readdir-long \
+  tst-readdir-zero-inode \
+  tst-rewinddir \
+  tst-scandir \
+  tst-scandir64 \
+  tst-seekdir \
+  # tests
+
+ifeq ($(run-built-tests),yes)
+ifneq ($(PERL),no)
+generated += \
+  $(objpfx)tst-closedir-leaks-mem.out \
+  # generated
+
+tests-special += \
+  $(objpfx)tst-closedir-leaks-mem.out \
+  # tests-special
+endif # $(PERL) ! no
+endif # $(run-built-tests) == yes
 
 CFLAGS-scandir.c += $(uses-callbacks)
 CFLAGS-scandir64.c += $(uses-callbacks)
@@ -42,3 +90,10 @@ CFLAGS-dirfd.c += $(config-cflags-wno-ignored-attributes)
 include ../Rules
 
 opendir-tst1-ARGS = --test-dir=${common-objpfx}dirent
+
+tst-closedir-leaks-ENV += MALLOC_TRACE=$(objpfx)tst-closedir-leaks.mtrace \
+		   LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
+
+$(objpfx)tst-closedir-leaks-mem.out: $(objpfx)tst-closedir-leaks.out
+	$(common-objpfx)malloc/mtrace $(objpfx)tst-closedir-leaks.mtrace > $@; \
+	$(evaluate-test)

@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ __sbrk (intptr_t increment)
 #endif
 
   if (update_brk)
-    if (__brk (0) < 0)		/* Initialize the break.  */
+    if (__brk (NULL) < 0)		/* Initialize the break.  */
       return (void *) -1;
 
   if (increment == 0)

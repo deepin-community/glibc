@@ -16,11 +16,13 @@ Samuel Thibault  <samuel.thibault@ens-lyon.org>
 	* hurd/Makefile (user-interfaces): Add auth_request and
 	auth_reply.
 
+FIXME: this doesn't actually check uid/gid.
+
 ---
  hurd/Makefile               |    2 
  sysdeps/mach/hurd/recvmsg.c |  137 ++++++++++++++++++++++++++++++++++++++++++++
  sysdeps/mach/hurd/sendmsg.c |   36 +++++++++++
- 3 files changed, 174 insertions(+), 1 deletion(-)
+ 3 files changed, 175 insertions(+)
 
 --- a/sysdeps/mach/hurd/recvmsg.c
 +++ b/sysdeps/mach/hurd/recvmsg.c
@@ -59,8 +61,8 @@ Samuel Thibault  <samuel.thibault@ens-lyon.org>
 +		    int ngroups, __gid_t groups[ngroups])
 +{
 +  error_t err;
-+  size_t neuids = CMGROUP_MAX, nauids = CMGROUP_MAX;
-+  size_t negids = CMGROUP_MAX, nagids = CMGROUP_MAX;
++  mach_msg_type_number_t neuids = CMGROUP_MAX, nauids = CMGROUP_MAX;
++  mach_msg_type_number_t negids = CMGROUP_MAX, nagids = CMGROUP_MAX;
 +  __uid_t euids_buf[neuids], auids_buf[nauids];
 +  __gid_t egids_buf[negids], agids_buf[nagids];
 +  __uid_t *euids = euids_buf, *auids = auids_buf;
@@ -70,7 +72,7 @@ Samuel Thibault  <samuel.thibault@ens-lyon.org>
 +  mach_msg_type_number_t pi_size = 0;
 +  int flags = PI_FETCH_TASKINFO;
 +  char *tw = NULL;
-+  size_t tw_size = 0;
++  mach_msg_type_number_t tw_size = 0;
 +  unsigned i;
 +
 +  err = __mach_port_mod_refs (mach_task_self (), rendezvous,
@@ -248,12 +250,12 @@ Samuel Thibault  <samuel.thibault@ens-lyon.org>
    if (addr)
 --- a/hurd/Makefile
 +++ b/hurd/Makefile
-@@ -29,7 +29,7 @@
- # The RPC interfaces go in a separate library.
+@@ -45,6 +45,8 @@ inline-headers = \
  interface-library := libhurduser
- user-interfaces		:= $(addprefix hurd/,\
--				       auth startup \
-+				       auth auth_request auth_reply startup \
- 				       process process_request \
- 				       msg msg_reply msg_request \
- 				       exec exec_startup crash interrupt \
+ user-interfaces := \
+   hurd/auth \
++  hurd/auth_reply \
++  hurd/auth_request \
+   hurd/crash \
+   hurd/exec \
+   hurd/exec_startup \

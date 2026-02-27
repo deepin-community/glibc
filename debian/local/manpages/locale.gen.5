@@ -15,9 +15,9 @@
 .\" along with this program; if not, write to the Free Software Foundation,
 .\" Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 .TH locale.gen 5 "July 2005" "Debian GNU/Linux"
-.SH "NAME"
+.SH NAME
 locale.gen \- Configuration file for locale-gen
-.SH "DESCRIPTION"
+.SH DESCRIPTION
 The file \fI/etc/locale.gen\fP lists the locales that are to be generated
 by the \fBlocale-gen\fP command.
 
@@ -25,9 +25,9 @@ Each line is of the form:
 
 <locale> <charset>
 
-where <locale> is one of the locales given in 
+where <locale> is one of the locales given in
 .B /usr/share/i18n/locales
-and <charset> is one of the character sets listed in 
+and <charset> is one of the character sets listed in
 .B /usr/share/i18n/charmaps
 
 The
@@ -35,7 +35,7 @@ The
 command will generate all the locales, placing them in
 \fB/usr/lib/locale\fP.
 
-.SH "SEE ALSO"
+.SH SEE ALSO
 \fBlocale-gen\fP(8), \fBlocaledef\fP(1), \fBlocale\fP(1)
-.SH "AUTHOR"
+.SH AUTHOR
 Alastair McKinstry <mckinstry@computer.org>

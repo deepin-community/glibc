@@ -1,6 +1,6 @@
 /* Test CPU feature data against __builtin_cpu_supports.
    This file is part of the GNU C Library.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -65,7 +65,7 @@ do_test (int argc, char **argv)
 #endif
   fails += CHECK_FEATURE_ACTIVE (avx, AVX);
   fails += CHECK_FEATURE_ACTIVE (avx2, AVX2);
-#if __GNUC_PREREQ (7, 0)
+#if __GNUC_PREREQ (7, 0) && !__GNUC_PREREQ (15, 0)
   fails += CHECK_FEATURE_ACTIVE (avx5124fmaps, AVX512_4FMAPS);
   fails += CHECK_FEATURE_ACTIVE (avx5124vnniw, AVX512_4VNNIW);
 #endif
@@ -92,14 +92,18 @@ do_test (int argc, char **argv)
 #if __GNUC_PREREQ (6, 0)
   fails += CHECK_FEATURE_ACTIVE (avx512bw, AVX512BW);
   fails += CHECK_FEATURE_ACTIVE (avx512cd, AVX512CD);
+# if !__GNUC_PREREQ (15, 0)
   fails += CHECK_FEATURE_ACTIVE (avx512er, AVX512ER);
+# endif
   fails += CHECK_FEATURE_ACTIVE (avx512dq, AVX512DQ);
 #endif
 #if __GNUC_PREREQ (5, 0)
   fails += CHECK_FEATURE_ACTIVE (avx512f, AVX512F);
 #endif
 #if __GNUC_PREREQ (6, 0)
+# if !__GNUC_PREREQ (15, 0)
   fails += CHECK_FEATURE_ACTIVE (avx512pf, AVX512PF);
+# endif
   fails += CHECK_FEATURE_ACTIVE (avx512vl, AVX512VL);
 #endif
 #if __GNUC_PREREQ (5, 0)
@@ -115,7 +119,7 @@ do_test (int argc, char **argv)
 #if __GNUC_PREREQ (11, 0)
   fails += CHECK_FEATURE_ACTIVE (cmpxchg16b, CMPXCHG16B);
   fails += CHECK_FEATURE_ACTIVE (cmpxchg8b, CX8);
-  fails += CHECK_FEATURE_ACTIVE (enqcmd, ENQCMD);
+  fails += CHECK_FEATURE_PRESENT (enqcmd, ENQCMD);
   fails += CHECK_FEATURE_ACTIVE (f16c, F16C);
 #endif
 #if __GNUC_PREREQ (4, 9)
@@ -148,7 +152,9 @@ do_test (int argc, char **argv)
 #endif
   fails += CHECK_FEATURE_ACTIVE (popcnt, POPCNT);
 #if __GNUC_PREREQ (11, 0)
+# if !__GNUC_PREREQ (15, 0)
   fails += CHECK_FEATURE_ACTIVE (prefetchwt1, PREFETCHWT1);
+# endif
   fails += CHECK_FEATURE_ACTIVE (ptwrite, PTWRITE);
   fails += CHECK_FEATURE_ACTIVE (rdpid, RDPID);
   fails += CHECK_FEATURE_ACTIVE (rdrnd, RDRAND);

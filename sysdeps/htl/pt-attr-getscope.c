@@ -1,5 +1,5 @@
 /* pthread_attr_getscope.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <pthread.h>
+#include <shlib-compat.h>
 #include <pt-internal.h>
 
 int
@@ -25,5 +26,8 @@ __pthread_attr_getscope (const pthread_attr_t *attr, int *contentionscope)
   *contentionscope = attr->__contentionscope;
   return 0;
 }
+versioned_symbol (libc, __pthread_attr_getscope, pthread_attr_getscope, GLIBC_2_21);
 
-weak_alias (__pthread_attr_getscope, pthread_attr_getscope);
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_21)
+compat_symbol (libc, __pthread_attr_getscope, pthread_attr_getscope, GLIBC_2_12);
+#endif

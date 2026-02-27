@@ -1,6 +1,6 @@
 /* Save current context.
 
-   Copyright (C) 2009-2023 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -30,7 +30,6 @@
 	.text
 
 ENTRY(__getcontext)
-	PTR_ARG (0)
 	/* The saved context will return to the getcontext() call point
 	   with a return value of 0 */
 	str	xzr,	  [x0, oX0 +  0 * SZREG]
@@ -83,15 +82,30 @@ ENTRY(__getcontext)
 	mrs	x4, fpcr
 	str	w4, [x3, oFPCR - oFPSR]
 
-	/* Write the termination context extension header.  */
 	add	x2, x2, #FPSIMD_CONTEXT_SIZE
 
+	/* Save the GCSPR.  */
+	mov	x16, 1 /* _CHKFEAT_GCS */
+	CHKFEAT_X16
+	tbnz	x16, 0, L(gcs_done)
+	mov	w3, #(GCS_MAGIC & 0xffff)
+	movk	w3, #(GCS_MAGIC >> 16), lsl #16
+	str	w3, [x2, #oHEAD + oMAGIC]
+	mov	w3, #GCS_CONTEXT_SIZE
+	str	w3, [x2, #oHEAD + oSIZE]
+	MRS_GCSPR (x4)
+	add	x4, x4, 8 /* GCS state right after getcontext returns.  */
+	str	x4, [x2, #oGCSPR]
+	add	x2, x2, #GCS_CONTEXT_SIZE
+L(gcs_done):
+
+	/* Write the termination context extension header.  */
 	str	wzr, [x2, #oHEAD + oMAGIC]
 	str	wzr, [x2, #oHEAD + oSIZE]
 
 	/* Grab the signal mask */
 	/* rt_sigprocmask (SIG_BLOCK, NULL, &ucp->uc_sigmask, _NSIG8) */
-	add	PTR_REG (2), PTR_REG (0), #UCONTEXT_SIGMASK
+	add	x2, x0, UCONTEXT_SIGMASK
 	mov	x0, SIG_BLOCK
 	mov	x1, 0
 	mov	x3, _NSIG8

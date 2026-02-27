@@ -1,5 +1,5 @@
 /* ucontext_t definition, OpenRISC version.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ typedef struct
     unsigned long int __gprs[__NGREG];
     unsigned long int __pc;
     unsigned long int __sr;
+    unsigned long int __fpcsr;
   } mcontext_t;
 
 /* Userlevel context.  */

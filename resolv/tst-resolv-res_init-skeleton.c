@@ -1,5 +1,5 @@
 /* Test parsing of /etc/resolv.conf.  Generic version.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -129,6 +129,7 @@ print_resp (FILE *fp, res_state resp)
         print_option_flag (fp, &options, RES_NORELOAD, "no-reload");
         print_option_flag (fp, &options, RES_TRUSTAD, "trust-ad");
         print_option_flag (fp, &options, RES_NOAAAA, "no-aaaa");
+        print_option_flag (fp, &options, RES_STRICTERR, "strict-error");
         fputc ('\n', fp);
         if (options != 0)
           fprintf (fp, "; error: unresolved option bits: 0x%x\n", options);
@@ -679,6 +680,16 @@ struct test_case test_cases[] =
      "; nameserver[0]: [192.0.2.1]:53\n",
      .res_options = "attempts:5 ndots:3 edns0 ",
     },
+    {.name = "RES_OPTIONS can clear flags",
+     .conf = "options ndots:2 use-vc no-aaaa edns0\n"
+     "nameserver 192.0.2.1\n",
+     .expected = "options ndots:3 use-vc\n"
+     "search example.com\n"
+     "; search[0]: example.com\n"
+     "nameserver 192.0.2.1\n"
+     "; nameserver[0]: [192.0.2.1]:53\n",
+     .res_options = "ndots:3 -edns0 -no-aaaa",
+    },
     {.name = "many search list entries (bug 19569)",
      .conf = "nameserver 192.0.2.1\n"
      "search corp.example.com support.example.com"
@@ -726,6 +737,15 @@ struct test_case test_cases[] =
      .conf = "options no-aaaa\n"
      "nameserver 192.0.2.1\n",
      .expected = "options no-aaaa\n"
+     "search example.com\n"
+     "; search[0]: example.com\n"
+     "nameserver 192.0.2.1\n"
+     "; nameserver[0]: [192.0.2.1]:53\n"
+    },
+    {.name = "strict-error flag",
+     .conf = "options strict-error\n"
+     "nameserver 192.0.2.1\n",
+     .expected = "options strict-error\n"
      "search example.com\n"
      "; search[0]: example.com\n"
      "nameserver 192.0.2.1\n"

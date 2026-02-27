@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  ARM version.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -65,7 +65,6 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 {
   Elf32_Addr *got;
   extern void _dl_runtime_resolve (Elf32_Word);
-  extern void _dl_runtime_profile (Elf32_Word);
 
   if (l->l_info[DT_JMPREL] && lazy)
     {
@@ -88,6 +87,8 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	 to intercept the calls to collect information.  In this case we
 	 don't store the address in the GOT so that all future calls also
 	 end in this function.  */
+#ifdef SHARED
+      extern void _dl_runtime_profile (Elf32_Word);
       if (profile)
 	{
 	  got[2] = (Elf32_Addr) &_dl_runtime_profile;
@@ -99,6 +100,7 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	    GL(dl_profile_map) = l;
 	}
       else
+#endif
 	/* This function will get called to fix up the GOT entry indicated by
 	   the offset on the stack, and then jump to the resolved address.  */
 	got[2] = (Elf32_Addr) &_dl_runtime_resolve;
@@ -137,7 +139,6 @@ _start:\n\
 _dl_start_user:\n\
 	adr	r6, .L_GET_GOT\n\
 	add	sl, sl, r6\n\
-	ldr	r4, [sl, r4]\n\
 	@ save the entry point in another register\n\
 	mov	r6, r0\n\
 	@ get the original arg count\n\
@@ -348,21 +349,9 @@ elf_machine_rel (struct link_map *map, struct r_scope_elem *scope[],
 	  break;
 	case R_ARM_ABS32:
 	  {
-	    struct unaligned
-	      {
-		Elf32_Addr x;
-	      } __attribute__ ((packed, may_alias));
+	    ElfW(Addr) tmp;
 # ifndef RTLD_BOOTSTRAP
-	   /* This is defined in rtld.c, but nowhere in the static
-	      libc.a; make the reference weak so static programs can
-	      still link.  This declaration cannot be done when
-	      compiling rtld.c (i.e.  #ifdef RTLD_BOOTSTRAP) because
-	      rtld.c contains the common defn for _dl_rtld_map, which
-	      is incompatible with a weak decl in the same file.  */
-#  ifndef SHARED
-	    weak_extern (_dl_rtld_map);
-#  endif
-	    if (map == &GL(dl_rtld_map))
+	    if (is_rtld_link_map (map))
 	      /* Undo the relocation done here during bootstrapping.
 		 Now we will relocate it anew, possibly using a
 		 binding found in the user program or a loaded library
@@ -371,7 +360,9 @@ elf_machine_rel (struct link_map *map, struct r_scope_elem *scope[],
 	      value -= SYMBOL_ADDRESS (map, refsym, true);
 # endif
 	    /* Support relocations on mis-aligned offsets.  */
-	    ((struct unaligned *) reloc_addr)->x += value;
+	    memcpy (&tmp, reloc_addr, sizeof tmp);
+	    tmp += value;
+	    memcpy (reloc_addr, &tmp, sizeof tmp);
 	    break;
 	  }
 	case R_ARM_TLS_DESC:

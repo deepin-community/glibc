@@ -1,5 +1,5 @@
 /* ___pthread_self variable.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +17,14 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <pt-sysdep.h>
+#include <pt-internal.h>
 
-__thread struct __pthread *___pthread_self;
+/* Initial thread structure used before libpthread is initialized, so various
+ * functions can already work at least basically.  */
+struct __pthread __pthread_init_thread = {
+	.thread = 1,
+};
+libc_hidden_def (__pthread_init_thread)
+
+__thread struct __pthread *___pthread_self = &__pthread_init_thread;
 libc_hidden_tls_def (___pthread_self)

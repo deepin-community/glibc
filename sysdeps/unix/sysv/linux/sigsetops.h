@@ -1,5 +1,5 @@
 /* __sigset_t manipulators.  Linux version.
-   Copyright (C) 1991-2023 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@
   (1UL << (((sig) - 1) % ULONG_WIDTH))
 
 /* Return the word index for SIG.  */
-static inline unsigned long int
+static inline int
 __sigword (int sig)
 {
   return (sig - 1) / ULONG_WIDTH;
@@ -66,7 +66,7 @@ static inline int
 __sigisemptyset (const sigset_t *set)
 {
   int cnt = __NSIG_WORDS;
-  int ret = set->__val[--cnt];
+  unsigned long int ret = set->__val[--cnt];
   while (ret == 0 && --cnt >= 0)
     ret = set->__val[cnt];
   return ret == 0;
@@ -92,7 +92,7 @@ static inline int
 __sigismember (const sigset_t *set, int sig)
 {
   unsigned long int mask = __sigmask (sig);
-  unsigned long int word = __sigword (sig);
+  int word = __sigword (sig);
   return set->__val[word] & mask ? 1 : 0;
 }
 
@@ -100,7 +100,7 @@ static inline void
 __sigaddset (sigset_t *set, int sig)
 {
   unsigned long int mask = __sigmask (sig);
-  unsigned long int word = __sigword (sig);
+  int word = __sigword (sig);
   set->__val[word] |= mask;
 }
 
@@ -108,7 +108,7 @@ static inline void
 __sigdelset (sigset_t *set, int sig)
 {
   unsigned long int mask = __sigmask (sig);
-  unsigned long int word = __sigword (sig);
+  int word = __sigword (sig);
   set->__val[word] &= ~mask;
 }
 

@@ -3,6 +3,8 @@
 #include <cstdio>
 #include "../dlfcn/dlfcn.h"
 
+extern template struct S<char>;
+
 int t = S<char>::i;
 
 int

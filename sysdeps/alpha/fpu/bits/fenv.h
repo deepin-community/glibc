@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -132,7 +132,7 @@ typedef unsigned long int fenv_t;
 extern unsigned long int __ieee_get_fp_control (void) __THROW;
 extern void __ieee_set_fp_control (unsigned long int __value) __THROW;
 
-#if __GLIBC_USE (IEC_60559_BFP_EXT_C2X)
+#if __GLIBC_USE (IEC_60559_BFP_EXT_C23)
 /* Type representing floating-point control modes.  */
 typedef unsigned long int femode_t;
 

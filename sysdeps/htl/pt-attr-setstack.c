@@ -1,5 +1,5 @@
 /* pthread_attr_setstack.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
 
 #include <pthread.h>
 #include <assert.h>
-
+#include <shlib-compat.h>
 #include <pt-internal.h>
 #include <pthreadP.h>
 
@@ -47,4 +47,9 @@ __pthread_attr_setstack (pthread_attr_t *attr, void *stackaddr, size_t stacksize
 
   return 0;
 }
-weak_alias (__pthread_attr_setstack, pthread_attr_setstack)
+libc_hidden_def (__pthread_attr_setstack)
+versioned_symbol (libc, __pthread_attr_setstack, pthread_attr_setstack, GLIBC_2_41);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_41)
+compat_symbol (libpthread, __pthread_attr_setstack, pthread_attr_setstack, GLIBC_2_12);
+#endif

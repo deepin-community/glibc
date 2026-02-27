@@ -1,5 +1,5 @@
 /* Save current context.
-   Copyright (C) 2005-2023 Free Software Foundation, Inc.
+   Copyright (C) 2005-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -67,6 +67,8 @@ ENTRY(__getcontext)
 	add	#(oFPUL+4-124),r0
 	sts.l	fpul, @-r0
 	sts.l	fpscr, @-r0
+	mov	#0, r6
+	lds	r6, fpscr
 	frchg
 	fmov.s	fr15, @-r0
 	fmov.s	fr14, @-r0
@@ -101,6 +103,10 @@ ENTRY(__getcontext)
 	fmov.s	fr2, @-r0
 	fmov.s	fr1, @-r0
 	fmov.s	fr0, @-r0
+	mov	r4, r0
+	add	#124, r0
+	add	#(oFPSCR-124), r0
+	lds.l	@r0+, fpscr
 #endif /* __SH_FPU_ANY__ */
 
 	/* sigprocmask (SIG_BLOCK, NULL, &uc->uc_sigmask).  */

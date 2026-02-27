@@ -27,7 +27,7 @@
  * SUCH DAMAGE.
  */
 
-/* Copyright (C) 2013-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2013-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -69,6 +69,8 @@ again:
 	if (*cp == 'x' || *cp == 'X')
 		digit = 0, base = 16, cp++;
 	while ((c = *cp) != 0) {
+		if (val > 0xff)
+			return (INADDR_NONE);
 		if (isdigit(c)) {
 			if (base == 8 && (c == '8' || c == '9'))
 				return (INADDR_NONE);

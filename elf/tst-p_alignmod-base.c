@@ -1,5 +1,5 @@
 /* Check alignment of PT_LOAD segment in a shared library.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@
 int foo __attribute__ ((aligned (ALIGN))) = 1;
 
 bool
-__attribute__ ((weak, noclone, noinline))
+__attribute__ ((weak)) __attribute_optimization_barrier__
 is_aligned_p (void *p, int align)
 {
   return (((uintptr_t) p) & (align - 1)) == 0;

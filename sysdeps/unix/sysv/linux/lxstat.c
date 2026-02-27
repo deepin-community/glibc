@@ -1,5 +1,5 @@
 /* lxstat using old-style Unix stat system call.
-   Copyright (C) 1991-2023 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ __lxstat (int vers, const char *name, struct stat *buf)
       {
 # if STAT_IS_KERNEL_STAT
 	/* New kABIs which uses generic pre 64-bit time Linux ABI,
-	   e.g. csky, nios2  */
+	   e.g. csky.  */
 	int r = INLINE_SYSCALL_CALL (fstatat64, AT_FDCWD, name, buf,
 				     AT_SYMLINK_NOFOLLOW);
 	return r ?: stat_overflow (buf);

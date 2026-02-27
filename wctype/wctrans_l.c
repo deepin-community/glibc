@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@ __wctrans_l (const char *property, locale_t locale)
     }
 
   if (names[0] == '\0')
-    return 0;
+    return NULL;
 
   i = locale->__locales[LC_CTYPE]->values[_NL_ITEM_INDEX (_NL_CTYPE_MAP_OFFSET)].word + cnt;
   return (wctrans_t) locale->__locales[LC_CTYPE]->values[i].string;

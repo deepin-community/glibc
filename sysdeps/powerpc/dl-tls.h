@@ -1,5 +1,5 @@
 /* Thread-local storage handling in the ELF dynamic linker.  PowerPC version.
-   Copyright (C) 2003-2023 Free Software Foundation, Inc.
+   Copyright (C) 2003-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -45,7 +45,6 @@ typedef struct
 #ifdef SHARED
 extern void *__tls_get_addr (tls_index *ti);
 
-# define GET_ADDR_OFFSET	(ti->ti_offset + TLS_DTV_OFFSET)
 # define __TLS_GET_ADDR(__ti)	(__tls_get_addr (__ti) - TLS_DTV_OFFSET)
 #endif
 

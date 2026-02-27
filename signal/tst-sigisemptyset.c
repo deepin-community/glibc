@@ -1,5 +1,5 @@
 /* Tests for sigisemptyset/sigorset/sigandset.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -87,6 +87,17 @@ do_test (void)
     sigfillset (&set);
     TEST_COMPARE (sigpending (&set), 0);
     TEST_COMPARE (sigisemptyset (&set), 1);
+  }
+
+  {
+    sigset_t set;
+    for (int sig = 1; sig <= NSIG; sig++)
+      {
+	sigemptyset (&set);
+	if (sigaddset (&set, sig) < 0)
+	  continue;
+	TEST_COMPARE (sigisemptyset (&set), 0);
+      }
   }
 
   return 0;

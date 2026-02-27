@@ -1,5 +1,5 @@
 /* Template generic NSS service provider.  See nss_test.h for usage.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,9 +28,9 @@
    to test known bad data.  */
 #define alloc_buffer_maybe_copy_string(b,s) s ? alloc_buffer_copy_string (b, s) : NULL;
 
-/* This file is the master template.  Other instances of this test
-   module should define NAME(x) to have their name instead of "test1",
-   then include this file.
+/* This file is both a standalone test and a parametrized template.
+   Other instances of this test module should define NAME(x) to have
+   their name instead of "test1", then include this file.
 */
 #define NAME_(x,n) _nss_##n##_##x
 #ifndef NAME

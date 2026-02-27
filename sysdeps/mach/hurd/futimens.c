@@ -1,5 +1,5 @@
 /* futimens -- change access and modification times of open file.  Hurd version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,9 @@ __futimens (int fd, const struct timespec tsp[2])
   struct timespec atime, mtime;
   error_t err;
 
-  utime_ts_from_tspec (tsp, &atime, &mtime);
+  err = utime_ts_from_tspec (tsp, &atime, &mtime);
+  if (err)
+    return err;
 
   err = HURD_DPORT_USE (fd, __file_utimens (port, atime, mtime));
 
@@ -40,7 +42,9 @@ __futimens (int fd, const struct timespec tsp[2])
     {
       time_value_t atim, mtim;
 
-      utime_tvalue_from_tspec (tsp, &atim, &mtim);
+      err = utime_tvalue_from_tspec (tsp, &atim, &mtim);
+      if (err)
+	return err;
 
       err = HURD_DPORT_USE (fd, __file_utimes (port, atim, mtim));
   }

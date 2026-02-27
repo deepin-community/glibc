@@ -1,5 +1,5 @@
 /* Useful functions for tests that use struct timespec.
-   Copyright (C) 2019-2023 Free Software Foundation, Inc.
+   Copyright (C) 2019-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ make_timespec (time_t s, long int ns)
 
 enum { TIMESPEC_HZ = 1000000000 };
 
-#ifndef __USE_TIME_BITS64
+#ifndef __USE_TIME64_REDIRECTS
 struct timespec timespec_add (struct timespec, struct timespec)
   __attribute__((const));
 struct timespec timespec_sub (struct timespec, struct timespec)

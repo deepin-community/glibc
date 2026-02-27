@@ -1,5 +1,5 @@
 /* pthread_attr_getguardsize.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,11 +17,17 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <pthread.h>
+#include <shlib-compat.h>
 #include <pt-internal.h>
 
 int
-pthread_attr_getguardsize (const pthread_attr_t *attr, size_t * guardsize)
+__pthread_attr_getguardsize (const pthread_attr_t *attr, size_t * guardsize)
 {
   *guardsize = attr->__guardsize;
   return 0;
 }
+versioned_symbol (libpthread, __pthread_attr_getguardsize, pthread_attr_getguardsize, GLIBC_2_41);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_41)
+compat_symbol (libpthread, __pthread_attr_getguardsize, pthread_attr_getguardsize, GLIBC_2_12);
+#endif

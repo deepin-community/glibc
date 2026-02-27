@@ -1,4 +1,4 @@
-# Copyright (C) 1997-2023 Free Software Foundation, Inc.
+# Copyright (C) 1997-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -57,6 +57,14 @@ tests = \
 	tst-iconv-opt \
 	# tests
 
+test-srcs := \
+	tst-translit-mchar \
+	# test-srcs
+
+tests-internal = \
+	tst-iconv-sticky-input-error \
+	# tests-internal
+
 others		= iconv_prog iconvconfig
 install-others-programs	= $(inst_bindir)/iconv
 install-sbin	= iconvconfig
@@ -72,7 +80,13 @@ include $(patsubst %,$(..)libof-iterator.mk,$(cpp-srcs-left))
 
 ifeq ($(run-built-tests),yes)
 xtests-special += $(objpfx)test-iconvconfig.out
-tests-special += $(objpfx)tst-iconv_prog.out
+tests-special += \
+	$(objpfx)tst-iconv_prog-buffer-large.out \
+	$(objpfx)tst-iconv_prog-buffer-tiny.out \
+	$(objpfx)tst-iconv_prog-buffer.out \
+	$(objpfx)tst-iconv_prog.out \
+	$(objpfx)tst-translit-mchar.out \
+	# tests-special
 endif
 
 # Make a copy of the file because gconv module names are constructed
@@ -91,6 +105,8 @@ $(objpfx)tst-gconv-init-failure-mod.so: $(libsupport)
 $(objpfx)tst-gconv-init-failure.out: \
  $(objpfx)gconv-modules $(objpfx)tst-gconv-init-failure-mod.so
 endif
+
+generated-dirs += tst-translit
 
 include ../Rules
 
@@ -125,4 +141,26 @@ $(objpfx)test-iconvconfig.out: $(objpfx)iconvconfig
 $(objpfx)tst-iconv_prog.out: tst-iconv_prog.sh $(objpfx)iconv_prog
 	$(BASH) $< $(common-objdir) '$(test-wrapper-env)' \
 		 '$(run-program-env)' > $@; \
+	$(evaluate-test)
+
+$(objpfx)tst-translit-mchar.out: tst-translit-mchar.sh \
+			$(objpfx)tst-translit-mchar \
+			tst-translit-locale
+	$(SHELL) $< $(common-objpfx) '$(run-program-prefix-before-env)' \
+		 '$(run-program-env)' '$(run-program-prefix-after-env)' \
+		 $< > $@; \
+	$(evaluate-test)
+
+$(objpfx)tst-iconv_prog-buffer.out: \
+  tst-iconv_prog-buffer.sh $(objpfx)iconv_prog
+	$(BASH) $< $(common-objdir) '$(run-program-prefix)' > $@; \
+	$(evaluate-test)
+$(objpfx)tst-iconv_prog-buffer-tiny.out: \
+  tst-iconv_prog-buffer.sh $(objpfx)iconv_prog
+	$(BASH) $< $(common-objdir) '$(run-program-prefix)' \
+	  '--buffer-size=1' > $@; \
+	$(evaluate-test)
+$(objpfx)tst-iconv_prog-buffer-large.out: \
+  tst-iconv_prog-buffer.sh $(objpfx)iconv_prog
+	$(BASH) $< $(common-objdir) '$(run-program-prefix)' '' '22' > $@; \
 	$(evaluate-test)

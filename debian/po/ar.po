@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ar\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2023-01-03 21:34+0100\n"
+"POT-Creation-Date: 2025-01-02 16:30+0000\n"
 "PO-Revision-Date: 2010-09-09 01:07+0300\n"
 "Last-Translator: Ossama Khayat <okhayat@yahoo.com>\n"
 "Language-Team: Arabic <support@arabeyes.org>\n"
@@ -53,6 +53,14 @@ msgstr ""
 "الرجاء اختيار المحليات التي تريد توليدها. يجب اختيار محليات UTF-8 بشكل "
 "افتراضي، وبالتحديد لعمليات التثبيت الجديدة. يمكن الاستفادة من مجموعات "
 "المحارف الأخرى للتوافق مع الأنظمة والبرامج القديمة."
+
+#. Type: multiselect
+#. Description
+#: ../debhelper.in/locales.templates:1002
+msgid ""
+"Please note that the C, C.UTF-8 and POSIX locales are always available and "
+"do not need to be generated."
+msgstr ""
 
 #. Type: select
 #. Choices

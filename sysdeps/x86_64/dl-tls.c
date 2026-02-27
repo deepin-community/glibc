@@ -1,5 +1,5 @@
 /* Thread-local storage handling in the ELF dynamic linker.  x86-64 version.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -36,15 +36,18 @@ hidden_ver (___tls_get_addr, __tls_get_addr)
 /* Only handle slow paths for __tls_get_addr.  */
 attribute_hidden
 void *
-__tls_get_addr_slow (GET_ADDR_ARGS)
+__tls_get_addr_slow (tls_index *ti)
 {
   dtv_t *dtv = THREAD_DTV ();
 
-  size_t gen = atomic_load_relaxed (&GL(dl_tls_generation));
-  if (__glibc_unlikely (dtv[0].counter != gen))
-    return update_get_addr (GET_ADDR_PARAM);
+  size_t gen = atomic_load_acquire (&GL(dl_tls_generation));
+  if (__glibc_unlikely (dtv[0].counter != gen)
+      /* See comment in __tls_get_addr in elf/dl-tls.c.  */
+      && !(_dl_tls_allocate_active ()
+           && ti->ti_module < _dl_tls_initial_modid_limit))
+    return update_get_addr (ti, gen);
 
-  return tls_get_addr_tail (GET_ADDR_PARAM, dtv, NULL);
+  return tls_get_addr_tail (ti, dtv, NULL);
 }
 #else
 

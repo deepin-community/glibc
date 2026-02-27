@@ -3,19 +3,21 @@
 # This file is distributed under the same license as the eglibc package.
 # Jordi Mallach <jordi@debian.org>, 2002, 2008, 2010.
 # Jordà Polo <jorda@ettin.org>, 2007.
+# poc senderi <pocsenderi@protonmail.com>, 2024.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.11.2-6\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2023-01-03 21:34+0100\n"
-"PO-Revision-Date: 2010-10-23 11:57+0200\n"
-"Last-Translator: Jordi Mallach <jordi@debian.org>\n"
+"POT-Creation-Date: 2025-01-02 16:30+0000\n"
+"PO-Revision-Date: 2025-01-06 23:19+0100\n"
+"Last-Translator: poc senderi <pocsenderi@protonmail.com>\n"
 "Language-Team: Catalan <debian-l10n-catalan@lists.debian.org>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.4.2\n"
 
 #. Type: multiselect
 #. Choices
@@ -51,6 +53,16 @@ msgstr ""
 "l'opció predeterminada, especialment en noves instal·lacions. Altres jocs de "
 "caràcters us poden ser útils per motius de compatibilitat amb sistemes i "
 "programari antic."
+
+#. Type: multiselect
+#. Description
+#: ../debhelper.in/locales.templates:1002
+msgid ""
+"Please note that the C, C.UTF-8 and POSIX locales are always available and "
+"do not need to be generated."
+msgstr ""
+"Tingueu en compte que els locales C, C.UTF-8 i POSIX estan sempre "
+"disponibles i no cal que siguin generats."
 
 #. Type: select
 #. Choices
@@ -222,6 +234,8 @@ msgstr ""
 #: ../debhelper.in/libc.templates:5001
 msgid "Restart services during package upgrades without asking?"
 msgstr ""
+"Durant les actualització de paquets, voleu que els serveis siguin reiniciats "
+"sense preguntar?"
 
 #. Type: boolean
 #. Description
@@ -235,12 +249,20 @@ msgid ""
 "necessary restarts will be done for you automatically so you can avoid being "
 "asked questions on each library upgrade."
 msgstr ""
+"Hi ha serveis instal·lats al sistema que s'han de reiniciar quan "
+"s'actualitzen determinades biblioteques, com ara la «libpam», la «libc» i la "
+"«libssl». Com que aquests reinicis poden causar interrupcions del servei al "
+"sistema, normalment se us demanarà en cada actualització per a la llista de "
+"serveis que voleu reiniciar. Podeu triar aquesta opció per a evitar ser "
+"preguntat; en el seu lloc, es faran automàticament tots els reinicis "
+"necessaris per a vosaltres, de manera que podreu evitar que se us pregunti "
+"cada cop que hi hagi una actualització de la biblioteca."
 
 #. Type: error
 #. Description
 #: ../debhelper.in/libc.templates:6001
 msgid "Kernel must be upgraded"
-msgstr ""
+msgstr "S'ha d'actualitzar el nucli"
 
 #. Type: error
 #. Description
@@ -250,12 +272,16 @@ msgid ""
 "later.  Please upgrade your kernel and reboot before installing glibc. You "
 "may need to use \"apt -f install\" after reboot to solve dependencies."
 msgstr ""
+"Aquesta versió de la «GNU libc» requereix la versió del nucli ${kernel_ver} "
+"o posterior. Actualitzeu el nucli i reinicieu abans d'instal·lar la «glibc». "
+"És possible que hàgiu d'utilitzar «apt -f install» després de reiniciar per "
+"a resoldre dependències."
 
 #. Type: note
 #. Description
 #: ../debhelper.in/libc.templates:7001
 msgid "Kernel version not supported"
-msgstr ""
+msgstr "La versió del nucli no és compatible"
 
 #. Type: note
 #. Description
@@ -265,3 +291,6 @@ msgid ""
 "later.  Older versions might work but are not officially supported by "
 "Debian.  Please consider upgrading your kernel."
 msgstr ""
+"Aquesta versió de la «GNU libc» requereix la versió del nucli ${kernel_ver} "
+"o posterior. Versions més antigues poden funcionar però oficialment no són "
+"compatibles amb Debian. Considereu l'actualització del nucli."

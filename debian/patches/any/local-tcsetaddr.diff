@@ -7,30 +7,33 @@
 # DP: Date: 2003-10-29
 
 ---
- sysdeps/unix/sysv/linux/tcsetattr.c |   55 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 54 insertions(+), 1 deletion(-)
+ sysdeps/unix/sysv/linux/tcsetattr.c |   62 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 61 insertions(+), 1 deletion(-)
 
 --- a/sysdeps/unix/sysv/linux/tcsetattr.c
 +++ b/sysdeps/unix/sysv/linux/tcsetattr.c
-@@ -44,7 +44,12 @@
+@@ -24,7 +24,9 @@
  __tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
  {
-   struct __kernel_termios k_termios;
-+  struct __kernel_termios k_termios_old;
-   unsigned long int cmd;
+   struct termios2 k_termios;
++  struct termios2 k_termios_old;
+   unsigned long cmd;
 +  int retval, old_retval;
-+
+ 
+   memset (&k_termios, 0, sizeof k_termios);
+ 
+@@ -74,7 +76,65 @@
+       k_termios.c_cflag &= ~CIBAUD;
+     }
+ 
+-  return INLINE_SYSCALL_CALL (ioctl, fd, cmd, &k_termios);
 +  /* Preserve the previous termios state if we can. */
-+  old_retval = INLINE_SYSCALL (ioctl, 3, fd, TCGETS, &k_termios_old);
- 
-   switch (optional_actions)
-     {
-@@ -75,7 +80,55 @@
-   memcpy (&k_termios.c_cc[0], &termios_p->c_cc[0],
- 	  __KERNEL_NCCS * sizeof (cc_t));
- 
--  return INLINE_SYSCALL (ioctl, 3, fd, cmd, &k_termios);
-+  retval = INLINE_SYSCALL (ioctl, 3, fd, cmd, &k_termios);
++  if (__ASSUME_TERMIOS2)
++    old_retval = INLINE_SYSCALL_CALL (ioctl, fd, TCGETS2, &k_termios_old);
++  else
++    old_retval = INLINE_SYSCALL_CALL (ioctl, fd, TCGETS, &k_termios_old);
++
++  retval = INLINE_SYSCALL_CALL (ioctl, fd, cmd, &k_termios);
 +
 +  /* The Linux kernel silently ignores the invalid c_cflag on pty.
 +     We have to check it here, and return an error.  But if some other
@@ -39,7 +42,11 @@
 +  if ((retval == 0) && (old_retval == 0))
 +    {
 +      int save = errno;
-+      retval = INLINE_SYSCALL (ioctl, 3, fd, TCGETS, &k_termios);
++      if (__ASSUME_TERMIOS2)
++	retval = INLINE_SYSCALL_CALL (ioctl, fd, TCGETS2, &k_termios);
++      else
++	retval = INLINE_SYSCALL_CALL (ioctl, fd, TCGETS, &k_termios);
++
 +      if (retval)
 +	{
 +	  /* We cannot verify if the setting is ok. We don't return
@@ -50,7 +57,7 @@
 +      else if ((k_termios_old.c_oflag != k_termios.c_oflag) ||
 +	       (k_termios_old.c_lflag != k_termios.c_lflag) ||
 +	       (k_termios_old.c_line != k_termios.c_line) ||
-+	       ((k_termios_old.c_iflag | IBAUD0) != (k_termios.c_iflag | IBAUD0)))
++	       (k_termios_old.c_iflag != k_termios.c_iflag))
 +	{
 +	  /* Some other setting was successfully changed, which
 +	     means we should not return an error. */
@@ -78,7 +85,7 @@
 +	  retval = -1;
 +	}
 +    }
-+   return retval;
++  return retval;
  }
- weak_alias (__tcsetattr, tcsetattr)
- libc_hidden_def (tcsetattr)
+ libc_hidden_def (__tcsetattr)
+ 

@@ -1,5 +1,5 @@
 # Makefile for sysdeps/ieee754/ldbl-96.
-# Copyright (C) 2016-2023 Free Software Foundation, Inc.
+# Copyright (C) 2016-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -110,7 +110,7 @@ CFLAGS-s_llrintl.c += -fno-builtin-llrintf64x
 CFLAGS-s_llroundl.c += -fno-builtin-llroundf64x
 CFLAGS-e_logl.c += -fno-builtin-logf64x
 CFLAGS-w_log10l.c += -fno-builtin-log10f64x
-CFLAGS-w_log1pl.c += -fno-builtin-log1pf64x
+CFLAGS-w_log1pl.c += -fno-builtin-log1pf64x -fno-builtin-logp1f64x
 CFLAGS-e_log2l.c += -fno-builtin-log2f64x
 CFLAGS-s_logbl.c += -fno-builtin-logbf64x
 CFLAGS-s_lrintl.c += -fno-builtin-lrintf64x
@@ -148,3 +148,7 @@ CFLAGS-s_y1l.c += -fno-builtin-y1f64x
 CFLAGS-s_ynl.c += -fno-builtin-ynf64x
 
 endif # $(subdir) == math
+
+ifeq ($(subdir),stdio-common)
+fmt-xscanf-real-convs += ldouble
+endif

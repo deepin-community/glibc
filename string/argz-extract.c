@@ -1,5 +1,5 @@
 /* Routines for dealing with '\0' separated arg vectors.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -30,6 +30,6 @@ __argz_extract (const char *argz, size_t len, char **argv)
       argz += part_len + 1;
       len -= part_len + 1;
     }
-  *argv = 0;
+  *argv = NULL;
 }
 weak_alias (__argz_extract, argz_extract)

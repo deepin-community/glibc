@@ -1,5 +1,5 @@
 /* Return values of system parameters.  Hurd version.
-   Copyright (C) 2012-2023 Free Software Foundation, Inc.
+   Copyright (C) 2012-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,8 +19,8 @@
 #include <limits.h>
 #include <unistd.h>
 
-#include <eloop-threshold.h>
+#include <min-eloop-threshold.h>
 
-#define SYMLOOP_MAX     (__eloop_threshold ())
+#define SYMLOOP_MAX     MIN_ELOOP_THRESHOLD
 
 #include <sysdeps/posix/sysconf.c>

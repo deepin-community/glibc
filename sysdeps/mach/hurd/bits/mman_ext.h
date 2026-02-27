@@ -1,5 +1,5 @@
 /* System-specific extensions of <sys/mman.h>, Hurd version.
-   Copyright (C) 2022 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 # define SHM_ANON	((const char *) 1)
 
 # define MAP_32BIT	0x1000	/* Map in the lower 2 GB.  */
+# define MAP_NORESERVE	0x2000	/* Don't check for reservations.  */
 # define MAP_EXCL	0x4000	/* With MAP_FIXED, don't replace existing mappings.  */
 
 # define MAP_TRYFIXED		(MAP_FIXED | MAP_EXCL)	/* BSD name.  */

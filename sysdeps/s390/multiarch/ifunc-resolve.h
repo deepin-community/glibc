@@ -1,6 +1,6 @@
 /* IFUNC resolver function for CPU specific functions.
    32/64 bit S/390 version.
-   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+   Copyright (C) 2015-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,11 +18,12 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
-#include <dl-procinfo.h>
 #include <cpu-features.h>
+#include <ldsodefs.h>
+#include <sys/auxv.h>
 
 #define s390_libc_ifunc_expr_stfle_init()				\
-  const unsigned long long *stfle_bits = features->stfle_bits;
+  const unsigned long long stfle_bits = features->stfle_filtered;
 
 #define s390_libc_ifunc_expr_init()					\
   const struct cpu_features *features = &GLRO(dl_s390_cpu_features);	\

@@ -1,6 +1,6 @@
 /* Support macros for making weak and strong aliases for symbols,
    and for using symbol sets and linker warnings with GNU ld.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -59,6 +59,8 @@
 # define IN_MODULE (-1)
 #endif
 
+#include <libc-misc.h>
+
 #ifndef _ISOMAC
 
 /* This is defined for the compilation of all C library code.  features.h
@@ -81,8 +83,6 @@
 #if defined __FAST_MATH__ && !defined TEST_FAST_MATH
 # error "glibc must not be compiled with -ffast-math"
 #endif
-
-#include <config.h>
 
 /* Obtain the definition of symbol_version_reference.  */
 #include <libc-symver.h>
@@ -208,7 +208,7 @@
 #define __make_section_unallocated(section_string)	\
   asm (".section " section_string "\n\t.previous");
 
-/* Tacking on "\n\t#" to the section name makes gcc put it's bogus
+/* Tacking on "\n\t#" to the section name makes gcc put its bogus
    section attributes on what looks like a comment to the assembler.  */
 #ifdef HAVE_SECTION_QUOTES
 # define __sec_comment "\"\n\t#\""
@@ -361,15 +361,6 @@ for linking")
 
 #define attribute_relro __attribute__ ((section (".data.rel.ro")))
 
-
-/* Used to disable stack protection in sensitive places, like ifunc
-   resolvers and early static TLS init.  */
-#ifdef HAVE_CC_NO_STACK_PROTECTOR
-# define inhibit_stack_protector \
-    __attribute__ ((__optimize__ ("-fno-stack-protector")))
-#else
-# define inhibit_stack_protector
-#endif
 
 /* The following macros are used for PLT bypassing within libc.so
    (and if needed other libraries similarly).
@@ -600,8 +591,10 @@ for linking")
 #endif
 
 #if IS_IN (libmvec)
+# define libmvec_hidden_proto(name, attrs...) hidden_proto (name, ##attrs)
 # define libmvec_hidden_def(name) hidden_def (name)
 #else
+# define libmvec_hidden_proto(name, attrs...)
 # define libmvec_hidden_def(name)
 #endif
 
@@ -665,9 +658,9 @@ for linking")
 #endif
 
 /* Helper / base  macros for indirect function symbols.  */
-#define __ifunc_resolver(type_name, name, expr, arg, init, classifier)	\
+#define __ifunc_resolver(type_name, name, expr, init, classifier, ...)	\
   classifier inhibit_stack_protector					\
-  __typeof (type_name) *name##_ifunc (arg)				\
+  __typeof (type_name) *name##_ifunc (__VA_ARGS__)			\
   {									\
     init ();								\
     __typeof (type_name) *res = expr;					\
@@ -675,13 +668,13 @@ for linking")
   }
 
 #ifdef HAVE_GCC_IFUNC
-# define __ifunc(type_name, name, expr, arg, init)			\
+# define __ifunc_args(type_name, name, expr, init, ...)			\
   extern __typeof (type_name) name __attribute__			\
 			      ((ifunc (#name "_ifunc")));		\
-  __ifunc_resolver (type_name, name, expr, arg, init, static)
+  __ifunc_resolver (type_name, name, expr, init, static, __VA_ARGS__)
 
-# define __ifunc_hidden(type_name, name, expr, arg, init)	\
-  __ifunc (type_name, name, expr, arg, init)
+# define __ifunc_args_hidden(type_name, name, expr, init, ...)		\
+  __ifunc_args (type_name, name, expr, init, __VA_ARGS__)
 #else
 /* Gcc does not support __attribute__ ((ifunc (...))).  Use the old behaviour
    as fallback.  But keep in mind that the debug information for the ifunc
@@ -692,17 +685,23 @@ for linking")
    different signatures.  (Gcc support is disabled at least on a ppc64le
    Ubuntu 14.04 system.)  */
 
-# define __ifunc(type_name, name, expr, arg, init)			\
+# define __ifunc_args(type_name, name, expr, init, ...)			\
   extern __typeof (type_name) name;					\
-  __typeof (type_name) *name##_ifunc (arg) __asm__ (#name);		\
-  __ifunc_resolver (type_name, name, expr, arg, init,)			\
+  __typeof (type_name) *name##_ifunc (__VA_ARGS__) __asm__ (#name);	\
+  __ifunc_resolver (type_name, name, expr, init, , __VA_ARGS__)		\
  __asm__ (".type " #name ", %gnu_indirect_function");
 
-# define __ifunc_hidden(type_name, name, expr, arg, init)		\
+# define __ifunc_args_hidden(type_name, name, expr, init, ...)		\
   extern __typeof (type_name) __libc_##name;				\
-  __ifunc (type_name, __libc_##name, expr, arg, init)			\
+  __ifunc (type_name, __libc_##name, expr, __VA_ARGS__, init)		\
   strong_alias (__libc_##name, name);
 #endif /* !HAVE_GCC_IFUNC  */
+
+#define __ifunc(type_name, name, expr, arg, init)			\
+  __ifunc_args (type_name, name, expr, init, arg)
+
+#define __ifunc_hidden(type_name, name, expr, arg, init)		\
+  __ifunc_args_hidden (type_name, name, expr, init, arg)
 
 /* The following macros are used for indirect function symbols in libc.so.
    First of all, you need to have the function prototyped somewhere,
@@ -796,16 +795,6 @@ for linking")
 #define libm_ifunc_init()
 #define libm_ifunc(name, expr)				\
   __ifunc (name, name, expr, void, libm_ifunc_init)
-
-/* Add the compiler optimization to inhibit loop transformation to library
-   calls.  This is used to avoid recursive calls in memset and memmove
-   default implementations.  */
-#ifdef HAVE_CC_INHIBIT_LOOP_TO_LIBCALL
-# define inhibit_loop_to_libcall \
-    __attribute__ ((__optimize__ ("-fno-tree-loop-distribute-patterns")))
-#else
-# define inhibit_loop_to_libcall
-#endif
 
 /* These macros facilitate sharing source files with gnulib.
 

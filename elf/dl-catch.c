@@ -1,5 +1,5 @@
 /* Exception handling in the dynamic linker.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -126,7 +126,11 @@ _dl_signal_error (int errcode, const char *objname, const char *occasion,
       __longjmp (lcatch->env[0].__jmpbuf, 1);
     }
   else
-    fatal_error (errcode, objname, occasion, errstring);
+    {
+      if (objname == NULL)
+	objname = "";
+      fatal_error (errcode, objname, occasion, errstring);
+    }
 }
 rtld_hidden_def (_dl_signal_error)
 

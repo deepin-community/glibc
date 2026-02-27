@@ -1,6 +1,6 @@
 # Pretty printers for the NPTL lock types.
 #
-# Copyright (C) 2016-2023 Free Software Foundation, Inc.
+# Copyright (C) 2016-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 #
 # The GNU C Library is free software; you can redistribute it and/or
@@ -587,7 +587,7 @@ def register(objfile):
     printer.add_printer('pthread_rwlockattr_t', r'^pthread_rwlockattr_t$',
                         RWLockAttributesPrinter)
 
-    if objfile == None:
+    if objfile is None:
         objfile = gdb
 
     gdb.printing.register_pretty_printer(objfile, printer)

@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -121,7 +121,9 @@ static const struct conf vars[] =
     { "WORD_BIT", _SC_WORD_BIT, SYSCONF },
     { "_AVPHYS_PAGES", _SC_AVPHYS_PAGES, SYSCONF },
     { "_NPROCESSORS_CONF", _SC_NPROCESSORS_CONF, SYSCONF },
+    { "NPROCESSORS_CONF", _SC_NPROCESSORS_CONF, SYSCONF },
     { "_NPROCESSORS_ONLN", _SC_NPROCESSORS_ONLN, SYSCONF },
+    { "NPROCESSORS_ONLN", _SC_NPROCESSORS_ONLN, SYSCONF },
     { "_PHYS_PAGES", _SC_PHYS_PAGES, SYSCONF },
     { "_POSIX_ARG_MAX", _SC_ARG_MAX, SYSCONF },
     { "_POSIX_ASYNCHRONOUS_IO", _SC_ASYNCHRONOUS_IO, SYSCONF },
@@ -486,7 +488,7 @@ main (int argc, char *argv[])
 Copyright (C) %s Free Software Foundation, Inc.\n\
 This is free software; see the source for copying conditions.  There is NO\n\
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
-"), "2023");
+"), "2024");
       printf (gettext ("Written by %s.\n"), "Roland McGrath");
       return 0;
     }

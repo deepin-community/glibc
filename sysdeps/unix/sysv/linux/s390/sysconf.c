@@ -1,5 +1,5 @@
 /* Get system parameters, e.g. cache information.  S390/S390x version.
-   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+   Copyright (C) 2015-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,8 +17,9 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
-#include <dl-procinfo.h>
 #include <cpu-features.h>
+#include <ldsodefs.h>
+#include <sys/auxv.h>
 
 static long int linux_sysconf (int name);
 
@@ -65,7 +66,7 @@ get_cache_info (int level, int attr, int type)
 	return 0L;
     }
 
-  if (!S390_IS_Z10 (features->stfle_bits))
+  if (!S390_IS_Z10 (features->stfle_orig))
     {
       /* We are at least on a z9 machine.
 	 Return 256byte for LINESIZE for L1 d/i-cache,

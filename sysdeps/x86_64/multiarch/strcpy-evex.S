@@ -1,5 +1,5 @@
 /* {wcs|wcp|str|stp}cpy with 256/512-bit EVEX instructions.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@
 #  define VPCMPEQ	vpcmpeqd
 #  define CHAR_SIZE	4
 
-#  define REP_MOVS	rep movsd
+#  define REP_MOVS	rep movsl
 
 #  define USE_WIDE_CHAR
 # else

@@ -1,7 +1,13 @@
-#! @PERL@
-eval "exec @PERL@ -S $0 $@"
-    if 0;
-# Copyright (C) 1997-2023 Free Software Foundation, Inc.
+#! /bin/sh
+# -*- perl -*-
+eval "q () {
+  :
+}";
+q {
+    exec perl -e '$_ = shift; $_ = "./$_" unless m,^/,; do $_' "$0" "$@"
+}
+;
+# Copyright (C) 1997-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 # Based on the mtrace.awk script.
 
@@ -22,7 +28,7 @@ eval "exec @PERL@ -S $0 $@"
 $VERSION = "@VERSION@";
 $PKGVERSION = "@PKGVERSION@";
 $REPORT_BUGS_TO = '@REPORT_BUGS_TO@';
-$progname = $0;
+$progname = $_;
 
 sub usage {
     print "Usage: mtrace [OPTION]... [Binary] MtraceData\n";
@@ -32,6 +38,11 @@ sub usage {
     print "For bug reporting instructions, please see:\n";
     print "$REPORT_BUGS_TO.\n";
     exit 0;
+}
+
+sub fatal {
+    print STDERR "$_[0]\n";
+    exit 1;
 }
 
 # We expect two arguments:
@@ -44,7 +55,7 @@ arglist: while (@ARGV) {
 	$ARGV[0] eq "--vers" || $ARGV[0] eq "--versi" ||
 	$ARGV[0] eq "--versio" || $ARGV[0] eq "--version") {
 	print "mtrace $PKGVERSION$VERSION\n";
-	print "Copyright (C) 2023 Free Software Foundation, Inc.\n";
+	print "Copyright (C) 2025 Free Software Foundation, Inc.\n";
 	print "This is free software; see the source for copying conditions.  There is NO\n";
 	print "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n";
 	print "Written by Ulrich Drepper <drepper\@gnu.org>\n";
@@ -76,7 +87,7 @@ if ($#ARGV == 0) {
     }
     # Set the environment variable LD_TRACE_LOADED_OBJECTS to 2 so the
     # executable is also printed.
-    if (open (locs, "env LD_TRACE_LOADED_OBJECTS=2 $prog |")) {
+    if (open (locs, "-|", "env", "LD_TRACE_LOADED_OBJECTS=2", $prog)) {
 	while (<locs>) {
 	    chop;
 	    if (/^.*=> (.*) .(0x[0123456789abcdef]*).$/) {
@@ -87,13 +98,13 @@ if ($#ARGV == 0) {
 	close (LOCS);
     }
 } else {
-    die "Wrong number of arguments, run $progname --help for help.";
+    fatal "Wrong number of arguments, run $progname --help for help.";
 }
 
 sub addr2line {
     my $addr = pop(@_);
     my $prog = pop(@_);
-    if (open (ADDR, "addr2line -e $prog $addr|")) {
+    if (open (ADDR, "-|", "addr2line", "-e", $prog, $addr)) {
 	my $line = <ADDR>;
 	chomp $line;
 	close (ADDR);
@@ -149,7 +160,8 @@ sub location {
 }
 
 $nr=0;
-open(DATA, "<$data") || die "Cannot open mtrace data file";
+open(DATA, "<$data")
+  or fatal "$progname: Cannot open mtrace data file $data: $!";
 while (<DATA>) {
     my @cols = split (' ');
     my $n, $where;

@@ -1,5 +1,5 @@
 /* PowerPC64 default implementation of strchrnul.
-   Copyright (C) 2013-2023 Free Software Foundation, Inc.
+   Copyright (C) 2013-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,4 +16,16 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <sysdeps/powerpc/powerpc32/power4/multiarch/strchrnul-ppc32.c>
+#include <string.h>
+
+#if IS_IN (libc)
+# define STRCHRNUL  __strchrnul_ppc
+extern __typeof (strchrnul) __strchrnul_ppc attribute_hidden;
+
+# include <string/strchrnul.c>
+# undef __strchrnul
+weak_alias (__strchrnul_ppc, __strchrnul)
+# ifdef SHARED
+__hidden_ver1 (__strchrnul_ppc, __GI___strchrnul, __strchrnul_ppc);
+# endif
+#endif

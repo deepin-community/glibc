@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -83,18 +83,47 @@ __libc_fcntl (int fd, int cmd, ...)
 	  result = -1;
 	else
 	  {
-	    /* Give the ports each a user ref for the new descriptor.  */
-	    __mach_port_mod_refs (__mach_task_self (), port,
-				  MACH_PORT_RIGHT_SEND, 1);
-	    if (ctty != MACH_PORT_NULL)
-	      __mach_port_mod_refs (__mach_task_self (), ctty,
-				    MACH_PORT_RIGHT_SEND, 1);
+	    /* Give the io server port a user ref for the new descriptor.  */
+	    err = __mach_port_mod_refs (__mach_task_self (), port,
+					MACH_PORT_RIGHT_SEND, 1);
 
-	    /* Install the ports and flags in the new descriptor.  */
-	    if (ctty != MACH_PORT_NULL)
-	      _hurd_port_set (&new->ctty, ctty);
-	    new->flags = flags;
-	    _hurd_port_locked_set (&new->port, port); /* Unlocks NEW.  */
+	    if (err == KERN_UREFS_OVERFLOW)
+	      result = __hurd_fail (EMFILE);
+	    else if (err)
+	      result = __hurd_fail (EINVAL);
+	    else if (ctty != MACH_PORT_NULL)
+	      {
+		/* We have confirmed the io server port has got a user ref
+		   count, now give ctty port a user ref for the new
+		   descriptor.  */
+		err = __mach_port_mod_refs (__mach_task_self (), ctty,
+					    MACH_PORT_RIGHT_SEND, 1);
+
+		if (err)
+		  {
+		    /* In this case the io server port has got a ref count
+		    but the ctty port fails to get one, so we need to clean
+		    the ref count we just assigned.  */
+		    __mach_port_mod_refs (__mach_task_self (), port,
+					  MACH_PORT_RIGHT_SEND, -1);
+
+		    if (err == KERN_UREFS_OVERFLOW)
+		      result = __hurd_fail (EMFILE);
+		    else
+		      result = __hurd_fail (EINVAL);
+		  }
+	      }
+
+	    if (!err)
+	      {
+		/* The ref counts of the ports are incremented successfully.  */
+		/* Install the ports and flags in the new descriptor.  */
+		if (ctty != MACH_PORT_NULL)
+		  _hurd_port_set (&new->ctty, ctty);
+		new->flags = flags;
+		/* Unlocks NEW.  */
+		_hurd_port_locked_set (&new->port, port);
+	      }
 	  }
 
 	HURD_CRITICAL_END;
@@ -148,6 +177,7 @@ __libc_fcntl (int fd, int cmd, ...)
 	    cmd = F_SETLKW64;
 	    break;
 	  default:
+	    va_end (ap);
 	    return __hurd_fail (EINVAL);
 	  }
 
@@ -204,7 +234,10 @@ __libc_fcntl (int fd, int cmd, ...)
 		 && fl->l_start != fl64.l_start)
 	     || (sizeof fl->l_len != sizeof fl64.l_len
 		 && fl->l_len != fl64.l_len))
-	      return __hurd_fail (EOVERFLOW);
+	      {
+	        va_end (ap);
+	        return __hurd_fail (EOVERFLOW);
+	      }
 	  }
 
 	result = err ? __hurd_dfail (fd, err) : 0;

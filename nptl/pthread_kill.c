@@ -1,5 +1,5 @@
 /* Send a signal to a specific pthread.  Stub version.
-   Copyright (C) 2014-2023 Free Software Foundation, Inc.
+   Copyright (C) 2014-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -67,6 +67,17 @@ __pthread_kill_implementation (pthread_t threadid, int signo, int no_tid)
   internal_signal_restore_set (&old_mask);
 
   return ret;
+}
+
+/* Send the signal SIGNO to the caller.  Used by abort and called where the
+   signals are being already blocked and there is no need to synchronize with
+   exit_lock.  */
+int
+__pthread_raise_internal (int signo)
+{
+  /* Use the gettid syscall so it works after vfork.  */
+  int ret = INTERNAL_SYSCALL_CALL (tgkill, __getpid (), __gettid(), signo);
+  return INTERNAL_SYSCALL_ERROR_P (ret) ? INTERNAL_SYSCALL_ERRNO (ret) : 0;
 }
 
 int

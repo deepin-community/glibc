@@ -1,5 +1,5 @@
 /* Save current context.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,6 +32,9 @@ ENTRY(__novec_getcontext)
   std  r0,(SIGCONTEXT_GP_REGS+(PT_R0*8))(r3)
   std  r1,(SIGCONTEXT_GP_REGS+(PT_R1*8))(r3)
   mflr  r0
+#ifdef __ROP_PROTECT__
+  hashst  r0,FRAME_ROP_SAVE(r1)
+#endif
   std  r2,(SIGCONTEXT_GP_REGS+(PT_R2*8))(r3)
   std  r0,FRAME_LR_SAVE(r1)
   cfi_offset (lr, FRAME_LR_SAVE)
@@ -139,6 +142,9 @@ ENTRY(__novec_getcontext)
   ld    r0,128+FRAME_LR_SAVE(r1)
   addi  r1,r1,128
   mtlr  r0
+#ifdef __ROP_PROTECT__
+  hashchk  r0,FRAME_ROP_SAVE(r1)
+#endif
   blr
 PSEUDO_END(__novec_getcontext)
 
@@ -161,6 +167,9 @@ ENTRY(__getcontext)
   std  r0,(SIGCONTEXT_GP_REGS+(PT_R0*8))(r3)
   std  r1,(SIGCONTEXT_GP_REGS+(PT_R1*8))(r3)
   mflr  r0
+#ifdef __ROP_PROTECT__
+  hashst  r0,FRAME_ROP_SAVE(r1)
+#endif
   std  r2,(SIGCONTEXT_GP_REGS+(PT_R2*8))(r3)
   std  r0,FRAME_LR_SAVE(r1)
   cfi_offset (lr, FRAME_LR_SAVE)
@@ -377,6 +386,9 @@ L(has_no_vec):
   ld    r0,128+FRAME_LR_SAVE(r1)
   addi  r1,r1,128
   mtlr  r0
+#ifdef __ROP_PROTECT__
+  hashchk  r0,FRAME_ROP_SAVE(r1)
+#endif
   blr
 PSEUDO_END(__getcontext)
 

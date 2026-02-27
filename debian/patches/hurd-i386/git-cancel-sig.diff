@@ -1,0 +1,253 @@
+commit c4a81e882e607a34d0c26caf279c98398e9c1e4d
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Feb 3 23:04:58 2026 +0000
+
+    hurd: Take cancel_lock in critical section
+    
+    read/write etc. shall be signal-safe, and take cancel_lock, so we have to
+    defer signal delivery while holding cancel_lock.
+    
+    Reported-by: Michael Banck <mbanck@gmx.net>
+
+---
+ htl/cancellation.c                  |    5 +++++
+ htl/pt-cancel.c                     |   14 +++++++++++++-
+ htl/pt-internal.h                   |    2 +-
+ htl/pt-setcancelstate.c             |    3 +++
+ htl/pt-setcanceltype.c              |    3 +++
+ htl/pt-testcancel.c                 |    3 +++
+ sysdeps/htl/pt-cond-timedwait.c     |    4 ++++
+ sysdeps/mach/hurd/htl/pt-docancel.c |    5 ++++-
+ 8 files changed, 36 insertions(+), 3 deletions(-)
+
+--- a/htl/cancellation.c
++++ b/htl/cancellation.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library;  if not, see
+    <https://www.gnu.org/licenses/>.  */
+ 
++#include <hurd/signal.h>
+ #include <pthread.h>
+ #include <pthreadP.h>
+ #include <pt-internal.h>
+@@ -25,10 +26,12 @@ int __pthread_enable_asynccancel (void)
+   struct __pthread *p = _pthread_self ();
+   int oldtype;
+ 
++  HURD_CRITICAL_BEGIN;
+   __pthread_mutex_lock (&p->cancel_lock);
+   oldtype = p->cancel_type;
+   p->cancel_type = PTHREAD_CANCEL_ASYNCHRONOUS;
+   __pthread_mutex_unlock (&p->cancel_lock);
++  HURD_CRITICAL_END;
+ 
+   __pthread_testcancel ();
+ 
+@@ -39,7 +42,9 @@ void __pthread_disable_asynccancel (int
+ {
+   struct __pthread *p = _pthread_self ();
+ 
++  HURD_CRITICAL_BEGIN;
+   __pthread_mutex_lock (&p->cancel_lock);
+   p->cancel_type = oldtype;
+   __pthread_mutex_unlock (&p->cancel_lock);
++  HURD_CRITICAL_END;
+ }
+--- a/htl/pt-cancel.c
++++ b/htl/pt-cancel.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library;  if not, see
+    <https://www.gnu.org/licenses/>.  */
+ 
++#include <hurd/signal.h>
+ #include <pthread.h>
+ 
+ #include <pt-internal.h>
+@@ -25,15 +26,22 @@ pthread_cancel (pthread_t t)
+ {
+   int err = 0;
+   struct __pthread *p;
++  struct __pthread *self = _pthread_self ();
++  void *hurd_critical = NULL;
+ 
+   p = __pthread_getid (t);
+   if (p == NULL)
+     return ESRCH;
+ 
++  if (p == self)
++    hurd_critical = _hurd_critical_section_lock ();
++
+   __pthread_mutex_lock (&p->cancel_lock);
+   if (p->cancel_pending)
+     {
+       __pthread_mutex_unlock (&p->cancel_lock);
++      if (p == self)
++	_hurd_critical_section_unlock (hurd_critical);
+       return 0;
+     }
+ 
+@@ -42,12 +50,14 @@ pthread_cancel (pthread_t t)
+   if (p->cancel_state != PTHREAD_CANCEL_ENABLE)
+     {
+       __pthread_mutex_unlock (&p->cancel_lock);
++      if (p == self)
++	_hurd_critical_section_unlock (hurd_critical);
+       return 0;
+     }
+ 
+   if (p->cancel_type == PTHREAD_CANCEL_ASYNCHRONOUS)
+     /* CANCEL_LOCK is unlocked by this call.  */
+-    err = __pthread_do_cancel (p);
++    err = __pthread_do_cancel (p, hurd_critical);
+   else
+     {
+       if (p->cancel_hook != NULL)
+@@ -57,6 +67,8 @@ pthread_cancel (pthread_t t)
+ 
+       __pthread_mutex_unlock (&p->cancel_lock);
+     }
++  if (p == self)
++    _hurd_critical_section_unlock (hurd_critical);
+ 
+   return err;
+ }
+--- a/htl/pt-internal.h
++++ b/htl/pt-internal.h
+@@ -289,7 +289,7 @@ libc_hidden_proto (__pthread_wakeup)
+ 
+ /* Perform a cancelation.  The CANCEL_LOCK member of the given thread must
+    be locked before calling this function, which must unlock it.  */
+-extern int __pthread_do_cancel (struct __pthread *thread);
++extern int __pthread_do_cancel (struct __pthread *thread, void *hurd_critical);
+ 
+ 
+ /* Initialize the thread specific data structures.  THREAD must be the
+--- a/htl/pt-setcancelstate.c
++++ b/htl/pt-setcancelstate.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library;  if not, see
+    <https://www.gnu.org/licenses/>.  */
+ 
++#include <hurd/signal.h>
+ #include <pthread.h>
+ #include <shlib-compat.h>
+ #include <pt-internal.h>
+@@ -35,6 +36,7 @@ __pthread_setcancelstate (int state, int
+       break;
+     }
+ 
++  HURD_CRITICAL_BEGIN;
+   __pthread_mutex_lock (&p->cancel_lock);
+   if (oldstate != NULL)
+     *oldstate = p->cancel_state;
+@@ -44,6 +46,7 @@ __pthread_setcancelstate (int state, int
+     /* Do not achieve cancel when called again, notably from __pthread_exit itself.  */
+     p->cancel_pending = 2;
+   __pthread_mutex_unlock (&p->cancel_lock);
++  HURD_CRITICAL_END;
+ 
+   if (cancelled && __pthread_exit)
+     __pthread_exit (PTHREAD_CANCELED);
+--- a/htl/pt-setcanceltype.c
++++ b/htl/pt-setcanceltype.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library;  if not, see
+    <https://www.gnu.org/licenses/>.  */
+ 
++#include <hurd/signal.h>
+ #include <pthread.h>
+ #include <shlib-compat.h>
+ #include <pt-internal.h>
+@@ -35,12 +36,14 @@ __pthread_setcanceltype (int type, int *
+       break;
+     }
+ 
++  HURD_CRITICAL_BEGIN;
+   __pthread_mutex_lock (&p->cancel_lock);
+   if (oldtype != NULL)
+     *oldtype = p->cancel_type;
+   p->cancel_type = type;
+   cancelled = (p->cancel_state == PTHREAD_CANCEL_ENABLE) && p->cancel_pending && (p->cancel_type == PTHREAD_CANCEL_ASYNCHRONOUS);
+   __pthread_mutex_unlock (&p->cancel_lock);
++  HURD_CRITICAL_END;
+ 
+   if (cancelled && __pthread_exit)
+     __pthread_exit (PTHREAD_CANCELED);
+--- a/htl/pt-testcancel.c
++++ b/htl/pt-testcancel.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library;  if not, see
+    <https://www.gnu.org/licenses/>.  */
+ 
++#include <hurd/signal.h>
+ #include <pthread.h>
+ 
+ #include <pt-internal.h>
+@@ -27,9 +28,11 @@ __pthread_testcancel (void)
+   struct __pthread *p = _pthread_self ();
+   int cancelled;
+ 
++  HURD_CRITICAL_BEGIN;
+   __pthread_mutex_lock (&p->cancel_lock);
+   cancelled = (p->cancel_state == PTHREAD_CANCEL_ENABLE) && p->cancel_pending;
+   __pthread_mutex_unlock (&p->cancel_lock);
++  HURD_CRITICAL_END;
+ 
+   if (cancelled)
+     __pthread_exit (PTHREAD_CANCELED);
+--- a/sysdeps/htl/pt-cond-timedwait.c
++++ b/sysdeps/htl/pt-cond-timedwait.c
+@@ -16,6 +16,7 @@
+    License along with the GNU C Library;  if not, see
+    <https://www.gnu.org/licenses/>.  */
+ 
++#include <hurd/signal.h>
+ #include <pthread.h>
+ #include <shlib-compat.h>
+ #include <pt-internal.h>
+@@ -117,6 +118,7 @@ __pthread_cond_timedwait_internal (pthre
+ 
+      This function contains inline implementations of pthread_testcancel and
+      pthread_setcanceltype to reduce locking overhead.  */
++  HURD_CRITICAL_BEGIN;
+   __pthread_mutex_lock (&self->cancel_lock);
+   cancelled = (self->cancel_state == PTHREAD_CANCEL_ENABLE)
+       && self->cancel_pending;
+@@ -124,6 +126,7 @@ __pthread_cond_timedwait_internal (pthre
+   if (cancelled)
+     {
+       __pthread_mutex_unlock (&self->cancel_lock);
++      HURD_CRITICAL_UNLOCK;
+       __pthread_exit (PTHREAD_CANCELED);
+     }
+ 
+@@ -145,6 +148,7 @@ __pthread_cond_timedwait_internal (pthre
+   __pthread_spin_unlock (&cond->__lock);
+ 
+   __pthread_mutex_unlock (&self->cancel_lock);
++  HURD_CRITICAL_END;
+ 
+   /* Increase the waiter reference count.  Relaxed MO is sufficient because
+      we only need to synchronize when decrementing the reference count.
+--- a/sysdeps/mach/hurd/htl/pt-docancel.c
++++ b/sysdeps/mach/hurd/htl/pt-docancel.c
+@@ -29,8 +29,9 @@ call_exit (void)
+ }
+ 
+ int
+-__pthread_do_cancel (struct __pthread *p)
++__pthread_do_cancel (struct __pthread *p, void *hurd_critical)
+ {
++  struct __pthread *self = _pthread_self ();
+   mach_port_t ktid;
+   int me;
+ 
+@@ -38,6 +39,8 @@ __pthread_do_cancel (struct __pthread *p
+   assert (p->cancel_state == PTHREAD_CANCEL_ENABLE);
+ 
+   __pthread_mutex_unlock (&p->cancel_lock);
++  if (p == self)
++    _hurd_critical_section_unlock (hurd_critical);
+ 
+   ktid = __mach_thread_self ();
+   me = p->kernel_thread == ktid;

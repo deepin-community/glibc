@@ -1,5 +1,5 @@
 /* Test that assigning to stdout redirects puts, putchar, etc (BZ#24051)
-   Copyright (C) 2019-2023 Free Software Foundation, Inc.
+   Copyright (C) 2019-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,7 +19,11 @@
 
 /* Prevent putchar -> _IO_putc inline expansion.  */
 #define __NO_INLINE__
-#pragma GCC optimize("O0")
+#ifdef __clang__
+# pragma clang optimize off
+#else
+# pragma GCC optimize("O0")
+#endif
 
 #include <stdio.h>
 #include <string.h>

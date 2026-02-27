@@ -14,6 +14,7 @@
 #define __NR_bind 353
 #define __NR_bpf 349
 #define __NR_brk 17
+#define __NR_cachestat 451
 #define __NR_capget 21
 #define __NR_capset 22
 #define __NR_chdir 12
@@ -65,6 +66,7 @@
 #define __NR_fchdir 176
 #define __NR_fchmod 124
 #define __NR_fchmodat 295
+#define __NR_fchmodat2 452
 #define __NR_fchown 123
 #define __NR_fchown32 32
 #define __NR_fchownat 287
@@ -91,8 +93,11 @@
 #define __NR_ftruncate 130
 #define __NR_ftruncate64 84
 #define __NR_futex 142
+#define __NR_futex_requeue 456
 #define __NR_futex_time64 422
+#define __NR_futex_wait 455
 #define __NR_futex_waitv 449
+#define __NR_futex_wake 454
 #define __NR_futimesat 288
 #define __NR_get_kernel_syms 223
 #define __NR_get_mempolicy 304
@@ -131,6 +136,7 @@
 #define __NR_getuid 24
 #define __NR_getuid32 44
 #define __NR_getxattr 172
+#define __NR_getxattrat 464
 #define __NR_init_module 190
 #define __NR_inotify_add_watch 152
 #define __NR_inotify_init 151
@@ -164,15 +170,21 @@
 #define __NR_link 9
 #define __NR_linkat 292
 #define __NR_listen 354
+#define __NR_listmount 458
 #define __NR_listxattr 178
+#define __NR_listxattrat 465
 #define __NR_llistxattr 179
 #define __NR_lookup_dcookie 208
 #define __NR_lremovexattr 182
 #define __NR_lseek 19
 #define __NR_lsetxattr 170
+#define __NR_lsm_get_self_attr 459
+#define __NR_lsm_list_modules 461
+#define __NR_lsm_set_self_attr 460
 #define __NR_lstat 40
 #define __NR_lstat64 132
 #define __NR_madvise 75
+#define __NR_map_shadow_stack 453
 #define __NR_mbind 303
 #define __NR_membarrier 351
 #define __NR_memfd_create 348
@@ -201,6 +213,7 @@
 #define __NR_mq_timedsend_time64 418
 #define __NR_mq_unlink 274
 #define __NR_mremap 250
+#define __NR_mseal 462
 #define __NR_msgctl 402
 #define __NR_msgget 399
 #define __NR_msgrcv 401
@@ -217,6 +230,7 @@
 #define __NR_open 5
 #define __NR_open_by_handle_at 333
 #define __NR_open_tree 428
+#define __NR_open_tree_attr 467
 #define __NR_openat 284
 #define __NR_openat2 437
 #define __NR_pause 29
@@ -268,6 +282,7 @@
 #define __NR_recvmsg 113
 #define __NR_remap_file_pages 192
 #define __NR_removexattr 181
+#define __NR_removexattrat 466
 #define __NR_rename 128
 #define __NR_renameat 291
 #define __NR_renameat2 345
@@ -340,6 +355,7 @@
 #define __NR_setuid 23
 #define __NR_setuid32 87
 #define __NR_setxattr 169
+#define __NR_setxattrat 463
 #define __NR_sgetmask 199
 #define __NR_shmat 397
 #define __NR_shmctl 396
@@ -364,6 +380,7 @@
 #define __NR_stat64 139
 #define __NR_statfs 157
 #define __NR_statfs64 234
+#define __NR_statmount 457
 #define __NR_statx 360
 #define __NR_stime 233
 #define __NR_swapoff 213

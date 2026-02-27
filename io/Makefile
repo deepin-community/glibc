@@ -1,4 +1,4 @@
-# Copyright (C) 1992-2023 Free Software Foundation, Inc.
+# Copyright (C) 1992-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -91,7 +91,6 @@ routines := \
   getcwd \
   getdirname \
   getwd \
-  isatty \
   lchmod \
   lchown \
   link \
@@ -188,10 +187,14 @@ tests := \
   tst-closefrom \
   tst-copy_file_range \
   tst-faccessat \
+  tst-faccessat-setuid \
+  tst-fchmod-errors \
+  tst-fchmod-fuse \
   tst-fchmodat \
   tst-fchownat \
   tst-fcntl \
   tst-fcntl-lock \
+  tst-fcntl-lock-lfs \
   tst-fstatat \
   tst-fts \
   tst-fts-lfs \
@@ -206,6 +209,7 @@ tests := \
   tst-lchmod \
   tst-linkat \
   tst-lockf \
+  tst-lstat-nofollow \
   tst-lutimes \
   tst-mkdirat \
   tst-mkfifoat \
@@ -214,6 +218,7 @@ tests := \
   tst-openat \
   tst-posix_fallocate \
   tst-posix_fallocate64 \
+  tst-read-zero \
   tst-readlinkat \
   tst-renameat \
   tst-stat \
@@ -234,6 +239,7 @@ tests-time64 := \
   tst-futimes-time64\
   tst-futimesat-time64 \
   tst-lchmod-time64 \
+  tst-lstat-nofollow-time64 \
   tst-lutimes-time64 \
   tst-stat-time64 \
   tst-utime-time64 \
@@ -289,6 +295,7 @@ CFLAGS-read.c += -fexceptions -fasynchronous-unwind-tables $(config-cflags-wno-i
 CFLAGS-write.c += -fexceptions -fasynchronous-unwind-tables $(config-cflags-wno-ignored-attributes)
 CFLAGS-close.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-lseek64.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-tst-read-zero.c += $(no-fortify-source) -D_FORTIFY_SOURCE=$(supported-fortify)
 
 CFLAGS-test-stat.c += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE
 CFLAGS-test-lfs.c += -D_LARGEFILE64_SOURCE

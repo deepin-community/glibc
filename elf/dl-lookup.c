@@ -1,5 +1,5 @@
 /* Look up a symbol in the loaded objects.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,7 +16,6 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <alloca.h>
 #include <libintl.h>
 #include <stdlib.h>
 #include <string.h>
@@ -94,32 +93,29 @@ check_match (const char *const undef_name,
   const ElfW(Half) *verstab = map->l_versyms;
   if (version != NULL)
     {
-      if (__glibc_unlikely (verstab == NULL))
-	{
-	  /* We need a versioned symbol but haven't found any.  If
-	     this is the object which is referenced in the verneed
-	     entry it is a bug in the library since a symbol must
-	     not simply disappear.
-
-	     It would also be a bug in the object since it means that
-	     the list of required versions is incomplete and so the
-	     tests in dl-version.c haven't found a problem.*/
-	  assert (version->filename == NULL
-		  || ! _dl_name_match_p (version->filename, map));
-
-	  /* Otherwise we accept the symbol.  */
-	}
-      else
+      /* If there is no version information, accept the symbol.  This
+	 can happen during symbol interposition.  */
+      if (__glibc_likely (verstab != NULL))
 	{
 	  /* We can match the version information or use the
 	     default one if it is not hidden.  */
 	  ElfW(Half) ndx = verstab[symidx] & 0x7fff;
-	  if ((map->l_versions[ndx].hash != version->hash
-	       || strcmp (map->l_versions[ndx].name, version->name))
-	      && (version->hidden || map->l_versions[ndx].hash
-		  || (verstab[symidx] & 0x8000)))
-	    /* It's not the version we want.  */
-	    return NULL;
+	  if (map->l_versions[ndx].hash == version->hash
+	      && strcmp (map->l_versions[ndx].name, version->name) == 0)
+	    /* This is an exact version match.  Return the symbol below.  */
+	    ;
+	  else
+	    {
+	      if (!version->hidden
+		  && map->l_versions[ndx].name[0] == '\0'
+		  && (verstab[symidx] & 0x8000) == 0
+		  && (*num_versions)++ == 0)
+		/* This is the global default version.  Store it as a
+		   fallback match.  */
+		*versioned_sym = sym;
+
+	      return NULL;
+	    }
 	}
     }
   else
@@ -815,7 +811,7 @@ _dl_lookup_symbol_x (const char *undef_name, struct link_map *undef_map,
 	  _dl_exception_free (&exception);
 	}
       *ref = NULL;
-      return 0;
+      return NULL;
     }
 
   int protected = (*ref

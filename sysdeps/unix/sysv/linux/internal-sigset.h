@@ -1,5 +1,5 @@
 /* Internal sigset_t definition.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,7 +21,7 @@
 
 #include <sigsetops.h>
 
-typedef struct
+typedef struct _internal_sigset_t
 {
   unsigned long int __val[__NSIG_WORDS];
 } internal_sigset_t;
@@ -54,7 +54,7 @@ static inline int
 internal_sigisemptyset (const internal_sigset_t *set)
 {
   int cnt = __NSIG_WORDS;
-  int ret = set->__val[--cnt];
+  unsigned long int ret = set->__val[--cnt];
   while (ret == 0 && --cnt >= 0)
     ret = set->__val[cnt];
   return ret == 0;
@@ -82,7 +82,7 @@ static inline int
 internal_sigismember (const internal_sigset_t *set, int sig)
 {
   unsigned long int mask = __sigmask (sig);
-  unsigned long int word = __sigword (sig);
+  int word = __sigword (sig);
   return set->__val[word] & mask ? 1 : 0;
 }
 
@@ -90,7 +90,7 @@ static inline void
 internal_sigaddset (internal_sigset_t *set, int sig)
 {
   unsigned long int mask = __sigmask (sig);
-  unsigned long int word = __sigword (sig);
+  int word = __sigword (sig);
   set->__val[word] |= mask;
 }
 
@@ -98,7 +98,7 @@ static inline void
 internal_sigdelset (internal_sigset_t *set, int sig)
 {
   unsigned long int mask = __sigmask (sig);
-  unsigned long int word = __sigword (sig);
+  int word = __sigword (sig);
   set->__val[word] &= ~mask;
 }
 

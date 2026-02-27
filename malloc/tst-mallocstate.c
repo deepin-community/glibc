@@ -1,5 +1,5 @@
 /* Emulate Emacs heap dumping to test malloc_set_state.
-   Copyright (C) 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 2001-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -366,7 +366,7 @@ full_heap_check (void)
 }
 
 /* Used as an optimization barrier to force a heap allocation.  */
-__attribute__ ((noinline, noclone))
+__attribute_optimization_barrier__
 static void
 my_free (void *ptr)
 {

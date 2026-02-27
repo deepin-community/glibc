@@ -1,5 +1,5 @@
 /* Thread-local storage handling in the ELF dynamic linker.  MIPS version.
-   Copyright (C) 2005-2023 Free Software Foundation, Inc.
+   Copyright (C) 2005-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,8 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
+#ifndef _DL_TLS_H
+#define _DL_TLS_H
 
 /* Type used for the representation of TLS information in the GOT.  */
 typedef struct
@@ -41,5 +43,6 @@ typedef struct
 
 extern void *__tls_get_addr (tls_index *ti);
 
-# define GET_ADDR_OFFSET	(ti->ti_offset + TLS_DTV_OFFSET)
-# define __TLS_GET_ADDR(__ti)	(__tls_get_addr (__ti) - TLS_DTV_OFFSET)
+#define __TLS_GET_ADDR(__ti)	(__tls_get_addr (__ti) - TLS_DTV_OFFSET)
+
+#endif /* _DL_TLS_H */

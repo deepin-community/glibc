@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -24,41 +24,51 @@
 /* __longjmp(jmpbuf, val) */
 
 ENTRY (__longjmp)
-	cfi_def_cfa(x0, 0)
-	cfi_offset(x19, JB_X19<<3)
-	cfi_offset(x20, JB_X20<<3)
-	cfi_offset(x21, JB_X21<<3)
-	cfi_offset(x22, JB_X22<<3)
-	cfi_offset(x23, JB_X23<<3)
-	cfi_offset(x24, JB_X24<<3)
-	cfi_offset(x25, JB_X25<<3)
-	cfi_offset(x26, JB_X26<<3)
-	cfi_offset(x27, JB_X27<<3)
-	cfi_offset(x28, JB_X28<<3)
-	cfi_offset(x29, JB_X29<<3)
-	cfi_offset(x30, JB_LR<<3)
 
-	cfi_offset( d8, JB_D8<<3)
-	cfi_offset( d9, JB_D9<<3)
-	cfi_offset(d10, JB_D10<<3)
-	cfi_offset(d11, JB_D11<<3)
-	cfi_offset(d12, JB_D12<<3)
-	cfi_offset(d13, JB_D13<<3)
-	cfi_offset(d14, JB_D14<<3)
-	cfi_offset(d15, JB_D15<<3)
+#if IS_IN(libc)
+	/* Disable ZA state of SME in libc.a and libc.so, but not in ld.so.
+	   The calling convention of __libc_arm_za_disable allows to do
+	   this thus allowing to avoid saving to and reading from stack.
+	   As a result we also don't need to sign the return address and
+	   check it after returning because it is not stored to stack.  */
+	mov	x13, x30
+	cfi_register (x30, x13)
+	bl	__libc_arm_za_disable
+	mov	x30, x13
+	cfi_register (x13, x30)
+#endif
 
-	PTR_ARG (0)
+	cfi_def_cfa (x0, 0)
+	cfi_offset (x19, JB_X19<<3)
+	cfi_offset (x20, JB_X20<<3)
+	cfi_offset (x21, JB_X21<<3)
+	cfi_offset (x22, JB_X22<<3)
+	cfi_offset (x23, JB_X23<<3)
+	cfi_offset (x24, JB_X24<<3)
+	cfi_offset (x25, JB_X25<<3)
+	cfi_offset (x26, JB_X26<<3)
+	cfi_offset (x27, JB_X27<<3)
+	cfi_offset (x28, JB_X28<<3)
+	cfi_offset (x29, JB_X29<<3)
+	cfi_offset (x30, JB_LR<<3)
+
+	cfi_offset ( d8, JB_D8<<3)
+	cfi_offset ( d9, JB_D9<<3)
+	cfi_offset (d10, JB_D10<<3)
+	cfi_offset (d11, JB_D11<<3)
+	cfi_offset (d12, JB_D12<<3)
+	cfi_offset (d13, JB_D13<<3)
+	cfi_offset (d14, JB_D14<<3)
+	cfi_offset (d15, JB_D15<<3)
 
 	ldp	x19, x20, [x0, #JB_X19<<3]
 	ldp	x21, x22, [x0, #JB_X21<<3]
 	ldp	x23, x24, [x0, #JB_X23<<3]
 	ldp	x25, x26, [x0, #JB_X25<<3]
 	ldp	x27, x28, [x0, #JB_X27<<3]
-#ifdef PTR_DEMANGLE
-	ldp	x29,  x4, [x0, #JB_X29<<3]
-	PTR_DEMANGLE (30, 4, 3, 2)
-#else
 	ldp	x29, x30, [x0, #JB_X29<<3]
+#ifdef PTR_DEMANGLE
+	PTR_DEMANGLE (x30, x30, x3)
 #endif
 	/* longjmp probe takes 3 arguments, address of jump buffer as
 	   first argument (8@x0), return value as second argument (-4@x1),
@@ -68,6 +78,36 @@ ENTRY (__longjmp)
 	ldp	d10, d11, [x0, #JB_D10<<3]
 	ldp	d12, d13, [x0, #JB_D12<<3]
 	ldp	d14, d15, [x0, #JB_D14<<3]
+
+	/* GCS support.  */
+	mov	x16, 1
+	CHKFEAT_X16
+	tbnz	x16, 0, L(gcs_done)
+	MRS_GCSPR (x2)
+	ldr	x3, [x0, #JB_GCSPR]
+	mov	x4, x3
+	/* x2: GCSPR now.  x3, x4: target GCSPR.  x5, x6: tmp regs.  */
+L(gcs_scan):
+	cmp	x2, x4
+	b.eq	L(gcs_pop)
+	sub	x4, x4, 8
+	/* Check for a cap token.  */
+	ldr	x5, [x4]
+	and	x6, x4, 0xfffffffffffff000
+	orr	x6, x6, 1
+	cmp	x5, x6
+	b.ne	L(gcs_scan)
+L(gcs_switch):
+	add	x2, x4, 8
+	GCSSS1 (x4)
+	GCSSS2 (xzr)
+L(gcs_pop):
+	cmp	x2, x3
+	b.eq	L(gcs_done)
+	GCSPOPM (xzr)
+	add	x2, x2, 8
+	b	L(gcs_pop)
+L(gcs_done):
 
         /* Originally this was implemented with a series of
 	   .cfi_restore() directives.
@@ -99,21 +139,21 @@ ENTRY (__longjmp)
 	cfi_same_value(d13)
 	cfi_same_value(d14)
 	cfi_same_value(d15)
-#ifdef PTR_DEMANGLE
+
 	ldr	x4, [x0, #JB_SP<<3]
-	PTR_DEMANGLE (5, 4, 3, 2)
-#else
-	ldr	x5, [x0, #JB_SP<<3]
+#ifdef PTR_DEMANGLE
+	PTR_DEMANGLE (x4, x4, x3)
 #endif
-	mov	sp, x5
+	mov	sp, x4
 
 	/* longjmp_target probe takes 3 arguments, address of jump buffer
 	   as first argument (8@x0), return value as second argument (-4@x1),
 	   and target address (8@x30), respectively.  */
 	LIBC_PROBE (longjmp_target, 3, 8@x0, -4@x1, 8@x30)
-	cmp	x1, #0
-	mov	x0, #1
-	csel	x0, x1, x0, ne
+
+	cmp	x1, 0
+	cinc	x0, x1, eq
+
 	/* Use br instead of ret because ret is guaranteed to mispredict */
 	br	x30
 END (__longjmp)

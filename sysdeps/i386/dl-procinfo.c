@@ -1,5 +1,5 @@
 /* Data for i386 version of processor capability information.
-   Copyright (C) 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 2001-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,25 +40,6 @@
 #endif
 
 #include <sysdeps/x86/dl-procinfo.c>
-
-#if !defined PROCINFO_DECL && defined SHARED
-  ._dl_x86_cap_flags
-#else
-PROCINFO_CLASS const char _dl_x86_cap_flags[32][8]
-#endif
-#ifndef PROCINFO_DECL
-= {
-    "fpu", "vme", "de", "pse", "tsc", "msr", "pae", "mce",
-    "cx8", "apic", "10", "sep", "mtrr", "pge", "mca", "cmov",
-    "pat", "pse36", "pn", "clflush", "20", "dts", "acpi", "mmx",
-    "fxsr", "sse", "sse2", "ss", "ht", "tm", "ia64", "pbe"
-  }
-#endif
-#if !defined SHARED || defined PROCINFO_DECL
-;
-#else
-,
-#endif
 
 #undef PROCINFO_DECL
 #undef PROCINFO_CLASS

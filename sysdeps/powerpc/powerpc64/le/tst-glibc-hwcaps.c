@@ -1,5 +1,5 @@
 /* glibc-hwcaps subdirectory test.  powerpc64le version.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -36,9 +36,11 @@ compute_level (void)
     return 9;
   if (strcmp (platform, "power10") == 0)
     return 10;
+  if (strcmp (platform, "power11") == 0)
+    return 11;
   printf ("warning: unrecognized AT_PLATFORM value: %s\n", platform);
-  /* Assume that the new platform supports POWER10.  */
-  return 10;
+  /* Assume that the new platform supports POWER11.  */
+  return 11;
 }
 
 static int

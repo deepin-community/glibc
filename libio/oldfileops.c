@@ -1,4 +1,5 @@
-/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2025 Free Software Foundation, Inc.
+   Copyright The GNU Toolchain Authors.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -103,9 +104,11 @@ _IO_old_file_init_internal (struct _IO_FILE_plus *fp)
   fp->file._old_offset = _IO_pos_BAD;
   fp->file._flags |= CLOSED_FILEBUF_FLAGS;
 
-  _IO_link_in (fp);
+  /* NB: _vtable_offset must be set before calling _IO_link_in since
+     _IO_vtable_offset is used to detect the old binaries.  */
   fp->file._vtable_offset = ((int) sizeof (struct _IO_FILE)
 			     - (int) sizeof (struct _IO_FILE_complete));
+  _IO_link_in (fp);
   fp->file._fileno = -1;
 
   if (&_IO_stdin_used != NULL || !_IO_legacy_file ((FILE *) fp))
@@ -309,7 +312,7 @@ _IO_old_file_underflow (FILE *fp)
       /* Maybe we already have a push back pointer.  */
       if (fp->_IO_save_base != NULL)
 	{
-	  free (fp->_IO_save_base);
+	  _IO_free_backup_buf (fp, fp->_IO_save_base);
 	  fp->_flags &= ~_IO_IN_BACKUP;
 	}
       _IO_doallocbuf (fp);
@@ -462,7 +465,7 @@ _IO_old_file_seekoff (FILE *fp, off64_t offset, int dir, int mode)
       /* It could be that we already have a pushback buffer.  */
       if (fp->_IO_read_base != NULL)
 	{
-	  free (fp->_IO_read_base);
+	  _IO_free_backup_buf (fp, fp->_IO_read_base);
 	  fp->_flags &= ~_IO_IN_BACKUP;
 	}
       _IO_doallocbuf (fp);

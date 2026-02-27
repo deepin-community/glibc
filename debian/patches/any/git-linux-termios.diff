@@ -1,0 +1,98 @@
+commit 8d999a6993611d375adc9efc5369c7bb7963b716
+Author: H. Peter Anvin <hpa@zytor.com>
+Date:   Mon Oct 20 13:42:09 2025 -0700
+
+    linux/termios: clear k_termios.c_cflag & CIBAUD for non-split speed [BZ 33340]
+    
+    After getting more experience with the various broken direct-to-ioctl
+    termios2 hacks using Fedora 43 beta, I have found a fair number of
+    cases where the software would fail to set, or clear CIBAUD for
+    non-split-speed operation.
+    
+    Thus it seems will help improve compatibility to clear the kernel-side
+    version of c_cflag & CIBAUD (having the same meaning to the Linux
+    kernel as the speed 0 has for cfsetibaud(), i.e. force the input speed
+    to equal the output speed) for non-split-speed operation, rather than
+    having it explicitly equal the output speed in CBAUD.
+    
+    When writing the code that went into glibc 2.42 I had considered this
+    issue, and had to make an educated guess which way would be more
+    likely to break fewer things.  Unfortunately, it appears I guessed
+    wrong.
+    
+    A third option would be to *always* set CIBAUD to __BOTHER, even for
+    the standard baud rates.  However, that is an even bigger departure
+    from legacy behavior, whereas this variant mostly preserves current
+    behavior in terms of under what conditions buggy utilities will
+    continue to work.
+    
+    This change is in tcsetattr() rather than
+    ___termios2_canonicalize_speeds(), as it should not be run for
+    tcgetattr(); that would break split speed support for the legacy
+    interface versions of cfgetispeed() and cfsetispeed().
+    
+    [ v2: fixed comment style ]
+    
+    Resolves: BZ #33340
+    Signed-off-by: H. Peter Anvin (Intel) <hpa@zytor.com>
+    Reviewed-by: Adhemerval Zanella  <adhemerval.zanella@linaro.org>
+
+---
+ sysdeps/unix/sysv/linux/tcsetattr.c |   35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
+
+--- a/sysdeps/unix/sysv/linux/tcsetattr.c
++++ b/sysdeps/unix/sysv/linux/tcsetattr.c
+@@ -43,16 +43,6 @@ __tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
+ 
+   copy_c_cc (k_termios.c_cc, _TERMIOS2_NCCS, termios_p->c_cc, NCCS);
+ 
+-  /*
+-   * Choose the proper ioctl number to invoke.
+-   *
+-   * Alpha got TCSETS2 late (Linux 4.20), but has the same structure
+-   * format, and it only needs TCSETS2 if either it needs to use
+-   * __BOTHER or split speed.  All other architectures have TCSETS2 as
+-   * far back as the current glibc supports.  Calling TCSETS with
+-   * __BOTHER causes unpredictable results on old Alpha kernels and
+-   * could even crash them.
+-   */
+   static_assert_equal(TCSADRAIN, TCSANOW + 1);
+   static_assert_equal(TCSAFLUSH, TCSANOW + 2);
+   static_assert_equal(TCSETSW2,  TCSETS2 + 1);
+@@ -64,17 +54,28 @@ __tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
+   if (cmd > 2)
+     return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+ 
++  /* For compatibility with broken workaround hacks for the lack
++     of arbitrary speed support in previous versions of glibc,
++     clear CIBAUD if only one speed is used.
++
++     This is also necessary for the Alpha compatibility hack below. */
++  if (k_termios.c_ospeed == k_termios.c_ispeed)
++    k_termios.c_cflag &= ~CIBAUD;
++
++  /* Choose the proper ioctl number to invoke.
++
++     Alpha got TCSETS2 late (Linux 4.20), but has the same structure
++     format, and it only needs TCSETS2 if either it needs to use
++     __BOTHER or split speed.  All other architectures have TCSETS2 as
++     far back as the current glibc supports.  Calling TCSETS with
++     __BOTHER causes unpredictable results on old Alpha kernels and
++     could even crash them. */
+   if (__ASSUME_TERMIOS2 ||
+       k_termios.c_ospeed != k_termios.c_ispeed ||
+       cbaud (k_termios.c_cflag) == __BOTHER)
+-    {
+-      cmd += TCSETS2;
+-    }
++    cmd += TCSETS2;
+   else
+-    {
+-      cmd += TCSETS;
+-      k_termios.c_cflag &= ~CIBAUD;
+-    }
++    cmd += TCSETS;
+ 
+   /* Preserve the previous termios state if we can. */
+   if (__ASSUME_TERMIOS2)

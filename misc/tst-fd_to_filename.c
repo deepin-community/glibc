@@ -1,5 +1,5 @@
 /* Test for /proc/self/fd (or /dev/fd) pathname construction.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fcntl.h>
+#if __GNUC_PREREQ (5, 0)
 #include <fd_to_filename.h>
 #include <stdio.h>
 #include <support/check.h>
@@ -99,3 +100,12 @@ do_test (void)
 }
 
 #include <support/test-driver.c>
+#else
+#include <support/test-driver.h>
+
+int
+main (void)
+{
+  return EXIT_UNSUPPORTED;
+}
+#endif

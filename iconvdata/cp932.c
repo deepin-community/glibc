@@ -1,5 +1,5 @@
 /* Mapping tables for CP932 handling.
-   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -4559,7 +4559,7 @@ static const char from_ucs4_extra[229][2] =
 	if (! ignore_errors_p ())					      \
 	  {								      \
 	    /* This is an illegal character.  */			      \
-	    result = __GCONV_ILLEGAL_INPUT;				      \
+	    result = __gconv_mark_illegal_input (step_data);		      \
 	    break;							      \
 	  }								      \
 									      \
@@ -4599,7 +4599,7 @@ static const char from_ucs4_extra[229][2] =
 	    if (! ignore_errors_p ())					      \
 	      {								      \
 		/* This is an illegal character.  */			      \
-		result = __GCONV_ILLEGAL_INPUT;				      \
+		result = __gconv_mark_illegal_input (step_data);	      \
 		break;							      \
 	      }								      \
 									      \
@@ -4634,7 +4634,7 @@ static const char from_ucs4_extra[229][2] =
 	    if (! ignore_errors_p ())					      \
 	      {								      \
 		/* This is an illegal character.  */			      \
-		result = __GCONV_ILLEGAL_INPUT;				      \
+		result = __gconv_mark_illegal_input (step_data);	      \
 		break;							      \
 	      }								      \
 									      \
