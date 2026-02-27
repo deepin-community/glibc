@@ -1,5 +1,5 @@
 /* Test --no-hard-links option to localedef.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -62,7 +62,7 @@ check_link (struct test_data step)
   char *output;
 
   output = xasprintf ("%s/%s", support_complocaledir_prefix, step.output);
-  xstat (output, &locale);
+  xstat64 (output, &locale);
   free (output);
   TEST_COMPARE (locale.st_nlink, step.st_nlink);
 }

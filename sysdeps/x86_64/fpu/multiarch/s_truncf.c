@@ -1,5 +1,5 @@
 /* Multiple versions of __truncf.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,17 +16,20 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#define NO_MATH_REDIRECT
-#include <libm-alias-float.h>
+#include <sysdeps/x86/isa-level.h>
+#if MINIMUM_X86_ISA_LEVEL < SSE4_1_X86_ISA_LEVEL
+# define NO_MATH_REDIRECT
+# include <libm-alias-float.h>
 
-#define truncf __redirect_truncf
-#define __truncf __redirect___truncf
-#include <math.h>
-#undef truncf
-#undef __truncf
+# define truncf __redirect_truncf
+# define __truncf __redirect___truncf
+# include <math.h>
+# undef truncf
+# undef __truncf
 
-#define SYMBOL_NAME truncf
-#include "ifunc-sse4_1.h"
+# define SYMBOL_NAME truncf
+# include "ifunc-sse4_1.h"
 
 libc_ifunc_redirected (__redirect_truncf, __truncf, IFUNC_SELECTOR ());
 libm_alias_float (__trunc, trunc)
+#endif

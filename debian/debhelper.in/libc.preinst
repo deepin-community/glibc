@@ -107,31 +107,6 @@ then
             fi
         fi
 
-    elif [ $system = "GNU/kFreeBSD" ]
-    then
-        kernel_ver=`uname -r`
-        kernel_ver_min=8.3
-        if kernel_compare_versions "$kernel_ver" lt $kernel_ver_min
-        then
-            if [ "$USE_DEBCONF" ]
-            then
-                db_version 2.0
-                db_version 2.0
-                db_fset glibc/kernel-too-old seen false
-                db_reset glibc/kernel-too-old
-                db_subst glibc/kernel-too-old kernel_ver $kernel_ver_min
-                db_input critical glibc/kernel-too-old || true
-                db_go
-                db_stop
-            else
-                echo "ERROR: This version of the GNU libc requires kernel version"
-                echo "$kernel_ver_min or later.  Please upgrade your kernel and reboot before installing"
-                echo 'glibc. You may need to use "apt -f install" after reboot to solve dependencies.'
-                echo
-            fi
-            exit 1
-        fi
-
     elif [ $system = "GNU" ]
     then
         kernel_ver=`uname -v | cut -d / -f 1 | cut -d ' ' -f 2`
@@ -248,33 +223,6 @@ then
 	            exit 1
 		fi
 	    fi
-
-            # As long systemd-logind has not seen any login request since the system has been
-            # booted, it has not loaded any NSS module. In that condition if glibc is upgraded
-            # (that means with a non session shell or by some automation), the NSS modules are
-            # replaced by a new major version which might be incompatible (and definitely are
-            # for some versions).
-            #
-            # The solution implemented for most daemons is to restart them, but unfortunately
-            # it is not something supported with systemd-logind (see bug#91950).
-            #
-            # As a workaround, when detected that the system is using systemd and that the
-            # systemd-logind process has not not loaded any NSS module, force systemd-logind to
-            # load NSS modules. This is done by disabling lingering on a non-existing user. This
-            # has to be done by talking directly to systemd-logind through sd-bus, as loginctl
-            # first checks if the user actually exist. The nonexistent uid is chosen as
-            # 4294967294, which is reserved by Policy §9.2.2.
-            #
-            # Note that starting with glibc 2.34, the nss_files is builtin. When glibc >= 2.34
-            # ends-up in a stable release, this workaround can therefore be dropped.
-            if dpkg --compare-versions "$preversion" lt 2.34 && [ -d /run/systemd/system ]; then
-                if ! grep -q -E 'libnss_(compat|db|files)' /proc/$(systemctl show --property MainPID --value systemd-logind.service)/maps >/dev/null 2>&1; then
-                    echo "Forcing systemd-logind to load NSS modules..."
-                    busctl call --system org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager \
-                        SetUserLinger ubb 4294967294 false false >/dev/null 2>&1 || true
-                fi
-            fi
-
 	fi # end upgrading and $preversion lt DEB_VERSION_UPSTREAM
     fi # Upgrading
 fi

@@ -1,5 +1,5 @@
 /* Install given context.
-   Copyright (C) 2005-2023 Free Software Foundation, Inc.
+   Copyright (C) 2005-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -50,6 +50,8 @@ ENTRY(__setcontext)
 
 .Lsetcontext_restore:
 #ifdef __SH_FPU_ANY__
+	mov	#0, r9
+	lds	r9, fpscr
 	mov	r8, r0
 	add	#(oFR0),r0
 	fmov.s	@r0+, fr0

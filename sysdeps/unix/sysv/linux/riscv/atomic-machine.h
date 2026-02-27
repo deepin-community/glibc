@@ -1,5 +1,5 @@
 /* Low-level functions for atomic operations. RISC-V version.
-   Copyright (C) 2014-2023 Free Software Foundation, Inc.
+   Copyright (C) 2014-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -177,5 +177,8 @@
 #else /* __riscv_atomic */
 # error "ISAs that do not subsume the A extension are not supported"
 #endif /* !__riscv_atomic */
+
+/* Execute a PAUSE hint when spinning.  */
+#define atomic_spin_nop() __asm(".insn i 0x0f, 0, x0, x0, 0x010")
 
 #endif /* bits/atomic.h */

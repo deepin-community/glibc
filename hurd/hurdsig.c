@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,6 +15,7 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -260,7 +261,6 @@ _hurd_sigstate_actions (struct hurd_sigstate *ss)
 #include <hurd/msg_server.h>
 #include <hurd/msg_reply.h>	/* For __msg_sig_post_reply.  */
 #include <hurd/interrupt.h>
-#include <assert.h>
 #include <unistd.h>
 
 
@@ -416,9 +416,9 @@ _hurdsig_abort_rpcs (struct hurd_sigstate *ss, int signo, int sigthread,
 		     struct machine_thread_all_state *state, int *state_change,
 		     void (*reply) (void))
 {
-  extern const void _hurd_intr_rpc_msg_about_to;
-  extern const void _hurd_intr_rpc_msg_setup_done;
-  extern const void _hurd_intr_rpc_msg_in_trap;
+  extern const void _hurd_intr_rpc_msg_about_to attribute_hidden;
+  extern const void _hurd_intr_rpc_msg_setup_done attribute_hidden;
+  extern const void _hurd_intr_rpc_msg_in_trap attribute_hidden;
   mach_port_t rcv_port = MACH_PORT_NULL;
   mach_port_t intr_port;
 
@@ -1611,28 +1611,53 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
 static void
 reauth_proc (mach_port_t new)
 {
-  mach_port_t ref, ignore;
+  error_t err;
+  mach_port_t ref, newproc;
 
   ref = __mach_reply_port ();
-  if (! HURD_PORT_USE (&_hurd_ports[INIT_PORT_PROC],
+  err = HURD_PORT_USE (&_hurd_ports[INIT_PORT_PROC],
 		       __proc_reauthenticate (port, ref,
-					      MACH_MSG_TYPE_MAKE_SEND)
-		       || __auth_user_authenticate (new, ref,
-						    MACH_MSG_TYPE_MAKE_SEND,
-						    &ignore))
-      && ignore != MACH_PORT_NULL)
-    __mach_port_deallocate (__mach_task_self (), ignore);
-  __mach_port_destroy (__mach_task_self (), ref);
+					      MACH_MSG_TYPE_MAKE_SEND));
+  if (err)
+    {
+      __mach_port_destroy (__mach_task_self (), ref);
+      return;
+    }
 
-  /* Set the owner of the process here too. */
-  __mutex_lock (&_hurd_id.lock);
-  if (!_hurd_check_ids ())
-    HURD_PORT_USE (&_hurd_ports[INIT_PORT_PROC],
-		   __proc_setowner (port,
-				    (_hurd_id.gen.nuids
-				     ? _hurd_id.gen.uids[0] : 0),
-				    !_hurd_id.gen.nuids));
-  __mutex_unlock (&_hurd_id.lock);
+  err = __auth_user_authenticate (new, ref,
+                                  MACH_MSG_TYPE_MAKE_SEND,
+                                  &newproc);
+  __mach_port_destroy (__mach_task_self (), ref);
+  if (err)
+    return;
+
+  if (newproc == MACH_PORT_NULL)
+    {
+      /* Old versions of the proc server did not recreate the process
+         port when reauthenticating, and passed MACH_PORT_NULL through
+         the auth server.  That must be what we're dealing with.  */
+
+      /* Set the owner of the process here too. */
+      __mutex_lock (&_hurd_id.lock);
+      if (!_hurd_check_ids ())
+	HURD_PORT_USE (&_hurd_ports[INIT_PORT_PROC],
+		       __proc_setowner (port,
+					(_hurd_id.gen.nuids
+					 ? _hurd_id.gen.uids[0] : 0),
+					!_hurd_id.gen.nuids));
+      __mutex_unlock (&_hurd_id.lock);
+
+      return;
+    }
+
+  err = __proc_reauthenticate_complete (newproc);
+  if (err)
+    {
+      __mach_port_deallocate (__mach_task_self (), newproc);
+      return;
+    }
+
+  _hurd_port_set (&_hurd_ports[INIT_PORT_PROC], newproc);
 
   (void) &reauth_proc;		/* Silence compiler warning.  */
 }
@@ -1658,8 +1683,8 @@ _hurdsig_getenv (const char *variable)
       while (*ep)
 	{
 	  const char *p = *ep;
-	  _hurdsig_fault_preemptor.first = (long int) p;
-	  _hurdsig_fault_preemptor.last = VM_MAX_ADDRESS;
+	  _hurdsig_fault_preemptor.first = (unsigned long int) p;
+	  _hurdsig_fault_preemptor.last = (unsigned long int) -1;
 	  if (! strncmp (p, variable, len) && p[len] == '=')
 	    {
 	      size_t valuelen;
@@ -1671,8 +1696,8 @@ _hurdsig_getenv (const char *variable)
 		memcpy (value, p, valuelen);
 	      break;
 	    }
-	  _hurdsig_fault_preemptor.first = (long int) ++ep;
-	  _hurdsig_fault_preemptor.last = (long int) (ep + 1);
+	  _hurdsig_fault_preemptor.first = (unsigned long int) ++ep;
+	  _hurdsig_fault_preemptor.last = (unsigned long int) (ep + 1);
 	}
       _hurdsig_end_catch_fault ();
       return value;

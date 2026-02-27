@@ -1,5 +1,5 @@
 /* powerpc HWCAP/HWCAP2 and AT_PLATFORM data pre-processing.
-   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+   Copyright (C) 2015-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
 
 #include <unistd.h>
 #include <shlib-compat.h>
-#include <dl-procinfo.h>
+#include <cpu-features.c>
 
 tcbhead_t __tcb __attribute__ ((visibility ("hidden")));
 
@@ -30,7 +30,7 @@ void
 __tcb_parse_hwcap_and_convert_at_platform (void)
 {
 
-  uint64_t h1, h2;
+  uint64_t h1, h2, h3, h4;
 
   /* Read AT_PLATFORM string from auxv and convert it to a number.  */
   __tcb.at_platform = _dl_string_platform (GLRO (dl_platform));
@@ -38,6 +38,8 @@ __tcb_parse_hwcap_and_convert_at_platform (void)
   /* Read HWCAP and HWCAP2 from auxv.  */
   h1 = GLRO (dl_hwcap);
   h2 = GLRO (dl_hwcap2);
+  h3 = GLRO (dl_hwcap3);
+  h4 = GLRO (dl_hwcap4);
 
   /* hwcap contains only the latest supported ISA, the code checks which is
      and fills the previous supported ones.  */
@@ -63,14 +65,23 @@ __tcb_parse_hwcap_and_convert_at_platform (void)
   else if (h1 & PPC_FEATURE_POWER5)
     h1 |= PPC_FEATURE_POWER4;
 
+  uint64_t array_hwcaps[] = { h1, h2, h3, h4 };
+  init_cpu_features (&GLRO(dl_powerpc_cpu_features), array_hwcaps);
+
   /* Consolidate both HWCAP and HWCAP2 into a single doubleword so that
      we can read both in a single load later.  */
   __tcb.hwcap = (h1 << 32) | (h2 & 0xffffffff);
+
+  /* Consolidate both HWCAP3 and HWCAP4 into a single doubleword so that
+     we can read both in a single load later.  */
+  __tcb.hwcap_extn = (h3 << 32) | (h4 & 0xffffffff);
 
 }
 #if IS_IN (rtld)
 versioned_symbol (ld, __tcb_parse_hwcap_and_convert_at_platform, \
 		  __parse_hwcap_and_convert_at_platform, GLIBC_2_23);
+versioned_symbol (ld, __tcb_parse_hwcap_and_convert_at_platform, \
+		  __parse_hwcap_3_4_and_convert_at_platform, GLIBC_2_39);
 #endif
 
 /* Export __parse_hwcap_and_convert_at_platform in libc.a.  This is used by
@@ -79,4 +90,6 @@ versioned_symbol (ld, __tcb_parse_hwcap_and_convert_at_platform, \
 #ifndef SHARED
 weak_alias (__tcb_parse_hwcap_and_convert_at_platform, \
 	    __parse_hwcap_and_convert_at_platform);
+weak_alias (__tcb_parse_hwcap_and_convert_at_platform, \
+	    __parse_hwcap_3_4_and_convert_at_platform);
 #endif

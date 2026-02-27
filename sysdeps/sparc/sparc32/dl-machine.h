@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  SPARC version.
-   Copyright (C) 1996-2023 Free Software Foundation, Inc.
+   Copyright (C) 1996-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -39,13 +39,7 @@ elf_machine_matches_host (const Elf32_Ehdr *ehdr)
     return 1;
   else if (ehdr->e_machine == EM_SPARC32PLUS)
     {
-#if defined SHARED
-      uint64_t hwcap_mask = TUNABLE_GET (glibc, cpu, hwcap_mask, uint64_t,
-					 NULL);
-      return GLRO(dl_hwcap) & hwcap_mask & HWCAP_SPARC_V9;
-#else
       return GLRO(dl_hwcap) & HWCAP_SPARC_V9;
-#endif
     }
   else
     return 0;
@@ -116,7 +110,8 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	 bits of %g1 with an offset into the .rela.plt section and jump to
 	 the beginning of the PLT.  */
       plt = (Elf32_Addr *) D_PTR (l, l_info[DT_PLTGOT]);
-      if (__builtin_expect(profile, 0))
+#ifdef SHARED
+      if (__glibc_unlikely (profile))
 	{
 	  rfunc = (Elf32_Addr) &_dl_runtime_profile;
 
@@ -125,6 +120,7 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	    GL(dl_profile_map) = l;
 	}
       else
+#endif
 	{
 	  rfunc = (Elf32_Addr) &_dl_runtime_resolve;
 	}

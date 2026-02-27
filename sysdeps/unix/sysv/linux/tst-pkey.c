@@ -1,5 +1,5 @@
 /* Tests for memory protection keys.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -120,7 +120,7 @@ sigusr1_handler (int signum)
   TEST_COMPARE (signum, SIGUSR1);
   for (int i = 0; i < key_count; ++i)
     TEST_VERIFY (pkey_get (keys[i]) == PKEY_DISABLE_ACCESS
-                 || pkey_get (keys[i]) == i);
+                 || (pkey_get (keys[i]) & i) == i);
   sigusr1_handler_ran = 1;
 }
 
@@ -185,12 +185,13 @@ do_test (void)
     xmunmap (page, pagesize);
   }
 
+  /* Create thread before setting up key in the current thread.  */
   xpthread_barrier_init (&barrier, NULL, 2);
   bool delayed_thread_check_access = true;
   pthread_t delayed_thread = xpthread_create
     (NULL, &delayed_thread_func, &delayed_thread_check_access);
 
-  keys[0] = pkey_alloc (0, 0);
+  keys[0] = pkey_alloc (0, PKEY_UNRESTRICTED);
   if (keys[0] < 0)
     {
       if (errno == ENOSYS)
@@ -205,20 +206,54 @@ do_test (void)
            " protection keys");
       FAIL_EXIT1 ("pkey_alloc: %m");
     }
-  TEST_COMPARE (pkey_get (keys[0]), 0);
+  if (pkey_get (keys[0]) < 0)
+    {
+      if (errno == ENOSYS)
+	FAIL_UNSUPPORTED
+	  ("glibc does not support memory protection keys");
+      FAIL_EXIT1 ("pkey_get: %m");
+    }
+
+  /* Check that initial rights that are set via pkey_alloc
+     can be accessed via pkey_get.  */
+  {
+    int pkey = -1;
+    pkey = pkey_alloc (0, PKEY_DISABLE_ACCESS);
+    TEST_COMPARE (pkey_get (pkey) & PKEY_DISABLE_ACCESS, PKEY_DISABLE_ACCESS);
+    pkey_free (pkey);
+    pkey = pkey_alloc (0, PKEY_DISABLE_WRITE);
+    TEST_COMPARE (pkey_get (pkey) & PKEY_DISABLE_WRITE, PKEY_DISABLE_WRITE);
+    pkey_free (pkey);
+  }
+
+  /* Check that unallocated pkey is not accepted by the
+     pkey_mprotect function.  */
+  {
+    int pkey = -1;
+    pkey = pkey_alloc (0, PKEY_DISABLE_WRITE);
+    pkey_free (pkey);
+    int *page = xmmap (NULL, pagesize, PROT_NONE,
+                       MAP_ANONYMOUS | MAP_PRIVATE, -1);
+    TEST_COMPARE (pkey_mprotect (page, pagesize, PROT_READ, pkey), -1);
+    TEST_COMPARE (errno, EINVAL);
+    xmunmap (page, pagesize);
+  }
+
   for (int i = 1; i < key_count; ++i)
     {
+      /* i == 1 corresponds to PKEY_DISABLE_ACCESS
+         i == 2 corresponds to PKEY_DISABLE_WRITE  */
       keys[i] = pkey_alloc (0, i);
       if (keys[i] < 0)
         FAIL_EXIT1 ("pkey_alloc (0, %d): %m", i);
       /* pkey_alloc is supposed to change the current thread's access
          rights for the new key.  */
-      TEST_COMPARE (pkey_get (keys[i]), i);
+      TEST_COMPARE (pkey_get (keys[i]) & i, i);
     }
   /* Check that all the keys have the expected access rights for the
      current thread.  */
   for (int i = 0; i < key_count; ++i)
-    TEST_COMPARE (pkey_get (keys[i]), i);
+    TEST_COMPARE (pkey_get (keys[i]) & i, i);
 
   /* Allocate a test page for each key.  */
   for (int i = 0; i < key_count; ++i)
@@ -235,12 +270,12 @@ do_test (void)
     pthread_barrier_wait (&barrier);
     struct thread_result *result = xpthread_join (delayed_thread);
     for (int i = 0; i < key_count; ++i)
-      TEST_COMPARE (result->access_rights[i],
-                    PKEY_DISABLE_ACCESS);
+      TEST_COMPARE (result->access_rights[i] &
+                    PKEY_DISABLE_ACCESS, PKEY_DISABLE_ACCESS);
     struct thread_result *result2 = xpthread_join (result->next_thread);
     for (int i = 0; i < key_count; ++i)
-      TEST_COMPARE (result->access_rights[i],
-                    PKEY_DISABLE_ACCESS);
+      TEST_COMPARE (result->access_rights[i] &
+                    PKEY_DISABLE_ACCESS, PKEY_DISABLE_ACCESS);
     free (result);
     free (result2);
   }
@@ -251,12 +286,12 @@ do_test (void)
     pthread_t get_thread = xpthread_create (NULL, get_thread_func, NULL);
     struct thread_result *result = xpthread_join (get_thread);
     for (int i = 0; i < key_count; ++i)
-      TEST_COMPARE (result->access_rights[i], i);
+      TEST_COMPARE (result->access_rights[i] & i, i);
     free (result);
   }
 
   for (int i = 0; i < key_count; ++i)
-    TEST_COMPARE (pkey_get (keys[i]), i);
+    TEST_COMPARE (pkey_get (keys[i]) & i, i);
 
   /* Check that in a signal handler, there is no access.  */
   xsignal (SIGUSR1, &sigusr1_handler);
@@ -275,7 +310,7 @@ do_test (void)
         printf ("info: checking access for key %d, bits 0x%x\n",
                 i, pkey_get (keys[i]));
       for (int j = 0; j < key_count; ++j)
-        TEST_COMPARE (pkey_get (keys[j]), j);
+        TEST_COMPARE (pkey_get (keys[j]) & j, j);
       if (i & PKEY_DISABLE_ACCESS)
         {
           TEST_VERIFY (!check_page_access (i, false));
@@ -298,7 +333,7 @@ do_test (void)
           if (i == allowed_key)
             {
               if (do_write)
-                TEST_COMPARE (pkey_set (keys[i], 0), 0);
+                TEST_COMPARE (pkey_set (keys[i], PKEY_UNRESTRICTED), 0);
               else
                 TEST_COMPARE (pkey_set (keys[i], PKEY_DISABLE_WRITE), 0);
             }
@@ -325,7 +360,7 @@ do_test (void)
      inherit that access.  */
   for (int i = 0; i < key_count; ++i)
     {
-      TEST_COMPARE (pkey_set (keys[i], 0), 0);
+      TEST_COMPARE (pkey_set (keys[i], PKEY_UNRESTRICTED), 0);
       TEST_VERIFY (check_page_access (i, false));
       TEST_VERIFY (check_page_access (i, true));
     }
@@ -349,7 +384,7 @@ do_test (void)
      not what happens in practice.  */
   {
     /* The limit is in place to avoid running indefinitely in case
-       there many keys available.  */
+       there are many keys available.  */
     int *keys_array = xcalloc (100000, sizeof (*keys_array));
     int keys_allocated = 0;
     while (keys_allocated < 100000)

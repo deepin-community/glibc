@@ -1,6 +1,6 @@
 /* strchrnul - find a character or nul in a string
 
-   Copyright (C) 2014-2023 Free Software Foundation, Inc.
+   Copyright (C) 2014-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -51,7 +51,6 @@
    exactly which byte matched.  */
 
 ENTRY (__strchrnul)
-	PTR_ARG (0)
 	bic	src, srcin, 15
 	dup	vrepchr.16b, chrin
 	ld1	{vdata.16b}, [src]

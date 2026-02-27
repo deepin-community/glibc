@@ -1,6 +1,6 @@
 /* Minimal malloc implementation for dynamic linker and static
    initialization.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@
 #include <string.h>
 #include <ldsodefs.h>
 #include <malloc/malloc-internal.h>
+#include <setvmaname.h>
 
 static void *alloc_ptr, *alloc_end, *alloc_last_block;
 
@@ -33,7 +34,7 @@ static void *alloc_ptr, *alloc_end, *alloc_last_block;
 void *
 __minimal_malloc (size_t n)
 {
-  if (alloc_end == 0)
+  if (alloc_end == NULL)
     {
       /* Consume any unused space in the last page of our data segment.  */
       extern int _end attribute_hidden;
@@ -56,10 +57,11 @@ __minimal_malloc (size_t n)
       if (__glibc_unlikely (nup == 0 && n != 0))
 	return NULL;
       nup += GLRO(dl_pagesize);
-      page = __mmap (0, nup, PROT_READ|PROT_WRITE,
+      page = __mmap (NULL, nup, PROT_READ|PROT_WRITE,
 		     MAP_ANON|MAP_PRIVATE, -1, 0);
       if (page == MAP_FAILED)
 	return NULL;
+      __set_vma_name (page, nup, " glibc: loader malloc");
       if (page != alloc_end)
 	alloc_ptr = page;
       alloc_end = page + nup;

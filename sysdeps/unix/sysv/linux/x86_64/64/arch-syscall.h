@@ -12,6 +12,7 @@
 #define __NR_bind 49
 #define __NR_bpf 321
 #define __NR_brk 12
+#define __NR_cachestat 451
 #define __NR_capget 125
 #define __NR_capset 126
 #define __NR_chdir 80
@@ -58,6 +59,7 @@
 #define __NR_fchdir 81
 #define __NR_fchmod 91
 #define __NR_fchmodat 268
+#define __NR_fchmodat2 452
 #define __NR_fchown 93
 #define __NR_fchownat 260
 #define __NR_fcntl 72
@@ -78,7 +80,10 @@
 #define __NR_fsync 74
 #define __NR_ftruncate 77
 #define __NR_futex 202
+#define __NR_futex_requeue 456
+#define __NR_futex_wait 455
 #define __NR_futex_waitv 449
+#define __NR_futex_wake 454
 #define __NR_futimesat 261
 #define __NR_get_kernel_syms 177
 #define __NR_get_mempolicy 239
@@ -112,6 +117,7 @@
 #define __NR_gettimeofday 96
 #define __NR_getuid 102
 #define __NR_getxattr 191
+#define __NR_getxattrat 464
 #define __NR_init_module 175
 #define __NR_inotify_add_watch 254
 #define __NR_inotify_init 253
@@ -144,14 +150,20 @@
 #define __NR_link 86
 #define __NR_linkat 265
 #define __NR_listen 50
+#define __NR_listmount 458
 #define __NR_listxattr 194
+#define __NR_listxattrat 465
 #define __NR_llistxattr 195
 #define __NR_lookup_dcookie 212
 #define __NR_lremovexattr 198
 #define __NR_lseek 8
 #define __NR_lsetxattr 189
+#define __NR_lsm_get_self_attr 459
+#define __NR_lsm_list_modules 461
+#define __NR_lsm_set_self_attr 460
 #define __NR_lstat 6
 #define __NR_madvise 28
+#define __NR_map_shadow_stack 453
 #define __NR_mbind 237
 #define __NR_membarrier 324
 #define __NR_memfd_create 319
@@ -179,6 +191,7 @@
 #define __NR_mq_timedsend 242
 #define __NR_mq_unlink 241
 #define __NR_mremap 25
+#define __NR_mseal 462
 #define __NR_msgctl 71
 #define __NR_msgget 68
 #define __NR_msgrcv 70
@@ -194,6 +207,7 @@
 #define __NR_open 2
 #define __NR_open_by_handle_at 304
 #define __NR_open_tree 428
+#define __NR_open_tree_attr 467
 #define __NR_openat 257
 #define __NR_openat2 437
 #define __NR_pause 34
@@ -239,6 +253,7 @@
 #define __NR_recvmsg 47
 #define __NR_remap_file_pages 216
 #define __NR_removexattr 197
+#define __NR_removexattrat 466
 #define __NR_rename 82
 #define __NR_renameat 264
 #define __NR_renameat2 316
@@ -302,6 +317,7 @@
 #define __NR_settimeofday 164
 #define __NR_setuid 105
 #define __NR_setxattr 188
+#define __NR_setxattrat 463
 #define __NR_shmat 30
 #define __NR_shmctl 31
 #define __NR_shmdt 67
@@ -315,6 +331,7 @@
 #define __NR_splice 275
 #define __NR_stat 4
 #define __NR_statfs 137
+#define __NR_statmount 457
 #define __NR_statx 332
 #define __NR_swapoff 168
 #define __NR_swapon 167
@@ -347,6 +364,7 @@
 #define __NR_unlink 87
 #define __NR_unlinkat 263
 #define __NR_unshare 272
+#define __NR_uretprobe 335
 #define __NR_uselib 134
 #define __NR_userfaultfd 323
 #define __NR_ustat 136

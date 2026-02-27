@@ -1,5 +1,5 @@
 /* Test compilation of tgmath macros.
-   Copyright (C) 2007-2023 Free Software Foundation, Inc.
+   Copyright (C) 2007-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <tgmath.h>
+
+#include <support/check.h>
 
 //#define DEBUG
 
@@ -87,13 +89,6 @@ enum
 int count;
 int counts[Tlast][C_last];
 
-#define FAIL(str) \
-  do								\
-    {								\
-      printf ("%s failure on line %d\n", (str), __LINE__);	\
-      result = 1;						\
-    }								\
-  while (0)
 #define TEST_TYPE_ONLY(expr, rettype) \
   do								\
     {								\
@@ -133,8 +128,6 @@ int counts[Tlast][C_last];
 int
 test_cos (const int Vint4, const long long int Vllong4)
 {
-  int result = 0;
-
   TEST (cos (vfloat1), float, cos);
   TEST (cos (vdouble1), double, cos);
   TEST (cos (vldouble1), ldouble, cos);
@@ -152,7 +145,7 @@ test_cos (const int Vint4, const long long int Vllong4)
   TEST (cos (Vcdouble1), cdouble, cos);
   TEST (cos (Vcldouble1), cldouble, cos);
 
-  return result;
+  return 0;
 }
 
 int

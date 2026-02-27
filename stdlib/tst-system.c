@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 #include <string.h>
 #include <signal.h>
 #include <paths.h>
+#include <sys/resource.h>
 
 #include <support/capture_subprocess.h>
 #include <support/check.h>
@@ -80,7 +81,7 @@ sleep_and_check_sigchld (void *closure)
   sprintf (cmd, "sleep %lf" , *seconds);
   TEST_COMPARE (system (cmd), 0);
 
-  sigset_t blocked = {0};
+  sigset_t blocked = { };
   TEST_COMPARE (sigprocmask (SIG_BLOCK, NULL, &blocked), 0);
   TEST_COMPARE (sigismember (&blocked, SIGCHLD), 0);
   return NULL;
@@ -169,7 +170,7 @@ do_test (void)
 
   {
     struct stat64 st;
-    xstat (_PATH_BSHELL, &st);
+    xstat64 (_PATH_BSHELL, &st);
     mode_t mode = st.st_mode;
     xchmod (_PATH_BSHELL, mode & ~(S_IXUSR | S_IXGRP | S_IXOTH));
 
@@ -192,6 +193,26 @@ do_test (void)
                                                     &(double) { 0.1 });
     xpthread_join (short_sleep_thread);
     xpthread_join (long_sleep_thread);
+  }
+
+  {
+    struct rlimit rlimit_orig, rlimit_new;
+
+    if (getrlimit (RLIMIT_NPROC, &rlimit_orig) != 0)
+      FAIL_EXIT1 ("getrlimit (RLIMIT_NPROC) failed: %m");
+
+    /* Force failure for the system call */
+    rlimit_new.rlim_cur = 0;
+    rlimit_new.rlim_max = rlimit_orig.rlim_max;
+
+    if (setrlimit (RLIMIT_NPROC, &rlimit_new) != 0)
+      FAIL_EXIT1 ("setrlimit (RLIMIT_NPROC) failed: %m");
+
+    TEST_COMPARE (system (""), -1);
+
+    /* Restore NPROC limit */
+    if (setrlimit (RLIMIT_NPROC, &rlimit_orig) != 0)
+      FAIL_EXIT1 ("setrlimit (RLIMIT_NPROC) failed: %m");
   }
 
   TEST_COMPARE (system (""), 0);

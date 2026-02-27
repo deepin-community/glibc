@@ -1,6 +1,6 @@
 /* memcmp - compare memory
 
-   Copyright (C) 2013-2023 Free Software Foundation, Inc.
+   Copyright (C) 2013-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -44,10 +44,6 @@
 
 
 ENTRY (memcmp)
-	PTR_ARG (0)
-	PTR_ARG (1)
-	SIZE_ARG (2)
-
 	cmp	limit, 16
 	b.lo	L(less16)
 	ldp	data1, data3, [src1]

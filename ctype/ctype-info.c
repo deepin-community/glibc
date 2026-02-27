@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,20 +19,28 @@
 #include <ctype.h>
 #include <locale/localeinfo.h>
 
-__libc_tsd_define (, const uint16_t *, CTYPE_B)
-__libc_tsd_define (, const int32_t *, CTYPE_TOLOWER)
-__libc_tsd_define (, const int32_t *, CTYPE_TOUPPER)
+/* Fallback initialization using relocations.  See the _nl_C_locobj
+   initializers in locale/xlocale.c.  Usually, this is overwritten by
+   __ctype_init before user code runs, but this does not happen for
+   threads in secondary namespaces.  With the initializers, secondary
+   namespaces at least get locale data from the C locale.  */
+__thread const uint16_t * __libc_tsd_CTYPE_B
+  = (const uint16_t *) _nl_C_LC_CTYPE_class + 128;
+__thread const int32_t * __libc_tsd_CTYPE_TOLOWER
+  = (const int32_t *) _nl_C_LC_CTYPE_tolower + 128;
+__thread const int32_t * __libc_tsd_CTYPE_TOUPPER
+  = (const int32_t *) _nl_C_LC_CTYPE_toupper + 128;
 
 
 void
 __ctype_init (void)
 {
-  const uint16_t **bp = __libc_tsd_address (const uint16_t *, CTYPE_B);
-  *bp = (const uint16_t *) _NL_CURRENT (LC_CTYPE, _NL_CTYPE_CLASS) + 128;
-  const int32_t **up = __libc_tsd_address (const int32_t *, CTYPE_TOUPPER);
-  *up = ((int32_t *) _NL_CURRENT (LC_CTYPE, _NL_CTYPE_TOUPPER) + 128);
-  const int32_t **lp = __libc_tsd_address (const int32_t *, CTYPE_TOLOWER);
-  *lp = ((int32_t *) _NL_CURRENT (LC_CTYPE, _NL_CTYPE_TOLOWER) + 128);
+  __libc_tsd_CTYPE_B
+    = ((const uint16_t *) _NL_CURRENT (LC_CTYPE, _NL_CTYPE_CLASS)) + 128;
+  __libc_tsd_CTYPE_TOUPPER
+    = ((const int32_t *) _NL_CURRENT (LC_CTYPE, _NL_CTYPE_TOUPPER)) + 128;
+  __libc_tsd_CTYPE_TOLOWER =
+    ((const int32_t *) _NL_CURRENT (LC_CTYPE, _NL_CTYPE_TOLOWER)) + 128;
 }
 libc_hidden_def (__ctype_init)
 
@@ -41,10 +49,7 @@ libc_hidden_def (__ctype_init)
 #if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_3)
 
 /* Defined in locale/C-ctype.c.  */
-extern const char _nl_C_LC_CTYPE_class[] attribute_hidden;
 extern const char _nl_C_LC_CTYPE_class32[] attribute_hidden;
-extern const char _nl_C_LC_CTYPE_toupper[] attribute_hidden;
-extern const char _nl_C_LC_CTYPE_tolower[] attribute_hidden;
 extern const char _nl_C_LC_CTYPE_class_upper[] attribute_hidden;
 extern const char _nl_C_LC_CTYPE_class_lower[] attribute_hidden;
 extern const char _nl_C_LC_CTYPE_class_alpha[] attribute_hidden;

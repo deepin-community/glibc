@@ -1,6 +1,6 @@
 /* Single-precision vector (Advanced SIMD) cos function.
 
-   Copyright (C) 2023 Free Software Foundation, Inc.
+   Copyright (C) 2023-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
 static const struct data
 {
   float32x4_t poly[4];
-  float32x4_t range_val, inv_pi, half_pi, shift, pi_1, pi_2, pi_3;
+  float32x4_t range_val, inv_pi, pi_1, pi_2, pi_3;
 } data = {
   /* 1.886 ulp error.  */
   .poly = { V4 (-0x1.555548p-3f), V4 (0x1.110df4p-7f), V4 (-0x1.9f42eap-13f),
@@ -33,8 +33,6 @@ static const struct data
   .pi_3 = V4 (-0x1.ee59dap-49f),
 
   .inv_pi = V4 (0x1.45f306p-2f),
-  .shift = V4 (0x1.8p+23f),
-  .half_pi = V4 (0x1.921fb6p0f),
   .range_val = V4 (0x1p20f)
 };
 
@@ -48,7 +46,7 @@ special_case (float32x4_t x, float32x4_t y, uint32x4_t odd, uint32x4_t cmp)
   return v_call_f32 (cosf, x, y, cmp);
 }
 
-float32x4_t VPCS_ATTR V_NAME_F1 (cos) (float32x4_t x)
+float32x4_t VPCS_ATTR NOINLINE V_NAME_F1 (cos) (float32x4_t x)
 {
   const struct data *d = ptr_barrier (&data);
   float32x4_t n, r, r2, r3, y;
@@ -64,15 +62,13 @@ float32x4_t VPCS_ATTR V_NAME_F1 (cos) (float32x4_t x)
        special-case handler later.  */
     r = vbslq_f32 (cmp, v_f32 (1.0f), r);
 #else
-  cmp = vcageq_f32 (d->range_val, x);
-  cmp = vceqzq_u32 (cmp); /* cmp = ~cmp.  */
+  cmp = vcageq_f32 (x, d->range_val);
   r = x;
 #endif
 
   /* n = rint((|x|+pi/2)/pi) - 0.5.  */
-  n = vfmaq_f32 (d->shift, d->inv_pi, vaddq_f32 (r, d->half_pi));
-  odd = vshlq_n_u32 (vreinterpretq_u32_f32 (n), 31);
-  n = vsubq_f32 (n, d->shift);
+  n = vrndaq_f32 (vfmaq_f32 (v_f32 (0.5), r, d->inv_pi));
+  odd = vshlq_n_u32 (vreinterpretq_u32_s32 (vcvtq_s32_f32 (n)), 31);
   n = vsubq_f32 (n, v_f32 (0.5f));
 
   /* r = |x| - n*pi  (range reduction into -pi/2 .. pi/2).  */
@@ -92,3 +88,5 @@ float32x4_t VPCS_ATTR V_NAME_F1 (cos) (float32x4_t x)
     return special_case (x, y, odd, cmp);
   return vreinterpretq_f32_u32 (veorq_u32 (vreinterpretq_u32_f32 (y), odd));
 }
+libmvec_hidden_def (V_NAME_F1 (cos))
+HALF_WIDTH_ALIAS_F1 (cos)

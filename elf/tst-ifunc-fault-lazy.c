@@ -1,5 +1,5 @@
 /* Program with local IFUNC resolver which crashes, for testing bug 24214.
-   Copyright (C) 2019-2023 Free Software Foundation, Inc.
+   Copyright (C) 2019-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
    relocations.  */
 
 #include <config.h>
+#include <libc-diag.h>
 
 #ifdef HAVE_GCC_IFUNC
 
@@ -34,6 +35,8 @@ implementation (void)
   *p = 0;
 }
 
+DIAG_PUSH_NEEDS_COMMENT_CLANG;
+DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wunused-function");
 static __typeof__ (implementation) *
 resolver (void)
 {
@@ -42,6 +45,7 @@ resolver (void)
   *p = 0;
   return implementation;
 }
+DIAG_POP_NEEDS_COMMENT_CLANG;
 
 static void magic (void) __attribute__ ((ifunc ("resolver")));
 

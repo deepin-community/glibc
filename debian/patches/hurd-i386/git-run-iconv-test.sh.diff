@@ -1,0 +1,113 @@
+commit 4b5eeec17bad8529e61c2361b8e4b278bc9066e3
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Nov 8 17:44:05 2025 +0100
+
+    Add missing $(rpath-link) to /elf/ld.so --library-path
+    
+    This is notably needed for GNU/Hurd's libmachuser.so and libhurduser.so.
+
+diff --git a/iconv/Makefile b/iconv/Makefile
+index 672126d452..97a3f586e4 100644
+--- a/iconv/Makefile
++++ b/iconv/Makefile
+@@ -141,7 +141,7 @@ $(objpfx)test-iconvconfig.out: $(objpfx)iconvconfig
+ 
+ $(objpfx)tst-iconv_prog.out: tst-iconv_prog.sh $(objpfx)iconv_prog
+ 	$(BASH) $< $(common-objdir) '$(test-wrapper-env)' \
+-		 '$(run-program-env)' > $@; \
++		 '$(run-program-env)' '$(rpath-link)' > $@; \
+ 	$(evaluate-test)
+ 
+ $(objpfx)tst-translit-mchar.out: tst-translit-mchar.sh \
+diff --git a/iconv/tst-iconv_prog.sh b/iconv/tst-iconv_prog.sh
+index e2a43280d2..ac0060e7f5 100644
+--- a/iconv/tst-iconv_prog.sh
++++ b/iconv/tst-iconv_prog.sh
+@@ -21,13 +21,15 @@
+ codir=$1
+ test_wrapper_env="$2"
+ run_program_env="$3"
++# Remove the last space to allow concatenate extra paths.
++library_path="$(echo $4)"
+ 
+ # We have to have some directories in the library path.
+ LIBPATH=$codir:$codir/iconvdata
+ 
+ # How the start the iconv(1) program.  $from is not defined/expanded yet.
+ ICONV='
+-$codir/elf/ld.so --library-path $LIBPATH --inhibit-rpath ${from}.so
++$codir/elf/ld.so --library-path $library_path:$LIBPATH --inhibit-rpath ${from}.so
+ $codir/iconv/iconv_prog
+ '
+ ICONV="$test_wrapper_env $run_program_env $ICONV"
+diff --git a/iconvdata/Makefile b/iconvdata/Makefile
+index 5a2abeea24..a09ff12ead 100644
+--- a/iconvdata/Makefile
++++ b/iconvdata/Makefile
+@@ -340,7 +340,7 @@ $(objpfx)iconv-test.out: run-iconv-test.sh \
+ 			 $(common-objdir)/iconv/iconv_prog TESTS
+ 	iconv_modules="$(modules)" \
+ 	$(SHELL) $< $(common-objdir) '$(test-wrapper-env)' \
+-		 '$(run-program-env)' > $@; \
++		 '$(run-program-env)' '$(rpath-link)' > $@; \
+ 	$(evaluate-test)
+ 
+ $(objpfx)tst-tables.out: tst-tables.sh \
+diff --git a/iconvdata/run-iconv-test.sh b/iconvdata/run-iconv-test.sh
+index a6c3acc44d..063885a7f9 100755
+--- a/iconvdata/run-iconv-test.sh
++++ b/iconvdata/run-iconv-test.sh
+@@ -22,6 +22,8 @@ set -e
+ codir=$1
+ test_wrapper_env="$2"
+ run_program_env="$3"
++# Remove the last space to allow concatenate extra paths.
++library_path="$(echo $4)"
+ 
+ # We use always the same temporary file.
+ temp1=$codir/iconvdata/iconv-test.xxx
+@@ -33,7 +35,7 @@ trap "rm -f $temp1 $temp2" 1 2 3 15
+ LIBPATH=$codir:$codir/iconvdata
+ 
+ # How the start the iconv(1) program.
+-ICONV='$codir/elf/ld.so --library-path $LIBPATH --inhibit-rpath ${from}.so \
++ICONV='$codir/elf/ld.so --library-path $library_path:$LIBPATH --inhibit-rpath ${from}.so \
+        $codir/iconv/iconv_prog'
+ ICONV="$test_wrapper_env $run_program_env $ICONV"
+ 
+diff --git a/locale/Makefile b/locale/Makefile
+index 9d9c1a7691..66b9a16e25 100644
+--- a/locale/Makefile
++++ b/locale/Makefile
+@@ -180,7 +180,8 @@ lib := locale-programs
+ include $(patsubst %,$(..)libof-iterator.mk,$(cpp-srcs-left))
+ 
+ $(objpfx)tst-locale-locpath.out : tst-locale-locpath.sh $(objpfx)locale
+-	$(SHELL) $< '$(common-objpfx)' '$(test-wrapper-env)' '$(run-program-env)' > $@; \
++	$(SHELL) $< '$(common-objpfx)' '$(test-wrapper-env)' \
++		'$(run-program-env)' '$(rpath-link)' > $@; \
+ 	$(evaluate-test)
+ 
+ $(objpfx)tst-localedef-path-norm: $(shared-thread-library)
+diff --git a/locale/tst-locale-locpath.sh b/locale/tst-locale-locpath.sh
+index 5c5b7610ad..bc07f4d194 100644
+--- a/locale/tst-locale-locpath.sh
++++ b/locale/tst-locale-locpath.sh
+@@ -22,6 +22,8 @@ set -ex
+ common_objpfx=$1
+ test_wrapper_env=$2
+ run_program_env=$3
++# Remove the last space to allow concatenate extra paths.
++library_path="$(echo $4)"
+ 
+ LIBPATH="$common_objpfx"
+ 
+@@ -36,7 +38,7 @@ mkdir -p $testroot
+ 
+ ${test_wrapper_env} \
+ ${run_program_env} LANG= LC_ALL=invalid-locale LOCPATH=does-not-exist \
+-${common_objpfx}elf/ld.so --library-path "$LIBPATH" \
++${common_objpfx}elf/ld.so --library-path "$library_path:$LIBPATH" \
+   "${common_objpfx}locale/locale" \
+   > "$testroot/stdout" 2> "$testroot/stderr"
+ 

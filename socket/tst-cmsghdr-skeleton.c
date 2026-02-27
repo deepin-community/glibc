@@ -1,5 +1,5 @@
 /* Test ancillary data header creation.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ RUN_TEST_FUNCNAME (CMSG_NXTHDR_IMPL) (void)
   /* The first header leaves just enough space to hold another header.  */
   cmsg = CMSG_FIRSTHDR (&m);
   TEST_VERIFY_EXIT ((char *) cmsg == cmsgbuf);
-  cmsg->cmsg_len = sizeof (cmsgbuf) - sizeof (struct cmsghdr);
+  cmsg->cmsg_len = sizeof (cmsgbuf) - CMSG_ALIGN (sizeof (struct cmsghdr));
   cmsg = CMSG_NXTHDR_IMPL (&m, cmsg);
   TEST_VERIFY_EXIT (cmsg != NULL);
 
@@ -75,7 +75,7 @@ RUN_TEST_FUNCNAME (CMSG_NXTHDR_IMPL) (void)
   TEST_VERIFY_EXIT (cmsg != NULL);
   cmsg->cmsg_len = sizeof (cmsgbuf)
                    - CMSG_SPACE (sizeof (PAYLOAD)) /* First header.  */
-                   - sizeof (struct cmsghdr);
+                   - CMSG_ALIGN (sizeof (struct cmsghdr));
   cmsg = CMSG_NXTHDR_IMPL (&m, cmsg);
   TEST_VERIFY_EXIT (cmsg != NULL);
 

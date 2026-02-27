@@ -1,5 +1,5 @@
 /* Enumerate available IFUNC implementations of a function.  x86-64 version.
-   Copyright (C) 2012-2023 Free Software Foundation, Inc.
+   Copyright (C) 2012-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -790,12 +790,6 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 
   /* Support sysdeps/x86_64/multiarch/strstr.c.  */
   IFUNC_IMPL (i, name, strstr,
-              IFUNC_IMPL_ADD (array, i, strstr,
-                              (CPU_FEATURE_USABLE (AVX512VL)
-                               && CPU_FEATURE_USABLE (AVX512BW)
-                               && CPU_FEATURE_USABLE (AVX512DQ)
-                               && CPU_FEATURE_USABLE (BMI2)),
-                              __strstr_avx512)
 	      IFUNC_IMPL_ADD (array, i, strstr, 1, __strstr_sse2_unaligned)
 	      IFUNC_IMPL_ADD (array, i, strstr, 1, __strstr_generic))
 
@@ -928,7 +922,7 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 				     (CPU_FEATURE_USABLE (AVX2)
 				      && CPU_FEATURE_USABLE (BMI2)),
 				     __wcsncpy_avx2)
-	      X86_IFUNC_IMPL_ADD_V2 (array, i, wcpncpy,
+	      X86_IFUNC_IMPL_ADD_V2 (array, i, wcsncpy,
 				     1,
 				     __wcsncpy_generic))
 
@@ -958,7 +952,7 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 				     (CPU_FEATURE_USABLE (AVX2)
 				      && CPU_FEATURE_USABLE (BMI2)),
 				     __wcpncpy_avx2)
-	      X86_IFUNC_IMPL_ADD_V2 (array, i, wcsncpy,
+	      X86_IFUNC_IMPL_ADD_V2 (array, i, wcpncpy,
 				     1,
 				     __wcpncpy_generic))
 

@@ -1,5 +1,5 @@
 /* Multiple versions of IEEE 754 pow.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,17 +16,20 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <math.h>
-#include <libm-alias-finite.h>
+#include <sysdeps/x86/isa-level.h>
+#if MINIMUM_X86_ISA_LEVEL < AVX2_X86_ISA_LEVEL
+# include <math.h>
+# include <libm-alias-finite.h>
 
 extern double __redirect_ieee754_pow (double, double);
 
-#define SYMBOL_NAME ieee754_pow
-#include "ifunc-fma4.h"
+# define SYMBOL_NAME ieee754_pow
+# include "ifunc-fma4.h"
 
 libc_ifunc_redirected (__redirect_ieee754_pow,
 		       __ieee754_pow, IFUNC_SELECTOR ());
 libm_alias_finite (__ieee754_pow, __pow)
 
-#define __pow __ieee754_pow_sse2
+# define __pow __ieee754_pow_sse2
+#endif
 #include <sysdeps/ieee754/dbl-64/e_pow.c>

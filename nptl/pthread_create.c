@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@
 #include <version.h>
 #include <clone_internal.h>
 #include <futex-internal.h>
+#include <getrandom-internal.h>
 
 #include <shlib-compat.h>
 
@@ -238,7 +239,7 @@ static int create_thread (struct pthread *pd, const struct pthread_attr *attr,
      stopped since we have to set the scheduling parameters or set the
      affinity.  */
   bool need_setaffinity = (attr != NULL && attr->extension != NULL
-			   && attr->extension->cpuset != 0);
+			   && attr->extension->cpuset != NULL);
   if (attr != NULL
       && (__glibc_unlikely (need_setaffinity)
 	  || __glibc_unlikely ((attr->flags & ATTR_FLAG_NOTINHERITSCHED) != 0)))
@@ -369,6 +370,9 @@ start_thread (void *arg)
   /* Initialize pointers to locale data.  */
   __ctype_init ();
 
+  /* Name the thread stack if kernel supports it.  */
+  name_stack_maps (pd, true);
+
   /* Register rseq TLS to the kernel.  */
   {
     bool do_rseq = THREAD_GETMEM (pd, flags) & ATTR_FLAG_DO_RSEQ;
@@ -446,10 +450,7 @@ start_thread (void *arg)
     }
 
   /* Call destructors for the thread_local TLS variables.  */
-#ifndef SHARED
-  if (&__call_tls_dtors != NULL)
-#endif
-    __call_tls_dtors ();
+  call_function_static_weak (__call_tls_dtors);
 
   /* Run the destructor for the thread-local data.  */
   __nptl_deallocate_tsd ();
@@ -549,7 +550,11 @@ start_thread (void *arg)
     }
 #endif
 
-  if (!pd->user_stack)
+  /* Release the vDSO getrandom per-thread buffer with all signal blocked,
+     to avoid creating a new free-state block during thread release.  */
+  __getrandom_vdso_release (pd);
+
+  if (pd->stack_mode != ALLOCATE_GUARD_USER)
     advise_stack_range (pd->stackblock, pd->stackblock_size, (uintptr_t) pd,
 			pd->guardsize);
 
@@ -573,6 +578,9 @@ start_thread (void *arg)
   if (IS_DETACHED (pd))
     /* Free the TCB.  */
     __nptl_free_tcb (pd);
+
+  /* Remove the associated name from the thread stack.  */
+  name_stack_maps (pd, false);
 
 out:
   /* We cannot call '_exit' here.  '_exit' will terminate the process.
@@ -688,7 +696,7 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
 
   /* Inherit rseq registration state.  Without seccomp filters, rseq
      registration will either always fail or always succeed.  */
-  if ((int) THREAD_GETMEM_VOLATILE (self, rseq_area.cpu_id) >= 0)
+  if ((int) RSEQ_GETMEM_ONCE (cpu_id) >= 0)
     pd->flags |= ATTR_FLAG_DO_RSEQ;
 
   /* Initialize the field for the ID of the thread which is waiting

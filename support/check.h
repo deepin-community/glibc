@@ -1,5 +1,5 @@
 /* Functionality for reporting test results.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,6 +23,11 @@
 #include <stddef.h>
 
 __BEGIN_DECLS
+
+/* Record a test failure, print the failure message to standard output
+   and pass the result of 1 through.  */
+#define FAIL(...) \
+  support_print_failure_impl (__FILE__, __LINE__, __VA_ARGS__)
 
 /* Record a test failure, print the failure message to standard output
    and return 1.  */
@@ -201,6 +206,9 @@ void support_record_failure_reset (void);
 /* Returns true or false depending on whether there have been test
    failures or not.  */
 int support_record_failure_is_failed (void);
+
+/* Terminate the process if any failures have been encountered so far.  */
+void support_record_failure_barrier (void);
 
 __END_DECLS
 

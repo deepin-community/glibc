@@ -1,0 +1,176 @@
+commit e539a269990dac3ff4d2432c0eb6966a5ee4f274
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Jan 11 02:00:25 2026 +0100
+
+    hurd: Fix sigreturn clobbering some xmm registers
+    
+    __sigreturn2 uses _hurd_sigstate_unlock after restoring the interrupted
+    xmm values, we thus need it not to touch xmm. It makes sense to inline
+    sigstate_is_global_rcv _hurd_sigstate_lock/unlock anyway. unlock calls
+    gsync_wake, so we need to avoid xmm there as well.
+
+diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
+index 2b2b57ac0d..91e664d0f1 100644
+--- a/hurd/hurdsig.c
++++ b/hurd/hurdsig.c
+@@ -168,6 +168,7 @@ _hurd_sigstate_delete (thread_t thread)
+       free (ss);
+     }
+ }
++libc_hidden_def (_hurd_sigstate_delete)
+ 
+ /* Make SS a global receiver, with pthread signal semantics.  */
+ void
+@@ -178,42 +179,13 @@ _hurd_sigstate_set_global_rcv (struct hurd_sigstate *ss)
+ }
+ libc_hidden_def (_hurd_sigstate_set_global_rcv)
+ 
+-/* Check whether SS is a global receiver.  */
+-static int
+-sigstate_is_global_rcv (const struct hurd_sigstate *ss)
+-{
+-  return (_hurd_global_sigstate != NULL)
+-	 && (ss->actions[0].sa_handler == SIG_IGN);
+-}
+-libc_hidden_def (_hurd_sigstate_delete)
+-
+-/* Lock/unlock a hurd_sigstate structure.  If the accessors below require
+-   it, the global sigstate will be locked as well.  */
+-void
+-_hurd_sigstate_lock (struct hurd_sigstate *ss)
+-{
+-  if (sigstate_is_global_rcv (ss))
+-    __spin_lock (&_hurd_global_sigstate->lock);
+-  __spin_lock (&ss->lock);
+-}
+-libc_hidden_def (_hurd_sigstate_lock)
+-
+-void
+-_hurd_sigstate_unlock (struct hurd_sigstate *ss)
+-{
+-  __spin_unlock (&ss->lock);
+-  if (sigstate_is_global_rcv (ss))
+-    __spin_unlock (&_hurd_global_sigstate->lock);
+-}
+-libc_hidden_def (_hurd_sigstate_unlock)
+-
+ /* Retrieve a thread's full set of pending signals, including the global
+    ones if appropriate.  SS must be locked.  */
+ sigset_t
+ _hurd_sigstate_pending (const struct hurd_sigstate *ss)
+ {
+   sigset_t pending = ss->pending;
+-  if (sigstate_is_global_rcv (ss))
++  if (_hurd_sigstate_is_global_rcv (ss))
+     __sigorset (&pending, &pending, &_hurd_global_sigstate->pending);
+   return pending;
+ }
+@@ -225,7 +197,7 @@ libc_hidden_def (_hurd_sigstate_pending)
+ static struct hurd_signal_detail
+ sigstate_clear_pending (struct hurd_sigstate *ss, int signo)
+ {
+-  if (sigstate_is_global_rcv (ss)
++  if (_hurd_sigstate_is_global_rcv (ss)
+       && __sigismember (&_hurd_global_sigstate->pending, signo))
+     {
+       __sigdelset (&_hurd_global_sigstate->pending, signo);
+@@ -241,7 +213,7 @@ sigstate_clear_pending (struct hurd_sigstate *ss, int signo)
+ struct sigaction *
+ _hurd_sigstate_actions (struct hurd_sigstate *ss)
+ {
+-  if (sigstate_is_global_rcv (ss))
++  if (_hurd_sigstate_is_global_rcv (ss))
+     return _hurd_global_sigstate->actions;
+   else
+     return ss->actions;
+@@ -746,7 +718,7 @@ post_signal (struct hurd_sigstate *ss,
+     __mutex_lock (&_hurd_siglock);
+     for (rss = _hurd_sigstates; rss != NULL; rss = rss->next)
+       {
+-	if (! sigstate_is_global_rcv (rss))
++	if (! _hurd_sigstate_is_global_rcv (rss))
+ 	  continue;
+ 
+ 	/* The global sigstate is already locked.  */
+diff --git a/sysdeps/hurd/include/hurd/signal.h b/sysdeps/hurd/include/hurd/signal.h
+index a7b157dd9c..4d94b5ab82 100644
+--- a/sysdeps/hurd/include/hurd/signal.h
++++ b/sysdeps/hurd/include/hurd/signal.h
+@@ -6,6 +6,8 @@ extern struct hurd_sigstate *_hurd_self_sigstate (void) __attribute__ ((__const_
+ libc_hidden_proto (_hurd_self_sigstate)
+ #endif
+ 
++extern int _hurd_sigstate_is_global_rcv (const struct hurd_sigstate *ss);
++
+ #include_next <hurd/signal.h>
+ 
+ #ifndef _ISOMAC
+@@ -66,6 +68,16 @@ _hurd_critical_section_lock (void)
+   return ss;
+ }
+ 
++/* Check whether SS is a global receiver.  */
++_HURD_SIGNAL_H_EXTERN_INLINE int
++_hurd_sigstate_is_global_rcv (const struct hurd_sigstate *ss)
++{
++  extern struct hurd_sigstate *_hurd_global_sigstate;
++
++  return (_hurd_global_sigstate != NULL)
++	 && (ss->actions[0].sa_handler == SIG_IGN);
++}
++
+ _HURD_SIGNAL_H_EXTERN_INLINE void
+ _hurd_critical_section_unlock (void *our_lock)
+ {
+@@ -88,6 +100,24 @@ _hurd_critical_section_unlock (void *our_lock)
+ 	__msg_sig_post (_hurd_msgport, 0, 0, __mach_task_self ());
+     }
+ }
++
++/* Lock/unlock a hurd_sigstate structure.  If the accessors below require
++   it, the global sigstate will be locked as well.  */
++_HURD_SIGNAL_H_EXTERN_INLINE void
++_hurd_sigstate_lock (struct hurd_sigstate *ss)
++{
++  if (_hurd_sigstate_is_global_rcv (ss))
++    __spin_lock (&_hurd_global_sigstate->lock);
++  __spin_lock (&ss->lock);
++}
++
++_HURD_SIGNAL_H_EXTERN_INLINE void
++_hurd_sigstate_unlock (struct hurd_sigstate *ss)
++{
++  __spin_unlock (&ss->lock);
++  if (_hurd_sigstate_is_global_rcv (ss))
++    __spin_unlock (&_hurd_global_sigstate->lock);
++}
+ #endif /* defined __USE_EXTERN_INLINES && IS_IN (libc) */
+ 
+ 
+@@ -96,6 +126,7 @@ libc_hidden_proto (_hurd_intr_rpc_mach_msg)
+ libc_hidden_proto (_hurd_thread_sigstate)
+ libc_hidden_proto (_hurd_raise_signal)
+ libc_hidden_proto (_hurd_sigstate_set_global_rcv)
++libc_hidden_proto (_hurd_sigstate_is_global_rcv)
+ libc_hidden_proto (_hurd_sigstate_lock)
+ libc_hidden_proto (_hurd_sigstate_pending)
+ libc_hidden_proto (_hurd_sigstate_unlock)
+@@ -103,5 +134,8 @@ libc_hidden_proto (_hurd_sigstate_delete)
+ #endif
+ #ifdef _HURD_SIGNAL_H_HIDDEN_DEF
+ libc_hidden_def (_hurd_self_sigstate)
++libc_hidden_def (_hurd_sigstate_is_global_rcv)
++libc_hidden_def (_hurd_sigstate_lock)
++libc_hidden_def (_hurd_sigstate_unlock)
+ #endif
+ #endif
+diff --git a/sysdeps/mach/hurd/x86/Makefile b/sysdeps/mach/hurd/x86/Makefile
+index 27c4b06590..97e3287c87 100644
+--- a/sysdeps/mach/hurd/x86/Makefile
++++ b/sysdeps/mach/hurd/x86/Makefile
+@@ -18,4 +18,5 @@ endif
+ ifeq ($(subdir),mach)
+ # Avoid SSE&MMX to avoid __sigreturn2 thrashing it
+ CFLAGS-RPC_mach_port_mod_refs.c = -mno-sse -mno-mmx
++CFLAGS-RPC_gsync_wake.c = -mno-sse -mno-mmx
+ endif

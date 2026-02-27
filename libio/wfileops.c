@@ -1,4 +1,5 @@
-/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2025 Free Software Foundation, Inc.
+   Copyright The GNU Toolchain Authors.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -55,7 +56,7 @@ _IO_wdo_write (FILE *fp, const wchar_t *data, size_t to_do)
 	  char mb_buf[MB_LEN_MAX];
 	  char *write_base, *write_ptr, *buf_end;
 
-	  if (fp->_IO_write_ptr - fp->_IO_write_base < sizeof (mb_buf))
+	  if (fp->_IO_buf_end - fp->_IO_write_ptr < sizeof (mb_buf))
 	    {
 	      /* Make sure we have room for at least one multibyte
 		 character.  */
@@ -175,7 +176,7 @@ _IO_wfile_underflow (FILE *fp)
       /* Maybe we already have a push back pointer.  */
       if (fp->_IO_save_base != NULL)
 	{
-	  free (fp->_IO_save_base);
+	  _IO_free_backup_buf (fp, fp->_IO_save_base);
 	  fp->_flags &= ~_IO_IN_BACKUP;
 	}
       _IO_doallocbuf (fp);
@@ -416,18 +417,18 @@ _IO_wfile_overflow (FILE *f, wint_t wch)
       || f->_wide_data->_IO_write_base == NULL)
     {
       /* Allocate a buffer if needed. */
-      if (f->_wide_data->_IO_write_base == 0)
+      if (f->_wide_data->_IO_write_base == NULL)
 	{
 	  _IO_wdoallocbuf (f);
 	  _IO_free_wbackup_area (f);
-	  _IO_wsetg (f, f->_wide_data->_IO_buf_base,
-		     f->_wide_data->_IO_buf_base, f->_wide_data->_IO_buf_base);
 
 	  if (f->_IO_write_base == NULL)
 	    {
 	      _IO_doallocbuf (f);
 	      _IO_setg (f, f->_IO_buf_base, f->_IO_buf_base, f->_IO_buf_base);
 	    }
+	  _IO_wsetg (f, f->_wide_data->_IO_buf_base,
+		     f->_wide_data->_IO_buf_base, f->_wide_data->_IO_buf_base);
 	}
       else
 	{
@@ -958,7 +959,7 @@ _IO_wfile_xsputn (FILE *f, const void *data, size_t n)
   const wchar_t *s = (const wchar_t *) data;
   size_t to_do = n;
   int must_flush = 0;
-  size_t count;
+  size_t count = 0;
 
   if (n <= 0)
     return 0;
@@ -967,7 +968,6 @@ _IO_wfile_xsputn (FILE *f, const void *data, size_t n)
      (or the filebuf is unbuffered), use sys_write directly. */
 
   /* First figure out how much space is available in the buffer. */
-  count = f->_wide_data->_IO_write_end - f->_wide_data->_IO_write_ptr;
   if ((f->_flags & _IO_LINE_BUF) && (f->_flags & _IO_CURRENTLY_PUTTING))
     {
       count = f->_wide_data->_IO_buf_end - f->_wide_data->_IO_write_ptr;
@@ -985,6 +985,10 @@ _IO_wfile_xsputn (FILE *f, const void *data, size_t n)
 	    }
 	}
     }
+  else if (f->_wide_data->_IO_write_end > f->_wide_data->_IO_write_ptr)
+    count = f->_wide_data->_IO_write_end
+      - f->_wide_data->_IO_write_ptr; /* Space available.  */
+
   /* Then fill the buffer. */
   if (count > 0)
     {

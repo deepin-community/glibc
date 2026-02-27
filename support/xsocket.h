@@ -1,5 +1,5 @@
 /* Error-checking wrappers for socket functions.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@
 int xsocket (int, int, int);
 void xsetsockopt (int, int, int, const void *, socklen_t);
 void xgetsockname (int, struct sockaddr *, socklen_t *);
+void xgetpeername (int, struct sockaddr *, socklen_t *);
 void xconnect (int, const struct sockaddr *, socklen_t);
 void xbind (int, const struct sockaddr *, socklen_t);
 void xlisten (int, int);

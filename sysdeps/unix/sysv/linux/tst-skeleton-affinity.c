@@ -1,5 +1,5 @@
 /* Generic test case for CPU affinity functions.
-   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+   Copyright (C) 2015-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@
 #include <sched.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <support/test-driver.h>
 
 /* CPU set configuration determined.  Can be used from early_test.  */
 struct conf
@@ -157,7 +158,7 @@ test_size (const struct conf *conf, size_t size)
   if (setaffinity (kernel_size, initial_set) < 0)
     {
       printf ("error: size %zu: setaffinity: %m\n", size);
-      return true;
+      return false;
     }
 
   /* Use one-CPU set to test switching between CPUs.  */
@@ -253,12 +254,12 @@ do_test (void)
     if (getaffinity (sizeof (set), &set) < 0 && errno == ENOSYS)
       {
 	puts ("warning: getaffinity not supported, test cannot run");
-	return 0;
+	return EXIT_UNSUPPORTED;
       }
     if (sched_getcpu () < 0 && errno == ENOSYS)
       {
 	puts ("warning: sched_getcpu not supported, test cannot run");
-	return 0;
+	return EXIT_UNSUPPORTED;
       }
   }
 

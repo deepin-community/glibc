@@ -12,6 +12,17 @@ ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 DH_STRIP_DEBUG_PACKAGE=--dbg-package=$(libc)-dbg
 endif
 
+$(stamp)binaryinst_glibc-source:: $(stamp)source
+$(stamp)binaryinst_libc-bin:: $(stamp)build_C.utf8
+$(stamp)binaryinst_locales-all:: $(stamp)build_locales-all
+
+# The main libc package needs to be built before the packages containing binaries
+# in order for the GLIBC_PRIVATE symbol to be resolved with the correct version
+$(stamp)binaryinst_libc-bin:: $(stamp)binaryinst_$(libc)
+$(stamp)binaryinst_libc-dev-bin:: $(stamp)binaryinst_$(libc)
+$(stamp)binaryinst_glibc-gconv-modules-extra:: $(stamp)binaryinst_$(libc)
+$(stamp)binaryinst_nscd:: $(stamp)binaryinst_$(libc)
+
 $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES)):: $(patsubst %,$(stamp)install_%,$(GLIBC_PASSES)) debhelper
 	@echo Running debhelper for $(curpass)
 	dh_testroot
@@ -38,6 +49,14 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	  ln -svf "$${l%%/lib*}/usr/lib$${l#*/lib}" "$$p"; \
 	done
 
+	# Ensure that linker scripts work even when /usr is unmerged.
+	set -e ; \
+	find "debian/$(curpass)" -type f -name "*.so" | \
+	while read -r p; do \
+	  grep -q "GNU ld script" "$$p" || continue ; \
+	  perl -i -pe 's#(?<=\s)/lib(?!\S*/ld\S*\.so\.)#/usr/lib#g' "$$p" ; \
+	done
+
 	dh_link -p$(curpass)
 	dh_bugfiles -p$(curpass)
 
@@ -47,9 +66,9 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	if test "$(NOSTRIP_$(curpass))" != 1; then					\
 	  if test "$(DEBUG_$(curpass))" = 1; then					\
-	    dh_strip -p$(curpass) $(DH_STRIP_DEBUG_PACKAGE);				\
+	    dh_strip -p$(curpass) -Xld-linux-armhf.so.3 $(DH_STRIP_DEBUG_PACKAGE);	\
 	  else										\
-	    dh_strip -p$(curpass);							\
+	    dh_strip -p$(curpass) -Xld-linux-armhf.so.3;				\
 	  fi ;										\
 	  for f in $$(find debian/$(curpass) -name \*crt\*.o) ; do			\
 	    $(DEB_HOST_GNU_TYPE)-strip --strip-debug --remove-section=.comment		\
@@ -73,7 +92,7 @@ endif
 	sh ./debian/shlibs-add-udebs $(curpass)
 
 	dh_installdeb -p$(curpass)
-	dh_shlibdeps -p$(curpass)
+	dh_shlibdeps -p$(curpass) $(foreach path,$($(lastword $(subst -, ,$(curpass)))_slibdir),-l/usr$(path))
 	dh_gencontrol -p$(curpass)
 	dh_md5sums -p$(curpass)
 
@@ -130,12 +149,17 @@ $(stamp)debhelper-common:
 	      -e 'BEGIN {open(IN, "debian/tmp/usr/share/i18n/SUPPORTED"); $$l = join("", grep { !/^C\.UTF-8/ } grep { /UTF-8/ } <IN>);} s/__PROVIDED_LOCALES__/$$l/g;' \
 	      -e 's#DEB_VERSION_UPSTREAM#$(DEB_VERSION_UPSTREAM)#g;' \
 	      -e 's#CURRENT_VER#$(DEB_VERSION)#g;' \
-	      -e 's#LIBC#$(libc)#g;' \
 	      $$x > $$y ; \
 	  case $$y in \
 	    *.install) \
 	      $(if $(filter $(pt_chown),no),sed -e "/pt_chown/d" -i $$y ;) \
 	      $(if $(filter $(pldd),no),sed -e "/pldd/d" -i $$y ;) \
+	      $(if $(filter-out $(DEB_HOST_ARCH_OS),linux),sed -e "/gdb/d" -i $$y ;) \
+	      $(if $(filter stage1,$(DEB_BUILD_PROFILES)),sed -e "/audit/d" \
+	                                                      -e "/gdb/d" \
+	                                                      -e "/usr\/lib\/.*\.a/d" \
+	                                                      -e "/LIBDIR.*\.a /d" \
+	                                                      -i $$y ;) \
 	      ;; \
 	  esac; \
 	done
@@ -150,8 +174,7 @@ endif
 	: > tmp.substvars
 ifeq ($(filter stage1 stage2,$(DEB_BUILD_PROFILES)),)
 	echo 'libgcc:Depends=libgcc-s1 [!hppa !m68k], libgcc-s2 [m68k], libgcc-s4 [hppa]' >> tmp.substvars
-	echo 'libcrypt-dev:Depends=libcrypt-dev' >> tmp.substvars
-	echo 'libnsl-dev:Depends=libnsl-dev' >> tmp.substvars
+	echo 'libc-gconv-modules-extra:Depends=libc-gconv-modules-extra (= $${binary:Version})' >> tmp.substvars
 	echo 'rpcsvc-proto:Depends=rpcsvc-proto' >> tmp.substvars
 	echo 'libc-dev:Breaks=$(libc)-dev-$(DEB_HOST_ARCH)-cross (<< $(DEB_VERSION_UPSTREAM)~)' >> tmp.substvars
 endif
@@ -162,51 +185,6 @@ endif
 
 	touch $@
 
-ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
-$(patsubst %,debhelper_%,$(GLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
-$(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
-	libdir=$(call xx,libdir) ; \
-	slibdir=$(call xx,slibdir) ; \
-	rtlddir=$(call xx,rtlddir) ; \
-	curpass=$(curpass) ; \
-	rtld_so=$(rtld_so) ; \
-	rtld_target=$(rtld_target) ; \
-	templates="libc-dev" ;\
-	pass="" ; \
-	suffix="" ;\
-	case "$$curpass:$$slibdir" in \
-	  libc:*) \
-	    ;; \
-	  *:/lib32 | *:/lib64 | *:/libo32 | *:/libx32) \
-	    pass="-alt" \
-	    suffix="-$(curpass)" \
-	    ;; \
-	  *:* ) \
-           templates="" \
-	    ;; \
-	esac ; \
-	for t in $$templates ; do \
-	  for s in debian/$$t$$pass.* ; do \
-	    t=`echo $$s | sed -e "s#libc\(.*\)$$pass#$(libc)\1$$suffix#"` ; \
-	    echo "Generating $$t ..."; \
-	    if [ "$$s" != "$$t" ] ; then \
-	      cp $$s $$t ; \
-	    fi ; \
-	    sed -i \
-		-e "/usr\/lib\/.*\.a/d" \
-		-e "/LIBDIR.*\.a /d" \
-		-e "s#TMPDIR#$(debian-tmp)#g" \
-		-e "s#RTLDDIR#$$rtlddir#g" \
-		-e "s#SLIBDIR#$$slibdir#g" \
-		-e "s#LIBDIR#$$libdir#g" \
-		-e "s#RTLD_SO#$$rtld_so#g" \
-		-e "s#RTLD_TARGET#$$rtld_target#g" \
-		-e "/gdb/d" \
-		-e "/audit/d" \
-	      $$t; \
-	  done ; \
-	done
-else
 $(patsubst %,debhelper_%,$(GLIBC_PASSES)) :: debhelper_% : $(stamp)debhelper_%
 $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	libdir=$(call xx,libdir) ; \
@@ -230,20 +208,46 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	for t in $$templates ; do \
 	  for s in debian/$$t$$pass.* ; do \
 	    t=`echo $$s | sed -e "s#libc\(.*\)$$pass#$(libc)\1$$suffix#"` ; \
+	    echo "Generating $$t ..."; \
 	    if [ "$$s" != "$$t" ] ; then \
 	      cp $$s $$t ; \
 	    fi ; \
-	    sed -e "s#TMPDIR#$(debian-tmp)#g" -i $$t; \
-	    sed -e "s#RTLDDIR#$$rtlddir#g" -i $$t; \
-	    sed -e "s#SLIBDIR#$$slibdir#g" -i $$t; \
-	    sed -e "s#LIBDIR#$$libdir#g" -i $$t; \
-	    sed -e "s#RTLD_SO#$$rtld_so#g" -i $$t ; \
-	    sed -e "s#RTLD_TARGET#$$rtld_target#g" -i $$t ; \
-	    $(if $(filter $(call xx,mvec),no),sed -e "/libmvec/d" -e "/libm-\*\.a/d" -i $$t ;) \
-	    $(if $(filter-out $(DEB_HOST_ARCH_OS),linux),sed -e "/gdb/d" -i $$t ;) \
+	    sed -i \
+	        -e "s#TMPDIR#$(debian-tmp)#g" \
+	        -e "s#RTLDDIR#$$rtlddir#g" \
+	        -e "s#SLIBDIR#$$slibdir#g" \
+	        -e "s#LIBDIR#$$libdir#g" \
+	        -e "s#RTLD_SO#$$rtld_so#g" \
+	        -e "s#RTLD_TARGET#$$rtld_target#g" \
+	        $(if $(filter $(call xx,mvec),no),-e "/libmvec/d" \
+	                                          -e "/libm-\*\.a/d" \
+	                                          -e "/lacks-unversioned-link-to-shared-library.*libm\.so/d" ) \
+	        $$t ; \
 	  done ; \
 	done
-endif
+
+	# Split gconv modules using the default gconv configuration file(s)
+	gconvdir="$(call xx,libdir)/gconv" ; \
+	conffiles="$$gconvdir/gconv-modules $(if $(filter $(DEB_HOST_ARCH),s390x),$$gconvdir/gconv-modules.d/gconv-modules-s390.conf)" ; \
+	extraconffiles="$$gconvdir/gconv-modules.d/gconv-modules-extra.conf" ; \
+	if [ "$(curpass)" = "libc" ] ; then \
+	    sed -e "/gconv/d" -i debian/$(libc).install debian/libc-gconv-modules-extra.install ; \
+	    echo $$gconvdir/gconv-modules.cache >> debian/$(libc).install ; \
+	        for f in $$conffiles ; do \
+	        echo $$f >> debian/$(libc).install ; \
+	    done ; \
+	        for f in $$extraconffiles ; do \
+	        echo $$f >> debian/libc-gconv-modules-extra.install ; \
+	    done ; \
+	    for f in $(CURDIR)/$(debian-tmp)/$$gconvdir/*.so ; do \
+	        mod=`echo $$f | sed -e 's#^.*/\(.*\)\.so#\1#'` ; \
+	        if grep -qP "^module\s+\S+\s+\S+\s+$$mod\s+\d$$" $$conffiles ; then \
+	            echo $$gconvdir/$$mod.so >> debian/$(libc).install ; \
+	        else \
+	            echo $$gconvdir/$$mod.so >> debian/libc-gconv-modules-extra.install ; \
+	        fi ; \
+	    done ; \
+	fi
 
 	touch $@
 

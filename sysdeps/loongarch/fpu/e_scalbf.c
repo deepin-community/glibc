@@ -1,5 +1,5 @@
 /* scalbf().  LoongArch version.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -57,4 +57,4 @@ __ieee754_scalbf (float x, float fn)
 
   return x;
 }
-libm_alias_finite (__ieee754_scalb, __scalb)
+libm_alias_finite (__ieee754_scalbf, __scalbf)

@@ -1,3 +1,25 @@
+glibc (2.41-7) unstable; urgency=medium
+
+  Starting with glibc 2.41, shared libraries requiring an executable stack
+  cannot be dynamically loaded through the dlopen mechanism from a binary that
+  does not require an executable stack. This change aims to improve security,
+  as the previous behavior was used as a vector for RCE (CVE-2023-38408).
+  Attempting to do so will result in the following error:
+
+    cannot enable executable stack as shared object requires: Invalid argument
+
+  While most libraries generated in the past 20 years do not require an
+  executable stack, some third-party software still need this capability. Many
+  vendors have already updated their binaries to address this.
+
+  If you need to run a program that requires an executable stack through
+  dynamic loaded shared libraries, you can use the glibc.rtld.execstack
+  tunable:
+
+    GLIBC_TUNABLES=glibc.rtld.execstack=2 ./program
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 13 Apr 2025 14:41:11 +0200
+
 glibc (2.32-0experimental1) experimental; urgency=medium
 
   The libc0.3-xen and libc6-xen packages have been removed in this version,

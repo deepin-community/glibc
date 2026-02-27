@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2023 Free Software Foundation, Inc.
+# Copyright (C) 1991-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -22,11 +22,33 @@ subdir	:= termios
 
 include ../Makeconfig
 
-headers	:= termios.h bits/termios.h sys/ttydefaults.h sys/termios.h \
-	   sys/ttychars.h
+headers	:= \
+  bits/termios-baud.h \
+  bits/termios.h \
+  sys/termios.h \
+  sys/ttychars.h \
+  sys/ttydefaults.h \
+  termios.h \
+  # headers
 
-routines	:= speed cfsetspeed tcsetattr tcgetattr tcgetpgrp tcsetpgrp \
-		   tcdrain tcflow tcflush tcsendbrk cfmakeraw tcgetsid
+routines := \
+  baud \
+  cfmakeraw \
+  cfsetbaud \
+  cfsetspeed \
+  isatty \
+  isatty_nostatus \
+  speed \
+  tcdrain \
+  tcflow \
+  tcflush \
+  tcgetattr \
+  tcgetpgrp \
+  tcgetsid \
+  tcsendbrk \
+  tcsetattr \
+  tcsetpgrp \
+  # routines
 
 include ../Rules
 

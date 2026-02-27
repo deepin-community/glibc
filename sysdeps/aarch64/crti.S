@@ -1,5 +1,5 @@
 /* Special .init and .fini section support for AArch64.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -61,11 +61,11 @@
 	.type	call_weak_fn, %function
 call_weak_fn:
 	adrp	x0, :got:PREINIT_FUNCTION
-	ldr	PTR_REG (0), [x0, #:got_lo12:PREINIT_FUNCTION]
+	ldr	x0, [x0, #:got_lo12:PREINIT_FUNCTION]
 	cbz	x0, 1f
 	b	PREINIT_FUNCTION
 1:
-	RET
+	ret
 	.size	call_weak_fn, .-call_weak_fn
 #endif
 
@@ -75,11 +75,7 @@ call_weak_fn:
 	.hidden	_init
 	.type	_init, %function
 _init:
-#if HAVE_AARCH64_PAC_RET
-	PACIASP
-#else
-	BTI_C
-#endif
+	paciasp
 	stp	x29, x30, [sp, -16]!
 	mov	x29, sp
 #if PREINIT_FUNCTION_WEAK
@@ -94,10 +90,6 @@ _init:
 	.hidden	_fini
 	.type	_fini, %function
 _fini:
-#if HAVE_AARCH64_PAC_RET
-	PACIASP
-#else
-	BTI_C
-#endif
+	paciasp
 	stp	x29, x30, [sp, -16]!
 	mov	x29, sp

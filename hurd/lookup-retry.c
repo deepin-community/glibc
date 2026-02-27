@@ -1,5 +1,5 @@
 /* hairy bits of Hurd file name lookup
-   Copyright (C) 1992-2023 Free Software Foundation, Inc.
+   Copyright (C) 1992-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <_itoa.h>
-#include <eloop-threshold.h>
+#include <min-eloop-threshold.h>
 #include <unistd.h>
 
 /* Translate the error from dir_lookup into the error the user sees.  */
@@ -53,7 +53,7 @@ __hurd_file_name_lookup_retry (error_t (*use_init_port)
 				  retry_type *do_retry, string_t retry_name,
 				  mach_port_t *result),
 			       enum retry_type doretry,
-			       char retryname[1024],
+			       string_t retryname,
 			       int flags, mode_t mode,
 			       file_t *result)
 {
@@ -113,7 +113,7 @@ __hurd_file_name_lookup_retry (error_t (*use_init_port)
 	  /* Fall through.  */
 
 	case FS_RETRY_NORMAL:
-	  if (nloops++ >= __eloop_threshold ())
+	  if (nloops++ >= MIN_ELOOP_THRESHOLD)
 	    {
 	      __mach_port_deallocate (__mach_task_self (), *result);
 	      err = ELOOP;
@@ -207,7 +207,7 @@ __hurd_file_name_lookup_retry (error_t (*use_init_port)
 	      dirport = INIT_PORT_CRDIR;
 	      if (*result != MACH_PORT_NULL)
 		__mach_port_deallocate (__mach_task_self (), *result);
-	      if (nloops++ >= __eloop_threshold ())
+	      if (nloops++ >= MIN_ELOOP_THRESHOLD)
 		{
 		  err = ELOOP;
 		  goto out;

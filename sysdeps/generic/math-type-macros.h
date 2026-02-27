@@ -1,5 +1,5 @@
 /* Helper macros for type generic function implementations within libm.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@
    M_STRTO_NAN - Resolves to the internal libc function which
 		converts a string into the appropriate FLOAT nan
 		value.
+   M_SET_RESTORE_ROUND - Resolves to a SET_RESTORE_ROUND call for M_TYPE.
 
   declare_mgen_alias(from,to)
       This exposes the appropriate symbol(s) for a

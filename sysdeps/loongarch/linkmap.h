@@ -1,5 +1,5 @@
 /* Definition of link_map_machine.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,5 +18,6 @@
 
 struct link_map_machine
 {
-  ElfW (Addr) plt; /* Address of .plt.  */
+  ElfW (Addr) plt;	/* Address of .plt.  */
+  void *tlsdesc_table;	/* Address of TLS descriptor hash table.  */
 };

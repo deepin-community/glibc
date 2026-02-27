@@ -1,5 +1,5 @@
 /* Test and measure __strcpy_chk functions.
-   Copyright (C) 1999-2023 Free Software Foundation, Inc.
+   Copyright (C) 1999-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 # define STRCPY_RESULT(dst, len) dst
 # define TEST_MAIN
 # define TEST_NAME "strcpy_chk"
-# include "../string/test-string.h"
+# include <string/test-string.h>
 
 /* This test case implicitly tests the availability of the __chk_fail
    symbol, which is part of the public ABI and may be used
@@ -59,7 +59,7 @@ static int test_main (void);
 #include <support/support.h>
 
 volatile int chk_fail_ok;
-jmp_buf chk_fail_buf;
+sigjmp_buf chk_fail_buf;
 
 static void
 handler (int sig)
@@ -86,7 +86,7 @@ do_one_test (impl_t *impl, char *dst, const char *src,
 	return;
 
       chk_fail_ok = 1;
-      if (setjmp (chk_fail_buf) == 0)
+      if (sigsetjmp (chk_fail_buf, 1) == 0)
 	{
 	  res = CALL (impl, dst, src, dlen);
 	  printf ("*** Function %s (%zd; %zd) did not __chk_fail\n",
@@ -214,7 +214,7 @@ do_random_tests (void)
 	      if (impl->test != 1)
 		{
 		  chk_fail_ok = 1;
-		  if (setjmp (chk_fail_buf) == 0)
+		  if (sigsetjmp (chk_fail_buf, 1) == 0)
 		    {
 		      res = (unsigned char *)
 			    CALL (impl, (char *) p2 + align2,

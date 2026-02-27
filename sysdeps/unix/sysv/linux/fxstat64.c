@@ -1,5 +1,5 @@
 /* fxstat64 using Linux fstat64/statx system call.
-   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ ___fxstat64 (int vers, int fd, struct stat64 *buf)
       return r ?: __xstat32_conv (vers, &st64, (struct stat *) buf);
     }
 # elif defined __NR_fstat
-  /* 64-bit kABI, e.g. aarch64, ia64, powerpc64*, s390x, riscv64,
+  /* 64-bit kABI, e.g. aarch64, powerpc64*, s390x, riscv64,
      and x86_64.  */
   if (vers == _STAT_VER_KERNEL || vers == _STAT_VER_LINUX)
     return INLINE_SYSCALL_CALL (fstat, fd, buf);
@@ -61,7 +61,7 @@ ___fxstat64 (int vers, int fd, struct stat64 *buf)
 # endif
 #else
   /* All kABIs with non-LFS support, e.g. arm, csky, i386, hppa, m68k,
-     microblaze, mips32, nios2, sh, powerpc32, and sparc32.  */
+     microblaze, mips32, sh, powerpc32, and sparc32.  */
   return INLINE_SYSCALL_CALL (fstat64, fd, buf);
 #endif /* XSTAT_IS_XSTAT64  */
 }

@@ -1,5 +1,5 @@
 /* Tests for posix_spawn signal handling.
-   Copyright (C) 2023 Free Software Foundation, Inc.
+   Copyright (C) 2023-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,9 @@
 #include <support/check.h>
 #include <support/xsignal.h>
 #include <support/xunistd.h>
+#include <sys/wait.h>
 #include <unistd.h>
+#include <tst-spawn.h>
 
 /* Nonzero if the program gets called via `exec'.  */
 #define CMDLINE_OPTIONS \
@@ -81,14 +83,13 @@ spawn_signal_test (const char *type, const posix_spawnattr_t *attr)
 {
   spargs[check_type_argc] = (char*) type;
 
-  pid_t pid;
-  int status;
+  PID_T_TYPE pid;
+  siginfo_t sinfo;
 
-  TEST_COMPARE (posix_spawn (&pid, spargs[0], NULL, attr, spargs, environ), 0);
-  TEST_COMPARE (xwaitpid (pid, &status, 0), pid);
-  TEST_VERIFY (WIFEXITED (status));
-  TEST_VERIFY (!WIFSIGNALED (status));
-  TEST_COMPARE (WEXITSTATUS (status), 0);
+  TEST_COMPARE (POSIX_SPAWN (&pid, spargs[0], NULL, attr, spargs, environ), 0);
+  TEST_COMPARE (WAITID (P_ALL, 0, &sinfo, WEXITED), 0);
+  TEST_COMPARE (sinfo.si_code, CLD_EXITED);
+  TEST_COMPARE (sinfo.si_status, 0);
 }
 
 static void
@@ -113,7 +114,7 @@ do_test_signals (void)
   {
     /* Same as before, but set SIGUSR1 and SIGUSR2 to a handler different than
        SIG_IGN or SIG_DFL.  */
-    struct sigaction sa = { 0 };
+    struct sigaction sa = { };
     sa.sa_handler = dummy_sa_handler;
     xsigaction (SIGUSR1, &sa, NULL);
     xsigaction (SIGUSR2, &sa, NULL);
@@ -122,7 +123,7 @@ do_test_signals (void)
 
   {
     /* Check if SIG_IGN is keep as is.  */
-    struct sigaction sa = { 0 };
+    struct sigaction sa = { };
     sa.sa_handler = SIG_IGN;
     xsigaction (SIGUSR1, &sa, NULL);
     xsigaction (SIGUSR2, &sa, NULL);

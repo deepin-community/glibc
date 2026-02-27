@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@ fexecve (int fd, char *const argv[], char *const envp[])
   file_t file;
   error_t err;
   enum retry_type doretry;
-  char retryname[1024];
+  string_t retryname;
 
   err = HURD_DPORT_USE (fd,
       __dir_lookup (port, "", O_EXEC, 0, &doretry, retryname, &file));

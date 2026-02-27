@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 #include <mach.h>
 #include <assert.h>
 #include <shlib-compat.h>
+#include <mach/mig_errors.h>
 
 /* Get the current time of day, putting it into *TS.
    Returns 0 on success, -1 on errors.  */
@@ -31,8 +32,51 @@ __clock_gettime (clockid_t clock_id, struct timespec *ts)
 
   switch (clock_id) {
 
+    case CLOCK_MONOTONIC:
+      /* If HAVE_HOST_GET_UPTIME64 is not defined or not available,
+         CLOCK_MONOTONIC will be equivalent to CLOCK_REALTIME.  */
+#ifdef HAVE_HOST_GET_UPTIME64
+      {
+	time_value64_t tv;
+	err = __host_get_uptime64 (__mach_host_self (), &tv);
+
+	if (err != MIG_BAD_ID)
+	  {
+	    if (err)
+	      {
+		__set_errno (err);
+		return -1;
+	      }
+
+	    TIME_VALUE64_TO_TIMESPEC (&tv, ts);
+	    return 0;
+	  }
+      }
+#endif
+      /* FALLTHROUGH */
+
     case CLOCK_REALTIME:
       {
+#ifdef HAVE_HOST_GET_TIME64
+	time_value64_t tv_64;
+	err = __host_get_time64 (__mach_host_self (), &tv_64);
+
+	/* If err is MIG_BAD_ID, it means an old gnumach which does not
+	   support __host_get_time64 is running against the new gnumach
+	   headers which has the signature of __host_get_time64. In that
+	   case, we fall back to __host_get_time.  */
+	if (err != MIG_BAD_ID)
+	  {
+	    if (err)
+	      {
+		__set_errno (err);
+		return -1;
+	      }
+
+	    TIME_VALUE64_TO_TIMESPEC (&tv_64, ts);
+	    return 0;
+	  }
+#endif
 	/* __host_get_time can only fail if passed an invalid host_t.
 	   __mach_host_self could theoretically fail (producing an
 	   invalid host_t) due to resource exhaustion, but we assume

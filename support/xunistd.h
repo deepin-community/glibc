@@ -1,5 +1,5 @@
 /* POSIX-specific extra functions.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,28 +29,29 @@
 
 __BEGIN_DECLS
 
-struct stat64;
+struct statx;
 
 pid_t xfork (void);
 pid_t xwaitpid (pid_t, int *status, int flags);
 void xpipe (int[2]);
 void xdup2 (int, int);
+int xdup (int);
 int xopen (const char *path, int flags, mode_t);
-#ifndef __USE_TIME_BITS64
-# ifdef __USE_FILE_OFFSET64
-void xstat (const char *path, struct stat *);
-void xlstat (const char *path, struct stat *);
-void xfstat (int fd, struct stat *);
-# else
-void xstat (const char *path, struct stat64 *);
-void xlstat (const char *path, struct stat64 *);
-void xfstat (int fd, struct stat64 *);
-# endif
-#else
-void __REDIRECT (xstat, (const char *path, struct stat *), xstat_time64);
-void __REDIRECT (xlstat, (const char *path, struct stat *), xlstat_time64);
-void __REDIRECT (xfstat, (int fd, struct stat *), xfstat_time64);
-#endif
+void support_check_stat_fd (const char *name, int fd, int result);
+void support_check_stat_path (const char *name, const char *path, int result);
+#define xstat(path, st) \
+  (support_check_stat_path ("stat", (path), stat ((path), (st))))
+#define xfstat(fd, st) \
+  (support_check_stat_fd ("fstat", (fd), fstat ((fd), (st))))
+#define xlstat(path, st) \
+  (support_check_stat_path ("lstat", (path), lstat ((path), (st))))
+#define xstat64(path, st) \
+  (support_check_stat_path ("stat64", (path), stat64 ((path), (st))))
+#define xfstat64(fd, st) \
+  (support_check_stat_fd ("fstat64", (fd), fstat64 ((fd), (st))))
+#define xlstat64(path, st) \
+  (support_check_stat_path ("lstat64", (path), lstat64 ((path), (st))))
+void xstatx (int, const char *, int, unsigned int, struct statx *);
 void xmkdir (const char *path, mode_t);
 void xchroot (const char *path);
 void xunlink (const char *path);

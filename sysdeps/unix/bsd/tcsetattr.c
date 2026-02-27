@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@
 
 /* Set the state of FD to *TERMIOS_P.  */
 int
-tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
+__tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
 {
   struct termios myt;
 
@@ -56,4 +56,6 @@ tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
       return __ioctl (fd, TIOCSETAF, termios_p);
     }
 }
-libc_hidden_def (tcsetattr)
+
+libc_hidden_def (__tcsetattr)
+weak_alias (__tcsetattr, tcsetattr)

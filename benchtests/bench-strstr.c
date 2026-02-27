@@ -1,5 +1,5 @@
 /* Measure strstr functions.
-   Copyright (C) 2013-2023 Free Software Foundation, Inc.
+   Copyright (C) 2013-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -343,6 +343,33 @@ test_hard_needle (json_ctx_t *json_ctx, size_t ne_len, size_t hs_len)
     json_attr_uint (json_ctx, "align_needle", 0);
     json_attr_uint (json_ctx, "fail", 1);
     json_attr_string (json_ctx, "desc", "Difficult testing first 2");
+
+    json_array_begin (json_ctx, "timings");
+
+    FOR_EACH_IMPL (impl, 0)
+      do_one_test (json_ctx, impl, hs, ne, NULL);
+
+    json_array_end (json_ctx);
+    json_element_object_end (json_ctx);
+  }
+
+  /* Hard needle for bruteforce algorithms that match first few chars.  */
+  {
+    memset (hs, 'a', hs_len);
+    for (int i = ne_len-1; i < hs_len; i += ne_len)
+      hs[i] = 'b';
+    hs[hs_len] = 0;
+
+    memset (ne, 'a', ne_len);
+    ne[ne_len] = 0;
+
+    json_element_object_begin (json_ctx);
+    json_attr_uint (json_ctx, "len_haystack", hs_len);
+    json_attr_uint (json_ctx, "len_needle", ne_len);
+    json_attr_uint (json_ctx, "align_haystack", 0);
+    json_attr_uint (json_ctx, "align_needle", 0);
+    json_attr_uint (json_ctx, "fail", 1);
+    json_attr_string (json_ctx, "desc", "Difficult bruteforce needle");
 
     json_array_begin (json_ctx, "timings");
 

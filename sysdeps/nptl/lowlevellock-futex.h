@@ -1,5 +1,5 @@
 /* Low-level locking access to futex facilities.  Stub version.
-   Copyright (C) 2014-2023 Free Software Foundation, Inc.
+   Copyright (C) 2014-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,7 +21,6 @@
 
 #ifndef __ASSEMBLER__
 # include <sysdep.h>
-# include <sysdep-cancel.h>
 # include <kernel-features.h>
 #endif
 
@@ -120,21 +119,10 @@
 		     nr_wake, nr_move, mutex, val)
 
 /* Like lll_futex_wait, but acting as a cancellable entrypoint.  */
-# define lll_futex_wait_cancel(futexp, val, private) \
-  ({                                                                   \
-    int __oldtype = LIBC_CANCEL_ASYNC ();			       \
-    long int __err = lll_futex_wait (futexp, val, LLL_SHARED);	       \
-    LIBC_CANCEL_RESET (__oldtype);				       \
-    __err;							       \
-  })
-
-/* Like lll_futex_timed_wait, but acting as a cancellable entrypoint.  */
-# define lll_futex_timed_wait_cancel(futexp, val, timeout, private) \
-  ({									   \
-    int __oldtype = LIBC_CANCEL_ASYNC ();			       	   \
-    long int __err = lll_futex_timed_wait (futexp, val, timeout, private); \
-    LIBC_CANCEL_RESET (__oldtype);					   \
-    __err;								   \
+# define lll_futex_wait_cancel(futexp, val, private)			\
+  ({									\
+     int __op = __lll_private_flag (FUTEX_WAIT, private);		\
+     INTERNAL_SYSCALL_CANCEL (futex, futexp, __op, val, NULL);		\
   })
 
 #endif  /* !__ASSEMBLER__  */

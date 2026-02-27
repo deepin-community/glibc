@@ -1,5 +1,5 @@
 /* C locale object.
-   Copyright (C) 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 2001-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,17 +18,12 @@
 
 #include <locale.h>
 #include "localeinfo.h"
+#include <ctype.h>
 
 #define DEFINE_CATEGORY(category, category_name, items, a) \
 extern struct __locale_data _nl_C_##category;
 #include "categories.def"
 #undef	DEFINE_CATEGORY
-
-/* Defined in locale/C-ctype.c.  */
-extern const char _nl_C_LC_CTYPE_class[] attribute_hidden;
-extern const char _nl_C_LC_CTYPE_toupper[] attribute_hidden;
-extern const char _nl_C_LC_CTYPE_tolower[] attribute_hidden;
-
 
 const struct __locale_struct _nl_C_locobj attribute_hidden =
   {

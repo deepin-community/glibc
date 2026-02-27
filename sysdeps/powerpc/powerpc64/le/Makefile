@@ -129,6 +129,10 @@ CFLAGS-tst-strtod-round.c += $(type-float128-CFLAGS)
 CFLAGS-tst-wcstod-round.c += $(type-float128-CFLAGS)
 CFLAGS-tst-strtod-nan-locale.c += $(type-float128-CFLAGS)
 CFLAGS-tst-wcstod-nan-locale.c += $(type-float128-CFLAGS)
+CFLAGS-tst-strtod1i.c += $(type-float128-CFLAGS)
+CFLAGS-tst-strtod3.c += $(type-float128-CFLAGS)
+CFLAGS-tst-strtod4.c += $(type-float128-CFLAGS)
+CFLAGS-tst-strtod5i.c += $(type-float128-CFLAGS)
 CFLAGS-tst-strtod6.c += $(type-float128-CFLAGS)
 CFLAGS-tst-strfrom.c += $(type-float128-CFLAGS)
 CFLAGS-tst-strfrom-locale.c += $(type-float128-CFLAGS)
@@ -161,7 +165,7 @@ CFLAGS-printf_size.c = $(type-float128-CFLAGS)
 #Older GCC (<10) doesn't like -mabi=ieeelongdouble and -mlong-double-64.
 $(foreach suf,$(all-object-suffixes),\
          $(objpfx)tst-nldbl-scanf-binary-c11$(suf) \
-         $(objpfx)tst-nldbl-scanf-binary-c2x$(suf) \
+         $(objpfx)tst-nldbl-scanf-binary-c23$(suf) \
          $(objpfx)tst-nldbl-scanf-binary-gnu11$(suf) \
          $(objpfx)tst-nldbl-scanf-binary-gnu89$(suf) \
          ): sysdep-CFLAGS := $(filter-out -mabi=ieeelongdouble,$(sysdep-CFLAGS))
@@ -171,7 +175,7 @@ endif
 ifeq ($(subdir), wcsmbs)
 $(foreach suf,$(all-object-suffixes),\
          $(objpfx)tst-nldbl-wscanf-binary-c11$(suf) \
-         $(objpfx)tst-nldbl-wscanf-binary-c2x$(suf) \
+         $(objpfx)tst-nldbl-wscanf-binary-c23$(suf) \
          $(objpfx)tst-nldbl-wscanf-binary-gnu11$(suf) \
          $(objpfx)tst-nldbl-wscanf-binary-gnu89$(suf) \
          ): sysdep-CFLAGS := $(filter-out -mabi=ieeelongdouble,$(sysdep-CFLAGS))

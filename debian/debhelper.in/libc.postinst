@@ -35,7 +35,6 @@ then
 	    check="$check smail sendmail snmpd spamassassin vsftpd"
 	    check="$check wu-ftpd wu-ftpd-academ wwwoffle"
 	    check="$check webmin dropbear gdm"
-	    check="$check deepin-authenticate"
 	    # NSS services check: 
 	    __NSS_CHECK__
 	    if [ -n "$services" ]; then
@@ -154,7 +153,6 @@ then
     dpkg-trigger --no-await libc-upgrade
     if [ -n "$preversion" ] && dpkg --compare-versions "$preversion" lt DEB_VERSION_UPSTREAM; then
         dpkg-trigger --no-await libc-major-upgrade
-
     fi
 fi
 

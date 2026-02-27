@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # Check header contents against the given standard.
-# Copyright (C) 2018-2023 Free Software Foundation, Inc.
+# Copyright (C) 2018-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 #
 # The GNU C Library is free software; you can redistribute it and/or
@@ -170,6 +170,10 @@ class ConstantTest(object):
         if self.c_type is not None:
             if self.c_type.startswith('promoted:'):
                 c_type = self.c_type[len('promoted:'):]
+                text = ('__typeof__ ((%s) 0 + (%s) 0) a2_%d;\n'
+                        % (c_type, c_type, self.num))
+            elif self.c_type.startswith('size:'):
+                c_type = "int{}_t".format(self.c_type[len('size:'):])
                 text = ('__typeof__ ((%s) 0 + (%s) 0) a2_%d;\n'
                         % (c_type, c_type, self.num))
             else:
@@ -620,7 +624,7 @@ class HeaderTests(object):
         out_file = os.path.join(self.temp_dir, 'namespace-out')
         with open(c_file, 'w') as c_file_out:
             c_file_out.write('#include <%s>\n' % self.header)
-        cmd = ('%s %s -E %s -P -Wp,-dN > %s'
+        cmd = ('%s %s -E %s -P -Wp,-dD > %s'
                % (self.cc, self.cflags_namespace, c_file, out_file))
         subprocess.check_call(cmd, shell=True)
         bad_tokens = set()
@@ -639,11 +643,11 @@ class HeaderTests(object):
                     # macros defined by user code including the
                     # header.)
                     continue
-                match = re.match(r'#define (.*)', line)
+                match = re.match(r'#define (.*?[^\(\s]+)', line)
                 if match:
                     self.check_token(bad_tokens, match.group(1))
                     continue
-                match = re.match(r'#undef (.*)', line)
+                match = re.match(r'#undef (.*?[^\(\s]+)', line)
                 if match:
                     bad_tokens.discard(match.group(1))
                     continue

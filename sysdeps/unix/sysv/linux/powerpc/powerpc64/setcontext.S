@@ -1,5 +1,5 @@
 /* Switch to context.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,8 +38,11 @@
 ENTRY(__novec_setcontext)
 	CALL_MCOUNT 1
   mflr  r0
-  std   r31,-8(1)
-  cfi_offset(r31,-8)
+  std   r31,-16(1)
+  cfi_offset(r31,-16)
+#ifdef __ROP_PROTECT__
+  hashst  r0,FRAME_ROP_SAVE(r1)
+#endif
   std   r0,FRAME_LR_SAVE(r1)
   cfi_offset (lr, FRAME_LR_SAVE)
   stdu  r1,-128(r1)
@@ -184,7 +187,10 @@ L(nv_error_exit):
   ld   r0,128+FRAME_LR_SAVE(r1)
   addi r1,r1,128
   mtlr r0
-	ld   r31,-8(r1)
+#ifdef __ROP_PROTECT__
+  hashchk  r0,FRAME_ROP_SAVE(r1)
+#endif
+  ld   r31,-16(r1)
   blr
 PSEUDO_END(__novec_setcontext)
 
@@ -197,8 +203,11 @@ compat_symbol (libc, __novec_setcontext, setcontext, GLIBC_2_3)
 ENTRY(__setcontext)
 	CALL_MCOUNT 1
   mflr  r0
-  std   r31,-8(1)
-  cfi_offset(r31,-8)
+  std   r31,-16(1)
+  cfi_offset(r31,-16)
+#ifdef __ROP_PROTECT__
+  hashst  r0,FRAME_ROP_SAVE(r1)
+#endif
   std   r0,FRAME_LR_SAVE(r1)
   cfi_offset (lr, FRAME_LR_SAVE)
   stdu  r1,-128(r1)
@@ -446,7 +455,10 @@ L(error_exit):
   ld   r0,128+FRAME_LR_SAVE(r1)
   addi r1,r1,128
   mtlr r0
-	ld   r31,-8(r1)
+#ifdef __ROP_PROTECT__
+  hashchk  r0,FRAME_ROP_SAVE(r1)
+#endif
+  ld   r31,-16(r1)
   blr
 
 PSEUDO_END(__setcontext)

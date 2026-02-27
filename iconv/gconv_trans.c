@@ -1,5 +1,5 @@
 /* Transliteration using the locale's data.
-   Copyright (C) 2000-2023 Free Software Foundation, Inc.
+   Copyright (C) 2000-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -150,7 +150,7 @@ __gconv_transliterate (struct __gconv_step *step,
 
 	  /* Nothing found, continue searching.  */
 	}
-      else if (cnt > 0)
+      else if (cnt > 0 && winbuf + cnt == winbufend)
 	/* This means that the input buffer contents matches a prefix of
 	   an entry.  Since we cannot match it unless we get more input,
 	   we will tell the caller about it.  */
@@ -232,6 +232,6 @@ __gconv_transliterate (struct __gconv_step *step,
     }
 
   /* Haven't found a match.  */
-  return __GCONV_ILLEGAL_INPUT;
+  return __gconv_mark_illegal_input (step_data);
 }
 libc_hidden_def (__gconv_transliterate)

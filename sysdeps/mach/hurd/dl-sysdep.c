@@ -1,5 +1,5 @@
 /* Operating system support for run-time dynamic linker.  Hurd version.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,6 @@
 #include <sysdep.h>
 #include <argz.h>
 #include <mach/mig_support.h>
-#include <mach/machine/vm_param.h>
 #include "hurdstartup.h"
 #include <hurd/lookup.h>
 #include <hurd/auth.h>
@@ -44,7 +43,6 @@
 
 #include <entry.h>
 #include <dl-machine.h>
-#include <dl-procinfo.h>
 
 #include <dl-tunables.h>
 #include <not-errno.h>
@@ -232,6 +230,8 @@ _dl_sysdep_start (void **start_argptr,
   abort ();
 }
 
+RETURN_TO_TRAMPOLINE();
+
 void
 _dl_sysdep_start_cleanup (void)
 {
@@ -266,7 +266,7 @@ open_file (const char *file_name, int flags,
 	   mach_port_t *port, struct stat64 *stat)
 {
   enum retry_type doretry;
-  char retryname[1024];		/* XXX string_t LOSES! */
+  string_t retryname;
   file_t startdir;
   error_t err;
 
@@ -458,7 +458,7 @@ __mmap (void *addr, size_t len, int prot, int flags, int fd, off_t offset)
   if (prot & PROT_EXEC)
     vmprot |= VM_PROT_EXECUTE;
 
-#ifdef __LP64__
+#ifdef __x86_64__
   if ((addr == NULL) && (prot & PROT_EXEC)
       && HAS_ARCH_FEATURE (Prefer_MAP_32BIT_EXEC))
     flags |= MAP_32BIT;
@@ -542,21 +542,14 @@ __stat64 (const char *file, struct stat64 *buf)
 }
 libc_hidden_def (__stat64)
 
-/* This function is called by the dynamic linker (rtld.c) to check
-   whether debugging malloc is allowed even for SUID binaries.  This
-   stub will always fail, which means that malloc-debugging is always
-   disabled for SUID binaries.  */
+/* This function is called by the dynamic linker (rtld.c) to check for
+   existence of /etc/ld.so.preload.  This stub will always fail, which
+   means that /etc/ld.so.preload is unsupported.  */
 check_no_hidden(__access);
 int weak_function
 __access (const char *file, int type)
 {
   return __hurd_fail (ENOSYS);
-}
-check_no_hidden(__access_noerrno);
-int weak_function
-__access_noerrno (const char *file, int type)
-{
-  return -1;
 }
 
 int

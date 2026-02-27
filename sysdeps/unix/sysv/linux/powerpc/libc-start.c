@@ -1,4 +1,4 @@
-/* Copyright (C) 1998-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -86,6 +86,12 @@ __libc_start_main_impl (int argc, char **argv,
 	break;
       case AT_HWCAP2:
 	_dl_hwcap2 = (unsigned long int) av->a_un.a_val;
+	break;
+      case AT_HWCAP3:
+	_dl_hwcap3 = (unsigned long int) av->a_un.a_val;
+	break;
+      case AT_HWCAP4:
+	_dl_hwcap4 = (unsigned long int) av->a_un.a_val;
 	break;
       case AT_PLATFORM:
 	_dl_platform = (void *) av->a_un.a_val;

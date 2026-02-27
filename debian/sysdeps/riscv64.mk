@@ -1,2 +1,2 @@
-# riscv64 buildd are QEMU based and thus very slow
-TIMEOUTFACTOR=100
+# configuration options for all flavours
+extra_config_options = --enable-multi-arch

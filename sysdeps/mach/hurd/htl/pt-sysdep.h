@@ -1,5 +1,5 @@
 /* Internal definitions for pthreads library.
-   Copyright (C) 2000-2023 Free Software Foundation, Inc.
+   Copyright (C) 2000-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,6 +34,8 @@
 
 extern __thread struct __pthread *___pthread_self;
 libc_hidden_tls_proto (___pthread_self)
+extern struct __pthread __pthread_init_thread;
+libc_hidden_proto (__pthread_init_thread)
 
 #ifdef DEBUG
 #define _pthread_self()                                            \

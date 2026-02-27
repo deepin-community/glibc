@@ -3,6 +3,31 @@
 
 #include <cstdio>
 
+extern template struct S<1>;
+extern template struct S<2>;
+extern template struct S<3>;
+extern template struct S<4>;
+extern template struct S<5>;
+extern template struct S<6>;
+extern template struct S<7>;
+extern template struct S<8>;
+extern template struct S<9>;
+extern template struct S<10>;
+extern template struct S<11>;
+extern template struct S<12>;
+extern template struct S<13>;
+extern template struct S<14>;
+extern template struct S<15>;
+extern template struct S<16>;
+extern template struct S<17>;
+extern template struct S<18>;
+extern template struct S<19>;
+extern template struct S<20>;
+extern template struct S<21>;
+extern template struct S<22>;
+extern template struct S<23>;
+extern template struct S<24>;
+
 static int a[24] =
   {
     S<1>::i, S<2>::i, S<3>::i, S<4>::i, S<5>::i, S<6>::i, S<7>::i, S<8>::i,

@@ -1,5 +1,5 @@
 /* POSIX.1 `sigaction' call for Linux/x86-64.
-   Copyright (C) 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 2001-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
 extern void restore_rt (void) asm ("__restore_rt") attribute_hidden;
 
 #define SET_SA_RESTORER(kact, act)			\
-  (kact)->sa_flags = (act)->sa_flags | SA_RESTORER;	\
+  (kact)->sa_flags |= SA_RESTORER;			\
   (kact)->sa_restorer = &restore_rt
 
 #define RESET_SA_RESTORER(act, kact) 			\

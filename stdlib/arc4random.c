@@ -1,5 +1,5 @@
 /* Pseudo Random Number Generator
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ __arc4random_buf (void *p, size_t n)
 	  n -= l;
 	  continue; /* Interrupted by a signal; keep going.  */
 	}
-      else if (l == -ENOSYS)
+      else if (l < 0 && errno == ENOSYS)
 	break; /* No syscall, so fallback to /dev/urandom.  */
       arc4random_getrandom_failure ();
     }

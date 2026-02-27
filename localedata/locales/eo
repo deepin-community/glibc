@@ -120,7 +120,7 @@ int_curr_symbol     "XDR "
 currency_symbol     "<U00A4>"
 mon_decimal_point   ","
 mon_thousands_sep   "<U202F>"
-mon_grouping        3;3
+mon_grouping        3
 positive_sign       ""
 negative_sign       "-"
 int_frac_digits     2
@@ -136,7 +136,7 @@ END LC_MONETARY
 LC_NUMERIC
 decimal_point ","
 thousands_sep ""
-grouping      0;0
+grouping      -1
 END LC_NUMERIC
 
 LC_TIME
@@ -175,7 +175,8 @@ d_t_fmt  "%a %d %b %Y %T"
 date_fmt "%a %d %b %Y %T %z"
 d_fmt   "%Y-%m-%d"
 t_fmt   "%T"
-week 7;19971130;1
+week 7;19971130;4
+first_weekday 2
 END LC_TIME
 
 LC_MESSAGES

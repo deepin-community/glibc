@@ -1,5 +1,8 @@
 ifeq ($(subdir),elf)
 sysdep-rtld-routines += aeabi_read_tp libc-do-syscall
+# The test uses INTERNAL_SYSCALL_CALL.  In thumb mode, this uses
+# an undefined reference to __libc_do_syscall.
+CFLAGS-tst-nolink-libc.c += -marm
 endif
 
 ifeq ($(subdir),misc)
@@ -16,10 +19,6 @@ gen-as-const-headers += ucontext_i.sym
 endif
 
 # Add a syscall function to each library that needs one.
-
-ifeq ($(subdir),crypt)
-libcrypt-sysdep_routines += libc-do-syscall
-endif
 
 ifeq ($(subdir),rt)
 librt-sysdep_routines += libc-do-syscall
@@ -42,9 +41,6 @@ endif
 ifeq ($(subdir),nss)
 libnss_db-sysdep_routines += libc-do-syscall
 libnss_db-shared-only-routines += libc-do-syscall
-endif
-
-ifeq ($(subdir),posix)
 LDFLAGS-tst-rfc3484 += $(common-objpfx)csu/libc-do-syscall.o
 LDFLAGS-tst-rfc3484-2 += $(common-objpfx)csu/libc-do-syscall.o
 LDFLAGS-tst-rfc3484-3 += $(common-objpfx)csu/libc-do-syscall.o

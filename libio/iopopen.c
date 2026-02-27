@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -57,6 +57,26 @@ unlock (void *not_used)
 }
 #endif
 
+/* These lock/unlock/resetlock functions are used during fork.  */
+
+void
+_IO_proc_file_chain_lock (void)
+{
+  _IO_lock_lock (proc_file_chain_lock);
+}
+
+void
+_IO_proc_file_chain_unlock (void)
+{
+  _IO_lock_unlock (proc_file_chain_lock);
+}
+
+void
+_IO_proc_file_chain_resetlock (void)
+{
+  _IO_lock_init (proc_file_chain_lock);
+}
+
 /* POSIX states popen shall ensure that any streams from previous popen()
    calls that remain open in the parent process should be closed in the new
    child process.
@@ -86,7 +106,7 @@ spawn_process (posix_spawn_file_actions_t *fa, FILE *fp, const char *command,
 	}
     }
 
-  err = __posix_spawn (&((_IO_proc_file *) fp)->pid, _PATH_BSHELL, fa, 0,
+  err = __posix_spawn (&((_IO_proc_file *) fp)->pid, _PATH_BSHELL, fa, NULL,
 		       (char *const[]){ (char*) "sh", (char*) "-c", (char*) "--",
 		       (char *) command, NULL }, __environ);
   if (err != 0)

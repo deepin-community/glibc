@@ -1,5 +1,5 @@
 /* Test and measure string and memory functions.
-   Copyright (C) 1999-2023 Free Software Foundation, Inc.
+   Copyright (C) 1999-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,16 +40,7 @@ extern impl_t __start_impls[], __stop_impls[];
 
 #undef __USE_STRING_INLINES
 
-/* We are compiled under _ISOMAC, so libc-symbols.h does not do this
-   for us.  */
-#include "config.h"
-#ifdef HAVE_CC_INHIBIT_LOOP_TO_LIBCALL
-# define inhibit_loop_to_libcall \
-    __attribute__ ((__optimize__ ("-fno-tree-loop-distribute-patterns")))
-#else
-# define inhibit_loop_to_libcall
-#endif
-
+#include <libc-misc.h>
 #include <getopt.h>
 #include <stdint.h>
 #include <stdio.h>

@@ -1,5 +1,5 @@
 /* Support code for testing libm functions (compiled once per type).
-   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -109,9 +109,12 @@
 
 #include "libm-test-support.h"
 
+#include <array_length.h>
 #include <argp.h>
 #include <errno.h>
 #include <string.h>
+#include <assert.h>
+#include <stdbool.h>
 
 /* This header defines func_ulps, func_real_ulps and func_imag_ulps
    arrays.  */
@@ -125,12 +128,15 @@ static FILE *ulps_file;		/* File to document difference.  */
 static int output_ulps;		/* Should ulps printed?  */
 static char *output_dir;	/* Directory where generated files will be written.  */
 
-static int noErrors;	/* number of errors */
-static int noTests;	/* number of tests (without testing exceptions) */
-static int noExcTests;	/* number of tests for exception flags */
-static int noErrnoTests;/* number of tests for errno values */
+#define TEST_INPUT 1
+#define TEST_MAXERROR 2
+static int noErrors;	    /* number of errors */
+static int noTests; 	    /* number of tests (without testing exceptions) */
+static int noMaxErrorTests; /* number of max error tests  */
+static int noExcTests;	    /* number of tests for exception flags */
+static int noErrnoTests;    /* number of tests for errno values */
 
-static int verbose;
+static unsigned int verbose;
 static int output_max_error;	/* Should the maximal errors printed?  */
 static int output_points;	/* Should the single function results printed?  */
 static int ignore_max_ulp;	/* Should we ignore max_ulp?  */
@@ -141,6 +147,8 @@ static FLOAT max_error, real_max_error, imag_max_error;
 static FLOAT prev_max_error, prev_real_max_error, prev_imag_max_error;
 
 static FLOAT max_valid_error;
+
+static bool is_complex = false;
 
 /* Sufficient numbers of digits to represent any floating-point value
    unambiguously (for any choice of the number of bits in the first
@@ -182,6 +190,20 @@ fmt_ftostr (char *dest, size_t size, int precision, const char *conversion,
   FTOSTR (dest, size, format, value);
 }
 
+
+static FLOAT
+default_max_valid_error (int exact, int testing_ibm128)
+{
+  if (testing_ibm128)
+    /* The documented accuracy of IBM long double division is 3ulp
+       (see libgcc/config/rs6000/ibm-ldouble-format), so do not
+       require better accuracy for libm functions that are exactly
+       defined for other formats.  */
+    return max_valid_error = exact ? 3 : 16;
+  else
+    return max_valid_error = exact ? 0 : 9;
+}
+
 /* Compare KEY (a string, with the name of a function) with ULP (a
    pointer to a struct ulp_data structure), returning a value less
    than, equal to or greater than zero for use in bsearch.  */
@@ -200,14 +222,17 @@ static const int ulp_idx = ULP_IDX;
    no ulps listed.  */
 
 static FLOAT
-find_ulps (const char *name, const struct ulp_data *data, size_t nmemb)
+find_ulps (const char *name, const struct ulp_data *data, size_t nmemb,
+	   int exact, int testing_ibm128)
 {
   const struct ulp_data *entry = bsearch (name, data, nmemb, sizeof (*data),
 					  compare_ulp_data);
   if (entry == NULL)
-    return 0;
+    return default_max_valid_error (exact, testing_ibm128);
   else
-    return entry->max_ulp[ulp_idx];
+    return entry->max_ulp[ulp_idx] == -1
+	   ? default_max_valid_error (exact, testing_ibm128)
+	   : entry->max_ulp[ulp_idx];
 }
 
 void
@@ -217,22 +242,15 @@ init_max_error (const char *name, int exact, int testing_ibm128)
   real_max_error = 0;
   imag_max_error = 0;
   test_ibm128 = testing_ibm128;
-  prev_max_error = find_ulps (name, func_ulps,
-			      sizeof (func_ulps) / sizeof (func_ulps[0]));
+  prev_max_error = find_ulps (name, func_ulps, array_length (func_ulps),
+			      exact, testing_ibm128);
   prev_real_max_error = find_ulps (name, func_real_ulps,
-				   (sizeof (func_real_ulps)
-				    / sizeof (func_real_ulps[0])));
+				   array_length (func_real_ulps), exact,
+				   testing_ibm128);
   prev_imag_max_error = find_ulps (name, func_imag_ulps,
-				   (sizeof (func_imag_ulps)
-				    / sizeof (func_imag_ulps[0])));
-  if (testing_ibm128)
-    /* The documented accuracy of IBM long double division is 3ulp
-       (see libgcc/config/rs6000/ibm-ldouble-format), so do not
-       require better accuracy for libm functions that are exactly
-       defined for other formats.  */
-    max_valid_error = exact ? 3 : 16;
-  else
-    max_valid_error = exact ? 0 : 9;
+				   array_length (func_imag_ulps),
+				   exact, testing_ibm128);
+  max_valid_error = default_max_valid_error (exact, testing_ibm128);
   prev_max_error = (prev_max_error <= max_valid_error
 		    ? prev_max_error
 		    : max_valid_error);
@@ -299,9 +317,19 @@ print_screen_max_error (int ok)
 
 /* Update statistic counters.  */
 static void
-update_stats (int ok)
+update_stats (int ok, int testType)
 {
-  ++noTests;
+  switch (testType)
+    {
+	case TEST_INPUT:
+	  ++noTests;
+	  break;
+	case TEST_MAXERROR:
+	  ++noMaxErrorTests;
+	  break;
+	default:
+	  abort();
+    }
   if (!ok)
     ++noErrors;
 }
@@ -367,11 +395,30 @@ fpstack_test (const char *test_name)
 #endif
 }
 
+static void
+print_test_start (int test_num, const char *test_name, int test_type)
+{
+  if (print_screen (1))
+    printf ("--- Start of%s test # %d, named \"%s\" ---\n",
+            test_type == TEST_MAXERROR ? " max error" : "", test_num, test_name);
+}
 
+static void
+print_test_end (int test_num, const char *test_name, int test_type)
+{
+  if (print_screen (1))
+    printf ("--- End of%s test # %d, named \"%s\" ---\n",
+            test_type == TEST_MAXERROR ? " max error" : "", test_num, test_name);
+}
+
+/* This is a builtin test of overall max error.  */
 void
-print_max_error (const char *func_name)
+check_max_error (const char *func_name)
 {
   int ok = 0;
+  int thisTest = noMaxErrorTests;
+
+  print_test_start (thisTest, func_name, TEST_MAXERROR);
 
   if (max_error == 0.0 || (max_error <= prev_max_error && !ignore_max_ulp))
     {
@@ -392,14 +439,19 @@ print_max_error (const char *func_name)
       printf (" accepted: %s ulp\n", pmestr);
     }
 
-  update_stats (ok);
+  update_stats (ok, TEST_MAXERROR);
+
+  print_test_end (thisTest, func_name, TEST_MAXERROR);
 }
 
-
+/* This is a builtin test of overall max error.  */
 void
-print_complex_max_error (const char *func_name)
+check_complex_max_error (const char *func_name)
 {
   int real_ok = 0, imag_ok = 0, ok;
+  int thisTest = noMaxErrorTests;
+
+  print_test_start (thisTest, func_name, TEST_MAXERROR);
 
   if (real_max_error == 0
       || (real_max_error <= prev_real_max_error && !ignore_max_ulp))
@@ -436,7 +488,10 @@ print_complex_max_error (const char *func_name)
       printf (" accepted: %s ulp\n", pimestr);
     }
 
-  update_stats (ok);
+  update_stats (ok, TEST_MAXERROR);
+  print_test_end (thisTest, func_name, TEST_MAXERROR);
+
+  is_complex = true;
 }
 
 
@@ -477,12 +532,13 @@ test_single_exception (const char *test_name,
       else
 	{
 	  if (print_screen (1))
-	    printf ("%s: Exception \"%s\" not set\n", test_name,
+	    printf ("Pass: %s: Exception \"%s\" not set\n", test_name,
 		    flag_name);
 	}
     }
   if (!ok)
     ++noErrors;
+  ++noExcTests;
 }
 #endif
 
@@ -494,23 +550,32 @@ test_exceptions (const char *test_name, int exception)
 {
   if (flag_test_exceptions && EXCEPTION_TESTS (FLOAT))
     {
-      ++noExcTests;
+      int ran = 0;
 #ifdef FE_DIVBYZERO
       if ((exception & DIVIDE_BY_ZERO_EXCEPTION_OK) == 0)
-	test_single_exception (test_name, exception,
-			       DIVIDE_BY_ZERO_EXCEPTION, FE_DIVBYZERO,
-			       "Divide by zero");
+	{
+	  test_single_exception (test_name, exception,
+			         DIVIDE_BY_ZERO_EXCEPTION, FE_DIVBYZERO,
+			         "Divide by zero");
+	  ran = 1;
+	}
 #endif
 #ifdef FE_INVALID
       if ((exception & INVALID_EXCEPTION_OK) == 0)
-	test_single_exception (test_name, exception,
-			       INVALID_EXCEPTION, FE_INVALID,
-			       "Invalid operation");
+	{
+	  test_single_exception (test_name, exception,
+			         INVALID_EXCEPTION, FE_INVALID,
+			         "Invalid operation");
+	  ran = 1;
+	}
 #endif
 #ifdef FE_OVERFLOW
       if ((exception & OVERFLOW_EXCEPTION_OK) == 0)
-	test_single_exception (test_name, exception, OVERFLOW_EXCEPTION,
-			       FE_OVERFLOW, "Overflow");
+	{
+	  test_single_exception (test_name, exception, OVERFLOW_EXCEPTION,
+			         FE_OVERFLOW, "Overflow");
+	  ran = 1;
+	}
 #endif
       /* Spurious "underflow" and "inexact" exceptions are always
 	 allowed for IBM long double, in line with the underlying
@@ -519,17 +584,30 @@ test_exceptions (const char *test_name, int exception)
       if ((exception & UNDERFLOW_EXCEPTION_OK) == 0
 	  && !(test_ibm128
 	       && (exception & UNDERFLOW_EXCEPTION) == 0))
-	test_single_exception (test_name, exception, UNDERFLOW_EXCEPTION,
-			       FE_UNDERFLOW, "Underflow");
+	{
+	  test_single_exception (test_name, exception, UNDERFLOW_EXCEPTION,
+			         FE_UNDERFLOW, "Underflow");
+	  ran = 1;
+	}
+
 #endif
 #ifdef FE_INEXACT
       if ((exception & (INEXACT_EXCEPTION | NO_INEXACT_EXCEPTION)) != 0
 	  && !(test_ibm128
 	       && (exception & NO_INEXACT_EXCEPTION) != 0))
-	test_single_exception (test_name, exception, INEXACT_EXCEPTION,
-			       FE_INEXACT, "Inexact");
+	{
+	  test_single_exception (test_name, exception, INEXACT_EXCEPTION,
+			         FE_INEXACT, "Inexact");
+	  ran = 1;
+	}
 #endif
+      assert (ran == 1);
     }
+   else
+     {
+	if (print_screen (1))
+	  printf ("Info: %s: No exceptions tested\n", test_name);
+     }
   feclearexcept (FE_ALL_EXCEPT);
 }
 
@@ -552,6 +630,7 @@ test_single_errno (const char *test_name, int errno_value,
 	printf ("Failure: %s: errno set to %d, expected %d (%s)\n",
 		test_name, errno_value, expected_value, expected_name);
     }
+  ++noErrnoTests;
 }
 
 /* Test whether errno (value ERRNO_VALUE) has been for TEST_NAME set
@@ -561,13 +640,39 @@ test_errno (const char *test_name, int errno_value, int exceptions)
 {
   if (flag_test_errno)
     {
-      ++noErrnoTests;
+      int ran = 0;
+
+      if ((exceptions & (ERRNO_UNCHANGED|ERRNO_EDOM|ERRNO_ERANGE)) == 0)
+	{
+	  if (print_screen (1))
+	    printf ("Info: %s: The value of errno was not tested\n",
+		    test_name);
+	  return;
+	}
+
+
       if (exceptions & ERRNO_UNCHANGED)
-	test_single_errno (test_name, errno_value, 0, "unchanged");
+	{
+	  test_single_errno (test_name, errno_value, 0, "unchanged");
+	  ran = 1;
+	}
       if (exceptions & ERRNO_EDOM)
-	test_single_errno (test_name, errno_value, EDOM, "EDOM");
+	{
+	  test_single_errno (test_name, errno_value, EDOM, "EDOM");
+	  ran = 1;
+	}
       if (exceptions & ERRNO_ERANGE)
-	test_single_errno (test_name, errno_value, ERANGE, "ERANGE");
+	{
+	  test_single_errno (test_name, errno_value, ERANGE, "ERANGE");
+	  ran = 1;
+	}
+
+      assert (ran == 1);
+    }
+  else
+    {
+	if (print_screen (1))
+	  printf ("Info: %s: No errno tests\n", test_name);
     }
 }
 
@@ -619,6 +724,9 @@ check_float_internal (const char *test_name, FLOAT computed, FLOAT expected,
   FLOAT diff = 0;
   FLOAT ulps = 0;
   int errno_value = errno;
+  int thisTest = noTests;
+
+  print_test_start (thisTest, test_name, TEST_INPUT);
 
   test_exceptions (test_name, exceptions);
   test_errno (test_name, errno_value, exceptions);
@@ -684,7 +792,7 @@ check_float_internal (const char *test_name, FLOAT computed, FLOAT expected,
       ulps = ULPDIFF (computed, expected);
       set_max_error (ulps, curr_max_error);
       print_diff = 1;
-      if ((exceptions & IGNORE_ZERO_INF_SIGN) == 0
+      if (((exceptions & IGNORE_ZERO_INF_SIGN) == 0) && !flag_test_mathvec
 	  && computed == 0.0 && expected == 0.0
 	  && signbit(computed) != signbit (expected))
 	ok = 0;
@@ -716,12 +824,13 @@ check_float_internal (const char *test_name, FLOAT computed, FLOAT expected,
 	  printf (" max.ulp   : %s\n", mustrn);
 	}
     }
-  update_stats (ok);
+  update_stats (ok, TEST_INPUT);
 
  out:
   fpstack_test (test_name);
   feclearexcept (FE_ALL_EXCEPT);
   errno = 0;
+  print_test_end (thisTest, test_name, TEST_INPUT);
 }
 
 
@@ -776,12 +885,14 @@ check_int (const char *test_name, int computed, int expected,
 {
   int ok = 0;
   int errno_value = errno;
+  int thisTest = noTests;
+
+  print_test_start (thisTest, test_name, TEST_INPUT);
 
   test_exceptions (test_name, exceptions);
   test_errno (test_name, errno_value, exceptions);
   if (exceptions & IGNORE_RESULT)
     goto out;
-  noTests++;
   if (computed == expected)
     ok = 1;
 
@@ -795,11 +906,12 @@ check_int (const char *test_name, int computed, int expected,
       printf (" should be:  %d\n", expected);
     }
 
-  update_stats (ok);
+  update_stats (ok, TEST_INPUT);
  out:
   fpstack_test (test_name);
   feclearexcept (FE_ALL_EXCEPT);
   errno = 0;
+  print_test_end (thisTest, test_name, TEST_INPUT);
 }
 
 
@@ -810,12 +922,14 @@ check_long (const char *test_name, long int computed, long int expected,
 {
   int ok = 0;
   int errno_value = errno;
+  int thisTest = noTests;
+
+  print_test_start (thisTest, test_name, TEST_INPUT);
 
   test_exceptions (test_name, exceptions);
   test_errno (test_name, errno_value, exceptions);
   if (exceptions & IGNORE_RESULT)
     goto out;
-  noTests++;
   if (computed == expected)
     ok = 1;
 
@@ -829,11 +943,12 @@ check_long (const char *test_name, long int computed, long int expected,
       printf (" should be:  %ld\n", expected);
     }
 
-  update_stats (ok);
+  update_stats (ok, TEST_INPUT);
  out:
   fpstack_test (test_name);
   feclearexcept (FE_ALL_EXCEPT);
   errno = 0;
+  print_test_end (thisTest, test_name, TEST_INPUT);
 }
 
 
@@ -844,12 +959,14 @@ check_bool (const char *test_name, int computed, int expected,
 {
   int ok = 0;
   int errno_value = errno;
+  int thisTest = noTests;
+
+  print_test_start (thisTest, test_name, TEST_INPUT);
 
   test_exceptions (test_name, exceptions);
   test_errno (test_name, errno_value, exceptions);
   if (exceptions & IGNORE_RESULT)
     goto out;
-  noTests++;
   if ((computed == 0) == (expected == 0))
     ok = 1;
 
@@ -863,11 +980,12 @@ check_bool (const char *test_name, int computed, int expected,
       printf (" should be:  %d\n", expected);
     }
 
-  update_stats (ok);
+  update_stats (ok, TEST_INPUT);
  out:
   fpstack_test (test_name);
   feclearexcept (FE_ALL_EXCEPT);
   errno = 0;
+  print_test_end (thisTest, test_name, TEST_INPUT);
 }
 
 
@@ -879,12 +997,14 @@ check_longlong (const char *test_name, long long int computed,
 {
   int ok = 0;
   int errno_value = errno;
+  int thisTest = noTests;
+
+  print_test_start (thisTest, test_name, TEST_INPUT);
 
   test_exceptions (test_name, exceptions);
   test_errno (test_name, errno_value, exceptions);
   if (exceptions & IGNORE_RESULT)
     goto out;
-  noTests++;
   if (computed == expected)
     ok = 1;
 
@@ -898,11 +1018,12 @@ check_longlong (const char *test_name, long long int computed,
       printf (" should be:  %lld\n", expected);
     }
 
-  update_stats (ok);
+  update_stats (ok, TEST_INPUT);
  out:
   fpstack_test (test_name);
   feclearexcept (FE_ALL_EXCEPT);
   errno = 0;
+  print_test_end (thisTest, test_name, TEST_INPUT);
 }
 
 
@@ -913,12 +1034,14 @@ check_intmax_t (const char *test_name, intmax_t computed,
 {
   int ok = 0;
   int errno_value = errno;
+  int thisTest = noTests;
+
+  print_test_start (thisTest, test_name, TEST_INPUT);
 
   test_exceptions (test_name, exceptions);
   test_errno (test_name, errno_value, exceptions);
   if (exceptions & IGNORE_RESULT)
     goto out;
-  noTests++;
   if (computed == expected)
     ok = 1;
 
@@ -932,11 +1055,12 @@ check_intmax_t (const char *test_name, intmax_t computed,
       printf (" should be:  %jd\n", expected);
     }
 
-  update_stats (ok);
+  update_stats (ok, TEST_INPUT);
  out:
   fpstack_test (test_name);
   feclearexcept (FE_ALL_EXCEPT);
   errno = 0;
+  print_test_end (thisTest, test_name, TEST_INPUT);
 }
 
 
@@ -947,12 +1071,14 @@ check_uintmax_t (const char *test_name, uintmax_t computed,
 {
   int ok = 0;
   int errno_value = errno;
+  int thisTest = noTests;
+
+  print_test_start (thisTest, test_name, TEST_INPUT);
 
   test_exceptions (test_name, exceptions);
   test_errno (test_name, errno_value, exceptions);
   if (exceptions & IGNORE_RESULT)
     goto out;
-  noTests++;
   if (computed == expected)
     ok = 1;
 
@@ -966,11 +1092,12 @@ check_uintmax_t (const char *test_name, uintmax_t computed,
       printf (" should be:  %ju\n", expected);
     }
 
-  update_stats (ok);
+  update_stats (ok, TEST_INPUT);
  out:
   fpstack_test (test_name);
   feclearexcept (FE_ALL_EXCEPT);
   errno = 0;
+  print_test_end (thisTest, test_name, TEST_INPUT);
 }
 
 /* Return whether a test with flags EXCEPTIONS should be run.  */
@@ -1057,7 +1184,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'v':
       if (optarg)
-	verbose = (unsigned int) strtoul (optarg, NULL, 0);
+	{
+	  char *optstr_conv = optarg;
+	  unsigned int opt_verbose;
+
+	  opt_verbose = (unsigned int) strtoul (optarg, &optstr_conv, 0);
+          if (*optstr_conv == '\0' && optstr_conv != optarg)
+            verbose = opt_verbose;
+	}
       else
 	verbose = 3;
       break;
@@ -1139,6 +1273,7 @@ libm_test_init (int argc, char **argv)
   int remaining;
   char *ulps_file_path;
   size_t dir_len = 0;
+  char *envstr_verbose;
 
   verbose = 1;
   output_ulps = 0;
@@ -1147,6 +1282,17 @@ libm_test_init (int argc, char **argv)
   output_dir = NULL;
   /* XXX set to 0 for releases.  */
   ignore_max_ulp = 0;
+
+  envstr_verbose = getenv("GLIBC_TEST_LIBM_VERBOSE");
+  if (envstr_verbose != NULL)
+    {
+      char *envstr_conv = envstr_verbose;
+      unsigned int env_verbose;
+
+      env_verbose = (unsigned int) strtoul (envstr_verbose, &envstr_conv, 0);
+      if (*envstr_conv == '\0' && envstr_conv != envstr_verbose)
+        verbose = env_verbose;
+    }
 
   /* Parse and process arguments.  */
   argp_parse (&argp, argc, argv, 0, &remaining, NULL);
@@ -1192,9 +1338,27 @@ libm_test_finish (void)
     fclose (ulps_file);
 
   printf ("\nTest suite completed:\n");
-  printf ("  %d test cases plus %d tests for exception flags and\n"
-	  "    %d tests for errno executed.\n",
-	  noTests, noExcTests, noErrnoTests);
+  printf ("  Maximum error found of ");
+  if (is_complex)
+    {
+      char rmestr[FSTR_MAX];
+      char imestr[FSTR_MAX];
+      FTOSTR (rmestr, FSTR_MAX, "%.0f", FUNC (ceil) (real_max_error));
+      FTOSTR (imestr, FSTR_MAX, "%.0f", FUNC (ceil) (imag_max_error));
+      printf ("`%s' ulp for real part and `%s' ulp for imaginary part\n",
+	      rmestr, imestr);
+    }
+  else
+    {
+      char mestr[FSTR_MAX];
+      FTOSTR (mestr, FSTR_MAX, "%.0f", FUNC (ceil) (max_error));
+      printf ("`%s' ulp\n", mestr);
+    }
+  printf ("  %d max error test cases,\n", noMaxErrorTests);
+  printf ("  %d input tests,\n", noTests);
+  printf ("  - with %d tests for exception flags,\n", noExcTests);
+  printf ("  - with %d tests for errno executed.\n", noErrnoTests);
+
   if (noErrors)
     {
       printf ("  %d errors occurred.\n", noErrors);

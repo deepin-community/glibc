@@ -1,0 +1,26 @@
+commit 13d67746cbe1273afaf6b9de9d6065ab76ee7697
+Author: Aurelien Jarno <aurelien@aurel32.net>
+Date:   Fri Sep 12 21:18:41 2025 +0200
+
+    ldd: define the "unused" variable
+    
+    The "unused" variable could be use unitialized, which is an issue if ldd
+    is ran with "-u". Fix that by defining the variable to an empty value,
+    just like it is already done for the bind_now, warn and verbose
+    variables.
+    
+    Reported-by: Johan Palmqvist <johan.palmqvist@gmail.com>
+    Reviewed-by: Sam James <sam@gentoo.org>
+
+diff --git a/elf/ldd.bash.in b/elf/ldd.bash.in
+index 2d3df6e57e..fdf6704012 100644
+--- a/elf/ldd.bash.in
++++ b/elf/ldd.bash.in
+@@ -30,6 +30,7 @@ RTLDLIST=@RTLD@
+ warn=
+ bind_now=
+ verbose=
++unused=
+ 
+ while test $# -gt 0; do
+   case "$1" in

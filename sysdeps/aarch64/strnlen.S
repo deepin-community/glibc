@@ -1,6 +1,6 @@
 /* strnlen - calculate the length of a string with limit.
 
-   Copyright (C) 2013-2023 Free Software Foundation, Inc.
+   Copyright (C) 2013-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -49,8 +49,6 @@
    identifies the first zero byte.  */
 
 ENTRY (__strnlen)
-	PTR_ARG (0)
-	SIZE_ARG (1)
 	bic	src, srcin, 15
 	cbz	cntin, L(nomatch)
 	ld1	{vdata.16b}, [src]

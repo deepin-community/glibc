@@ -1,5 +1,5 @@
 /* Optimized memmove implementation for POWER10.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@
 #ifndef MEMMOVE
 # define MEMMOVE memmove
 #endif
-	.machine power9
+	.machine power10
 ENTRY_TOCLESS (MEMMOVE, 5)
 	CALL_MCOUNT 3
 

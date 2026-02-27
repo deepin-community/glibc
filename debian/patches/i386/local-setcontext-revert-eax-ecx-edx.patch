@@ -3,7 +3,7 @@ restore EAX, ECX and EDX [BZ# 25262]"). It breaks libunwind8.
 
 --- a/sysdeps/unix/sysv/linux/i386/getcontext.S
 +++ b/sysdeps/unix/sysv/linux/i386/getcontext.S
-@@ -27,7 +27,13 @@ ENTRY(__getcontext)
+@@ -25,7 +25,13 @@ ENTRY(__getcontext)
  	/* Load address of the context data structure.  */
  	movl	4(%esp), %eax
  
@@ -20,7 +20,7 @@ restore EAX, ECX and EDX [BZ# 25262]"). It breaks libunwind8.
  	movl	%ebp, oEBP(%eax)
 --- a/sysdeps/unix/sysv/linux/i386/setcontext.S
 +++ b/sysdeps/unix/sysv/linux/i386/setcontext.S
-@@ -63,6 +63,8 @@ ENTRY(__setcontext)
+@@ -64,19 +64,22 @@ ENTRY(__setcontext)
  	cfi_offset (esi, oESI)
  	cfi_offset (ebp, oEBP)
  	cfi_offset (ebx, oEBX)
@@ -28,8 +28,6 @@ restore EAX, ECX and EDX [BZ# 25262]"). It breaks libunwind8.
 +	cfi_offset (ecx, oECX)
  	movl	oESP(%eax), %esp
  
- #if SHSTK_ENABLED
-@@ -165,14 +167,15 @@ L(no_shstk):
  	/* Push the return address on the new stack so we can return there.  */
  	pushl	%ecx
  
@@ -51,7 +49,7 @@ restore EAX, ECX and EDX [BZ# 25262]"). It breaks libunwind8.
  	cfi_endproc
 --- a/sysdeps/unix/sysv/linux/i386/swapcontext.S
 +++ b/sysdeps/unix/sysv/linux/i386/swapcontext.S
-@@ -27,7 +27,13 @@ ENTRY(__swapcontext)
+@@ -25,7 +25,13 @@ ENTRY(__swapcontext)
  	/* Load address of the context data structure we save in.  */
  	movl	4(%esp), %eax
  
@@ -66,7 +64,7 @@ restore EAX, ECX and EDX [BZ# 25262]"). It breaks libunwind8.
  	movl	%edi, oEDI(%eax)
  	movl	%esi, oESI(%eax)
  	movl	%ebp, oEBP(%eax)
-@@ -224,14 +230,15 @@ L(no_shstk):
+@@ -84,14 +90,15 @@ ENTRY(__swapcontext)
  	/* Push the return address on the new stack so we can return there.  */
  	pushl	%ecx
  
@@ -96,5 +94,5 @@ restore EAX, ECX and EDX [BZ# 25262]"). It breaks libunwind8.
 +oECX		mreg (ECX)
 +oEAX		mreg (EAX)
  oEIP		mreg (EIP)
- oSCRATCH1	mreg (EAX)
- oSCRATCH2	mreg (ECX)
+ oFPREGS		mcontext (fpregs)
+ oSIGMASK	ucontext (uc_sigmask)

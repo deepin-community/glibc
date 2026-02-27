@@ -1,5 +1,5 @@
 /* Test ldconfig does not segfault when aux-cache is corrupted (Bug 18093).
-   Copyright (C) 2019-2023 Free Software Foundation, Inc.
+   Copyright (C) 2019-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -85,7 +85,7 @@ do_test (void)
   support_capture_subprocess_check (&result, "execv", 0, sc_allow_none);
   support_capture_subprocess_free (&result);
 
-  xstat (path, &fs);
+  xstat64 (path, &fs);
 
   size = fs.st_size;
   /* Run 3 tests, each truncating aux-cache shorter and shorter.  */

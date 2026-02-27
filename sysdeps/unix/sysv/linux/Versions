@@ -321,6 +321,24 @@ libc {
     __ppoll64_chk;
 %endif
   }
+  GLIBC_2.39 {
+    pidfd_getpid;
+    pidfd_spawn;
+    pidfd_spawnp;
+    posix_spawnattr_getcgroup_np;
+    posix_spawnattr_setcgroup_np;
+  }
+  GLIBC_2.41 {
+    sched_getattr;
+    sched_setattr;
+  }
+  GLIBC_2.42 {
+    cfgetospeed;
+    cfgetispeed;
+    cfsetospeed;
+    cfsetispeed;
+    cfsetspeed;
+  }
   GLIBC_PRIVATE {
     # functions used in other libraries
     __syscall_rt_sigqueueinfo;
@@ -328,6 +346,7 @@ libc {
     __read_nocancel;
     __pread64_nocancel;
     __close_nocancel;
+    __close_nocancel_nostatus;
     __sigtimedwait;
     # functions used by nscd
     __netlink_assert_response;
@@ -348,8 +367,5 @@ ld {
     __rseq_flags;
     __rseq_offset;
     __rseq_size;
-  }
-  GLIBC_PRIVATE {
-    __nptl_change_stack_perm;
   }
 }

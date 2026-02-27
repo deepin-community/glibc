@@ -1,4 +1,4 @@
-| #PACKAGE# (>> 2.38), #PACKAGE# (<< 2.39)
+| #PACKAGE# (>> 2.42), #PACKAGE# (<< 2.43)
  (symver|optional)GLIBC_PRIVATE 0 1
  (symver|optional)GLIBC_2.0 2.0
  (symver|optional)GLIBC_2.1 2.1
@@ -53,5 +53,12 @@
  (symver|optional)GLIBC_2.36 2.36
  (symver|optional)GLIBC_2.37 2.37
  (symver|optional)GLIBC_2.38 2.38
+ (symver|optional)GLIBC_2.39 2.39
+ (symver|optional)GLIBC_2.40 2.40
+ (symver|optional)GLIBC_2.41 2.41
+ (symver|optional)GLIBC_2.42 2.42
  (symver|optional)GLIBC_ABI_DT_RELR 2.36
+ (symver|optional)GLIBC_ABI_DT_X86_64_PLT 2.36
+ (symver|optional)GLIBC_ABI_GNU_TLS 2.42
+ (symver|optional)GLIBC_ABI_GNU2_TLS 2.40
  (symver|optional)GCC_3.0 2.3.6

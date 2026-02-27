@@ -1,5 +1,5 @@
 /* Enumerate available IFUNC implementations of a function. s390/s390x version.
-   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+   Copyright (C) 2015-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -81,8 +81,8 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
   /* Get hardware information.  */
   const struct cpu_features *features = &GLRO(dl_s390_cpu_features);
   unsigned long int dl_hwcap __attribute__ ((unused)) = features->hwcap;
-  const unsigned long long * __attribute__((unused)) stfle_bits
-    = features->stfle_bits;
+  const unsigned long long __attribute__((unused)) stfle_bits
+    = features->stfle_filtered;
 
 #if HAVE_MEMSET_IFUNC
   IFUNC_IMPL (i, name, memset,

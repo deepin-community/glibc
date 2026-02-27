@@ -1,5 +1,5 @@
 /* pthread_mutexattr_setprioceiling.  Hurd version.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,19 +16,25 @@
    License along with the GNU C Library;  if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <pthread.h>
+#include <pthreadP.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <pt-internal.h>
 #include "pt-mutex.h"
 #include <hurdlock.h>
+#include <shlib-compat.h>
 
 int
-pthread_mutexattr_setprioceiling (pthread_mutexattr_t *attrp, int cl)
+__pthread_mutexattr_setprioceiling (pthread_mutexattr_t *attrp, int cl)
 {
   (void) attrp;
   (void) cl;
   return ENOSYS;
 }
+libc_hidden_def (__pthread_mutexattr_setprioceiling)
+versioned_symbol (libc, __pthread_mutexattr_setprioceiling, pthread_mutexattr_setprioceiling, GLIBC_2_41);
 
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_41)
+compat_symbol (libpthread, __pthread_mutexattr_setprioceiling,pthread_mutexattr_setprioceiling, GLIBC_2_12);
+#endif
 stub_warning (pthread_mutexattr_setprioceiling)

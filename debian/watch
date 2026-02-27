@@ -1,2 +1,5 @@
-version=3
-ftp://ftp.gnu.org/gnu/glibc/glibc-([\d\.]+)\.tar\.gz debian uupdate
+Version: 5
+Source: https://sourceware.org/git/glibc.git
+Matching-Pattern: refs/tags/glibc-(\d+\.\d+(?:\.\d{1,2})?)$
+Mode: git
+Pgp-Mode: none

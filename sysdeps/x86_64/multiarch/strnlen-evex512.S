@@ -1,4 +1,7 @@
-#define STRLEN __strnlen_evex512
-#define USE_AS_STRNLEN 1
+#ifndef STRNLEN
+#define STRNLEN __strnlen_evex512
+#endif
 
-#include "strlen-evex512.S"
+#include "x86-evex512-vecs.h"
+#include "reg-macros.h"
+#include "strnlen-evex-base.S"

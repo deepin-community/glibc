@@ -1,5 +1,5 @@
 /* Access to extended attributes on files.  Hurd version.
-   Copyright (C) 2004-2023 Free Software Foundation, Inc.
+   Copyright (C) 2004-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,5 +32,5 @@ lsetxattr (const char *path, const char *name, const void *value, size_t size,
     return -1;
   err = _hurd_xattr_set (port, name, value, size, flags);
   __mach_port_deallocate (__mach_task_self (), port);
-  return err ? __hurd_fail (err) : size;
+  return __hurd_fail (err);
 }

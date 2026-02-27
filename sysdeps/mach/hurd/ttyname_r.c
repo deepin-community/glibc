@@ -1,4 +1,4 @@
-/* Copyright (C) 1994-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1994-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,10 +28,9 @@ int
 __ttyname_r (int fd, char *buf, size_t buflen)
 {
   error_t err;
-  char nodename[1024];	/* XXX */
+  string_t nodename;
   size_t len;
 
-  nodename[0] = '\0';
   if (err = HURD_DPORT_USE (fd, __term_get_nodename (port, nodename)))
     {
       if (err == MIG_BAD_ID || err == EOPNOTSUPP)

@@ -24,118 +24,12 @@ else
   LIBC_CONFIG_VAR([default-abi], [lp64])
 fi
 
-# Only consider BTI supported if -mbranch-protection=bti is
-# on by default in the compiler and the linker produces
-# binaries with GNU property notes in PT_GNU_PROPERTY segment.
-AC_CACHE_CHECK([for BTI support], [libc_cv_aarch64_bti], [dnl
-  cat > conftest.c <<EOF
-void foo (void) { }
-EOF
-  libc_cv_aarch64_bti=no
-  if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -nostdlib -nostartfiles $no_ssp -shared -fPIC -o conftest.so conftest.c]) \
-     && AC_TRY_COMMAND([$READELF -lW conftest.so | grep -q GNU_PROPERTY]) \
-     && AC_TRY_COMMAND([$READELF -nW conftest.so | grep -q "NT_GNU_PROPERTY_TYPE_0.*AArch64 feature:.* BTI"])
-  then
-    libc_cv_aarch64_bti=yes
-  fi
-  rm -rf conftest.*])
-LIBC_CONFIG_VAR([aarch64-bti], [$libc_cv_aarch64_bti])
-if test $libc_cv_aarch64_bti = yes; then
-  AC_DEFINE(HAVE_AARCH64_BTI)
-fi
-
-# Check if glibc is built with return address signing, i.e.
-# if -mbranch-protection=pac-ret is on. We need this because
-# pac-ret relies on unwinder support so it's not safe to use
-# it in assembly code unconditionally, but there is no
-# feature test macro for it in gcc.
-AC_CACHE_CHECK([if pac-ret is enabled], [libc_cv_aarch64_pac_ret], [dnl
-  cat > conftest.c <<EOF
-int bar (void);
-int foo (void) { return bar () + 1; }
-EOF
-  libc_cv_aarch64_pac_ret=no
-  if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS -S -o conftest.s conftest.c]) \
-     && AC_TRY_COMMAND([grep -q -E '\''(hint( |	)+25|paciasp)'\'' conftest.s])
-  then
-    libc_cv_aarch64_pac_ret=yes
-  fi
-  rm -rf conftest.*])
-if test $libc_cv_aarch64_pac_ret = yes; then
-  AC_DEFINE(HAVE_AARCH64_PAC_RET)
-fi
-
-# Check if binutils supports variant PCS symbols.
-AC_CACHE_CHECK([for variant PCS support], [libc_cv_aarch64_variant_pcs], [dnl
-  cat > conftest.S <<EOF
-.global foo
-.type foo, %function
-.variant_pcs foo
-foo:
-	ret
-.global bar
-.type bar, %function
-bar:
-	b foo
-EOF
-  libc_cv_aarch64_variant_pcs=no
-  if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -nostdlib -nostartfiles $no_ssp -shared -fPIC -o conftest.so conftest.S]) \
-     && AC_TRY_COMMAND([$READELF -dW conftest.so | grep -q AARCH64_VARIANT_PCS])
-  then
-    libc_cv_aarch64_variant_pcs=yes
-  fi
-  rm -rf conftest.*])
-LIBC_CONFIG_VAR([aarch64-variant-pcs], [$libc_cv_aarch64_variant_pcs])
-
-# Check if asm support armv8.2-a+sve
-AC_CACHE_CHECK([for SVE support in assembler], [libc_cv_aarch64_sve_asm], [dnl
-cat > conftest.s <<\EOF
-        ptrue p0.b
-EOF
-if AC_TRY_COMMAND(${CC-cc} -c -march=armv8.2-a+sve conftest.s 1>&AS_MESSAGE_LOG_FD); then
-  libc_cv_aarch64_sve_asm=yes
-else
-  libc_cv_aarch64_sve_asm=no
-fi
-rm -f conftest*])
-if test $libc_cv_aarch64_sve_asm = yes; then
-  AC_DEFINE(HAVE_AARCH64_SVE_ASM)
-fi
-
 if test x"$build_mathvec" = xnotset; then
   build_mathvec=yes
 fi
 
-# Check if compiler supports SVE ACLE.
-AC_CACHE_CHECK(for availability of SVE ACLE, libc_cv_aarch64_sve_acle, [dnl
-  cat > conftest.c <<EOF
-#include <arm_sve.h>
-EOF
-  if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS -fsyntax-only -ffreestanding conftest.c]); then
-    libc_cv_aarch64_sve_acle=yes
-  else
-    libc_cv_aarch64_sve_acle=no
-  fi
-  rm conftest.c])
-
-# Check if compiler is sufficient to build mathvec
-if test $build_mathvec = yes; then
-  fail=no
-  if test $libc_cv_aarch64_variant_pcs = no; then
-    fail=yes
-    AC_MSG_WARN([mathvec is enabled but linker does not support variant PCS.])
-  fi
-  if test $libc_cv_aarch64_sve_asm = no; then
-    fail=yes
-    AC_MSG_WARN([mathvec is enabled but assembler does not support SVE.])
-  fi
-  if test $libc_cv_aarch64_sve_acle = no; then
-    fail=yes
-    AC_MSG_WARN([mathvec is enabled but compiler does not have SVE ACLE.])
-  fi
-  if test $fail = yes; then
-    AC_MSG_ERROR([use a compatible toolchain or configure with --disable-mathvec (this results in incomplete ABI).])
-  fi
-else
+if test $build_mathvec = no; then
   AC_MSG_WARN([mathvec is disabled, this results in incomplete ABI.])
 fi
+
+libc_cv_support_sframe=yes

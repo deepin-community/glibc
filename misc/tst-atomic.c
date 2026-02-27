@@ -1,5 +1,5 @@
 /* Tests for atomic.h macros.
-   Copyright (C) 2003-2023 Free Software Foundation, Inc.
+   Copyright (C) 2003-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,7 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#ifndef __clang__
 #include <stdio.h>
 #include <atomic.h>
 
@@ -636,3 +637,12 @@ do_test (void)
 }
 
 #include <support/test-driver.c>
+#else
+#include <support/test-driver.h>
+
+int
+main (void)
+{
+  return EXIT_UNSUPPORTED;
+}
+#endif

@@ -1,6 +1,6 @@
 # Common functions and variables for testing the Python pretty printers.
 #
-# Copyright (C) 2016-2023 Free Software Foundation, Inc.
+# Copyright (C) 2016-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 #
 # The GNU C Library is free software; you can redistribute it and/or
@@ -98,7 +98,7 @@ try:
     # If everything's ok, spawn the gdb process we'll use for testing.
     gdb = pexpect.spawn(gdb_invocation, echo=False, timeout=timeout,
                         encoding=encoding)
-    gdb_prompt = u'\(gdb\)'
+    gdb_prompt = u'\\(gdb\\)'
     gdb.expect(gdb_prompt)
 
 except pexpect.ExceptionPexpect as exception:

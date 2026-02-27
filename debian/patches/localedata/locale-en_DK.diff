@@ -32,7 +32,7 @@
 -currency_symbol      "kr."
 -mon_decimal_point    ","
 -mon_thousands_sep    "."
--mon_grouping         3;3
+-mon_grouping         3
 -positive_sign        ""
 -negative_sign        "-"
 -int_frac_digits      2
@@ -49,7 +49,7 @@
  LC_NUMERIC
 -decimal_point        ","
 -thousands_sep        "."
--grouping             3;3
+-grouping             3
 +copy "da_DK"
  END LC_NUMERIC
  

@@ -1,5 +1,5 @@
 /* Support for *xattr interfaces on GNU/Hurd.
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -50,7 +50,15 @@ _hurd_xattr_get (io_t port, const char *name, void *value, size_t *size)
       else if (value)
 	{
 	  if (*size < sizeof st.st_author)
-	    return ERANGE;
+	    {
+	      if (*size > 0)
+		return ERANGE;
+	      else
+		{
+		  *size = sizeof st.st_author;
+		  return 0;
+		}
+	    }
 	  memcpy (value, &st.st_author, sizeof st.st_author);
 	}
       *size = sizeof st.st_author;
@@ -61,15 +69,33 @@ _hurd_xattr_get (io_t port, const char *name, void *value, size_t *size)
     {
       char *buf = value;
       mach_msg_type_number_t bufsz = value ? *size : 0;
-      error_t err = __file_get_translator (port, &buf, &bufsz);
+      struct stat64 st;
+      error_t err;
+
+      err = __io_stat (port, &st);
       if (err)
 	return err;
-      if (value != NULL && *size < bufsz)
+      if ((st.st_mode & S_IPTRANS) == 0)
+	return ENODATA;
+
+      err = __file_get_translator (port, &buf, &bufsz);
+      if (err)
+	return err;
+
+      if (*size < bufsz)
 	{
 	  if (buf != value)
 	    __munmap (buf, bufsz);
-	  return ERANGE;
+
+	  if (*size > 0)
+	    return ERANGE;
+	  else
+	    {
+	      *size = bufsz;
+	      return 0;
+	    }
 	}
+
       if (buf != value && bufsz > 0)
 	{
 	  if (value != NULL)
@@ -149,10 +175,9 @@ _hurd_xattr_set (io_t port, const char *name, const void *value, size_t size,
 	  if (err)
 	    return err;
 	  if (bufsz > 0)
-	    {
-	      __munmap (buf, bufsz);
-	      return ENODATA;
-	    }
+	    __munmap (buf, bufsz);
+	  else
+	    return ENODATA;
 	}
       return __file_set_translator (port,
 				    FS_TRANS_SET | ((flags & XATTR_CREATE)
@@ -193,7 +218,7 @@ _hurd_xattr_list (io_t port, void *buffer, size_t *size)
   if (st.st_mode & S_IPTRANS)
     add ("gnu.translator");
 
-  if (buffer != NULL && total > *size)
+  if (*size > 0 && total > *size)
     return ERANGE;
   *size = total;
   return 0;

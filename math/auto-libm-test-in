@@ -1,5 +1,5 @@
 # libm test inputs for gen-auto-libm-tests.c.
-# Copyright (C) 1997-2023 Free Software Foundation, Inc.
+# Copyright (C) 1997-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 #
 # The GNU C Library is free software; you can redistribute it and/or
@@ -87,6 +87,81 @@ acos min
 acos -min
 acos min_subnorm
 acos -min_subnorm
+
+acospi 0
+acospi -0
+acospi 1
+acospi -1
+acospi 0.5
+acospi -0.5
+acospi 0.75
+acospi 2e-17
+acospi 0.0625
+acospi 0x0.ffffffp0
+acospi -0x0.ffffffp0
+acospi 0x0.ffffffff8p0
+acospi -0x0.ffffffff8p0
+acospi 0x0.ffffffffffffp0
+acospi -0x0.ffffffffffffp0
+acospi 0x0.fffffffffffff8p0
+acospi -0x0.fffffffffffff8p0
+acospi 0x0.ffffffffffffffffp0
+acospi -0x0.ffffffffffffffffp0
+acospi 0x0.ffffffffffffffffffffffffffcp0
+acospi -0x0.ffffffffffffffffffffffffffcp0
+acospi 0x0.ffffffffffffffffffffffffffff8p0
+acospi -0x0.ffffffffffffffffffffffffffff8p0
+acospi 0x1p-5
+acospi 0x1p-10
+acospi 0x1p-15
+acospi 0x1p-20
+acospi 0x1p-25
+acospi 0x1p-30
+acospi 0x1p-35
+acospi 0x1p-40
+acospi 0x1p-45
+acospi 0x1p-50
+acospi 0x1p-55
+acospi 0x1p-60
+acospi 0x1p-65
+acospi 0x1p-70
+acospi 0x1p-75
+acospi 0x1p-80
+acospi 0x1p-85
+acospi 0x1p-90
+acospi 0x1p-95
+acospi 0x1p-100
+acospi 0x1p-105
+acospi 0x1p-110
+acospi 0x1p-115
+acospi 0x1p-120
+acospi -0x1p-5
+acospi -0x1p-25
+acospi -0x1p-45
+acospi -0x1p-65
+acospi -0x1p-85
+acospi -0x1p-105
+acospi -0x1p-125
+acospi -0x2.0089a4p-4
+acospi 0xf.04aeep-4
+acospi 0x5.dd258006121b8p-4
+acospi -0x2.35f051e70dbc4p-4
+acospi 0xe.9a5c0d7fabb9aa1p-4
+acospi 0xe.17513589de79b75p-4
+acospi 0x3.e57821d368ebap-4
+acospi 0x2.0bee8p-4
+acospi -0x1.da00d8p-4
+acospi 0x1.fffff3634acd6p-1
+acospi 0xf.fe00271d507ee5dp-4
+acospi min
+acospi -min
+acospi min_subnorm
+acospi -min_subnorm
+# the next values generate larger error bounds on x86_64
+acospi -0x1.12462cp-1
+acospi 0x1.da0ea62dd7231p-1
+acospi 0xf.fec85670a4b0761p-4
+acospi 0xb.50b04f0a7917332097372387f018p-4
 
 acosh 1
 acosh 0x1.000002p0
@@ -394,6 +469,64 @@ asinh -min_subnorm
 asinh max
 asinh -max
 
+asinpi 0
+asinpi -0
+asinpi 0.5
+asinpi -0.5
+asinpi 1.0
+asinpi -1.0
+asinpi 0.75
+asinpi 0x0.ffffffp0
+asinpi -0x0.ffffffp0
+asinpi 0x0.ffffffff8p0
+asinpi -0x0.ffffffff8p0
+asinpi 0x0.ffffffffffffp0
+asinpi -0x0.ffffffffffffp0
+asinpi 0x0.fffffffffffff8p0
+asinpi -0x0.fffffffffffff8p0
+asinpi 0x0.ffffffffffffffffp0
+asinpi -0x0.ffffffffffffffffp0
+asinpi 0x0.ffffffffffffffffffffffffffcp0
+asinpi -0x0.ffffffffffffffffffffffffffcp0
+asinpi 0x0.ffffffffffffffffffffffffffff8p0
+asinpi -0x0.ffffffffffffffffffffffffffff8p0
+asinpi 0x1p-5
+asinpi 0x1p-10
+asinpi 0x1p-15
+asinpi 0x1p-20
+asinpi 0x1p-25
+asinpi 0x1p-30
+asinpi 0x1p-35
+asinpi 0x1p-40
+asinpi 0x1p-45
+asinpi 0x1p-50
+asinpi 0x1p-55
+asinpi 0x1p-60
+asinpi 0x1p-100
+asinpi 0x1p-600
+asinpi 0x1p-10000
+asinpi -0x2.18915cp-4
+asinpi -0x3.746774p-4
+asinpi -0x3.1c54d10e5c844p-4
+asinpi 0xf.c9675fa6fe69f12p-4
+asinpi -0xa.fc5afp-4
+asinpi 0xd.805e5p-4
+asinpi -0x2.1a02dcp-4
+asinpi -0x8.1c120ac3e495p-4
+asinpi -0xb.36dacp-4
+asinpi 0x1.f6041ffe89d7dp-4
+asinpi min
+asinpi -min
+asinpi min_subnorm
+asinpi -min_subnorm
+# the next values generate larger error bounds on x86_64
+asinpi 0x1.f1c012p-1
+asinpi -0x1.8805060cb885cp-3
+asinpi 0x8.14d7e32b5c44642p-4
+asinpi -0xa.7ca6c96caefe80b9d757de58a578p-4
+
+atan inf
+atan -inf
 atan 0
 atan -0
 atan max
@@ -435,6 +568,56 @@ atan -min
 atan min_subnorm
 atan -min_subnorm
 
+# atan2 (y,inf) == +0 for finite y > 0 or +0
+atan2 1 inf
+atan2 0 inf
+atan2 min inf
+atan2 min_subnorm inf
+atan2 max inf
+# atan2 (y,inf) == -0 for finite y < 0 or -0
+atan2 -1 inf
+atan2 -0 inf
+atan2 -min inf
+atan2 -min_subnorm inf
+atan2 -max inf
+# atan2(+inf, x) == pi/2 for finite x
+atan2 inf 1
+atan2 inf 0
+atan2 inf min
+atan2 inf min_subnorm
+atan2 inf max
+atan2 inf -1
+atan2 inf -0
+atan2 inf -min
+atan2 inf -min_subnorm
+atan2 inf -max
+# atan2(-inf, x) == -pi/2 for finite x
+atan2 -inf 1
+atan2 -inf 0
+atan2 -inf min
+atan2 -inf min_subnorm
+atan2 -inf max
+atan2 -inf -1
+atan2 -inf -0
+atan2 -inf -min
+atan2 -inf -min_subnorm
+atan2 -inf -max
+# atan2 (y,-inf) == +pi for finite y > 0 or +0
+atan2 1 -inf
+atan2 0 -inf
+atan2 min -inf
+atan2 min_subnorm -inf
+atan2 max -inf
+# atan2 (y,-inf) == -pi for finite y < 0 or -0.
+atan2 -1 -inf
+atan2 -0 -inf
+atan2 -min -inf
+atan2 -min_subnorm -inf
+atan2 -max -inf
+atan2 inf inf
+atan2 -inf inf
+atan2 inf -inf
+atan2 -inf -inf
 # atan2 (0,x) == 0 for x > 0.
 atan2 0 1
 # atan2 (-0,x) == -0 for x > 0.
@@ -535,6 +718,97 @@ atan2 -min -1
 atan2 min_subnorm -1
 atan2 -min_subnorm -1
 
+atan2pi 0 1
+atan2pi -0 1
+atan2pi 0 0
+atan2pi -0 0
+atan2pi 0 -1
+atan2pi -0 -1
+atan2pi 0 -0
+atan2pi -0 -0
+atan2pi 1 0
+atan2pi 1 -0
+atan2pi -1 0
+atan2pi -1 -0
+atan2pi max max
+atan2pi max -max
+atan2pi -max max
+atan2pi -max -max
+atan2pi max min
+atan2pi -max -min
+atan2pi -max min
+atan2pi max -min
+atan2pi max min_subnorm
+atan2pi -max -min_subnorm
+atan2pi -max min_subnorm
+atan2pi max -min_subnorm
+atan2pi 0.75 1
+atan2pi -0.75 1.0
+atan2pi 0.75 -1.0
+atan2pi -0.75 -1.0
+atan2pi 0.390625 .00029
+atan2pi 1.390625 0.9296875
+atan2pi -0.00756827042671106339 -.001792735857538728036
+atan2pi 0x1.00000000000001p0 0x1.00000000000001p0
+atan2pi 0x4.c3841p-4 0x2.f2f308p+0
+atan2pi -0xe.cf143p-40 0xd.3de7ap-36
+atan2pi 0x5.576cf8p-4 0x2.21e65p+0
+atan2pi -0x4.29411p-4 0x1.f4755cp+0
+atan2pi -0xa.b4101p+20 -0xf.9c4c8p-4
+atan2pi 0x4.251bb8p-4 0x7.40ac68p+0
+atan2pi 0x1.47239ep+68 0xa.3ac3cp+68
+atan2pi -0x6.b0794p-4 0x3.8ff10cp+0
+atan2pi -0x7.15e7af0a1780cp-724 0xf.fffffp+124
+atan2pi 0x3.f16f1p+0 -0x1.546056p+0
+atan2pi -0x1.9e657cp-24 0x7.40bb4p-52
+atan2pi -0x1.f9cf48p+49 0x1.f60598p+51
+atan2pi 0x1.bcab29da0e947p-54 0x1.bc41f4d2294b8p-54
+atan2pi 0x1.a11891ec004d4p-348 0x1.814830510be26p-348
+atan2pi 0x1.b836ed678be29p-588 0x1.b7be6f5a03a8cp-588
+atan2pi 0x1.a83f842ef3f73p-633 0x1.a799d8a6677ep-633
+atan2pi 0x1.41df5aa214612c7e019fa6ade88p-13316 0x5.e53b26a270a29eb9f77ef8ef7af8p-13316
+atan2pi min min
+atan2pi min -min
+atan2pi -min min
+atan2pi -min -min
+atan2pi min_subnorm min_subnorm
+atan2pi min_subnorm -min_subnorm
+atan2pi -min_subnorm min_subnorm
+atan2pi -min_subnorm -min_subnorm
+atan2pi min min_subnorm
+atan2pi min -min_subnorm
+atan2pi -min min_subnorm
+atan2pi -min -min_subnorm
+atan2pi min_subnorm min
+atan2pi min_subnorm -min
+atan2pi -min_subnorm min
+atan2pi -min_subnorm -min
+atan2pi 1 -max
+atan2pi -1 -max
+atan2pi min -max
+atan2pi -min -max
+atan2pi min_subnorm -max
+atan2pi -min_subnorm -max
+atan2pi 1 max
+atan2pi -1 max
+atan2pi min max
+atan2pi -min max
+atan2pi min_subnorm max
+atan2pi -min_subnorm max
+atan2pi min 1
+atan2pi -min 1
+atan2pi min_subnorm 1
+atan2pi -min_subnorm 1
+atan2pi min -1
+atan2pi -min -1
+atan2pi min_subnorm -1
+atan2pi -min_subnorm -1
+# the next values generate larger error bounds on x86_64
+atan2pi -0x1.6dd242p-15 0x1.d6ecdcp-5
+atan2pi -0x1.fe856e7997f8p+381 0x1.90ece816f9a7cp+343
+atan2pi 0x4.8010e21a5d13ad38p+212 0x5.bb4879ec6325337p+10940
+atan2pi -0x2.c6994d7f40fae88117550b428404p+16040 0xe.181a2c7696ba5cf23a6eab680b2p+16040
+
 atanh 0
 atanh -0
 atanh 0.75
@@ -626,6 +900,52 @@ atanh min
 atanh -min
 atanh min_subnorm
 atanh -min_subnorm
+
+atanpi 0
+atanpi -0
+atanpi max
+atanpi -max
+atanpi 1
+atanpi -1
+atanpi 0.75
+atanpi 0x1p-5
+atanpi 0x1p-10
+atanpi 0x1p-15
+atanpi 0x1p-20
+atanpi 0x1p-25
+atanpi 0x1p-30
+atanpi 0x1p-35
+atanpi 0x1p-40
+atanpi 0x1p-45
+atanpi 0x1p-50
+atanpi 0x1p-55
+atanpi 0x1p-60
+atanpi 2.5
+atanpi 10
+atanpi 1e6
+atanpi 0x1p31
+atanpi 0x1p-100
+atanpi 0x1p-600
+atanpi 0x1p-10000
+atanpi -0x3.b02d84p-4
+atanpi -0x3.3fb708p-4
+atanpi -0x2.3249ap+0
+atanpi -0x1.363f46p+0
+atanpi -0x1.ad4c0ap+0
+atanpi -0x3.eb8e18p+0
+atanpi 0x3.53c188p+0
+atanpi -0x1.58c83p+0
+atanpi 0x1.626772p-1
+atanpi 0x1p-126
+atanpi min
+atanpi -min
+atanpi min_subnorm
+atanpi -min_subnorm
+# the next values generate larger error bounds on x86_64
+atanpi 0x1.717e3ap-1
+atanpi 0x1.9601b055fdf97p-3
+atanpi 0xc.916d8196a7d1bbfp-8
+atanpi 0x3.2d7177f38d6ee175de059ee6394p-4
 
 # cabs (x,y) == cabs (y,x).
 cabs 0.75 12.390625
@@ -1826,6 +2146,17 @@ cacosh -0x1p-112 -0.0
 
 cacosh 0.75 1.25
 cacosh -2 -3
+
+carg inf 2.0
+carg inf -2.0
+carg 10 inf
+carg 10 -inf
+carg -inf 10
+carg -inf -10
+carg inf inf
+carg inf -inf
+carg -inf inf
+carg -inf -inf
 
 # carg (x + i 0) == 0 for x > 0.
 carg 2.0 0
@@ -4393,6 +4724,221 @@ clog10 0xfd95243681c055c2632286921092p-113 0x1bccabcd29ca2152860ec29e34ef7p-113
 clog10 0xdb85c467ee2aadd5f425fe0f4b8dp-114 0x3e83162a0f95f1dcbf97dddf410eap-114
 clog10 0x1415bcaf2105940d49a636e98ae59p-115 0x7e6a150adfcd1b0921d44b31f40f4p-115
 
+compoundn -1 0
+compoundn -0.999 0
+compoundn -0.123 0
+compoundn -min 0
+compoundn -min_subnorm 0
+compoundn -0 0
+compoundn 0 0
+compoundn min_subnorm 0
+compoundn min 0
+compoundn 0.001 0
+compoundn 0.123456 0
+compoundn 1 0
+compoundn 2 0
+compoundn max 0
+
+compoundn -1 1
+compoundn -0.999 1
+compoundn -0.123 1
+compoundn -min 1
+compoundn -min_subnorm 1
+compoundn -0 1
+compoundn 0 1
+compoundn min_subnorm 1
+compoundn min 1
+compoundn 0.001 1
+compoundn 0.123456 1
+compoundn 1 1
+compoundn 2 1
+compoundn max 1 xfail:ibm128-libgcc
+
+compoundn -0.999 -1
+compoundn -0.123 -1
+compoundn -min -1
+compoundn -min_subnorm -1
+compoundn -0 -1
+compoundn 0 -1
+compoundn min_subnorm -1
+compoundn min -1
+compoundn 0.001 -1
+compoundn 0.123456 -1
+compoundn 1 -1
+compoundn 2 -1
+compoundn max -1
+
+compoundn -1 2
+compoundn -0.999 2
+compoundn -0.123 2
+compoundn -min 2
+compoundn -min_subnorm 2
+compoundn -0 2
+compoundn 0 2
+compoundn min_subnorm 2
+compoundn min 2
+compoundn 0.001 2
+compoundn 0.123456 2
+compoundn 1 2
+compoundn 2 2
+compoundn max 2
+
+compoundn -0.999 -2
+compoundn -0.123 -2
+compoundn -min -2
+compoundn -min_subnorm -2
+compoundn -0 -2
+compoundn 0 -2
+compoundn min_subnorm -2
+compoundn min -2
+compoundn 0.001 -2
+compoundn 0.123456 -2
+compoundn 1 -2
+compoundn 2 -2
+compoundn max -2
+
+compoundn -1 0x7fffffffffffffff
+compoundn -0.999 0x7fffffffffffffff
+compoundn -0.123 0x7fffffffffffffff
+compoundn -min 0x7fffffffffffffff
+compoundn -min_subnorm 0x7fffffffffffffff
+compoundn -0 0x7fffffffffffffff
+compoundn 0 0x7fffffffffffffff
+compoundn min_subnorm 0x7fffffffffffffff
+compoundn min 0x7fffffffffffffff
+compoundn 0.001 0x7fffffffffffffff
+compoundn 0.123456 0x7fffffffffffffff
+compoundn 1 0x7fffffffffffffff
+compoundn 2 0x7fffffffffffffff
+compoundn max 0x7fffffffffffffff
+
+compoundn -0.999 -0x8000000000000000
+compoundn -0.123 -0x8000000000000000
+compoundn -min -0x8000000000000000
+compoundn -min_subnorm -0x8000000000000000
+compoundn -0 -0x8000000000000000
+compoundn 0 -0x8000000000000000
+compoundn min_subnorm -0x8000000000000000
+compoundn min -0x8000000000000000
+compoundn 0.001 -0x8000000000000000
+compoundn 0.123456 -0x8000000000000000
+compoundn 1 -0x8000000000000000
+compoundn 2 -0x8000000000000000
+compoundn max -0x8000000000000000
+
+compoundn 12.3456 10
+compoundn 12.3456 -10
+
+compoundn 0x1p-64 0x7fffffffffffffff
+compoundn -0x1p-64 0x7fffffffffffffff
+compoundn 0x1p-64 -0x8000000000000000
+compoundn -0x1p-64 -0x8000000000000000
+compoundn 0x1.000002p-64 0x7fffffffffffffff
+compoundn -0x1.000002p-64 0x7fffffffffffffff
+compoundn 0x1.000002p-64 -0x8000000000000000
+compoundn -0x1.000002p-64 -0x8000000000000000
+
+compoundn 0x1p-58 0x7fffffffffffffff
+compoundn -0x1p-58 0x7fffffffffffffff
+compoundn 0x1p-58 -0x8000000000000000
+compoundn -0x1p-58 -0x8000000000000000
+compoundn 0x1.000002p-58 0x7fffffffffffffff
+compoundn -0x1.000002p-58 0x7fffffffffffffff
+compoundn 0x1.000002p-58 -0x8000000000000000
+compoundn -0x1.000002p-58 -0x8000000000000000
+
+compoundn 0x1p-57 0x7fffffffffffffff
+compoundn -0x1p-57 0x7fffffffffffffff
+compoundn 0x1p-57 -0x8000000000000000
+compoundn -0x1p-57 -0x8000000000000000
+compoundn 0x1.000002p-57 0x7fffffffffffffff
+compoundn -0x1.000002p-57 0x7fffffffffffffff
+compoundn 0x1.000002p-57 -0x8000000000000000
+compoundn -0x1.000002p-57 -0x8000000000000000
+
+compoundn 0x1p-56 0x7fffffffffffffff
+compoundn -0x1p-56 0x7fffffffffffffff
+compoundn 0x1p-56 -0x8000000000000000
+compoundn -0x1p-56 -0x8000000000000000
+compoundn 0x1.000002p-56 0x7fffffffffffffff
+compoundn -0x1.000002p-56 0x7fffffffffffffff
+compoundn 0x1.000002p-56 -0x8000000000000000
+compoundn -0x1.000002p-56 -0x8000000000000000
+
+compoundn 0x1p-55 0x7fffffffffffffff
+compoundn -0x1p-55 0x7fffffffffffffff
+compoundn 0x1p-55 -0x8000000000000000
+compoundn -0x1p-55 -0x8000000000000000
+compoundn 0x1.000002p-55 0x7fffffffffffffff
+compoundn -0x1.000002p-55 0x7fffffffffffffff
+compoundn 0x1.000002p-55 -0x8000000000000000
+compoundn -0x1.000002p-55 -0x8000000000000000
+
+compoundn 0x1p-54 0x7fffffffffffffff
+compoundn -0x1p-54 0x7fffffffffffffff
+compoundn 0x1p-54 -0x8000000000000000
+compoundn -0x1p-54 -0x8000000000000000
+compoundn 0x1.000002p-54 0x7fffffffffffffff
+compoundn -0x1.000002p-54 0x7fffffffffffffff
+compoundn 0x1.000002p-54 -0x8000000000000000
+compoundn -0x1.000002p-54 -0x8000000000000000
+
+compoundn 0x1p-53 0x7fffffffffffffff
+compoundn -0x1p-53 0x7fffffffffffffff
+compoundn 0x1p-53 -0x8000000000000000
+compoundn -0x1p-53 -0x8000000000000000
+compoundn 0x1.000002p-53 0x7fffffffffffffff
+compoundn -0x1.000002p-53 0x7fffffffffffffff
+compoundn 0x1.000002p-53 -0x8000000000000000
+compoundn -0x1.000002p-53 -0x8000000000000000
+
+compoundn 0x1p-52 0x7fffffffffffffff
+compoundn -0x1p-52 0x7fffffffffffffff
+compoundn 0x1p-52 -0x8000000000000000
+compoundn -0x1p-52 -0x8000000000000000
+compoundn 0x1.000002p-52 0x7fffffffffffffff
+compoundn -0x1.000002p-52 0x7fffffffffffffff
+compoundn 0x1.000002p-52 -0x8000000000000000
+compoundn -0x1.000002p-52 -0x8000000000000000
+
+compoundn 0x1p-51 0x7fffffffffffffff
+compoundn -0x1p-51 0x7fffffffffffffff
+compoundn 0x1p-51 -0x8000000000000000
+compoundn -0x1p-51 -0x8000000000000000
+compoundn 0x1.000002p-51 0x7fffffffffffffff
+compoundn -0x1.000002p-51 0x7fffffffffffffff
+compoundn 0x1.000002p-51 -0x8000000000000000
+compoundn -0x1.000002p-51 -0x8000000000000000
+
+compoundn 0x1p-50 0x7fffffffffffffff
+compoundn -0x1p-50 0x7fffffffffffffff
+compoundn 0x1p-50 -0x8000000000000000
+compoundn -0x1p-50 -0x8000000000000000
+compoundn 0x1.000002p-50 0x7fffffffffffffff
+compoundn -0x1.000002p-50 0x7fffffffffffffff
+compoundn 0x1.000002p-50 -0x8000000000000000
+compoundn -0x1.000002p-50 -0x8000000000000000
+
+compoundn 0x1.000002p-64 0x7654321076543210
+compoundn -0x1.000002p-64 0x7654321076543210
+compoundn 0x1.000002p-64 -0x7654321076543210
+compoundn -0x1.000002p-64 -0x7654321076543210
+
+compoundn 0x1.000002p-32 0x76543210
+compoundn -0x1.000002p-32 0x76543210
+compoundn 0x1.000002p-32 -0x76543210
+compoundn -0x1.000002p-32 -0x76543210
+
+compoundn 0x1.000002p-44 0x765432100123
+compoundn -0x1.000002p-44 0x765432100123
+compoundn 0x1.000002p-44 -0x765432100123
+compoundn -0x1.000002p-44 -0x765432100123
+
+compoundn 0x1.000002p-12 0x7654
+compoundn -0x1.000002p-12 0x7654
+compoundn 0x1.000002p-12 -0x7654
+compoundn -0x1.000002p-12 -0x7654
+
 cos 0
 cos -0
 cos pi/3
@@ -4462,6 +5008,102 @@ cos -1.57079697
 cos 0x2.3c6ef4p-12
 # the next value generates larger error bounds on x86_64 (binary128)
 cos 0xe.6672d458b05edf50af4fab1a42p+40
+
+cospi 0
+cospi -0
+cospi min
+cospi -min
+cospi min_subnorm
+cospi -min_subnorm
+cospi max xfail-rounding:ibm128-libgcc
+cospi -max xfail-rounding:ibm128-libgcc
+cospi 1
+cospi -1
+cospi 2
+cospi -2
+cospi 3
+cospi -3
+cospi 0.1
+cospi -0.1
+cospi 0.2
+cospi -0.2
+cospi 0.3
+cospi -0.3
+cospi 0.4
+cospi -0.4
+cospi 0.5
+cospi -0.5
+cospi 0.6
+cospi -0.6
+cospi 0.7
+cospi -0.7
+cospi 0.8
+cospi -0.8
+cospi 0.9
+cospi -0.9
+cospi 1.1
+cospi -1.1
+cospi 1.2
+cospi -1.2
+cospi 1.3
+cospi -1.3
+cospi 1.4
+cospi -1.4
+cospi 1.5
+cospi -1.5
+cospi 2.5
+cospi -2.5
+cospi 3.5
+cospi -3.5
+cospi 4.5
+cospi -4.5
+cospi 0.24
+cospi -0.24
+cospi 0.49
+cospi -0.49
+cospi 0.51
+cospi -0.51
+cospi 0.76
+cospi -0.76
+cospi 1.24
+cospi -1.24
+cospi 1.49
+cospi -1.49
+cospi 1.51
+cospi -1.51
+cospi 1.76
+cospi -1.76
+cospi 100.24
+cospi -100.24
+cospi 100.49
+cospi -100.49
+cospi 100.51
+cospi -100.51
+cospi 100.76
+cospi -100.76
+cospi 1234.56
+cospi -1234.56
+cospi 0x1fffff.6p0
+cospi -0x1fffff.6p0
+cospi 0x1fffff.ap0
+cospi -0x1fffff.ap0
+cospi 0x3ffffffffffff.6p0
+cospi -0x3ffffffffffff.6p0
+cospi 0x3ffffffffffff.ap0
+cospi -0x3ffffffffffff.ap0
+cospi 0x1fffffffffffffff.6p0
+cospi -0x1fffffffffffffff.6p0
+cospi 0x1fffffffffffffff.ap0
+cospi -0x1fffffffffffffff.ap0
+cospi 0x3fffffffffffffffffffffffffff.6p0 xfail-rounding:ibm128-libgcc
+cospi -0x3fffffffffffffffffffffffffff.6p0 xfail-rounding:ibm128-libgcc
+cospi 0x3fffffffffffffffffffffffffff.ap0 xfail-rounding:ibm128-libgcc
+cospi -0x3fffffffffffffffffffffffffff.ap0 xfail-rounding:ibm128-libgcc
+# the next values generate larger error bounds on x86_64
+cospi 0x1.ae1126p-2
+cospi -0x1.1a0a2fa299b92p+6
+cospi 0x7.ae7df669ffba0068p-4
+cospi -0x2.5845a017ae769ea1c20e04c7e47cp+28
 
 cosh 0
 cosh -0
@@ -5249,6 +5891,130 @@ exp10 0xe.8b349p+4
 exp10 0x3.495c78p+0
 exp10 0xf.f33f6p+0
 
+exp10m1 0
+exp10m1 -0
+exp10m1 1
+exp10m1 0.75
+exp10m1 2
+exp10m1 3
+exp10m1 4
+exp10m1 5
+exp10m1 10
+exp10m1 15
+exp10m1 20
+exp10m1 25
+exp10m1 30
+exp10m1 35
+exp10m1 40
+exp10m1 50.0
+exp10m1 60
+exp10m1 70
+exp10m1 80
+exp10m1 90
+exp10m1 100
+exp10m1 127.0
+exp10m1 500.0
+exp10m1 11356.25
+exp10m1 -10.0
+exp10m1 -16.0
+exp10m1 -17.0
+exp10m1 -18.0
+exp10m1 -36.0
+exp10m1 -37.0
+exp10m1 -38.0
+exp10m1 -44.0
+exp10m1 -45.0
+exp10m1 -46.0
+exp10m1 -73.0
+exp10m1 -74.0
+exp10m1 -75.0
+exp10m1 -78.0
+exp10m1 -79.0
+exp10m1 -80.0
+exp10m1 -100.0
+exp10m1 -1000.0
+exp10m1 -10000.0
+exp10m1 -100000.0
+exp10m1 100000.0
+exp10m1 max
+exp10m1 -max
+exp10m1 0x1p-2
+exp10m1 -0x1p-2
+exp10m1 0x1p-10
+exp10m1 -0x1p-10
+exp10m1 0x1p-20
+exp10m1 -0x1p-20
+exp10m1 0x1p-29
+exp10m1 -0x1p-29
+exp10m1 0x1p-32
+exp10m1 -0x1p-32
+exp10m1 0x1p-50
+exp10m1 -0x1p-50
+exp10m1 0x1p-64
+exp10m1 -0x1p-64
+exp10m1 0x1p-100
+exp10m1 -0x1p-100
+exp10m1 0x1p-600
+exp10m1 -0x1p-600
+exp10m1 0x1p-10000
+exp10m1 -0x1p-10000
+exp10m1 0xe.4152ac57cd1ea7ap-60
+exp10m1 0x6.660247486aed8p-4
+exp10m1 0x6.289a78p-4
+exp10m1 0x6.1b4d318238d4a2a8p-4
+exp10m1 0x5.fb8dc64e91a74p-4
+exp10m1 0x3.735f497c4e67535cp-4
+exp10m1 -0x7.d6c50b469d404p+0
+exp10m1 0x4.857de8p+4
+exp10m1 0x5.dfeb68p-4
+exp10m1 0x4.0000000000000028p-16384
+exp10m1 0x5.8b911eb6733469c8p-4
+exp10m1 0x5.a343df0d680099a7a1a873a751a8p-4
+exp10m1 min
+exp10m1 -min
+exp10m1 min_subnorm
+exp10m1 -min_subnorm
+exp10m1 0x2.688268p+4
+exp10m1 0x2.68826cp+4
+exp10m1 0x1.34413509f79fep+8
+exp10m1 0x1.34413509f79ffp+8
+exp10m1 0x1.34413509f79fef2f625b0205a88p+8 xfail:ibm128-libgcc
+exp10m1 0x1.34413509f79fef2f625b0205a9p+8 xfail:ibm128-libgcc
+exp10m1 0x1.34413509f79fef3p+12
+exp10m1 0x1.34413509f79fef32p+12
+exp10m1 0x1.34413509f79fef311f12b35816f9p+12
+exp10m1 0x1.34413509f79fef311f12b35816fap+12
+exp10m1 0x1p-128
+exp10m1 0x1p-1024
+exp10m1 0x1p-16384
+exp10m1 -0x1p-128
+exp10m1 -0x1p-1024
+exp10m1 -0x1p-16384
+# the next values yield large errors on x86_64 for binary32
+exp10m1 0x1.e4fb5ap-2
+exp10m1 0x1.cc3352p-2
+exp10m1 0x1.c8a6e6p-2
+exp10m1 -0x1.c03a7ep-8
+# the next values yield large errors on x86_64 for binary64
+exp10m1 0x1.e880c5bafbd41p-2
+exp10m1 0x1.ce521eafe0f21p-2
+exp10m1 0x1.ce21fffa5aed8p-2
+exp10m1 -0x1.bcb951df89248p-15
+# the next values yield large errors on x86_64 for intel96
+exp10m1 0x2.6882b807049f54ap-4
+exp10m1 -0x6.f6469fc524a1de1p-12
+exp10m1 0x2.cf6c5a8ec5919c0cp-4
+exp10m1 0x2.d08614068c3c5514p-4
+exp10m1 0x2.c7fd02fd98797bf4p-4
+exp10m1 -0x6.f36b2669aee2d2e8p-12
+exp10m1 0x2.c83d897086a4e644p-4
+exp10m1 0x2.b47fd78c73d7fa7cp-4
+# the next values yield large errors on x86_64 for binary128
+exp10m1 0xb.2ee9062818e91afe8e80fae1818p-4
+exp10m1 0xb.2e822db54f357c3f65ad743758bp-4
+exp10m1 0xb.2edd92a794cbc6f81f5f4f82c14p-4
+exp10m1 0xb.2eca344f0d4f0af54bdbd5974858p-4
+
 exp2 0
 exp2 -0
 exp2 10
@@ -5352,6 +6118,131 @@ exp2 -0xe.2ce69p-4
 exp2 -0xc.1bf12p-16
 exp2 -0x4.8ce878p-4
 exp2 0xf.93d18bf7be8d272p-4
+
+exp2m1 0
+exp2m1 -0
+exp2m1 1
+exp2m1 0.75
+exp2m1 2
+exp2m1 3
+exp2m1 4
+exp2m1 5
+exp2m1 10
+exp2m1 15
+exp2m1 20
+exp2m1 25
+exp2m1 30
+exp2m1 35
+exp2m1 40
+exp2m1 50.0
+exp2m1 60
+exp2m1 70
+exp2m1 80
+exp2m1 90
+exp2m1 100
+exp2m1 127.0
+exp2m1 500.0
+exp2m1 11356.25
+exp2m1 -10.0
+exp2m1 -16.0
+exp2m1 -17.0
+exp2m1 -18.0
+exp2m1 -36.0
+exp2m1 -37.0
+exp2m1 -38.0
+exp2m1 -44.0
+exp2m1 -45.0
+exp2m1 -46.0
+exp2m1 -73.0
+exp2m1 -74.0
+exp2m1 -75.0
+exp2m1 -78.0
+exp2m1 -79.0
+exp2m1 -80.0
+exp2m1 -100.0
+exp2m1 -1000.0
+exp2m1 -10000.0
+exp2m1 -100000.0
+exp2m1 100000.0
+exp2m1 max
+exp2m1 -max
+exp2m1 0x1p-2
+exp2m1 -0x1p-2
+exp2m1 0x1p-10
+exp2m1 -0x1p-10
+exp2m1 0x1p-20
+exp2m1 -0x1p-20
+exp2m1 0x1p-29
+exp2m1 -0x1p-29
+exp2m1 0x1p-32
+exp2m1 -0x1p-32
+exp2m1 0x1p-50
+exp2m1 -0x1p-50
+exp2m1 0x1p-64
+exp2m1 -0x1p-64
+exp2m1 0x1p-100
+exp2m1 -0x1p-100
+exp2m1 0x1p-600
+exp2m1 -0x1p-600
+exp2m1 0x1p-10000
+exp2m1 -0x1p-10000
+exp2m1 0xe.4152ac57cd1ea7ap-60
+exp2m1 0x6.660247486aed8p-4
+exp2m1 0x6.289a78p-4
+exp2m1 0x6.1b4d318238d4a2a8p-4
+exp2m1 0x5.fb8dc64e91a74p-4
+exp2m1 0x3.735f497c4e67535cp-4
+exp2m1 -0x7.d6c50b469d404p+0
+exp2m1 0x4.857de8p+4
+exp2m1 0x5.dfeb68p-4
+exp2m1 0x4.0000000000000028p-16384
+exp2m1 0x5.8b911eb6733469c8p-4
+exp2m1 0x5.a343df0d680099a7a1a873a751a8p-4
+exp2m1 min
+exp2m1 -min
+exp2m1 min_subnorm
+exp2m1 -min_subnorm
+exp2m1 128
+exp2m1 0x7.fffff8p+4
+exp2m1 0x8.00001p+4
+exp2m1 0x3.ffffffffffffep+8
+exp2m1 0x4.0000000000004p+8
+exp2m1 0x3.fffffffffffffffa3aae26b51fp+8 xfail-rounding:ibm128-libgcc
+exp2m1 0x3.fffffffffffffffa3aae26b52p+8 xfail-rounding:ibm128-libgcc
+exp2m1 0x3.fffffffffffffffcp+12
+exp2m1 0x4.0000000000000008p+12
+exp2m1 0x3.fffffffffffffffffffffffffffep+12
+exp2m1 0x4.0000000000000000000000000004p+12
+exp2m1 0x1p-125
+exp2m1 0x1p-1021
+exp2m1 0x1p-16381
+exp2m1 -0x1p-125
+exp2m1 -0x1p-1021
+exp2m1 -0x1p-16381
+# the next values yield large errors on x86_64 for binary32
+exp2m1 0x1.9cac28p-1
+exp2m1 -0x1.715546p-15
+exp2m1 0x1.fffffep-1
+exp2m1 -0x1.720d9ap-8
+# the next values yield large errors on x86_64 for binary64
+exp2m1 0x1.d047583a6c6dp-1
+exp2m1 0x1.fff7be96c5276p-1
+exp2m1 -0x1.715bd8586d057p-12
+exp2m1 0x1.ffffb5c6996fp-1
+# the next values yield large errors on x86_64 for intel96
+exp2m1 0x9.58009dd25960a7bp-4
+exp2m1 -0x1.7159454d13d4e3fap-12
+exp2m1 0x9.5a4e825121e5782p-4
+exp2m1 0x9.3e34e79efaa18cfp-4
+exp2m1 0x9.3754a635820f937p-4
+exp2m1 -0x1.71573dd150de9ccap-8
+exp2m1 0x9.3d27303441ac81fp-4
+exp2m1 0x8.fe7f91d947a1cfdp-4
+# the next values yield large errors on x86_64 for binary128
+exp2m1 0x9.1217d12087d76b2ca347683e4b5p-4
+exp2m1 0x8.80db492a604297e1a3816aeec568p-4
+exp2m1 0x8.872e307510a80e501665a37c218p-4
+exp2m1 0x9.10b9251f0cc9bdc81d6ab13bb74p-4
 
 expm1 0
 expm1 -0
@@ -6576,6 +7467,89 @@ log10 0x9.b3727e3feb538p-4
 log10 0xf.bf1b2p-4
 log10 0x1.6b5f7ap+96
 
+log10p1 0
+log10p1 -0
+log10p1 e-1
+log10p1 -0.25
+log10p1 -0.875
+log10p1 0x1p-5
+log10p1 0x1p-10
+log10p1 0x1p-15
+log10p1 0x1p-20
+log10p1 0x1p-25
+log10p1 0x1p-30
+log10p1 0x1p-35
+log10p1 0x1p-40
+log10p1 0x1p-45
+log10p1 0x1p-50
+log10p1 0x1p-55
+log10p1 0x1p-60
+log10p1 0x1p-100
+log10p1 0x1p-600
+log10p1 0x1p-10000
+log10p1 min
+log10p1 min_subnorm
+log10p1 -min
+log10p1 -min_subnorm
+log10p1 0x1p10
+log10p1 0x1p20
+log10p1 0x1p30
+log10p1 0x1p50
+log10p1 0x1p60
+log10p1 0x1p100
+log10p1 0x1p1000
+log10p1 0x6.a0cf42befce9ed4085ef59254b48p-4
+log10p1 max
+log10p1 0x1p-125
+log10p1 0x1p-1021
+log10p1 0x1p-16381
+log10p1 -0x1p-125
+log10p1 -0x1p-1021
+log10p1 -0x1p-16381
+
+log10p1 0x1.27f7dap-17
+
+log10p1 0x7.2a4368p-4
+log10p1 0x6.d3a118p-4
+log10p1 0x5.03f228p+0
+log10p1 0x7.264963888ac9p-4
+log10p1 0x8.786bdp-4
+log10p1 0x7.89dc17790eeb4p-4
+log10p1 0x9.81ccf8887c24a7bp-4
+log10p1 0xa.5028608bd65f38dp-4
+log10p1 0x5.bf78873e20a2d468p-4
+log10p1 0x7.aa5198p-4
+log10p1 0x2.564fap+0
+log10p1 0x7.fc242a2235222ef8p-4
+log10p1 -0x4.f37d3c9ce0b14bdd86eb157df5d4p-4
+log10p1 0x7.2eca50c4d93196362b4f37f6e8dcp-4
+log10p1 -0x6.3fef3067427e43dfcde9e48f74bcp-4
+log10p1 0x6.af53d00fd2845d4772260ef5adc4p-4
+# the next values generate large errors on x86_64 for binary32
+log10p1 0x1.ce84ep+0
+log10p1 -0x1.c9bc9cp-3
+log10p1 0x1.3b8ad4p+106
+log10p1 -0x1.2611b2p-8
+# the next values generate large errors on x86_64 for binary64
+log10p1 -0x1.4c2971893052fp-1
+log10p1 -0x1.000196a3d9e18p-2
+log10p1 -0x1.26975ba3e6553p-43
+log10p1 0x1.00d67bdd93083p+53
+# the next values generate large errors on x86_64 for intel96
+log10p1 0x4.a486e7fa771f839p-4
+log10p1 0x4.f974ef417a9fe778p-4
+log10p1 0x5.006dfbf1945a6648p-4
+log10p1 0x4.f6e989b93bb1cd78p-4
+log10p1 0x4.ab40181dbc47cdfp-4
+log10p1 0x5.2876604a22752338p-4
+log10p1 0x4.a422197a61a14128p-4
+log10p1 0x5.48bb2c181e72e838p-4
+# the next values generate large errors on x86_64 for binary128
+log10p1 -0x6.eec527c6a8d6e31ca9f0dcdd747cp-4
+log10p1 0xc.42dd6485aeceeca7f23b39ad0518p-4
+log10p1 0xa.78451e366c2303f4f67b1178e628p-4
+log10p1 -0x6.fe3adf062a38696216fa72657104p-4
+
 log1p 0
 log1p -0
 log1p e-1
@@ -6663,6 +7637,81 @@ log2 0xb.54170d5cfa8fd72a47d6bda19068p-4
 log2 min
 log2 min_subnorm
 log2 max
+
+log2p1 0
+log2p1 -0
+log2p1 e-1
+log2p1 -0.25
+log2p1 -0.875
+log2p1 0x1p-5
+log2p1 0x1p-10
+log2p1 0x1p-15
+log2p1 0x1p-20
+log2p1 0x1p-25
+log2p1 0x1p-30
+log2p1 0x1p-35
+log2p1 0x1p-40
+log2p1 0x1p-45
+log2p1 0x1p-50
+log2p1 0x1p-55
+log2p1 0x1p-60
+log2p1 0x1p-100
+log2p1 0x1p-600
+log2p1 0x1p-10000
+log2p1 min
+log2p1 min_subnorm
+log2p1 -min
+log2p1 -min_subnorm
+log2p1 0x1p10
+log2p1 0x1p20
+log2p1 0x1p30
+log2p1 0x1p50
+log2p1 0x1p60
+log2p1 0x1p100
+log2p1 0x1p1000
+log2p1 0x6.a0cf42befce9ed4085ef59254b48p-4
+log2p1 max
+# the following inputs yield large errors on x86_64 for binary32
+log2p1 0x1.a69b4ap-2
+log2p1 -0x1.2516d6p-2
+log2p1 -0x1.5ffeaep-15
+log2p1 0x1.fa9f4cp+63
+# the following inputs yield large errors on x86_64 for binary64
+log2p1 0x1.a7b725780ff2cp-2
+log2p1 -0x1.2bcacac1db278p-2
+log2p1 -0x1.61d589bf42045p-30
+log2p1 0x1.f7b1d1fa54e5ep+1023
+# the following inputs yield large errors on x86_64 for intel96
+log2p1 0x5.dda3a1f4c4020ebp-4
+log2p1 0x4.a90a8d35a43eef98p-4
+log2p1 0x4.cd0c83636c3eec48p-4
+log2p1 0x4.a438707de6d1ba58p-4
+log2p1 0x5.843d01be597f38fp-4
+log2p1 0x4.a4fa45b26be621b8p-4
+log2p1 0x5.86a6205c56dda348p-4
+log2p1 0x4.a45c98a3ade2dcb8p-4
+# the following inputs yield large errors on x86_64 for binary128
+log2p1 -0x7.fff3a57fdd2666bcecba33bd89f4p-4
+log2p1 0xf.ffea148f0646fb70b8e8c4dae998p-4
+log2p1 -0x7.ffdfd0a8ad0496b2ee0e1c8e382cp-4
+log2p1 0x6.a9a5ea3f87fe4bc20f7a0e83cf2cp-4
+
+log2p1 0x7.2a4368p-4
+log2p1 0x6.d3a118p-4
+log2p1 0x5.03f228p+0
+log2p1 0x7.264963888ac9p-4
+log2p1 0x8.786bdp-4
+log2p1 0x7.89dc17790eeb4p-4
+log2p1 0x9.81ccf8887c24a7bp-4
+log2p1 0xa.5028608bd65f38dp-4
+log2p1 0x5.bf78873e20a2d468p-4
+log2p1 0x7.aa5198p-4
+log2p1 0x2.564fap+0
+log2p1 0x7.fc242a2235222ef8p-4
+log2p1 -0x4.f37d3c9ce0b14bdd86eb157df5d4p-4
+log2p1 0x7.2eca50c4d93196362b4f37f6e8dcp-4
+log2p1 -0x6.3fef3067427e43dfcde9e48f74bcp-4
+log2p1 0x6.af53d00fd2845d4772260ef5adc4p-4
 
 mul 0 0
 mul 0 -0
@@ -7317,6 +8366,992 @@ pow 0x1.059c76p+0 0x1.ff80bep+11
 pow 0x1.7ac7cp+5 23
 pow -0x1.7ac7cp+5 23
 
+pown 0 0
+pown 0 -0
+pown -0 0
+pown -0 -0
+
+pown 10 0
+pown 10 -0
+pown -10 0
+pown -10 -0
+
+pown 1 1
+pown 1 -1
+pown 1 0x4fffffffffffffff
+
+# pown (x, +-0) == 1.
+pown 32.75 0
+pown 32.75 -0
+pown -32.75 0
+pown -32.75 -0
+pown 0x1p72 0
+pown 0x1p72 -0
+pown 0x1p-72 0
+pown 0x1p-72 -0
+
+pown 0 1
+pown 0 11
+
+pown -0 1
+pown -0 11
+
+pown 0 2
+
+pown -0 2
+
+# pown (+0, y) == +0 for y an odd integer > 0.
+pown 0.0 27
+pown 0.0 0xffffff
+pown 0.0 0x1fffffffffffff
+
+# pown (-0, y) == -0 for y an odd integer > 0.
+pown -0 27
+pown -0 0xffffff
+pown -0 0x1fffffe
+pown -0 0x1fffffffffffff
+pown -0 0x3ffffffffffffe
+pown -0 0x7fffffffffffffff xfail-rounding:ibm128-libgcc
+
+# pown (+0, y) == +0 for y > 0 and not an odd integer.
+pown 0.0 4
+pown 0.0 0x1000000
+
+# pown (-0, y) == +0 for y > 0 and not an odd integer.
+pown -0 4
+pown -0 0x1000000
+
+pown 2 4
+pown 256 8
+
+pown -1.0 -0xffffff
+pown -1.0 -0x1fffffe
+pown -1.0 -0x1fffffffffffff
+pown -1.0 -0x3ffffffffffffe
+pown -1.0 -0x7fffffffffffffff xfail-rounding:ibm128-libgcc
+
+pown -1.0 0xffffff
+pown -1.0 0x1fffffe
+pown -1.0 0x1fffffffffffff
+pown -1.0 0x3ffffffffffffe
+pown -1.0 0x7fffffffffffffff xfail-rounding:ibm128-libgcc
+
+pown -2.0 126
+pown -2.0 127
+pown -2.0 -126
+pown -2.0 -127
+
+pown -2.0 -0xffffff
+pown -2.0 -0x1fffffe
+pown -2.0 -0x1fffffffffffff
+pown -2.0 -0x3ffffffffffffe
+pown -2.0 -0x7fffffffffffffff
+
+pown -2.0 0xffffff
+pown -2.0 0x1fffffe
+pown -2.0 0x1fffffffffffff
+pown -2.0 0x3ffffffffffffe
+pown -2.0 0x7fffffffffffffff
+
+pown -max -2
+pown -max -3
+pown -max 2
+pown -max 3
+
+pown -max -0xffffff
+pown -max -0x1fffffe
+pown -max -0x1fffffffffffff
+pown -max -0x3ffffffffffffe
+pown -max -0x7fffffffffffffff
+
+pown -max 0xffffff
+pown -max 0x1fffffe
+pown -max 0x1fffffffffffff
+pown -max 0x3ffffffffffffe
+pown -max 0x7fffffffffffffff
+
+pown -0x1p65 2
+pown -0x1p65 3
+pown -0x1p65 4
+pown -0x1p65 5
+pown -0x1p43 3
+pown -0x1p43 4
+pown -0x1p43 5
+pown -0x1p33 4
+pown -0x1p33 5
+pown -0x1p26 5
+pown -0x1p-65 -2
+pown -0x1p-65 -3
+pown -0x1p-65 -4
+pown -0x1p-65 -5
+pown -0x1p-43 -3
+pown -0x1p-43 -4
+pown -0x1p-43 -5
+pown -0x1p-33 -4
+pown -0x1p-33 -5
+pown -0x1p-26 -5
+
+pown -0x1p513 2
+pown -0x1p513 3
+pown -0x1p513 4
+pown -0x1p513 5
+pown -0x1p342 3
+pown -0x1p342 4
+pown -0x1p342 5
+pown -0x1p257 4
+pown -0x1p257 5
+pown -0x1p205 5
+pown -0x1p-513 -2
+pown -0x1p-513 -3
+pown -0x1p-513 -4
+pown -0x1p-513 -5
+pown -0x1p-342 -3
+pown -0x1p-342 -4
+pown -0x1p-342 -5
+pown -0x1p-257 -4
+pown -0x1p-257 -5
+pown -0x1p-205 -5
+
+pown -0x1p8192 2
+pown -0x1p8192 3
+pown -0x1p8192 4
+pown -0x1p8192 5
+pown -0x1p5462 3
+pown -0x1p5462 4
+pown -0x1p5462 5
+pown -0x1p4097 4
+pown -0x1p4097 5
+pown -0x1p3277 5
+pown -0x1p64 257
+pown -0x1p-8192 -2
+pown -0x1p-8192 -3
+pown -0x1p-8192 -4
+pown -0x1p-8192 -5
+pown -0x1p-5462 -3
+pown -0x1p-5462 -4
+pown -0x1p-5462 -5
+pown -0x1p-4097 -4
+pown -0x1p-4097 -5
+pown -0x1p-3277 -5
+pown -0x1p-64 -257
+
+pown -0.5 126
+pown -0.5 127
+pown -0.5 -126
+pown -0.5 -127
+
+pown -0.5 -0xffffff
+pown -0.5 -0x1fffffe
+pown -0.5 -0x1fffffffffffff
+pown -0.5 -0x3ffffffffffffe
+pown -0.5 -0x7fffffffffffffff
+
+pown -0.5 0xffffff
+pown -0.5 0x1fffffe
+pown -0.5 0x1fffffffffffff
+pown -0.5 0x3ffffffffffffe
+pown -0.5 0x7fffffffffffffff
+
+pown -min -2
+pown -min -3
+pown -min 1
+pown -min 2
+pown -min 3
+
+pown -min -0xffffff
+pown -min -0x1fffffe
+pown -min -0x1fffffffffffff
+pown -min -0x3ffffffffffffe
+pown -min -0x7fffffffffffffff
+
+pown -min 0xffffff
+pown -min 0x1fffffe
+pown -min 0x1fffffffffffff
+pown -min 0x3ffffffffffffe
+pown -min 0x7fffffffffffffff
+
+pown 0x0.ffffffp0 10
+pown 0x0.ffffffp0 100
+pown 0x0.ffffffp0 1000
+pown 0x0.ffffffp0 0x1000000
+pown 0x0.ffffffp0 0x40000000
+pown 0x0.ffffffp0 0x48d15980
+pown 0x0.ffffffp0 -10
+pown 0x0.ffffffp0 -100
+pown 0x0.ffffffp0 -1000
+pown 0x0.ffffffp0 -0x1000000
+pown 0x0.ffffffp0 -0x40000000
+pown 0x0.ffffffp0 -0x48d15980
+pown 0x1.000002p0 0x1000000
+pown 0x1.000002p0 0x2468acc0
+pown 0x1.000002p0 -0x2468acc0
+
+pown 0x0.fffffffffffff8p0 0x48d159e26af37c00
+pown 0x0.fffffffffffff8p0 -0x48d159e26af37c00
+pown 0x1.0000000000001p0 0x2468acf13579be00
+pown 0x1.0000000000001p0 -0x2468acf13579be00
+
+pown -0x0.ffffffp0 10
+pown -0x0.ffffffp0 100
+pown -0x0.ffffffp0 1000
+pown -0x0.ffffffp0 0x1000000
+pown -0x0.ffffffp0 0x40000000
+pown -0x0.ffffffp0 0x48d15980
+pown -0x0.ffffffp0 -10
+pown -0x0.ffffffp0 -100
+pown -0x0.ffffffp0 -1000
+pown -0x0.ffffffp0 -0x1000000
+pown -0x0.ffffffp0 -0x40000000
+pown -0x0.ffffffp0 -0x48d15980
+pown -0x1.000002p0 0x1000000
+pown -0x1.000002p0 0x2468acc0
+pown -0x1.000002p0 -0x2468acc0
+
+pown -0x0.fffffffffffff8p0 0x48d159e26af37c00
+pown -0x0.fffffffffffff8p0 -0x48d159e26af37c00
+pown -0x1.0000000000001p0 0x2468acf13579be00
+pown -0x1.0000000000001p0 -0x2468acf13579be00
+
+pown 0x1.000002p0 0x40000000
+pown -0x1.000002p0 0x40000000
+pown 0x1.00000ep0 0x40000000
+pown -0x1.00000ep0 0x40000000
+
+pown 10.0 4932
+pown 10.0 4931
+pown 10.0 4930
+pown 10.0 4929
+pown 10.0 -4931
+pown 10.0 -4930
+pown 10.0 -4929
+pown 1e27 182
+pown 1e27 -182
+
+pown 2.0 -100000
+
+pown 0x1.00001p1 -126
+pown -0x1.00002p1 -126
+pown 0x1.00003p1 -126
+pown -0x1.00004p1 -126
+pown 0x1.00005p1 -126
+pown -0x1.00006p1 -126
+pown 0x1.00007p1 -126
+pown 0x1.00001p1 -969
+pown -0x1.00002p1 -969
+pown 0x1.00003p1 -969
+pown -0x1.00004p1 -969
+pown 0x1.00005p1 -969
+pown -0x1.00006p1 -969
+pown 0x1.00007p1 -969
+pown 0x1.00001p1 -1022
+pown -0x1.00002p1 -1022
+pown 0x1.00003p1 -1022
+pown -0x1.00004p1 -1022
+pown 0x1.00005p1 -1022
+pown -0x1.00006p1 -1022
+pown 0x1.00007p1 -1022
+pown 0x1.00001p1 -16382
+pown -0x1.00002p1 -16382
+pown 0x1.00003p1 -16382
+pown -0x1.00004p1 -16382
+pown 0x1.00005p1 -16382
+pown -0x1.00006p1 -16382
+pown 0x1.00007p1 -16382
+pown 0x1.00001p1 -16383
+pown -0x1.00002p1 -16383
+pown 0x1.00003p1 -16383
+pown -0x1.00004p1 -16383
+pown 0x1.00005p1 -16383
+pown -0x1.00006p1 -16383
+pown 0x1.00007p1 -16383
+pown 0x0.ffff1p-1 126
+pown -0x0.ffff2p-1 126
+pown 0x0.ffff3p-1 126
+pown -0x0.ffff4p-1 126
+pown 0x0.ffff5p-1 126
+pown -0x0.ffff6p-1 126
+pown 0x0.ffff7p-1 126
+pown 0x0.ffff1p-1 969
+pown -0x0.ffff2p-1 969
+pown 0x0.ffff3p-1 969
+pown -0x0.ffff4p-1 969
+pown 0x0.ffff5p-1 969
+pown -0x0.ffff6p-1 969
+pown 0x0.ffff7p-1 969
+pown 0x0.ffff1p-1 1022
+pown -0x0.ffff2p-1 1022
+pown 0x0.ffff3p-1 1022
+pown -0x0.ffff4p-1 1022
+pown 0x0.ffff5p-1 1022
+pown -0x0.ffff6p-1 1022
+pown 0x0.ffff7p-1 1022
+pown 0x0.ffff1p-1 16382
+pown -0x0.ffff2p-1 16382
+pown 0x0.ffff3p-1 16382
+pown -0x0.ffff4p-1 16382
+pown 0x0.ffff5p-1 16382
+pown -0x0.ffff6p-1 16382
+pown 0x0.ffff7p-1 16382
+pown 0x0.ffff1p-1 16383
+pown -0x0.ffff2p-1 16383
+pown 0x0.ffff3p-1 16383
+pown -0x0.ffff4p-1 16383
+pown 0x0.ffff5p-1 16383
+pown -0x0.ffff6p-1 16383
+pown 0x0.ffff7p-1 16383
+pown 0x2.000b3p0 -1022
+pown 0x2.000582p0 -1022
+
+pown 10 -1
+pown 10 -2
+pown 10 -3
+pown 10 -4
+pown 10 -5
+pown 10 -6
+pown 10 -7
+
+pown 0x0.ffffffffffffffffp0 1
+pown 0x0.ffffffffffffffffp0 2
+pown 0x0.ffffffffffffffffp0 3
+pown 0x0.ffffffffffffffffp0 4
+pown 0x0.ffffffffffffffffp0 5
+pown 0x0.ffffffffffffffffp0 6
+pown 0x0.ffffffffffffffffp0 7
+pown 0x0.ffffffffffffffffp0 -1
+pown 0x0.ffffffffffffffffp0 -2
+pown 0x0.ffffffffffffffffp0 -3
+pown 0x0.ffffffffffffffffp0 -4
+pown 0x0.ffffffffffffffffp0 -5
+pown 0x0.ffffffffffffffffp0 -6
+pown 0x0.ffffffffffffffffp0 -7
+
+pown 0x1.0000000000000002p0 1
+pown 0x1.0000000000000002p0 2
+pown 0x1.0000000000000002p0 3
+pown 0x1.0000000000000002p0 4
+pown 0x1.0000000000000002p0 5
+pown 0x1.0000000000000002p0 6
+pown 0x1.0000000000000002p0 7
+pown 0x1.0000000000000002p0 -1
+pown 0x1.0000000000000002p0 -2
+pown 0x1.0000000000000002p0 -3
+pown 0x1.0000000000000002p0 -4
+pown 0x1.0000000000000002p0 -5
+pown 0x1.0000000000000002p0 -6
+pown 0x1.0000000000000002p0 -7
+
+pown 0x1.7ac7cp+5 23
+pown -0x1.7ac7cp+5 23
+
+powr 10 0
+powr 10 -0
+
+powr 1 1
+powr 1 -1
+powr 1 1.25
+powr 1 -1.25
+powr 1 0x1p62
+powr 1 0x1p63
+powr 1 0x1p64
+powr 1 0x1p72
+powr 1 min_subnorm
+powr 1 -min_subnorm
+
+# powr (x, +-0) == 1.
+powr 32.75 0
+powr 32.75 -0
+powr 0x1p72 0
+powr 0x1p72 -0
+powr 0x1p-72 0
+powr 0x1p-72 -0
+
+powr 0x1p72 0x1p72
+powr 10 -0x1p72
+powr max max
+powr 10 -max
+
+powr 0 1
+powr 0 11
+
+powr -0 1
+powr -0 11
+
+powr 0 2
+powr 0 11.1
+
+powr -0 2
+powr -0 11.1
+
+# powr (+0, y) == +0 for y an odd integer > 0.
+powr 0.0 27
+powr 0.0 0xffffff
+powr 0.0 0x1.fffffffffffffp+52
+powr 0.0 0x1.fffffffffffffffep+63
+powr 0.0 0x1.ffffffffffffffffffffffffff8p+105
+powr 0.0 0x1.ffffffffffffffffffffffffffffp+112
+
+# powr (-0, y) == +0 (unlike pow) for y an odd integer > 0.
+powr -0 27
+powr -0 0xffffff
+powr -0 0x1fffffe
+powr -0 0x1.fffffffffffffp+52
+powr -0 0x1.fffffffffffffp+53
+powr -0 0x1.fffffffffffffffep+63
+powr -0 0x1.fffffffffffffffep+64 xfail-rounding:ibm128-libgcc
+powr -0 0x1.ffffffffffffffffffffffffff8p+105 xfail-rounding:ibm128-libgcc
+powr -0 0x1.ffffffffffffffffffffffffff8p+106 xfail-rounding:ibm128-libgcc
+powr -0 0x1.ffffffffffffffffffffffffffffp+112 xfail-rounding:ibm128-libgcc
+powr -0 0x1.ffffffffffffffffffffffffffffp+113 xfail-rounding:ibm128-libgcc
+
+# powr (+0, y) == +0 for y > 0 and not an odd integer.
+powr 0.0 4
+powr 0.0 0x1p24
+powr 0.0 0x1p127
+powr 0.0 max
+powr 0.0 min_subnorm
+
+# powr (-0, y) == +0 for y > 0 and not an odd integer.
+powr -0 0.5
+powr -0 4
+powr -0 0x1p24
+powr -0 0x1p127
+powr -0 max
+powr -0 min_subnorm
+
+powr 16 0.25
+powr 0x1p64 0.125
+powr 2 4
+powr 256 8
+
+powr 0.75 1.25
+
+powr 0x0.ffffffp0 10
+powr 0x0.ffffffp0 100
+powr 0x0.ffffffp0 1000
+powr 0x0.ffffffp0 0x1p24
+powr 0x0.ffffffp0 0x1p30
+powr 0x0.ffffffp0 0x1.234566p30
+powr 0x0.ffffffp0 -10
+powr 0x0.ffffffp0 -100
+powr 0x0.ffffffp0 -1000
+powr 0x0.ffffffp0 -0x1p24
+powr 0x0.ffffffp0 -0x1p30
+powr 0x0.ffffffp0 -0x1.234566p30
+powr 0x1.000002p0 0x1p24
+powr 0x1.000002p0 0x1.234566p29
+powr 0x1.000002p0 -0x1.234566p29
+
+powr 0x0.fffffffffffff8p0 0x1.23456789abcdfp62
+powr 0x0.fffffffffffff8p0 -0x1.23456789abcdfp62
+powr 0x1.0000000000001p0 0x1.23456789abcdfp61
+powr 0x1.0000000000001p0 -0x1.23456789abcdfp61
+
+powr 0x0.ffffffffffffffffp0 0x1.23456789abcdef0ep77
+powr 0x0.ffffffffffffffffp0 -0x1.23456789abcdef0ep77
+powr 0x1.0000000000000002p0 0x1.23456789abcdef0ep76
+powr 0x1.0000000000000002p0 -0x1.23456789abcdef0ep76
+
+powr 0x0.ffffffffffffffffffffffffffff8p0 0x1.23456789abcdef0123456789abcdp126
+powr 0x0.ffffffffffffffffffffffffffff8p0 -0x1.23456789abcdef0123456789abcdp126
+powr 0x1.0000000000000000000000000001p0 0x1.23456789abcdef0123456789abcdp125
+powr 0x1.0000000000000000000000000001p0 -0x1.23456789abcdef0123456789abcdp125
+
+powr 0x1.000002p0 0x1p30
+powr 0x1.000002p0 max
+powr 0x1.00000ep0 0x1p30
+powr 0x1.00000ep0 max
+
+powr 1e4932 0.75
+powr 1e4928 0.75
+powr 1e4924 0.75
+powr 1e4920 0.75
+powr 10.0 4932.0
+powr 10.0 4931.0
+powr 10.0 4930.0
+powr 10.0 4929.0
+powr 10.0 -4931.0
+powr 10.0 -4930.0
+powr 10.0 -4929.0
+powr 1e27 182.0
+powr 1e27 -182.0
+
+powr min_subnorm min_subnorm
+powr min_subnorm -min_subnorm
+powr max min_subnorm
+powr max -min_subnorm
+powr 0.99 min_subnorm
+powr 0.99 -min_subnorm
+powr 1.01 min_subnorm
+powr 1.01 -min_subnorm
+
+powr 2.0 -100000.0
+
+powr 2 -126.125
+powr 2 -126.25
+powr 2 -126.375
+powr 2 -126.5
+powr 2 -126.625
+powr 2 -126.75
+powr 2 -126.875
+powr 2 -969.125
+powr 2 -969.25
+powr 2 -969.375
+powr 2 -969.5
+powr 2 -969.625
+powr 2 -969.75
+powr 2 -969.875
+powr 2 -1022.125
+powr 2 -1022.25
+powr 2 -1022.375
+powr 2 -1022.5
+powr 2 -1022.625
+powr 2 -1022.75
+powr 2 -1022.875
+powr 2 -16382.125
+powr 2 -16382.25
+powr 2 -16382.375
+powr 2 -16382.5
+powr 2 -16382.625
+powr 2 -16382.75
+powr 2 -16382.875
+powr 2 -16383.125
+powr 2 -16383.25
+powr 2 -16383.375
+powr 2 -16383.5
+powr 2 -16383.625
+powr 2 -16383.75
+powr 2 -16383.875
+powr 0.5 126.125
+powr 0.5 126.25
+powr 0.5 126.375
+powr 0.5 126.5
+powr 0.5 126.625
+powr 0.5 126.75
+powr 0.5 126.875
+powr 0.5 969.125
+powr 0.5 969.25
+powr 0.5 969.375
+powr 0.5 969.5
+powr 0.5 969.625
+powr 0.5 969.75
+powr 0.5 969.875
+powr 0.5 1022.125
+powr 0.5 1022.25
+powr 0.5 1022.375
+powr 0.5 1022.5
+powr 0.5 1022.625
+powr 0.5 1022.75
+powr 0.5 1022.875
+powr 0.5 16382.125
+powr 0.5 16382.25
+powr 0.5 16382.375
+powr 0.5 16382.5
+powr 0.5 16382.625
+powr 0.5 16382.75
+powr 0.5 16382.875
+powr 0.5 16383.125
+powr 0.5 16383.25
+powr 0.5 16383.375
+powr 0.5 16383.5
+powr 0.5 16383.625
+powr 0.5 16383.75
+powr 0.5 16383.875
+powr 0x1.00001p1 -126
+powr 0x1.00003p1 -126
+powr 0x1.00005p1 -126
+powr 0x1.00007p1 -126
+powr 0x1.00001p1 -969
+powr 0x1.00003p1 -969
+powr 0x1.00005p1 -969
+powr 0x1.00007p1 -969
+powr 0x1.00001p1 -1022
+powr 0x1.00003p1 -1022
+powr 0x1.00005p1 -1022
+powr 0x1.00007p1 -1022
+powr 0x1.00001p1 -16382
+powr 0x1.00003p1 -16382
+powr 0x1.00005p1 -16382
+powr 0x1.00007p1 -16382
+powr 0x1.00001p1 -16383
+powr 0x1.00003p1 -16383
+powr 0x1.00005p1 -16383
+powr 0x1.00007p1 -16383
+powr 0x0.ffff1p-1 126
+powr 0x0.ffff3p-1 126
+powr 0x0.ffff5p-1 126
+powr 0x0.ffff7p-1 126
+powr 0x0.ffff1p-1 969
+powr 0x0.ffff3p-1 969
+powr 0x0.ffff5p-1 969
+powr 0x0.ffff7p-1 969
+powr 0x0.ffff1p-1 1022
+powr 0x0.ffff3p-1 1022
+powr 0x0.ffff5p-1 1022
+powr 0x0.ffff7p-1 1022
+powr 0x0.ffff1p-1 16382
+powr 0x0.ffff3p-1 16382
+powr 0x0.ffff5p-1 16382
+powr 0x0.ffff7p-1 16382
+powr 0x0.ffff1p-1 16383
+powr 0x0.ffff3p-1 16383
+powr 0x0.ffff5p-1 16383
+powr 0x0.ffff7p-1 16383
+powr 0x2.000b3p0 -1022
+powr 0x2.000582p0 -1022
+powr 2 -0x3.fe513p+8
+powr 2 -0x3.fe4e8p+8
+
+powr 10 -1
+powr 10 -2
+powr 10 -3
+powr 10 -4
+powr 10 -5
+powr 10 -6
+powr 10 -7
+
+powr 0x0.ffffffffffffffffp0 1
+powr 0x0.ffffffffffffffffp0 2
+powr 0x0.ffffffffffffffffp0 3
+powr 0x0.ffffffffffffffffp0 4
+powr 0x0.ffffffffffffffffp0 5
+powr 0x0.ffffffffffffffffp0 6
+powr 0x0.ffffffffffffffffp0 7
+powr 0x0.ffffffffffffffffp0 -1
+powr 0x0.ffffffffffffffffp0 -2
+powr 0x0.ffffffffffffffffp0 -3
+powr 0x0.ffffffffffffffffp0 -4
+powr 0x0.ffffffffffffffffp0 -5
+powr 0x0.ffffffffffffffffp0 -6
+powr 0x0.ffffffffffffffffp0 -7
+
+powr 0x1.0000000000000002p0 1
+powr 0x1.0000000000000002p0 2
+powr 0x1.0000000000000002p0 3
+powr 0x1.0000000000000002p0 4
+powr 0x1.0000000000000002p0 5
+powr 0x1.0000000000000002p0 6
+powr 0x1.0000000000000002p0 7
+powr 0x1.0000000000000002p0 -1
+powr 0x1.0000000000000002p0 -2
+powr 0x1.0000000000000002p0 -3
+powr 0x1.0000000000000002p0 -4
+powr 0x1.0000000000000002p0 -5
+powr 0x1.0000000000000002p0 -6
+powr 0x1.0000000000000002p0 -7
+
+powr 1.0625 1.125
+powr 1.5 1.03125
+powr 0x1.7d1a0a6f2p+681 1.5
+powr 0x1.ce78f2p+0 -0x2.7f1f78p+4
+powr 0xf.fffffp+124 -0x5.b5b648p+0
+powr 0x1.430d4cp+0 0x5.0e462p+4
+powr 0x9.8b82ap-4 -0x1.99907ap+12
+powr 0xd.73035p-4 -0x1.47bb8p+8
+powr 0x1.059c76p+0 0x1.ff80bep+11
+powr 0x1.7ac7cp+5 23
+
+rootn 0 1
+rootn 0 2
+rootn 0 3
+rootn 0 4
+rootn 0 5
+rootn 0 0x7fffffffffffffff
+rootn -0 1
+rootn -0 2
+rootn -0 3
+rootn -0 4
+rootn -0 5
+rootn -0 0x7fffffffffffffff
+
+rootn min 1
+rootn min 2
+rootn min 3
+rootn min 4
+rootn min 5
+rootn min 63
+rootn min 127
+rootn min 255
+rootn min 511
+rootn min 1023
+rootn min 16383
+rootn min 0x1000001
+rootn min 0x10000000000001
+rootn min 0x7fffffffffffffff
+rootn -min 1
+rootn -min 3
+rootn -min 5
+rootn -min 63
+rootn -min 127
+rootn -min 255
+rootn -min 511
+rootn -min 1023
+rootn -min 16383
+rootn -min 0x1000001
+rootn -min 0x10000000000001
+rootn -min 0x7fffffffffffffff
+
+rootn min -1
+rootn min -2
+rootn min -3
+rootn min -4
+rootn min -5
+rootn min -63
+rootn min -127
+rootn min -255
+rootn min -511
+rootn min -1023
+rootn min -16383
+rootn min -0x1000001
+rootn min -0x10000000000001
+rootn min -0x7fffffffffffffff
+rootn -min -1
+rootn -min -3
+rootn -min -5
+rootn -min -63
+rootn -min -127
+rootn -min -255
+rootn -min -511
+rootn -min -1023
+rootn -min -16383
+rootn -min -0x1000001
+rootn -min -0x10000000000001
+rootn -min -0x7fffffffffffffff
+
+rootn min_subnorm 1
+rootn min_subnorm 2
+rootn min_subnorm 3
+rootn min_subnorm 4
+rootn min_subnorm 5
+rootn min_subnorm 63
+rootn min_subnorm 127
+rootn min_subnorm 255
+rootn min_subnorm 511
+rootn min_subnorm 1023
+rootn min_subnorm 16383
+rootn min_subnorm 0x1000001
+rootn min_subnorm 0x10000000000001
+rootn min_subnorm 0x7fffffffffffffff
+rootn -min_subnorm 1
+rootn -min_subnorm 3
+rootn -min_subnorm 5
+rootn -min_subnorm 63
+rootn -min_subnorm 127
+rootn -min_subnorm 255
+rootn -min_subnorm 511
+rootn -min_subnorm 1023
+rootn -min_subnorm 16383
+rootn -min_subnorm 0x1000001
+rootn -min_subnorm 0x10000000000001
+rootn -min_subnorm 0x7fffffffffffffff
+
+rootn min_subnorm -1
+rootn min_subnorm -2
+rootn min_subnorm -3
+rootn min_subnorm -4
+rootn min_subnorm -5
+rootn min_subnorm -63
+rootn min_subnorm -127
+rootn min_subnorm -255
+rootn min_subnorm -511
+rootn min_subnorm -1023
+rootn min_subnorm -16383
+rootn min_subnorm -0x1000001
+rootn min_subnorm -0x10000000000001
+rootn min_subnorm -0x7fffffffffffffff
+rootn -min_subnorm -1
+rootn -min_subnorm -3
+rootn -min_subnorm -5
+rootn -min_subnorm -63
+rootn -min_subnorm -127
+rootn -min_subnorm -255
+rootn -min_subnorm -511
+rootn -min_subnorm -1023
+rootn -min_subnorm -16383
+rootn -min_subnorm -0x1000001
+rootn -min_subnorm -0x10000000000001
+rootn -min_subnorm -0x7fffffffffffffff
+
+rootn max 1
+rootn max 2
+rootn max 3
+rootn max 4
+rootn max 5
+rootn max 63
+rootn max 127
+rootn max 255
+rootn max 511
+rootn max 1023
+rootn max 16383
+rootn max 0x1000001
+rootn max 0x10000000000001
+rootn max 0x7fffffffffffffff
+rootn -max 1
+rootn -max 3
+rootn -max 5
+rootn -max 63
+rootn -max 127
+rootn -max 255
+rootn -max 511
+rootn -max 1023
+rootn -max 16383
+rootn -max 0x1000001
+rootn -max 0x10000000000001
+rootn -max 0x7fffffffffffffff
+
+rootn max -1
+rootn max -2
+rootn max -3
+rootn max -4
+rootn max -5
+rootn max -63
+rootn max -127
+rootn max -255
+rootn max -511
+rootn max -1023
+rootn max -16383
+rootn max -0x1000001
+rootn max -0x10000000000001
+rootn max -0x7fffffffffffffff
+rootn -max -1
+rootn -max -3
+rootn -max -5
+rootn -max -63
+rootn -max -127
+rootn -max -255
+rootn -max -511
+rootn -max -1023
+rootn -max -16383
+rootn -max -0x1000001
+rootn -max -0x10000000000001
+rootn -max -0x7fffffffffffffff
+
+rootn 1 123
+rootn 1 -123
+rootn 1 1234
+rootn 1 -1234
+rootn -1 123
+rootn -1 -123
+
+rootn 2 123
+rootn 2 -123
+rootn 2 1234
+rootn 2 -1234
+rootn -2 123
+rootn -2 -123
+
+rootn 0x1.234p50 123
+rootn 0x1.234p50 -123
+rootn 0x1.234p50 1234
+rootn 0x1.234p50 -1234
+rootn -0x1.234p50 123
+rootn -0x1.234p50 -123
+
+rootn 0x1.234p500 123
+rootn 0x1.234p500 -123
+rootn 0x1.234p500 1234
+rootn 0x1.234p500 -1234
+rootn -0x1.234p500 123
+rootn -0x1.234p500 -123
+
+rootn 0x9.8765p5000 123
+rootn 0x9.8765p5000 -123
+rootn 0x9.8765p5000 1234
+rootn 0x9.8765p5000 -1234
+rootn 0x9.8765p5000 12345
+rootn 0x9.8765p5000 -12345
+rootn 0x9.8765p5000 1234567
+rootn 0x9.8765p5000 -1234567
+rootn -0x9.8765p5000 123
+rootn -0x9.8765p5000 -123
+rootn -0x9.8765p5000 12345
+rootn -0x9.8765p5000 -12345
+rootn -0x9.8765p5000 1234567
+rootn -0x9.8765p5000 -1234567
+
+rsqrt 2209
+rsqrt 4
+rsqrt 2
+rsqrt 0.25
+rsqrt 6642.25
+rsqrt 15190.5625
+rsqrt 0.75
+rsqrt 0x1.fffffffffffffp+1023
+rsqrt 0x1.ffffffffffffbp+1023
+rsqrt 0x1.ffffffffffff7p+1023
+rsqrt 0x1.ffffffffffff3p+1023
+rsqrt 0x1.fffffffffffefp+1023
+rsqrt 0x1.fffffffffffebp+1023
+rsqrt 0x1.fffffffffffe7p+1023
+rsqrt 0x1.fffffffffffe3p+1023
+rsqrt 0x1.fffffffffffdfp+1023
+rsqrt 0x1.fffffffffffdbp+1023
+rsqrt 0x1.fffffffffffd7p+1023
+rsqrt 0x1.0000000000003p-1022
+rsqrt 0x1.0000000000007p-1022
+rsqrt 0x1.000000000000bp-1022
+rsqrt 0x1.000000000000fp-1022
+rsqrt 0x1.0000000000013p-1022
+rsqrt 0x1.0000000000017p-1022
+rsqrt 0x1.000000000001bp-1022
+rsqrt 0x1.000000000001fp-1022
+rsqrt 0x1.0000000000023p-1022
+rsqrt 0x1.0000000000027p-1022
+rsqrt 0x1.000000000002bp-1022
+rsqrt 0x1.000000000002fp-1022
+rsqrt 0x1.0000000000033p-1022
+rsqrt 0x1.0000000000037p-1022
+rsqrt 0x1.7167bc36eaa3bp+6
+rsqrt 0x1.7570994273ad7p+6
+rsqrt 0x1.7dae969442fe6p+6
+rsqrt 0x1.7f8444fcf67e5p+6
+rsqrt 0x1.8364650e63a54p+6
+rsqrt 0x1.85bedd274edd8p+6
+rsqrt 0x1.8609cf496ab77p+6
+rsqrt 0x1.873849c70a375p+6
+rsqrt 0x1.8919c962cbaaep+6
+rsqrt 0x1.8de4493e22dc6p+6
+rsqrt 0x1.924829a17a288p+6
+rsqrt 0x1.92702cd992f12p+6
+rsqrt 0x1.92b763a8311fdp+6
+rsqrt 0x1.947da013c7293p+6
+rsqrt 0x1.9536091c494d2p+6
+rsqrt 0x1.61b04c6p-1019
+rsqrt 0x1.93789f1p-1018
+rsqrt 0x1.a1989b4p-1018
+rsqrt 0x1.f93bc9p-1018
+rsqrt 0x1.2f675e3p-1017
+rsqrt 0x1.a158508p-1017
+rsqrt 0x1.cd31f078p-1017
+rsqrt 0x1.33b43b08p-1016
+rsqrt 0x1.6e66a858p-1016
+rsqrt 0x1.8661cbf8p-1016
+rsqrt 0x1.bbb221b4p-1016
+rsqrt 0x1.c4942f3cp-1016
+rsqrt 0x1.dbb258c8p-1016
+rsqrt 0x1.57103ea4p-1015
+rsqrt 0x1.9b294f88p-1015
+rsqrt 0x1.0000000000001p+0
+rsqrt 0x1.fffffffffffffp-1
+rsqrt max
+rsqrt min
+rsqrt min_subnorm
+# the next values generate large error bounds on x86_64 (binary32)
+rsqrt 0x1.019566p-126
+rsqrt 0x1.000004p-126
+rsqrt 0x1.002d3ep-126
+# the next values generate large error bounds on x86_64 (binary64)
+rsqrt 0x1.0000b89bb2fe7p-620
+rsqrt 0x1.0000000000002p-926
+rsqrt 0x1.0000007ffffffp-62
+# the next values generate large error bounds on x86_64 (ldbl-96)
+rsqrt 0x4.000a373be92fd79p+12296
+rsqrt 0x4.000000000000001p-3876
+rsqrt 0x1.00000002d413cccep+5732
+# the next values generate large error bounds on x86_64 (binary128)
+rsqrt 0x4.000c6aa9b1f6e0ff6654b438c3c8p-15316
+rsqrt 0x4.00063ebd3bd57609d74c632661ap-13232
+rsqrt 0x4.00010d8b28120c3d1972d4a4526cp-16384
+
 sin 0
 sin -0
 sin pi/6
@@ -7467,6 +9502,7 @@ sinh -0x1.3dda8ap+0
 sinh -0x5.ee9218p-4
 sinh -0x1.bcfc98p+0
 sinh -0x6.9bbb6df7c5d08p-4
+sinh 0x1.250bfep-11
 # the next value generates larger error bounds on x86_64 (ldbl-96)
 sinh 0x2.c5d376167f4052f4p+12
 sinh max
@@ -7488,6 +9524,112 @@ sinh 0x2.c5d37700c6bb03a6c24b6c9b494cp+12
 sinh 0x2.c5d37700c6bb03a6c24b6c9b494ep+12
 # the next value generates larger error bounds on x86_64 (binary64)
 sinh -0x1.633c62890fa14p+9
+
+sinpi 0
+sinpi -0
+sinpi min
+sinpi -min
+sinpi min_subnorm
+sinpi -min_subnorm
+sinpi max xfail-rounding:ibm128-libgcc
+sinpi -max xfail-rounding:ibm128-libgcc
+sinpi 1
+sinpi -1
+sinpi 2
+sinpi -2
+sinpi 3
+sinpi -3
+sinpi 0.1
+sinpi -0.1
+sinpi 0.2
+sinpi -0.2
+sinpi 0.3
+sinpi -0.3
+sinpi 0.4
+sinpi -0.4
+sinpi 0.5
+sinpi -0.5
+sinpi 0.6
+sinpi -0.6
+sinpi 0.7
+sinpi -0.7
+sinpi 0.8
+sinpi -0.8
+sinpi 0.9
+sinpi -0.9
+sinpi 1.1
+sinpi -1.1
+sinpi 1.2
+sinpi -1.2
+sinpi 1.3
+sinpi -1.3
+sinpi 1.4
+sinpi -1.4
+sinpi 1.5
+sinpi -1.5
+sinpi 2.5
+sinpi -2.5
+sinpi 3.5
+sinpi -3.5
+sinpi 4.5
+sinpi -4.5
+sinpi 0.24
+sinpi -0.24
+sinpi 0.49
+sinpi -0.49
+sinpi 0.51
+sinpi -0.51
+sinpi 0.76
+sinpi -0.76
+sinpi 1.24
+sinpi -1.24
+sinpi 1.49
+sinpi -1.49
+sinpi 1.51
+sinpi -1.51
+sinpi 1.76
+sinpi -1.76
+sinpi 100.24
+sinpi -100.24
+sinpi 100.49
+sinpi -100.49
+sinpi 100.51
+sinpi -100.51
+sinpi 100.76
+sinpi -100.76
+sinpi 1234.56
+sinpi -1234.56
+sinpi 0x1fffff.2p0
+sinpi -0x1fffff.2p0
+sinpi 0x1fffff.ep0
+sinpi -0x1fffff.ep0
+sinpi 0x3ffffffffffff.2p0
+sinpi -0x3ffffffffffff.2p0
+sinpi 0x3ffffffffffff.ep0
+sinpi -0x3ffffffffffff.ep0
+sinpi 0x1fffffffffffffff.2p0
+sinpi -0x1fffffffffffffff.2p0
+sinpi 0x1fffffffffffffff.ep0
+sinpi -0x1fffffffffffffff.ep0
+sinpi 0x3fffffffffffffffffffffffffff.2p0
+sinpi -0x3fffffffffffffffffffffffffff.2p0
+sinpi 0x3fffffffffffffffffffffffffff.ep0 xfail-rounding:ibm128-libgcc
+sinpi -0x3fffffffffffffffffffffffffff.ep0 xfail-rounding:ibm128-libgcc
+sinpi 0x1p-128
+sinpi -0x1p-128
+sinpi 0x1p-971
+sinpi -0x1p-971
+sinpi 0x1p-1024
+sinpi -0x1p-1024
+sinpi 0x1p-16384
+sinpi -0x1p-16384
+sinpi 0x1p-16385
+sinpi -0x1p-16385
+# the next values generate larger error bounds on x86_64
+sinpi 0x1.46949ap-5
+sinpi -0x1.45f3e53e1d707p-7
+sinpi 0x2.8bea50886e293398p-8
+sinpi -0x1.45f52c8be3999ba924f1f3e5a7b7p-8
 
 sub 0 0
 sub 0 -0
@@ -7724,6 +9866,7 @@ tan 0x1.1ad374p+0
 tan -0x1.0d55b8p+0
 tan 1.57079697
 tan -1.57079697
+tan 0x1.ada6aap+27
 tan 0x1p-5
 tan 0x1p-10
 tan 0x1p-15
@@ -7829,6 +9972,94 @@ tanh min
 tanh -min
 tanh min_subnorm
 tanh -min_subnorm
+
+tanpi 0
+tanpi -0
+tanpi min
+tanpi -min
+tanpi min_subnorm
+tanpi -min_subnorm
+tanpi max xfail-rounding:ibm128-libgcc
+tanpi -max xfail-rounding:ibm128-libgcc
+tanpi 1
+tanpi -1
+tanpi 2
+tanpi -2
+tanpi 3
+tanpi -3
+tanpi 4
+tanpi -4
+tanpi 0.1
+tanpi -0.1
+tanpi 0.2
+tanpi -0.2
+tanpi 0.3
+tanpi -0.3
+tanpi 0.4
+tanpi -0.4
+tanpi 0.6
+tanpi -0.6
+tanpi 0.7
+tanpi -0.7
+tanpi 0.8
+tanpi -0.8
+tanpi 0.9
+tanpi -0.9
+tanpi 1.1
+tanpi -1.1
+tanpi 1.2
+tanpi -1.2
+tanpi 1.3
+tanpi -1.3
+tanpi 1.4
+tanpi -1.4
+tanpi 0.24
+tanpi -0.24
+tanpi 0.49
+tanpi -0.49
+tanpi 0.51
+tanpi -0.51
+tanpi 0.76
+tanpi -0.76
+tanpi 1.24
+tanpi -1.24
+tanpi 1.49
+tanpi -1.49
+tanpi 1.51
+tanpi -1.51
+tanpi 1.76
+tanpi -1.76
+tanpi 100.24
+tanpi -100.24
+tanpi 100.49
+tanpi -100.49
+tanpi 100.51
+tanpi -100.51
+tanpi 100.76
+tanpi -100.76
+tanpi 1234.56
+tanpi -1234.56
+tanpi 0x1fffff.6p0
+tanpi -0x1fffff.6p0
+tanpi 0x1fffff.ap0
+tanpi -0x1fffff.ap0
+tanpi 0x3ffffffffffff.6p0 xfail-rounding:ibm128-libgcc
+tanpi -0x3ffffffffffff.6p0 xfail-rounding:ibm128-libgcc
+tanpi 0x3ffffffffffff.ap0
+tanpi -0x3ffffffffffff.ap0
+tanpi 0x1fffffffffffffff.6p0
+tanpi -0x1fffffffffffffff.6p0
+tanpi 0x1fffffffffffffff.ap0
+tanpi -0x1fffffffffffffff.ap0
+tanpi 0x3fffffffffffffffffffffffffff.6p0
+tanpi -0x3fffffffffffffffffffffffffff.6p0
+tanpi 0x3fffffffffffffffffffffffffff.ap0 xfail-rounding:ibm128-libgcc
+tanpi -0x3fffffffffffffffffffffffffff.ap0 xfail-rounding:ibm128-libgcc
+# the next values generate larger error bounds on x86_64
+tanpi 0x1.eb90dep-2
+tanpi -0x1.fae7d0ef22d4ep-2
+tanpi -0x3.a8c5dc49265fd13p+0
+tanpi -0x1.a8c117800f4a648c213cd0b6db1fp+0
 
 tgamma 0.5
 tgamma -0.5

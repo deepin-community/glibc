@@ -1,4 +1,4 @@
-# Copyright (C) 1996-2023 Free Software Foundation, Inc.
+# Copyright (C) 1996-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@ subdir	:= catgets
 
 include ../Makeconfig
 
-headers	= \
+headers = \
   nl_types.h \
   # headers
 routines = \
@@ -43,8 +43,12 @@ tests-special += \
   $(objpfx)test-gencat.out \
   $(objpfx)test1.cat \
   $(objpfx)test2.cat \
-  $(objpfx)tst-catgets-mem.out
   # tests-special
+ifeq (yes,$(build-shared))
+ifneq ($(PERL),no)
+tests-special += $(objpfx)tst-catgets-mem.out
+endif
+endif
 endif
 
 gencat-modules	= xmalloc
@@ -68,9 +72,17 @@ generated += \
   test1.h \
   test2.cat \
   test2.h \
+  # generated
+ifeq ($(run-built-tests),yes)
+ifeq (yes,$(build-shared))
+ifneq ($(PERL),no)
+generated += \
   tst-catgets-mem.out \
   tst-catgets.mtrace \
   # generated
+endif
+endif
+endif
 
 generated-dirs += \
   de \

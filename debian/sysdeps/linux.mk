@@ -12,8 +12,12 @@ pldd = yes
 # NPTL Config
 threads = yes
 
+libc_extra_config_options = $(extra_config_options)
 ifeq ($(filter stage1 stage2,$(DEB_BUILD_PROFILES)),)
-  libc_extra_config_options = --with-selinux $(extra_config_options)
+  libc_extra_config_options += --with-selinux
+endif
+ifeq ($(filter stage1 stage2 pkg.glibc.nosystemtap,$(DEB_BUILD_PROFILES)),)
+  libc_extra_config_options += --enable-systemtap
 endif
 
 ifndef LINUX_SOURCE
@@ -45,6 +49,11 @@ $(stamp)mkincludedir:
 	        ln -s /usr/include/$$h debian/include/$$h ; \
 	    fi ; \
 	done
+
+ifeq ($(filter stage1 stage2 pkg.glibc.nosystemtap,$(DEB_BUILD_PROFILES)),)
+	ln -s /usr/include/$(DEB_HOST_MULTIARCH)/sys/sdt.h debian/include/sys/sdt.h
+	ln -s /usr/include/$(DEB_HOST_MULTIARCH)/sys/sdt-config.h debian/include/sys/sdt-config.h
+endif
 
 	# To make configure happy if libc6-dev is not installed.
 	touch debian/include/assert.h

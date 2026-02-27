@@ -1,4 +1,4 @@
-/* Copyright (C) 2006-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2006-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@
 		FUTEX_PRIVATE);						      \
 	    else							      \
 	      status = __futex_abstimed_wait64 ((unsigned int *) futexaddr,   \
-		oldval, CLOCK_REALTIME, timeout, FUTEX_PRIVATE); 	      \
+		oldval, CLOCK_MONOTONIC, timeout, FUTEX_PRIVATE); 	      \
 	    if (status != EAGAIN)					      \
 	      break;							      \
 									      \

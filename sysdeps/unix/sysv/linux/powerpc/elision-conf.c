@@ -1,5 +1,5 @@
 /* elision-conf.c: Lock elision tunable parameters.
-   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+   Copyright (C) 2015-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 #include <pthreadP.h>
 #include <elision-conf.h>
 #include <unistd.h>
-#include <dl-procinfo.h>
+#include <ldsodefs.h>
 
 #define TUNABLE_NAMESPACE elision
 #include <elf/dl-tunables.h>

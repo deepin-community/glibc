@@ -1,5 +1,5 @@
 /* settimeofday -- set system time - Linux version supporting 64 bit time.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,9 +26,9 @@ int
 __settimeofday64 (const struct __timeval64 *tv, const struct timezone *tz)
 {
   /* Backwards compatibility for setting the UTC offset.  */
-  if (__glibc_unlikely (tz != 0))
+  if (__glibc_unlikely (tz != NULL))
     {
-      if (tv != 0)
+      if (tv != NULL)
 	{
 	  __set_errno (EINVAL);
 	  return -1;

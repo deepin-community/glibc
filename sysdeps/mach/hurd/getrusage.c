@@ -1,5 +1,5 @@
 /* getrusage -- Get resource usage information about processes.  Hurd version.
-   Copyright (C) 1999-2023 Free Software Foundation, Inc.
+   Copyright (C) 1999-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -75,9 +75,13 @@ __getrusage (enum __rusage_who who, struct rusage *usage)
       break;
 
     case RUSAGE_CHILDREN:
-      /* XXX Not implemented yet.  However, zero out USAGE to be
-         consistent with the wait3 and wait4 functions.  */
+#ifdef HAVE_HURD_PROC_GETCHILDREN_RUSAGE
+      err = __USEPORT (PROC, __proc_getchildren_rusage (port, usage));
+      if (err)
+	return __hurd_fail (err);
+#else
       memset (usage, 0, sizeof (struct rusage));
+#endif
 
       break;
 

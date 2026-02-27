@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -42,6 +42,9 @@ __sleep (unsigned int seconds)
   LIBC_CANCEL_RESET (cancel_oldtype);
   after = time_now ();
   __mach_port_destroy (__mach_task_self (), recv);
+
+  if (after - before > seconds)
+    return 0;
 
   return seconds - (after - before);
 }

@@ -1,5 +1,5 @@
 /* Data for x86-64 version of processor capability information.
-   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+   Copyright (C) 2015-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,6 +40,22 @@
 #endif
 
 #include <sysdeps/x86/dl-procinfo.c>
+
+#if !IS_IN (ldconfig)
+# if !defined PROCINFO_DECL && defined SHARED
+  ._dl_x86_64_runtime_resolve
+# else
+PROCINFO_CLASS void * _dl_x86_64_runtime_resolve
+# endif
+# ifndef PROCINFO_DECL
+= NULL
+# endif
+# if !defined SHARED || defined PROCINFO_DECL
+;
+# else
+,
+# endif
+#endif
 
 #undef PROCINFO_DECL
 #undef PROCINFO_CLASS

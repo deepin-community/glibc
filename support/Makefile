@@ -1,5 +1,5 @@
 # Makefile for support library, used only at build and test time
-# Copyright (C) 2016-2023 Free Software Foundation, Inc.
+# Copyright (C) 2016-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -42,15 +42,15 @@ libsupport-routines = \
   resolv_test \
   set_fortify_handler \
   support-open-dev-null-range \
-  support-xfstat \
-  support-xfstat-time64 \
-  support-xstat \
-  support-xstat-time64 \
   support_become_root \
   support_can_chroot \
   support_capture_subprocess \
   support_capture_subprocess_check \
+  support_check_stat_fd \
+  support_check_stat_path \
   support_chroot \
+  support_compare_file_bytes \
+  support_compare_file_string \
   support_copy_file \
   support_copy_file_range \
   support_create_timer \
@@ -64,9 +64,12 @@ libsupport-routines = \
   support_format_herrno \
   support_format_hostent \
   support_format_netent \
+  support_fuse \
   support_isolate_in_subprocess \
   support_mutex_pi_monotonic \
   support_need_proc \
+  support_open_and_compare_file_bytes \
+  support_open_and_compare_file_string \
   support_openpty \
   support_path_support_time64 \
   support_paths \
@@ -75,11 +78,15 @@ libsupport-routines = \
   support_quote_blob \
   support_quote_blob_wide \
   support_quote_string \
+  support_readdir \
+  support_readdir_check \
+  support_readdir_r_check \
   support_record_failure \
   support_run_diff \
   support_select_modifies_timeout \
   support_select_normalizes_timeout \
   support_set_small_thread_stack_size \
+  support_set_vma_name_supported \
   support_shared_allocate \
   support_small_stack_thread_attribute \
   support_socket_so_timestamp_time64 \
@@ -116,13 +123,16 @@ libsupport-routines = \
   xclock_settime_time64 \
   xclone \
   xclose \
+  xclosedir \
   xconnect \
   xcopy_file_range \
   xdlfcn \
   xdlmopen \
+  xdup \
   xdup2 \
   xfchmod \
   xfclose \
+  xfdopendir \
   xfgets \
   xfopen \
   xfork \
@@ -130,11 +140,10 @@ libsupport-routines = \
   xfreopen \
   xftruncate \
   xgetline \
+  xgetpeername \
   xgetsockname \
   xlisten \
   xlseek \
-  xlstat \
-  xlstat-time64 \
   xmalloc \
   xmemstream \
   xmkdir \
@@ -145,6 +154,7 @@ libsupport-routines = \
   xmunmap \
   xnewlocale \
   xopen \
+  xopendir \
   xpipe \
   xpoll \
   xposix_memalign \
@@ -208,6 +218,7 @@ libsupport-routines = \
   xsignal \
   xsigstack \
   xsocket \
+  xstatx \
   xstrdup \
   xstrndup \
   xsymlink \
@@ -270,6 +281,11 @@ CFLAGS-temp_file.c += -D_FILE_OFFSET_BITS=64 -D_TIME_BITS=64
 
 ifeq (,$(CXX))
 LINKS_DSO_PROGRAM = links-dso-program-c
+LDLIBS-links-dso-program-c = -lgcc
+ifeq ($(have-libgcc_s),yes)
+CFLAGS-links-dso-program-c.c += -fexceptions
+LDLIBS-links-dso-program-c += -lgcc_s $(libunwind)
+endif
 else
 LINKS_DSO_PROGRAM = links-dso-program
 LDLIBS-links-dso-program = -lstdc++ -lgcc -lgcc_s $(libunwind)
@@ -314,23 +330,31 @@ tests = \
   README-testing \
   tst-support-namespace \
   tst-support-open-dev-null-range \
+  tst-support-openpty \
   tst-support-process_state \
   tst-support_blob_repeat \
   tst-support_capture_subprocess \
   tst-support_descriptors \
   tst-support_format_dns_packet \
+  tst-support_fuse \
   tst-support_quote_blob \
   tst-support_quote_blob_wide \
   tst-support_quote_string \
+  tst-support_readdir \
   tst-support_record_failure \
   tst-test_compare \
   tst-test_compare_blob \
   tst-test_compare_string \
   tst-test_compare_string_wide \
   tst-timespec \
+  tst-xdirent \
   tst-xreadlink \
   tst-xsigstack \
   # tests
+
+tests-container = \
+  tst-support-openpty-c \
+  # tests-container
 
 ifeq ($(run-built-tests),yes)
 tests-special = \

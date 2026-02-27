@@ -1,5 +1,5 @@
 /* Memory allocation next to an unmapped page.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,6 +40,11 @@ struct support_next_to_fault
    with PROT_NONE (so that overrunning the buffer will cause a
    fault).  */
 struct support_next_to_fault support_next_to_fault_allocate (size_t size);
+
+/* Allocate a buffer of SIZE bytes just *after* a page which is mapped
+   with PROT_NONE (so that under-running the buffer will cause a
+   fault).  */
+struct support_next_to_fault support_next_to_fault_allocate_before (size_t size);
 
 /* Deallocate the memory region allocated by
    next_to_fault_allocate.  */

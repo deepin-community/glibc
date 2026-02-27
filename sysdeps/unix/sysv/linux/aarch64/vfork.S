@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -33,8 +33,13 @@ ENTRY (__vfork)
 
 	cmn	x0, #4095
 	b.cs    .Lsyscall_error
+	cbz	x0, L(child)
 	RET
-
+L(child):
+	/* Return with indirect branch in the child to support GCS.
+	   Compilers insert BTI instruction after vfork() to make
+	   sure return via BR works on systems with BTI.  */
+	br	x30
 PSEUDO_END (__vfork)
 libc_hidden_def (__vfork)
 

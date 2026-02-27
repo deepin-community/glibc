@@ -1,5 +1,5 @@
 /* Convert string representation of a number into an integer value.
-   Copyright (C) 1991-2023 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,8 +17,8 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <features.h>
-#undef __GLIBC_USE_C2X_STRTOL
-#define __GLIBC_USE_C2X_STRTOL 0
+#undef __GLIBC_USE_C23_STRTOL
+#define __GLIBC_USE_C23_STRTOL 0
 #include <stdlib.h>
 #include <wchar.h>
 #include <locale/localeinfo.h>

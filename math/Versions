@@ -635,4 +635,55 @@ libm {
     # No SVID compatible error handling.
     fmod; fmodf;
   }
+  GLIBC_2.39 {
+    # No SVID compatible error handling.
+    exp10;
+  }
+  GLIBC_2.40 {
+    # Functions not involving _Float64x or _Float128, for all configurations.
+    exp2m1; exp2m1f; exp2m1l; exp2m1f32; exp2m1f64; exp2m1f32x;
+    exp10m1; exp10m1f; exp10m1l; exp10m1f32; exp10m1f64; exp10m1f32x;
+    log2p1; log2p1f; log2p1l; log2p1f32; log2p1f64; log2p1f32x;
+    log10p1; log10p1f; log10p1l; log10p1f32; log10p1f64; log10p1f32x;
+    logp1; logp1f; logp1l; logp1f32; logp1f64; logp1f32x;
+    # Functions involving _Float64x or _Float128, for some configurations.
+    exp2m1f64x; exp2m1f128;
+    exp10m1f64x; exp10m1f128;
+    log2p1f64x; log2p1f128;
+    log10p1f64x; log10p1f128;
+    logp1f64x; logp1f128;
+  }
+  GLIBC_2.41 {
+    # Functions not involving _Float64x or _Float128, for all configurations.
+    acospi; acospif; acospil; acospif32; acospif64; acospif32x;
+    asinpi; asinpif; asinpil; asinpif32; asinpif64; asinpif32x;
+    atan2pi; atan2pif; atan2pil; atan2pif32; atan2pif64; atan2pif32x;
+    atanpi; atanpif; atanpil; atanpif32; atanpif64; atanpif32x;
+    cospi; cospif; cospil; cospif32; cospif64; cospif32x;
+    sinpi; sinpif; sinpil; sinpif32; sinpif64; sinpif32x;
+    tanpi; tanpif; tanpil; tanpif32; tanpif64; tanpif32x;
+    # Functions involving _Float64x or _Float128, for some configurations.
+    acospif64x; acospif128;
+    asinpif64x; asinpif128;
+    atan2pif64x; atan2pif128;
+    atanpif64x; atanpif128;
+    cospif64x; cospif128;
+    sinpif64x; sinpif128;
+    tanpif64x; tanpif128;
+  }
+  GLIBC_2.42 {
+    # Functions not involving _Float64x or _Float128, for all configurations.
+    compoundn; compoundnf; compoundnl;
+    compoundnf32; compoundnf64; compoundnf32x;
+    pown; pownf; pownl; pownf32; pownf64; pownf32x;
+    powr; powrf; powrl; powrf32; powrf64; powrf32x;
+    rootn; rootnf; rootnl; rootnf32; rootnf64; rootnf32x;
+    rsqrt; rsqrtf; rsqrtl; rsqrtf32; rsqrtf64; rsqrtf32x;
+    # Functions involving _Float64x or _Float128, for some configurations.
+    compoundnf64x; compoundnf128;
+    pownf64x; pownf128;
+    powrf64x; powrf128;
+    rootnf64x; rootnf128;
+    rsqrtf64x; rsqrtf128;
+  }
 }

@@ -1,5 +1,5 @@
 /* Thread-local storage handling in the ELF dynamic linker.  i386 version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,8 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#ifndef _DL_TLS_H
+#define _DL_TLS_H
 
 /* Type used for the representation of TLS information in the GOT.  */
 typedef struct dl_tls_index
@@ -24,38 +26,26 @@ typedef struct dl_tls_index
   unsigned long int ti_offset;
 } tls_index;
 
+/* Dynamic thread vector pointers point to the start of each
+   TLS block.  */
+#define TLS_DTV_OFFSET 0
+
+/* Static TLS offsets are relative to the unadjusted thread pointer.  */
+#define TLS_TP_OFFSET 0
 
 #ifdef SHARED
 /* This is the prototype for the GNU version.  */
 extern void *___tls_get_addr (tls_index *ti)
      __attribute__ ((__regparm__ (1)));
-extern void *___tls_get_addr_internal (tls_index *ti)
-     __attribute__ ((__regparm__ (1))) attribute_hidden;
-
 # if IS_IN (rtld)
-/* The special thing about the x86 TLS ABI is that we have two
-   variants of the __tls_get_addr function with different calling
-   conventions.  The GNU version, which we are mostly concerned here,
-   takes the parameter in a register.  The name is changed by adding
-   an additional underscore at the beginning.  The Sun version uses
-   the normal calling convention.  */
-void *
-__tls_get_addr (tls_index *ti)
-{
-  return ___tls_get_addr_internal (ti);
-}
-
-
 /* Prepare using the definition of __tls_get_addr in the generic
    version of this file.  */
-# define __tls_get_addr __attribute__ ((__regparm__ (1))) ___tls_get_addr
-strong_alias (___tls_get_addr, ___tls_get_addr_internal)
-rtld_hidden_proto (___tls_get_addr)
-rtld_hidden_def (___tls_get_addr)
-#else
-
+# define __tls_get_addr \
+    __attribute__ ((__regparm__ (1))) ___tls_get_addr_internal
+# else
 /* Users should get the better interface.  */
-# define __tls_get_addr ___tls_get_addr
-
+#  define __tls_get_addr ___tls_get_addr
 # endif
 #endif
+
+#endif /* _DL_TLS_H */

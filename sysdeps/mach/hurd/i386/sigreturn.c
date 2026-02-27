@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,13 +15,13 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-register int *sp asm ("%esp");
-
 #include <hurd.h>
 #include <hurd/signal.h>
 #include <hurd/msg.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <cpuid.h>
 
 /* This is run on the thread stack after restoring it, to be able to
    unlock SS off sigstack.  */
@@ -54,28 +54,35 @@ __sigreturn2 (int *usp, struct sigcontext *scp)
                                  MACH_PORT_RIGHT_RECEIVE, -1);
   THREAD_SETMEM (THREAD_SELF, reply_port, scp->sc_reply_port);
 
-  sp = usp;
-#define A(line) asm volatile (#line)
-  /* The members in the sigcontext are arranged in this order
-     so we can pop them easily.  */
-
-  /* Pop the segment registers (except %cs and %ss, done last).  */
-  A (popl %gs);
-  A (popl %fs);
-  A (popl %es);
-  A (popl %ds);
-  /* Pop the general registers.  */
-  A (popa);
-  /* Pop the processor flags.  */
-  A (popf);
-  /* Return to the saved PC.  */
-  A (ret);
-
-  /* Firewall.  */
-  A (hlt);
-#undef A
-  __builtin_unreachable ();
+  void sigreturn2_trampoline (int *usp) __attribute__ ((__noreturn__));
+  sigreturn2_trampoline (usp);
 }
+
+asm("sigreturn2_trampoline:\n"
+
+    /* Restore thread stack */
+    "movl 4(%esp),%esp\n"
+
+    /* The members in the sigcontext are arranged in this order
+       so we can pop them easily.  */
+
+    /* Pop the segment registers (except %cs and %ss, done last).  */
+    "popl %gs\n"
+    "popl %fs\n"
+    "popl %es\n"
+    "popl %ds\n"
+
+    /* Pop the general registers.  */
+    "popa\n"
+
+    /* Pop the processor flags.  */
+    "popf\n"
+
+    /* Return to the saved PC.  */
+    "ret\n"
+
+    /* Firewall.  */
+    "hlt\n");
 
 int
 __sigreturn (struct sigcontext *scp)
@@ -118,10 +125,35 @@ __sigreturn (struct sigcontext *scp)
   if (scp->sc_onstack)
     ss->sigaltstack.ss_flags &= ~SS_ONSTACK;
 
-  if (scp->sc_fpused)
-    /* Restore the FPU state.  Mach conveniently stores the state
-       in the format the i387 `frstor' instruction uses to restore it.  */
-    asm volatile ("frstor %0" : : "m" (scp->sc_fpsave));
+#ifdef i386_XFLOAT_STATE
+  if (scp->xstate)
+    {
+      if (scp->xstate->initialized)
+	{
+	  unsigned eax, ebx, ecx, edx;
+	  __cpuid_count(0xd, 0, eax, ebx, ecx, edx);
+	  switch (scp->xstate->fp_save_kind)
+	    {
+	    case 0: // FNSAVE
+	      asm volatile("frstor %0" : : "m" (scp->xstate->hw_state));
+	      break;
+	    case 1: // FXSAVE
+	      asm volatile("fxrstor %0" : : "m" (scp->xstate->hw_state),    \
+			   "a" (eax), "d" (edx));
+	      break;
+	    default: // XSAVE, XSAVEOPT, XSAVEC, XSAVES
+	      asm volatile("xrstor %0" : : "m" (scp->xstate->hw_state),     \
+			   "a" (eax), "d" (edx));
+	      break;
+	    }
+	}
+    }
+  else
+#endif
+    if (scp->sc_fpused)
+      /* Restore the FPU state.  Mach conveniently stores the state
+         in the format the i387 `frstor' instruction uses to restore it.  */
+      asm volatile ("frstor %0" : : "m" (scp->sc_fpsave));
 
   {
     /* There are convenient instructions to pop state off the stack, so we
@@ -142,16 +174,21 @@ __sigreturn (struct sigcontext *scp)
     *--usp = 0;
     *--usp = (int) __sigreturn2;
 
-    /* Restore thread stack */
-    sp = usp;
-    /* Return into __sigreturn2.  */
-    asm volatile ("ret");
-    /* Firewall.  */
-    asm volatile ("hlt");
-  }
 
-  /* NOTREACHED */
-  return -1;
+    void sigreturn_trampoline (int *usp) __attribute__ ((__noreturn__));
+    sigreturn_trampoline (usp);
+  }
 }
+
+asm("sigreturn_trampoline:\n"
+
+    /* Restore thread stack */
+    "movl 4(%esp),%esp\n"
+
+    /* Return into __sigreturn2.  */
+    "ret\n"
+
+    /* Firewall.  */
+    "hlt\n");
 
 weak_alias (__sigreturn, sigreturn)

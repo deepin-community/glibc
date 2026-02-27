@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -151,7 +151,7 @@ main (int argc, char **argv)
       { 2, -12.8F, "degrees", "" },
       { 0, 0.0F, "", "" },
       { 3, 10.0F, "LBS", "fertilizer" },
-      { 3, 100.0F, "rgs", "energy" },
+      { 0, 0.0F, "", "" },
       { -1, 0.0F, "", "" }};
     size_t rounds = 0;
     float quant;

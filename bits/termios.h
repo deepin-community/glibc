@@ -1,5 +1,5 @@
 /* termios type and macro definitions.  4.4 BSD/generic GNU version.
-   Copyright (C) 1993-2023 Free Software Foundation, Inc.
+   Copyright (C) 1993-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,6 +19,8 @@
 #ifndef _TERMIOS_H
 # error "Never include <bits/termios.h> directly; use <termios.h> instead."
 #endif
+
+#include <bits/termios-baud.h>
 
 /* These macros are also defined in some <bits/ioctls.h> files (with
    numerically identical values), but this serves to shut up cpp's
@@ -105,7 +107,7 @@ typedef unsigned int tcflag_t;
 typedef unsigned char cc_t;
 
 /* Type of baud rate specifiers.  */
-typedef int speed_t;
+typedef unsigned int speed_t;
 
 /* Terminal control structure.  */
 struct termios
@@ -284,46 +286,16 @@ struct termios
   cc_t c_cc[NCCS];
 
   /* Input and output baud rates.  */
-  speed_t __ispeed, __ospeed;
-#define	B0	0		/* Hang up.  */
-#define	B50	50		/* 50 baud.  */
-#define	B75	75		/* 75 baud.  */
-#define	B110	110		/* 110 baud.  */
-#define	B134	134		/* 134.5 baud.  */
-#define	B150	150		/* 150 baud.  */
-#define	B200	200		/* 200 baud.  */
-#define	B300	300		/* 300 baud.  */
-#define	B600	600		/* 600 baud.  */
-#define	B1200	1200		/* 1200 baud.  */
-#define	B1800	1800		/* 1800 baud.  */
-#define	B2400	2400		/* 2400 baud.  */
-#define	B4800	4800		/* 4800 baud.  */
-#define	B9600	9600		/* 9600 baud.  */
-#define	B7200	7200		/* 7200 baud.  */
-#define	B14400	14400		/* 14400 baud.  */
-#define	B19200	19200		/* 19200 baud.  */
-#define	B28800	28800		/* 28800 baud.  */
-#define	B38400	38400		/* 38400 baud.  */
-#ifdef	__USE_MISC
-# define EXTA	19200
-# define EXTB	38400
-#endif
-#define	B57600	57600
-#define	B76800	76800
-#define	B115200	115200
-#define	B230400	230400
-#define	B460800	460800
-#define	B500000	500000
-#define	B576000	576000
-#define	B921600	921600
-#define	B1000000 1000000
-#define	B1152000 1152000
-#define	B1500000 1500000
-#define	B2000000 2000000
-#define	B2500000 2500000
-#define	B3000000 3000000
-#define	B3500000 3500000
-#define	B4000000 4000000
+  __extension__ union {
+    speed_t __ispeed;
+    speed_t c_ispeed;
+  };
+#define _HAVE_STRUCT_TERMIOS_C_ISPEED 1
+  __extension__ union {
+    speed_t __ospeed;
+    speed_t c_ospeed;
+  };
+#define _HAVE_STRUCT_TERMIOS_C_OSPEED 1
 };
 
 #define _IOT_termios /* Hurd ioctl type field.  */ \

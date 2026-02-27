@@ -1,5 +1,5 @@
 /* Basic test of stat with 64-bit time_t interfaces.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -52,6 +52,12 @@ fstat_check (int fd, const char *path, struct stat *st)
 static void
 fstatat_check (int fd, const char *path, struct stat *st)
 {
+  TEST_COMPARE (fstatat (fd, "", st, 0), -1);
+  TEST_COMPARE (errno, ENOENT);
+
+  TEST_COMPARE (fstatat (AT_FDCWD, "_non_existing_file", st, 0), -1);
+  TEST_COMPARE (errno, ENOENT);
+
   TEST_COMPARE (fstatat (fd, path, st, 0), 0);
 }
 

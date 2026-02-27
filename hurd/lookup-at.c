@@ -1,5 +1,5 @@
 /* Lookup helper function for Hurd implementation of *at functions.
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,7 +40,7 @@ __file_name_lookup_at (int fd, int at_flags,
   if (empty != 0 && file_name[0] == '\0')
     {
       enum retry_type doretry;
-      char retryname[1024];	/* XXX string_t LOSES! */
+      string_t retryname;
 
       err = HURD_DPORT_USE (fd, __dir_lookup (port, "", flags, mode,
 					      &doretry, retryname,

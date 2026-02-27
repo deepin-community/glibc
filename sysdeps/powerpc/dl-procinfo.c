@@ -1,5 +1,5 @@
 /* Data for processor capability information.  PowerPC version.
-   Copyright (C) 2005-2023 Free Software Foundation, Inc.
+   Copyright (C) 2005-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,6 +38,10 @@
        needed.
   */
 
+/* The total number of available bits (including those prior to
+   _DL_HWCAP_FIRST).  Some of these bits might not be used.  */
+#define _DL_HWCAP_COUNT         128
+
 #ifndef PROCINFO_CLASS
 # define PROCINFO_CLASS
 #endif
@@ -56,37 +60,6 @@ PROCINFO_CLASS struct cpu_features _dl_powerpc_cpu_features
 # else
 ,
 # endif
-#endif
-
-#if !defined PROCINFO_DECL && defined SHARED
-  ._dl_powerpc_cap_flags
-#else
-PROCINFO_CLASS const char _dl_powerpc_cap_flags[64][15]
-#endif
-#ifndef PROCINFO_DECL
-= {
-    "ppcle", "true_le", "", "",
-    "", "", "archpmu", "vsx",
-    "arch_2_06", "power6x", "dfp", "pa6t",
-    "arch_2_05", "ic_snoop", "smt", "booke",
-    "cellbe", "power5+", "power5", "power4",
-    "notb", "efpdouble", "efpsingle", "spe",
-    "ucache", "4xxmac", "mmu", "fpu",
-    "altivec", "ppc601", "ppc64", "ppc32",
-    "", "", "", "",
-    "", "", "", "",
-    "", "", "", "",
-    "", "", "", "",
-    "", "mma", "arch_3_1", "htm-no-suspend",
-    "scv", "darn", "ieee128", "arch_3_00",
-    "htm-nosc", "vcrypto", "tar", "isel",
-    "ebb", "dscr", "htm", "arch_2_07",
-  }
-#endif
-#if !defined SHARED || defined PROCINFO_DECL
-;
-#else
-,
 #endif
 
 #if !IS_IN (ldconfig)

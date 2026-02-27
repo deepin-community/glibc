@@ -1,5 +1,5 @@
 /* Conversion loop frame work.
-   Copyright (C) 1998-2023 Free Software Foundation, Inc.
+   Copyright (C) 1998-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -123,8 +123,7 @@
    `continue' must reach certain points.  */
 #define STANDARD_FROM_LOOP_ERR_HANDLER(Incr) \
   {									      \
-    result = __GCONV_ILLEGAL_INPUT;					      \
-									      \
+    result = __gconv_mark_illegal_input (step_data);			      \
     if (! ignore_errors_p ())						      \
       break;								      \
 									      \
@@ -142,12 +141,13 @@
    points.  */
 #define STANDARD_TO_LOOP_ERR_HANDLER(Incr) \
   {									      \
-    result = __GCONV_ILLEGAL_INPUT;					      \
-									      \
     if (irreversible == NULL)						      \
-      /* This means we are in call from __gconv_transliterate.  In this	      \
-	 case we are not doing any error recovery outself.  */		      \
-      break;								      \
+      {									      \
+	/* This means we are in call from __gconv_transliterate.  In this     \
+	   case we are not doing any error recovery ourselves.  */	      \
+	result = __gconv_mark_illegal_input (step_data);		      \
+	break;								      \
+      }									      \
 									      \
     /* If needed, flush any conversion state, so that __gconv_transliterate   \
        starts with current shift state.  */				      \
@@ -158,6 +158,8 @@
       result = __gconv_transliterate					      \
 	(step, step_data, *inptrp,					      \
 	 &inptr, inend, &outptr, irreversible);			      \
+    else								      \
+      result = __gconv_mark_illegal_input (step_data);			      \
 									      \
     REINIT_PARAMS;							      \
 									      \

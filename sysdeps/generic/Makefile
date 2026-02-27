@@ -1,4 +1,4 @@
-# Copyright (C) 1992-2023 Free Software Foundation, Inc.
+# Copyright (C) 1992-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,9 @@ CFLAGS-wordcopy.c += -Wno-uninitialized
 endif
 
 ifeq ($(subdir),elf)
+ifeq ($(enable-gsframe),yes)
+sysdep_routines += sframe-read sframe
+endif
 ifeq (yes:yes,$(build-shared):$(unwind-find-fde))
 # This is needed to support g++ v2 and v3.
 sysdep_routines += framestate unwind-pe

@@ -1,4 +1,4 @@
-/* Copyright (c) 1997-2023 Free Software Foundation, Inc.
+/* Copyright (c) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ nis_servstate (const nis_server *serv, const nis_tag *tags,
   nis_taglist taglist;
   nis_taglist tagres;
 
-  *result = 0;
+  *result = NULL;
   tagres.tags.tags_len = 0;
   tagres.tags.tags_val = NULL;
   taglist.tags.tags_len = numtags;

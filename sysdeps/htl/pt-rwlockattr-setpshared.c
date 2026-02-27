@@ -1,5 +1,5 @@
 /* pthread_rwlockattr_setpshared.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,9 +18,10 @@
 
 #include <pthread.h>
 #include <pt-internal.h>
+#include <shlib-compat.h>
 
 int
-pthread_rwlockattr_setpshared (pthread_rwlockattr_t *attr, int pshared)
+__pthread_rwlockattr_setpshared (pthread_rwlockattr_t *attr, int pshared)
 {
   switch (pshared)
     {
@@ -35,4 +36,10 @@ pthread_rwlockattr_setpshared (pthread_rwlockattr_t *attr, int pshared)
       return EINVAL;
     }
 }
+libc_hidden_def (__pthread_rwlockattr_setpshared)
+versioned_symbol (libc, __pthread_rwlockattr_setpshared, pthread_rwlockattr_setpshared, GLIBC_2_42);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_42)
+compat_symbol (libpthread, __pthread_rwlockattr_setpshared, pthread_rwlockattr_setpshared, GLIBC_2_12);
+#endif
 stub_warning (pthread_rwlockattr_setpshared)

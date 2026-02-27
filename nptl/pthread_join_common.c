@@ -1,5 +1,5 @@
 /* Common definition for pthread_{timed,try}join{_np}.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -47,6 +47,12 @@ __pthread_clockjoin_ex (pthread_t threadid, void **thread_return,
   /* Is the thread joinable?.  */
   if (IS_DETACHED (pd))
     /* We cannot wait for the thread.  */
+    return EINVAL;
+
+  /* Make sure the clock and time specified are valid.  */
+  if (abstime
+      && __glibc_unlikely (!futex_abstimed_supported_clockid (clockid)
+			   || ! valid_nanoseconds (abstime->tv_nsec)))
     return EINVAL;
 
   struct pthread *self = THREAD_SELF;

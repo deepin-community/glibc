@@ -43,12 +43,19 @@
 /* Define if the compiler supports __builtin_memset.  */
 #undef	HAVE_BUILTIN_MEMSET
 
-/* Define if compiler accepts -ftree-loop-distribute-patterns.  */
+/* Define if CC compiler accepts -ftree-loop-distribute-patterns.  */
 #undef  HAVE_CC_INHIBIT_LOOP_TO_LIBCALL
 
-/* Define if compiler accepts -fno-stack-protector in an
+/* Define if TEST_CC compiler accepts -ftree-loop-distribute-patterns.  */
+#undef  HAVE_TEST_CC_INHIBIT_LOOP_TO_LIBCALL
+
+/* Define if CC compiler accepts -fno-stack-protector in an
    __attribute__ ((__optimize__)).  */
 #undef	HAVE_CC_NO_STACK_PROTECTOR
+
+/* Define if TEST_CC compiler accepts -fno-stack-protector in an
+   __attribute__ ((__optimize__)).  */
+#undef	HAVE_TEST_CC_NO_STACK_PROTECTOR
 
 /* The level of stack protection in use for glibc as a whole.
    May be overridden on a file-by-file basis.  */
@@ -106,20 +113,6 @@
 /* AArch64 big endian ABI */
 #undef HAVE_AARCH64_BE
 
-/* AArch64 BTI support enabled.  */
-#define HAVE_AARCH64_BTI 0
-
-/* AArch64 PAC-RET code generation is enabled.  */
-#define HAVE_AARCH64_PAC_RET 0
-
-/* Assembler support ARMv8.2-A SVE.
-   This macro becomes obsolete when glibc increased the minimum
-   required version of GNU 'binutils' to 2.28 or later. */
-#define HAVE_AARCH64_SVE_ASM 0
-
-/* ARC big endian ABI */
-#undef HAVE_ARC_BE
-
 /* C-SKY ABI version.  */
 #undef CSKYABI
 
@@ -141,10 +134,11 @@
 /* LOONGARCH floating-point ABI for ld.so.  */
 #undef LOONGARCH_ABI_FRLEN
 
-/* Assembler support LoongArch LASX/LSX vector instructions.
-   This macro becomes obsolete when glibc increased the minimum
-   required version of GNU 'binutils' to 2.41 or later. */
-#define HAVE_LOONGARCH_VEC_ASM 0
+/* Define whether compiler support vector.  */
+#undef HAVE_LOONGARCH_VEC_COM
+
+/* Define whether ARM used hard-float and support VFPvX-D32.  */
+#undef HAVE_ARM_PCS_VFP_D32
 
 /* Linux specific: minimum supported kernel version.  */
 #undef	__LINUX_KERNEL_VERSION
@@ -158,11 +152,26 @@
 /* Mach specific: define if the `host_page_size' RPC is available.  */
 #undef	HAVE_HOST_PAGE_SIZE
 
+/* Mach specific: define if the `host_get_uptime64' RPC is available.  */
+#undef	HAVE_HOST_GET_UPTIME64
+
+/* Mach specific: define if the `host_get_time64' RPC is available.  */
+#undef	HAVE_HOST_GET_TIME64
+
+/* Mach specific: define if the `thread_set_name' RPC is available.  */
+#undef  HAVE_MACH_THREAD_SET_NAME
+
+/* Mach specific: define if the `thread_get_name' RPC is available.  */
+#undef  HAVE_MACH_THREAD_GET_NAME
+
 /* Mach/i386 specific: define if the `i386_io_perm_*' RPCs are available.  */
 #undef	HAVE_I386_IO_PERM_MODIFY
 
 /* Mach/i386 specific: define if the `i386_set_gdt' RPC is available.  */
 #undef	HAVE_I386_SET_GDT
+
+/* Hurd specific; define if the `proc_getchildren_rusage' RPC is available.  */
+#undef HAVE_HURD_PROC_GETCHILDREN_RUSAGE
 
 /* Define if inlined system calls are available.  */
 #undef HAVE_INLINED_SYSCALLS
@@ -239,10 +248,6 @@
 
 #ifdef	_LIBC
 
-/* The zic and zdump programs need these definitions.  */
-
-#define	HAVE_STRERROR	1
-
 /* The locale code needs these definitions.  */
 
 #define HAVE_REGEX 1
@@ -282,16 +287,25 @@
 /* Define if static PIE is enabled.  */
 #define ENABLE_STATIC_PIE 0
 
+/* Define if SFrame v2 is enabled.  */
+#define ENABLE_SFRAME 0
+
 /* The default value of x86 CET control.  */
 #define DEFAULT_DL_X86_CET_CONTROL cet_elf_property
 
 /* Define if x86 ISA level should be included in shared libraries.  */
 #undef INCLUDE_X86_ISA_LEVEL
 
+/* The x86 ISA level.  1 for baseline.  Undefined on non-x86.  */
+#undef MINIMUM_X86_ISA_LEVEL
+
 /* Define if -msahf is enabled by default on x86.  */
 #undef HAVE_X86_LAHF_SAHF
 
 /* Define if -mmovbe is enabled by default on x86.  */
 #undef HAVE_X86_MOVBE
+
+/* Define if -mapxf is enabled by default on x86.  */
+#undef HAVE_X86_APX
 
 #endif

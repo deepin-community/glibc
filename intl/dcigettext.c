@@ -1,5 +1,5 @@
 /* Implementation of the internal dcigettext function.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -374,34 +374,7 @@ static const char *get_output_charset (struct binding *domainbinding);
 #ifdef HAVE_ALLOCA
 /* Nothing has to be done.  */
 # define freea(p) /* nothing */
-# define ADD_BLOCK(list, address) /* nothing */
-# define FREE_BLOCKS(list) /* nothing */
 #else
-struct block_list
-{
-  void *address;
-  struct block_list *next;
-};
-# define ADD_BLOCK(list, addr)						      \
-  do {									      \
-    struct block_list *newp = (struct block_list *) malloc (sizeof (*newp));  \
-    /* If we cannot get a free block we cannot add the new element to	      \
-       the list.  */							      \
-    if (newp != NULL) {							      \
-      newp->address = (addr);						      \
-      newp->next = (list);						      \
-      (list) = newp;							      \
-    }									      \
-  } while (0)
-# define FREE_BLOCKS(list)						      \
-  do {									      \
-    while (list != NULL) {						      \
-      struct block_list *old = list;					      \
-      list = list->next;						      \
-      free (old->address);						      \
-      free (old);							      \
-    }									      \
-  } while (0)
 # undef alloca
 # define alloca(size) (malloc (size))
 # define freea(p) free (p)
@@ -483,17 +456,14 @@ DCIGETTEXT (const char *domainname, const char *msgid1, const char *msgid2,
 	    int plural, unsigned long int n, int category)
 #endif
 {
-#ifndef HAVE_ALLOCA
-  struct block_list *block_list = NULL;
-#endif
   struct loaded_l10nfile *domain;
   struct binding *binding;
   const char *categoryname;
   const char *categoryvalue;
   const char *dirname;
   char *xdirname = NULL;
-  char *xdomainname;
-  char *single_locale;
+  char *xdomainname = NULL;
+  char *single_locale = NULL;
   char *retval;
   size_t retlen;
   int saved_errno;
@@ -648,18 +618,19 @@ DCIGETTEXT (const char *domainname, const char *msgid1, const char *msgid2,
 #endif
 
   domainname_len = strlen (domainname);
-  xdomainname = (char *) alloca (strlen (categoryname)
+  xdomainname = (char *) malloc (strlen (categoryname)
 				 + domainname_len + 5);
-  ADD_BLOCK (block_list, xdomainname);
+  if (xdomainname == NULL)
+    goto return_untranslated;
 
   stpcpy ((char *) mempcpy (stpcpy (stpcpy (xdomainname, categoryname), "/"),
 			    domainname, domainname_len),
 	  ".mo");
 
   /* Creating working area.  */
-  single_locale = (char *) alloca (strlen (categoryvalue) + 1);
-  ADD_BLOCK (block_list, single_locale);
-
+  single_locale = (char *) malloc (strlen (categoryvalue) + 1);
+  if (single_locale == NULL)
+    goto return_untranslated;
 
   /* Search for the given string.  This is a loop because we perhaps
      got an ordered list of languages to consider for the translation.  */
@@ -687,13 +658,14 @@ DCIGETTEXT (const char *domainname, const char *msgid1, const char *msgid2,
 	  /* When this is a SUID binary we must not allow accessing files
 	     outside the dedicated directories.  */
 	  if (ENABLE_SECURE && IS_PATH_WITH_DIR (single_locale))
-	    /* Ingore this entry.  */
+	    /* Ignore this entry.  */
 	    continue;
 	}
 
-      /* If the current locale value is C (or POSIX) we don't load a
-	 domain.  Return the MSGID.  */
-      if (strcmp (single_locale, "C") == 0
+      /* If the current locale value is "C" or "C.<encoding>" or "POSIX",
+	 we don't load a domain.  Return the MSGID.  */
+      if ((single_locale[0] == 'C'
+	   && (single_locale[1] == '\0' || single_locale[1] == '.'))
 	  || strcmp (single_locale, "POSIX") == 0)
 	break;
 
@@ -747,7 +719,8 @@ DCIGETTEXT (const char *domainname, const char *msgid1, const char *msgid2,
 	      /* Found the translation of MSGID1 in domain DOMAIN:
 		 starting at RETVAL, RETLEN bytes.  */
 	      free (xdirname);
-	      FREE_BLOCKS (block_list);
+	      free (xdomainname);
+	      free (single_locale);
 	      if (foundp == NULL)
 		{
 		  /* Create a new entry and add it to the search tree.  */
@@ -831,7 +804,8 @@ DCIGETTEXT (const char *domainname, const char *msgid1, const char *msgid2,
  return_untranslated:
   /* Return the untranslated MSGID.  */
   free (xdirname);
-  FREE_BLOCKS (block_list);
+  free (xdomainname);
+  free (single_locale);
   gl_rwlock_unlock (_nl_state_lock);
 #ifdef _LIBC
   __libc_rwlock_unlock (__libc_setlocale_lock);
@@ -1560,8 +1534,12 @@ guess_category_value (int category, const char *categoryname)
      2. The precise output of some programs in the "C" locale is specified
 	by POSIX and should not depend on environment variables like
 	"LANGUAGE" or system-dependent information.  We allow such programs
-        to use gettext().  */
-  if (strcmp (locale, "C") == 0)
+        to use gettext().
+     Ignore LANGUAGE and its system-dependent analogon also if the locale is
+     set to "C.UTF-8" or, more generally, to "C.<encoding>", because that's
+     the by-design behaviour for glibc, see
+     <https://sourceware.org/glibc/wiki/Proposals/C.UTF-8>.  */
+  if (locale[0] == 'C' && (locale[1] == '\0' || locale[1] == '.'))
     return locale;
 
   /* The highest priority value is the value of the 'LANGUAGE' environment

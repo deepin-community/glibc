@@ -1,5 +1,5 @@
 /* gettimeofday - set time.  Linux version.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -31,23 +31,23 @@
 static int
 __gettimeofday_syscall (struct timeval *restrict tv, void *restrict tz)
 {
-  if (__glibc_unlikely (tz != 0))
+  if (__glibc_unlikely (tz != NULL))
     memset (tz, 0, sizeof *tz);
   return INLINE_SYSCALL_CALL (gettimeofday, tv, tz);
 }
 
 # undef INIT_ARCH
-# define INIT_ARCH() \
-  void *vdso_gettimeofday = dl_vdso_vsym (HAVE_GETTIMEOFDAY_VSYSCALL)
+# define INIT_ARCH()
 libc_ifunc (__gettimeofday,
-	    vdso_gettimeofday ? VDSO_IFUNC_RET (vdso_gettimeofday)
-			      : (void *) __gettimeofday_syscall)
+	    GLRO(dl_vdso_gettimeofday) != NULL
+	    ? VDSO_IFUNC_RET (GLRO(dl_vdso_gettimeofday))
+	    : (void *) __gettimeofday_syscall)
 
 # else
 int
 __gettimeofday (struct timeval *restrict tv, void *restrict tz)
 {
-  if (__glibc_unlikely (tz != 0))
+  if (__glibc_unlikely (tz != NULL))
     memset (tz, 0, sizeof *tz);
 
   return INLINE_VSYSCALL (gettimeofday, 2, tv, tz);

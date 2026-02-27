@@ -1,5 +1,5 @@
 /* Support code for testing libm functions (driver).
-   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -216,6 +216,17 @@ struct test_fl_f_data
   const char *arg_str;
   FLOAT arg1;
   long int arg2;
+  struct
+  {
+    FLOAT expected;
+    int exceptions;
+  } rd, rn, rz, ru;
+};
+struct test_fL_f_data
+{
+  const char *arg_str;
+  FLOAT arg1;
+  long long int arg2;
   struct
   {
     FLOAT expected;
@@ -544,6 +555,8 @@ struct test_Ff_b1_data
 #define RUN_TEST_LOOP_fi_f RUN_TEST_LOOP_2_f
 #define RUN_TEST_fl_f RUN_TEST_2_f
 #define RUN_TEST_LOOP_fl_f RUN_TEST_LOOP_2_f
+#define RUN_TEST_fL_f RUN_TEST_2_f
+#define RUN_TEST_LOOP_fL_f RUN_TEST_LOOP_2_f
 #define RUN_TEST_if_f RUN_TEST_2_f
 #define RUN_TEST_LOOP_if_f RUN_TEST_LOOP_2_f
 #define RUN_TEST_3_f(ARG_STR, FUNC_NAME, ARG1, ARG2, ARG3,		\
@@ -1083,9 +1096,9 @@ struct test_Ff_b1_data
     = STR_CON3 (FUN, SUFF, TEST_SUFF) TEST_SUFF_STR;		\
   init_max_error (this_func, EXACT, TEST_COND_any_ibm128)
 #define END					\
-  print_max_error (this_func)
+  check_max_error (this_func)
 #define END_COMPLEX				\
-  print_complex_max_error (this_func)
+  check_complex_max_error (this_func)
 
 /* Run tests for a given function in all rounding modes.  */
 #define ALL_RM_TEST(FUNC, EXACT, ARRAY, LOOP_MACRO, END_MACRO, ...)	\

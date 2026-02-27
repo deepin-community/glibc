@@ -38,7 +38,6 @@ debian/libc6-mipsn32.symbols.mipsel
 debian/libc6-mipsn32.symbols.mipsr6
 debian/libc6-mipsn32.symbols.mipsr6el
 debian/libc6-ppc64.symbols.powerpc
-debian/libc6-s390.symbols.s390x
 debian/libc6-sparc64.symbols.sparc
 debian/libc6-sparc.symbols.sparc64
 debian/libc6.symbols.amd64

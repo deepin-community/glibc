@@ -1,5 +1,5 @@
 /* Get file-specific information about a file.  Linux version.
-   Copyright (C) 1991-2023 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -185,6 +185,9 @@ __statfs_link_max (int result, const struct statfs *fsbuf, const char *file,
 
     case LUSTRE_SUPER_MAGIC:
       return LUSTRE_LINK_MAX;
+
+    case BTRFS_SUPER_MAGIC:
+      return BTRFS_LINK_MAX;
 
     default:
       return LINUX_LINK_MAX;

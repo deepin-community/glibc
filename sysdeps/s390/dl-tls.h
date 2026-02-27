@@ -1,5 +1,5 @@
 /* Thread-local storage handling in the ELF dynamic linker.  s390 version.
-   Copyright (C) 2003-2023 Free Software Foundation, Inc.
+   Copyright (C) 2003-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,8 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#ifndef _DL_TLS_H
+#define _DL_TLS_H
 
 /* Type used for the representation of TLS information in the GOT.  */
 typedef struct
@@ -24,6 +26,12 @@ typedef struct
   unsigned long int ti_offset;
 } tls_index;
 
+/* The DTV stores absolute addresses, but __tls_get_addr must return
+   TP-relative addresses.  */
+#define TLS_DTV_OFFSET (-(unsigned long int) __builtin_thread_pointer ())
+
+/* Static TLS offsets are relative to the unadjusted thread pointer.  */
+#define TLS_TP_OFFSET 0
 
 #ifdef SHARED
 
@@ -89,9 +97,6 @@ __tls_get_offset:\n\
 extern void *__tls_get_addr_internal (tls_index *ti);
 # endif /* !IS_IN (rtld) */
 
-# define GET_ADDR_OFFSET \
-  (ti->ti_offset - (unsigned long) __builtin_thread_pointer ())
-
 /* Use the privately exported __tls_get_addr_internal instead of
    __tls_get_offset in order to avoid the __tls_get_offset special
    linkage requiring the GOT pointer to be set up in r12.  The
@@ -102,3 +107,5 @@ extern void *__tls_get_addr_internal (tls_index *ti);
       + (unsigned long) __builtin_thread_pointer (); })
 
 #endif
+
+#endif /* _DL_TLS_H */

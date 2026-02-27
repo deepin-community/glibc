@@ -1,5 +1,5 @@
 /* FPU control word bits.  SPARC version.
-   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@
 #define _FPU_RC_ZERO    0x40000000
 #define _FPU_RC_NEAREST 0x0        /* RECOMMENDED */
 
-#define _FPU_RESERVED   0x30300000  /* Reserved bits in cw */
+#define _FPU_RESERVED   0x303e0000  /* Reserved bits in cw */
 
 
 /* Now two recommended cw */
@@ -61,7 +61,12 @@ typedef unsigned long int fpu_control_t;
 # define _FPU_GETCW(cw) __asm__ __volatile__ ("stx %%fsr,%0" : "=m" (*&cw))
 # define _FPU_SETCW(cw) __asm__ __volatile__ ("ldx %0,%%fsr" : : "m" (*&cw))
 #else
-# define _FPU_GETCW(cw) __asm__ __volatile__ ("st %%fsr,%0" : "=m" (*&cw))
+# ifdef __leon__
+   /* Prevent stfsr from being placed directly after other fp instruction.  */
+#  define _FPU_GETCW(cw) __asm__ __volatile__ ("nop; st %%fsr,%0" : "=m" (*&cw))
+# else
+#  define _FPU_GETCW(cw) __asm__ __volatile__ ("st %%fsr,%0" : "=m" (*&cw))
+# endif
 # define _FPU_SETCW(cw) __asm__ __volatile__ ("ld %0,%%fsr" : : "m" (*&cw))
 #endif
 

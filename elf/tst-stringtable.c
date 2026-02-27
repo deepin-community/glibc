@@ -1,5 +1,5 @@
 /* Unit test for ldconfig string tables.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,7 @@
 
 #include <array_length.h>
 #include <stdlib.h>
+#if __GNUC_PREREQ (5, 0)
 #include <string.h>
 #include <stringtable.h>
 #include <support/check.h>
@@ -179,3 +180,12 @@ do_test (void)
 #define _(arg) arg
 #include "stringtable.c"
 #include "stringtable_free.c"
+#else
+#include <support/test-driver.h>
+
+int
+main (void)
+{
+  return EXIT_UNSUPPORTED;
+}
+#endif

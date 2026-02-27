@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -57,10 +57,10 @@ ___pthread_cond_broadcast (pthread_cond_t *cond)
     {
       /* Add as many signals as the remaining size of the group.  */
       atomic_fetch_add_relaxed (cond->__data.__g_signals + g1,
-				cond->__data.__g_size[g1] << 1);
+				cond->__data.__g_size[g1]);
       cond->__data.__g_size[g1] = 0;
 
-      /* We need to wake G1 waiters before we quiesce G1 below.  */
+      /* We need to wake G1 waiters before we switch G1 below.  */
       /* TODO Only set it if there are indeed futex waiters.  We could
 	 also try to move this out of the critical section in cases when
 	 G2 is empty (and we don't need to quiesce).  */
@@ -69,11 +69,11 @@ ___pthread_cond_broadcast (pthread_cond_t *cond)
 
   /* G1 is complete.  Step (2) is next unless there are no waiters in G2, in
      which case we can stop.  */
-  if (__condvar_quiesce_and_switch_g1 (cond, wseq, &g1, private))
+  if (__condvar_switch_g1 (cond, wseq, &g1, private))
     {
       /* Step (3): Send signals to all waiters in the old G2 / new G1.  */
       atomic_fetch_add_relaxed (cond->__data.__g_signals + g1,
-				cond->__data.__g_size[g1] << 1);
+				cond->__data.__g_size[g1]);
       cond->__data.__g_size[g1] = 0;
       /* TODO Only set it if there are indeed futex waiters.  */
       do_futex_wake = true;

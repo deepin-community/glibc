@@ -175,7 +175,7 @@ extern __typeof (strnlen) strnlen attribute_hidden;
 extern __typeof (strsep) strsep attribute_hidden;
 #endif
 
-#if (!IS_IN (libc) || !defined SHARED) \
+#if (IS_IN (libc) || IS_IN (libpthread)) && !defined SHARED \
   && !defined NO_MEMPCPY_STPCPY_REDIRECT
 /* Redirect calls to __builtin_mempcpy and __builtin_stpcpy to call
    __mempcpy and __stpcpy if not inlined.  */
@@ -214,6 +214,8 @@ libc_hidden_builtin_proto (__memmove_chk)
 libc_hidden_builtin_proto (__mempcpy_chk)
 libc_hidden_builtin_proto (__memset_chk)
 libc_hidden_builtin_proto (__stpcpy_chk)
+libc_hidden_builtin_proto (__strncpy_chk)
+libc_hidden_builtin_proto (__strcpy_chk)
 
 #endif
 

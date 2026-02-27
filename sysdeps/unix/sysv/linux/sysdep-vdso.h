@@ -1,5 +1,5 @@
 /* vDSO common definition for Linux.
-   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+   Copyright (C) 2015-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -50,6 +50,18 @@
         sc_ret = -1L;							      \
       }									      \
   out:									      \
+    sc_ret;								      \
+  })
+
+#define INTERNAL_VSYSCALL(name, nr, args...)				      \
+  ({									      \
+    long int sc_ret = -ENOSYS;						      \
+									      \
+    __typeof (GLRO(dl_vdso_##name)) vdsop = GLRO(dl_vdso_##name);	      \
+    if (vdsop != NULL)							      \
+	sc_ret = INTERNAL_VSYSCALL_CALL (vdsop, nr, ##args);		      \
+    if (sc_ret == -ENOSYS)						      \
+	sc_ret = INTERNAL_SYSCALL_CALL (name, ##args);			      \
     sc_ret;								      \
   })
 

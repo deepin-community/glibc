@@ -2,10 +2,10 @@
 # thus should not be stripped
 unstripped-binary-or-object [*/libmcheck.a]
 
-# All functionality formerly implemented in the libraries libpthread, libdl,
-# libutil, libanl has been integrated into libc. For backwards compatibility,
-# empty static archives libpthread.a, libdl.a, libutil.a, libanl.a are
-# provided, so that the linker options keep working.
+# All functionality formerly implemented in the libraries libpthread,
+# libdl, libutil, libanl has been integrated into libc. For backwards
+# compatibility, empty static archives libpthread.a, libdl.a, libutil.a,
+# libanl.a are provided, so that the linker options keep working.
 no-code-sections [*/libanl.a]
 no-code-sections [*/libdl.a]
 no-code-sections [*/libpthread.a]

@@ -1,5 +1,5 @@
 /* Set up the data structures for the system-supplied DSO.
-   Copyright (C) 2012-2023 Free Software Foundation, Inc.
+   Copyright (C) 2012-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -51,9 +51,6 @@ setup_vdso (struct link_map *main_map __attribute__ ((unused)),
 		l->l_addr = ph->p_vaddr;
 	      if (ph->p_vaddr + ph->p_memsz >= l->l_map_end)
 		l->l_map_end = ph->p_vaddr + ph->p_memsz;
-	      if ((ph->p_flags & PF_X)
-		  && ph->p_vaddr + ph->p_memsz >= l->l_text_end)
-		l->l_text_end = ph->p_vaddr + ph->p_memsz;
 	    }
 	  else
 	    /* There must be no TLS segment.  */
@@ -62,7 +59,6 @@ setup_vdso (struct link_map *main_map __attribute__ ((unused)),
       l->l_map_start = (ElfW(Addr)) GLRO(dl_sysinfo_dso);
       l->l_addr = l->l_map_start - l->l_addr;
       l->l_map_end += l->l_addr;
-      l->l_text_end += l->l_addr;
       l->l_ld = (void *) ((ElfW(Addr)) l->l_ld + l->l_addr);
       elf_get_dynamic_info (l, false, false);
       _dl_setup_hash (l);
@@ -80,13 +76,14 @@ setup_vdso (struct link_map *main_map __attribute__ ((unused)),
 
       /* Now that we have the info handy, use the DSO image's soname
 	 so this object can be looked up by name.  */
-      if (l->l_info[DT_SONAME] != NULL)
-	{
-	  char *dsoname = ((char *) D_PTR (l, l_info[DT_STRTAB])
-			   + l->l_info[DT_SONAME]->d_un.d_val);
-	  l->l_libname->name = dsoname;
-	  l->l_name = dsoname;
-	}
+      {
+	const char *dsoname = l_soname (l);
+	if (dsoname != NULL)
+	  {
+	    l->l_libname->name = dsoname;
+	    l->l_name = (char *) dsoname;
+	  }
+      }
 
       /* Add the vDSO to the object list.  */
       _dl_add_to_namespace_list (l, LM_ID_BASE);
@@ -95,8 +92,8 @@ setup_vdso (struct link_map *main_map __attribute__ ((unused)),
       /* Rearrange the list so this DSO appears after rtld_map.  */
       assert (l->l_next == NULL);
       assert (l->l_prev == main_map);
-      GL(dl_rtld_map).l_next = l;
-      l->l_prev = &GL(dl_rtld_map);
+      _dl_rtld_map.l_next = l;
+      l->l_prev = &_dl_rtld_map;
       *first_preload = &l->l_next;
 # else
       GL(dl_nns) = 1;

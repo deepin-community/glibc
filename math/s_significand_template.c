@@ -1,5 +1,5 @@
 /* Return the mantissa of a floating-point number.
-   Copyright (C) 2018-2023 Free Software Foundation, Inc.
+   Copyright (C) 2018-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -30,4 +30,16 @@ M_DECL_FUNC (__significand) (FLOAT x)
 {
   return M_SUF (__ieee754_scalb) (x,(FLOAT) - M_SUF (__ilogb) (x));
 }
+
+/* Don't provide _FloatN aliases for significand which was originally
+   from BSD and never made in any standard.  */
+#undef libm_alias_float_other_r
+#define libm_alias_float_other_r(from, to, r)
+#undef libm_alias_double_other_r
+#define libm_alias_double_other_r(from, to, r)
+#undef libm_alias_ldouble_other_r
+#define libm_alias_ldouble_other_r(from, to, r)
+#undef libm_alias_float128_other_r
+#define libm_alias_float128_other_r(from, to, r)
+
 declare_mgen_alias (__significand, significand)

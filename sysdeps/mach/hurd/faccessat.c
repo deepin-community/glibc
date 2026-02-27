@@ -1,5 +1,5 @@
 /* Test for access to file, relative to open directory.  Hurd version.
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -183,6 +183,15 @@ __faccessat_common (int fd, const char *file, int type, int at_flags,
 	__mach_port_deallocate (__mach_task_self (), rcwdir);
       if (err)
 	return errfunc (err);
+    }
+
+  /* If all we wanted was to check for a file existing at the path,
+     then we already got our answer, and we don't need to call
+     file_check_access ().  */
+  if (type == F_OK)
+    {
+      __mach_port_deallocate (__mach_task_self (), io);
+      return 0;
     }
 
   /* Find out what types of access we are allowed to this file.  */

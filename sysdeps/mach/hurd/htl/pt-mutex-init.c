@@ -1,5 +1,5 @@
 /* pthread_mutex_init.  Hurd version.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 #include <pthreadP.h>
 #include "pt-mutex.h"
 #include <hurdlock.h>
+#include <shlib-compat.h>
 
 static const pthread_mutexattr_t dfl_attr = {
   .__prioceiling = 0,
@@ -54,6 +55,9 @@ __pthread_mutex_init (pthread_mutex_t *mtxp, const pthread_mutexattr_t *attrp)
 
   return 0;
 }
+libc_hidden_def (__pthread_mutex_init)
+versioned_symbol (libc, __pthread_mutex_init, pthread_mutex_init, GLIBC_2_21);
 
-weak_alias (__pthread_mutex_init, pthread_mutex_init)
-hidden_def (__pthread_mutex_init)
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_21)
+compat_symbol (libc, __pthread_mutex_init, pthread_mutex_init, GLIBC_2_12);
+#endif

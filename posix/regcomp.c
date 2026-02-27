@@ -1,5 +1,5 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
@@ -674,7 +674,7 @@ re_comp (const char *s)
     {
       if (!re_comp_buf.buffer)
 	return gettext ("No previous regular expression");
-      return 0;
+      return NULL;
     }
 
   if (re_comp_buf.buffer)
@@ -3301,8 +3301,11 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
 #ifdef RE_ENABLE_I18N
 					     mbcset, &coll_sym_alloc,
 #endif /* RE_ENABLE_I18N */
-					     start_elem.opr.name,
-					     nrules, table_size, symb_table, extra);
+					     start_elem.opr.name
+#ifdef _LIBC
+                         , nrules, table_size, symb_table, extra
+#endif
+                         );
 	      if (__glibc_unlikely (*err != REG_NOERROR))
 		goto parse_bracket_exp_free_return;
 	      break;
@@ -3384,6 +3387,7 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
     {
 #ifdef RE_ENABLE_I18N
       free_charset (mbcset);
+      mbcset = NULL;
 #endif
       /* Build a tree for simple bracket.  */
       br_token.type = SIMPLE_BRACKET;
@@ -3399,7 +3403,8 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
  parse_bracket_exp_free_return:
   re_free (sbcset);
 #ifdef RE_ENABLE_I18N
-  free_charset (mbcset);
+  if (__glibc_likely (mbcset != NULL))
+    free_charset (mbcset);
 #endif /* RE_ENABLE_I18N */
   return NULL;
 }

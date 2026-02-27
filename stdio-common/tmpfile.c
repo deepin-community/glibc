@@ -1,5 +1,5 @@
 /* Open a stdio stream on an anonymous temporary file.  Generic/POSIX version.
-   Copyright (C) 1991-2023 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "tmpdir.h"
 
 #include <iolibio.h>
 #define __fdopen _IO_fdopen

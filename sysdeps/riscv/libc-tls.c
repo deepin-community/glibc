@@ -1,5 +1,5 @@
 /* Thread-local storage handling in the ELF dynamic linker.  RISC-V version.
-   Copyright (C) 2011-2023 Free Software Foundation, Inc.
+   Copyright (C) 2011-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,5 +28,5 @@ void *
 __tls_get_addr (tls_index *ti)
 {
   dtv_t *dtv = THREAD_DTV ();
-  return (char *) dtv[1].pointer.val + GET_ADDR_OFFSET;
+  return (char *) dtv[1].pointer.val + ti->ti_offset + TLS_DTV_OFFSET;
 }

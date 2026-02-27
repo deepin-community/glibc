@@ -1,5 +1,5 @@
 /* Linux implementation for renameat2 function.
-   Copyright (C) 2018-2023 Free Software Foundation, Inc.
+   Copyright (C) 2018-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -82,7 +82,7 @@ static void
 check_size (const char *path, off64_t expected_size)
 {
   struct stat64 st;
-  xstat (path, &st);
+  xstat64 (path, &st);
   if (st.st_size != expected_size)
     FAIL_EXIT1 ("file \"%s\": expected size %lld, actual size %lld",
                 path, (unsigned long long int) expected_size,

@@ -1,5 +1,5 @@
 /* Optimized memcpy for Fujitsu A64FX processor.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -19,9 +19,6 @@
 
 #include <sysdep.h>
 
-#undef BTI_C
-#define BTI_C
-
 /* Assumptions:
  *
  * ARMv8.2-a, AArch64, unaligned accesses, sve
@@ -37,11 +34,6 @@
 #define tmp	x6
 #define vlen	x7
 #define vlen8	x8
-
-#if HAVE_AARCH64_SVE_ASM
-# if IS_IN (libc)
-#  define MEMCPY __memcpy_a64fx
-#  define MEMMOVE __memmove_a64fx
 
 	.arch armv8.2-a+sve
 
@@ -94,14 +86,7 @@
 	st1b	z7.b, p0, [dst, 7, mul vl]
 	.endm
 
-#undef BTI_C
-#define BTI_C
-
-ENTRY (MEMCPY)
-
-	PTR_ARG (0)
-	PTR_ARG (1)
-	SIZE_ARG (2)
+ENTRY (__memcpy_a64fx)
 
 	cntb	vlen
 	cmp	n, vlen, lsl 1
@@ -234,15 +219,10 @@ L(last_bytes):
 	st1b	z3.b, p0, [dstend, -1, mul vl]
 	ret
 
-END (MEMCPY)
-libc_hidden_builtin_def (MEMCPY)
+END (__memcpy_a64fx)
 
 
-ENTRY_ALIGN (MEMMOVE, 4)
-
-	PTR_ARG (0)
-	PTR_ARG (1)
-	SIZE_ARG (2)
+ENTRY_ALIGN (__memmove_a64fx, 4)
 
 	/* Fast case for up to 2 vectors.  */
 	cntb	vlen
@@ -307,7 +287,4 @@ L(full_overlap):
 	mov	dst, dstin
 	b	L(last_bytes)
 
-END (MEMMOVE)
-libc_hidden_builtin_def (MEMMOVE)
-# endif /* IS_IN (libc) */
-#endif /* HAVE_AARCH64_SVE_ASM */
+END (__memmove_a64fx)

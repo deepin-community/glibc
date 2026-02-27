@@ -1,16 +1,16 @@
-# translation of libc-2.31.9000.fr.po to Français
+# translation of libc-2.37.9000.fr.po to Français
 # Messages français pour GNU concernant libc.
 # Copyright © 2004, 2008, 2009 Free Software Foundation, Inc.
 # This file is distributed under the same license as the glibc package.
 # Michel Robitaille <robitail@IRO.UMontreal.CA>, traducteur depuis/since 1996.
 #
 # kerb <traduc@traduc.org>, 2008-2021.
-# Stéphane Aulery <lkppo@free.fr>, 2021.
+# Stéphane Aulery <lkppo@free.fr>, 2021, 2023.
 msgid ""
 msgstr ""
-"Project-Id-Version: libc-2.33.9000\n"
-"POT-Creation-Date: 2023-07-17 20:35+0200\n"
-"PO-Revision-Date: 2021-09-14 19:43+0200\n"
+"Project-Id-Version: libc-2.37.9000\n"
+"POT-Creation-Date: 2025-07-19 22:21+0200\n"
+"PO-Revision-Date: 2023-11-22 20:08+0100\n"
 "Last-Translator: Stéphane Aulery <lkppo@free.fr>\n"
 "Language-Team: French <traduc@traduc.org>\n"
 "Language: fr\n"
@@ -64,80 +64,62 @@ msgstr "Pour en savoir davantage, faites : «%s --help » ou «%s --usage».\n
 msgid "Report bugs to %s.\n"
 msgstr "Rapporter les anomalies à %s.\n"
 
-#: argp/argp-parse.c:101
+#: argp/argp-parse.c:86
 msgid "Give this help list"
 msgstr "Donne cette liste d'aide"
 
-#: argp/argp-parse.c:102
+#: argp/argp-parse.c:87
 msgid "Give a short usage message"
 msgstr "Donne un court message expliquant l'usage"
 
-#: argp/argp-parse.c:103 catgets/gencat.c:109 catgets/gencat.c:113
-#: iconv/iconv_prog.c:60 iconv/iconv_prog.c:61 nscd/nscd.c:106 nscd/nscd.c:110
-#: nss/makedb.c:121
+#: argp/argp-parse.c:88 catgets/gencat.c:110 catgets/gencat.c:114
+#: iconv/iconv_prog.c:61 iconv/iconv_prog.c:62 nscd/nscd.c:106 nscd/nscd.c:110
+#: nss/makedb.c:122
 msgid "NAME"
 msgstr "NOM"
 
-#: argp/argp-parse.c:104
+#: argp/argp-parse.c:89
 msgid "Set the program name"
 msgstr "Initialise le nom du programme"
 
-#: argp/argp-parse.c:105
+#: argp/argp-parse.c:90
 msgid "SECS"
 msgstr "SECS"
 
-#: argp/argp-parse.c:106
+#: argp/argp-parse.c:91
 msgid "Hang for SECS seconds (default 3600)"
 msgstr "Attend N secondes (3600 par défaut)"
 
-#: argp/argp-parse.c:167
+#: argp/argp-parse.c:152
 msgid "Print program version"
 msgstr "Affiche la version du programme"
 
-#: argp/argp-parse.c:183
+#: argp/argp-parse.c:168
 msgid "(PROGRAM ERROR) No version known!?"
 msgstr "(ERREUR DU PROGRAMME) Version inconnue ! ?"
 
-#: argp/argp-parse.c:623
+#: argp/argp-parse.c:608
 #, c-format
 msgid "%s: Too many arguments\n"
 msgstr "%s : Trop d'arguments\n"
 
-#: argp/argp-parse.c:766
+#: argp/argp-parse.c:754
 msgid "(PROGRAM ERROR) Option should have been recognized!?"
 msgstr "(ERREUR DU PROGRAMME) L'option aurait dû être reconnue ! ?"
 
-#: assert/assert-perr.c:35
-#, c-format
-msgid ""
-"%s%s%s:%u: %s%sUnexpected error: %s.\n"
-"%n"
-msgstr ""
-"%s%s%s : %u : %s%s Erreur imprévue: %s.\n"
-"%n"
-
-#: assert/assert.c:101
-#, c-format
-msgid ""
-"%s%s%s:%u: %s%sAssertion `%s' failed.\n"
-"%n"
-msgstr ""
-"%s%s%s :%u : %s%s l'assertion « %s » a échoué.\n"
-"%n"
-
-#: catgets/gencat.c:110
+#: catgets/gencat.c:111
 msgid "Create C header file NAME containing symbol definitions"
 msgstr "Création du NOM du fichier d'en-tête C contenant les définitions de symboles"
 
-#: catgets/gencat.c:112
+#: catgets/gencat.c:113
 msgid "Do not use existing catalog, force new output file"
 msgstr "Ne pas utiliser le catalogue existant, forcer la génération d'un autre fichier"
 
-#: catgets/gencat.c:113 nss/makedb.c:121
+#: catgets/gencat.c:114 nss/makedb.c:122
 msgid "Write output to file NAME"
 msgstr "Écrit en sortie dans le FICHIER"
 
-#: catgets/gencat.c:118
+#: catgets/gencat.c:119
 msgid ""
 "Generate message catalog.\vIf INPUT-FILE is -, input is read from standard input.  If OUTPUT-FILE\n"
 "is -, output is written to standard output.\n"
@@ -145,7 +127,7 @@ msgstr ""
 "Génère le catalogue de messages.\vSi le FICHIER_D_ENTRÉE est -, l'entrée est lue depuis l'entrée standard.\n"
 "Si le FICHIER_DE_SORTIE est -, la sortie est dirigée sur la sortie standard.\n"
 
-#: catgets/gencat.c:123
+#: catgets/gencat.c:124
 msgid ""
 "-o OUTPUT-FILE [INPUT-FILE]...\n"
 "[OUTPUT-FILE [INPUT-FILE]...]"
@@ -153,12 +135,12 @@ msgstr ""
 "-o FICHIER_DE_SORTIE [FICHIER_D_ENTRÉE]...\n"
 "[FICHIER_DE_SORTIE [FICHIER_D_ENTRÉE]...]"
 
-#: catgets/gencat.c:229 debug/pcprofiledump.c:208 elf/ldconfig.c:216
-#: elf/pldd.c:246 elf/sln.c:77 elf/sprof.c:371 iconv/iconv_prog.c:387
+#: catgets/gencat.c:230 debug/pcprofiledump.c:219 elf/ldconfig.c:216
+#: elf/pldd.c:246 elf/sln.c:77 elf/sprof.c:371 iconv/iconv_prog.c:374
 #: iconv/iconvconfig.c:380 locale/programs/locale.c:275
 #: locale/programs/localedef.c:437 login/programs/pt_chown.c:88
-#: malloc/memusagestat.c:564 nss/getent.c:961 nss/makedb.c:370
-#: posix/getconf.c:503
+#: malloc/memusagestat.c:564 nss/getent.c:961 nss/makedb.c:371
+#: posix/getconf.c:505
 #, c-format
 msgid ""
 "For bug reporting instructions, please see:\n"
@@ -167,12 +149,12 @@ msgstr ""
 "Pour les instructions de rapport de bug, SVP voyez là : \n"
 "%s.\n"
 
-#: catgets/gencat.c:245 debug/pcprofiledump.c:224 debug/xtrace.sh:63
+#: catgets/gencat.c:246 debug/pcprofiledump.c:235 debug/xtrace.sh:63
 #: elf/ldconfig.c:232 elf/ldd.bash.in:38 elf/pldd.c:262 elf/sotruss.sh:75
-#: elf/sprof.c:388 iconv/iconv_prog.c:404 iconv/iconvconfig.c:397
+#: elf/sprof.c:388 iconv/iconv_prog.c:391 iconv/iconvconfig.c:397
 #: locale/programs/locale.c:292 locale/programs/localedef.c:459
 #: login/programs/pt_chown.c:62 malloc/memusage.sh:70 malloc/memusagestat.c:582
-#: nscd/nscd.c:521 nss/getent.c:92 nss/makedb.c:386 posix/getconf.c:485
+#: nscd/nscd.c:521 nss/getent.c:92 nss/makedb.c:387 posix/getconf.c:487
 #, c-format
 msgid ""
 "Copyright (C) %s Free Software Foundation, Inc.\n"
@@ -184,96 +166,96 @@ msgstr ""
 "reproduction. AUCUNE garantie n'est donnée; tant pour des raisons\n"
 "COMMERCIALES que pour RÉPONDRE À UN BESOIN PARTICULIER.\n"
 
-#: catgets/gencat.c:250 debug/pcprofiledump.c:229 debug/xtrace.sh:67
-#: elf/ldconfig.c:237 elf/pldd.c:267 elf/sprof.c:394 iconv/iconv_prog.c:409
+#: catgets/gencat.c:251 debug/pcprofiledump.c:240 debug/xtrace.sh:67
+#: elf/ldconfig.c:237 elf/pldd.c:267 elf/sprof.c:394 iconv/iconv_prog.c:396
 #: iconv/iconvconfig.c:402 locale/programs/locale.c:297
 #: locale/programs/localedef.c:464 malloc/memusage.sh:74
-#: malloc/memusagestat.c:587 nscd/nscd.c:526 nss/getent.c:97 nss/makedb.c:391
-#: posix/getconf.c:490
+#: malloc/memusagestat.c:587 nscd/nscd.c:526 nss/getent.c:97 nss/makedb.c:392
+#: posix/getconf.c:492
 #, c-format
 msgid "Written by %s.\n"
 msgstr "Écrit par %s.\n"
 
-#: catgets/gencat.c:281
+#: catgets/gencat.c:282
 msgid "*standard input*"
 msgstr "*entrée standard*"
 
-#: catgets/gencat.c:287 iconv/iconv_charmap.c:172 iconv/iconv_prog.c:272
-#: nss/makedb.c:247
+#: catgets/gencat.c:288 iconv/iconv_charmap.c:172 iconv/iconv_prog.c:279
+#: iconv/iconv_prog.c:432 nss/makedb.c:248
 #, c-format
 msgid "cannot open input file `%s'"
 msgstr "ne peut ouvrir le fichier d'entrée « %s »"
 
-#: catgets/gencat.c:416 catgets/gencat.c:491
+#: catgets/gencat.c:417 catgets/gencat.c:492
 msgid "illegal set number"
 msgstr "numéro d'ensemble non permis"
 
-#: catgets/gencat.c:443
+#: catgets/gencat.c:444
 msgid "duplicate set definition"
 msgstr "double définitions d'ensemble"
 
-#: catgets/gencat.c:445 catgets/gencat.c:617 catgets/gencat.c:669
+#: catgets/gencat.c:446 catgets/gencat.c:618 catgets/gencat.c:670
 msgid "this is the first definition"
 msgstr "ceci est la première définition"
 
-#: catgets/gencat.c:516
+#: catgets/gencat.c:517
 #, c-format
 msgid "unknown set `%s'"
 msgstr "ensemble inconnu « %s »"
 
-#: catgets/gencat.c:557
+#: catgets/gencat.c:558
 msgid "invalid quote character"
 msgstr "caractère de citation (quote) invalide"
 
-#: catgets/gencat.c:570
+#: catgets/gencat.c:571
 #, c-format
 msgid "unknown directive `%s': line ignored"
 msgstr "directive inconnue « %s » : ligne ignorée"
 
-#: catgets/gencat.c:615
+#: catgets/gencat.c:616
 msgid "duplicated message number"
 msgstr "numéro de message en double"
 
-#: catgets/gencat.c:666
+#: catgets/gencat.c:667
 msgid "duplicated message identifier"
 msgstr "identifiant de message en double"
 
-#: catgets/gencat.c:723
+#: catgets/gencat.c:724
 msgid "invalid character: message ignored"
 msgstr "caractère invalide : message ignoré"
 
-#: catgets/gencat.c:766
+#: catgets/gencat.c:767
 msgid "invalid line"
 msgstr "ligne invalide"
 
-#: catgets/gencat.c:820
+#: catgets/gencat.c:821
 msgid "malformed line ignored"
 msgstr "ligne incorrecte ignorée"
 
-#: catgets/gencat.c:982 catgets/gencat.c:1023
+#: catgets/gencat.c:1000 catgets/gencat.c:1045
 #, c-format
 msgid "cannot open output file `%s'"
 msgstr "ne peut ouvrir le fichier de sortie « %s »"
 
-#: catgets/gencat.c:1185 locale/programs/linereader.c:588
+#: catgets/gencat.c:1210 locale/programs/linereader.c:588
 msgid "invalid escape sequence"
 msgstr "séquence d'échappement invalide"
 
-#: catgets/gencat.c:1209
+#: catgets/gencat.c:1234
 msgid "unterminated message"
 msgstr "message non terminé"
 
-#: catgets/gencat.c:1233
+#: catgets/gencat.c:1258
 #, c-format
 msgid "while opening old catalog file"
 msgstr "lors de l'ouverture de l'ancien fichier catalogue"
 
-#: catgets/gencat.c:1324
+#: catgets/gencat.c:1349
 #, c-format
 msgid "conversion modules not available"
 msgstr "modules de conversion indisponibles"
 
-#: catgets/gencat.c:1350
+#: catgets/gencat.c:1375
 #, c-format
 msgid "cannot determine escape character"
 msgstr "ne peut déterminer le caractère d'échappement"
@@ -290,17 +272,17 @@ msgstr "Affiche les informations générés par profilage PC."
 msgid "[FILE]"
 msgstr "[FICHIER]"
 
-#: debug/pcprofiledump.c:107
-#, c-format
-msgid "cannot open input file"
-msgstr "ne peut ouvrir le fichier en entrée"
-
-#: debug/pcprofiledump.c:114
+#: debug/pcprofiledump.c:97
 #, c-format
 msgid "cannot read header"
 msgstr "ne peut lire l'en-tête"
 
-#: debug/pcprofiledump.c:178
+#: debug/pcprofiledump.c:145
+#, c-format
+msgid "cannot open input file"
+msgstr "ne peut ouvrir le fichier en entrée"
+
+#: debug/pcprofiledump.c:189
 #, c-format
 msgid "invalid pointer size"
 msgstr "taille de pointeur invalide"
@@ -383,72 +365,72 @@ msgstr "mode invalide"
 msgid "invalid mode parameter"
 msgstr "paramètre de mode invalide"
 
-#: elf/cache.c:276
+#: elf/cache.c:273
 #, c-format
 msgid "Cache file has wrong endianness.\n"
 msgstr "Boutisme incorrect du fichier de cache.\n"
 
-#: elf/cache.c:285
+#: elf/cache.c:282
 msgid "Cache generated by: "
 msgstr "Cache généré par : "
 
-#: elf/cache.c:299 elf/ldconfig.c:1223
+#: elf/cache.c:296 elf/ldconfig.c:1238
 #, c-format
 msgid "Can't open cache file %s\n"
 msgstr "Ne peut ouvrir le fichier de cache %s\n"
 
-#: elf/cache.c:313
+#: elf/cache.c:310
 #, c-format
 msgid "mmap of cache file failed.\n"
 msgstr "la procédure mmap sur le fichier de cache a échouée\n"
 
-#: elf/cache.c:317 elf/cache.c:331 elf/cache.c:342
+#: elf/cache.c:314 elf/cache.c:328 elf/cache.c:339
 #, c-format
 msgid "File is not a cache file.\n"
 msgstr "Fichier n'est pas un fichier de cache.\n"
 
-#: elf/cache.c:371 elf/cache.c:386
+#: elf/cache.c:368 elf/cache.c:383
 #, c-format
 msgid "%d libs found in cache `%s'\n"
 msgstr "%d libs trouvé dans le cache « %s »\n"
 
-#: elf/cache.c:384
+#: elf/cache.c:381
 #, c-format
 msgid "Malformed extension data in cache file %s\n"
 msgstr "Extension incorrecte dans le fichier de cache %s\n"
 
-#: elf/cache.c:513
+#: elf/cache.c:510
 #, c-format
 msgid "Writing of cache extension data failed"
 msgstr "Échec d'écriture des données d'extension du cache"
 
-#: elf/cache.c:524
+#: elf/cache.c:521
 #, c-format
 msgid "%s: ISA level is too high (%d > %d)"
 msgstr "%s: niveau ISA trop haut (%d > %d)"
 
-#: elf/cache.c:688
+#: elf/cache.c:685
 #, c-format
 msgid "Can't create temporary cache file %s"
 msgstr "Ne peut créer un fichier de cache temporaire %s"
 
-#: elf/cache.c:696 elf/cache.c:706 elf/cache.c:710 elf/cache.c:715
-#: elf/cache.c:734
+#: elf/cache.c:693 elf/cache.c:703 elf/cache.c:707 elf/cache.c:712
+#: elf/cache.c:731
 #, c-format
 msgid "Writing of cache data failed"
 msgstr "Échec d'écriture des données du cache"
 
-#: elf/cache.c:729
+#: elf/cache.c:726
 #, c-format
 msgid "Changing access rights of %s to %#o failed"
 msgstr "Échec de la modification des droits d'accès de %s à %#o"
 
-#: elf/cache.c:738
+#: elf/cache.c:735
 #, c-format
 msgid "Renaming of %s to %s failed"
 msgstr "Échec du changement de nom de %s vers %s"
 
-#: elf/cache.c:768
+#: elf/cache.c:765
 #, c-format
 msgid "Could not create library path"
 msgstr "Impossible de créer le chemin de bibliothèque"
@@ -461,11 +443,11 @@ msgstr "erreur lors du chargement des librairies partagées"
 msgid "DYNAMIC LINKER BUG!!!"
 msgstr "PROBLÈME DANS LE CHARGEUR DE LIENS DYNAMIQUES!!!"
 
-#: elf/dl-close.c:346 elf/dl-open.c:298
+#: elf/dl-close.c:363 elf/dl-open.c:297
 msgid "cannot create scope list"
 msgstr "ne peut créer une liste panorama"
 
-#: elf/dl-close.c:775
+#: elf/dl-close.c:790
 msgid "shared object not open"
 msgstr "objet partagé non ouvert"
 
@@ -494,179 +476,167 @@ msgstr "ne peut allouer une liste de dépendances"
 msgid "cannot allocate symbol search list"
 msgstr "ne peut allouer la liste des symboles à rechercher"
 
-#: elf/dl-fptr.c:88 sysdeps/hppa/dl-fptr.c:96
-msgid "cannot map pages for fdesc table"
-msgstr "ne peut faire correspondre les pages pour la table fdesc "
-
-#: elf/dl-fptr.c:192 sysdeps/hppa/dl-fptr.c:214
-msgid "cannot map pages for fptr table"
-msgstr "ne peut faire correspondre les pages pour la table fptr"
-
-#: elf/dl-fptr.c:221 sysdeps/hppa/dl-fptr.c:243
-msgid "internal error: symidx out of range of fptr table"
-msgstr "erreur interne : symidx en dehors de la table fptr "
-
-#: elf/dl-hwcaps.c:104
+#: elf/dl-hwcaps.c:103
 msgid "cannot create HWCAP priorities"
 msgstr "impossible de créer les priorités HWCAP"
 
-#: elf/dl-hwcaps.c:196
+#: elf/dl-hwcaps.c:195
 msgid "cannot create capability list"
 msgstr "ne peut créer une liste des possibilités"
 
-#: elf/dl-load.c:434
+#: elf/dl-load.c:424
 msgid "cannot allocate name record"
 msgstr "ne peut allouer un enregistrement de nom"
 
-#: elf/dl-load.c:536 elf/dl-load.c:649 elf/dl-load.c:743 elf/dl-load.c:840
+#: elf/dl-load.c:510 elf/dl-load.c:623 elf/dl-load.c:717 elf/dl-load.c:814
 msgid "cannot create cache for search path"
 msgstr "ne peut créer le cache pour le chemin de recherche"
 
-#: elf/dl-load.c:632
+#: elf/dl-load.c:606
 msgid "cannot create RUNPATH/RPATH copy"
 msgstr "ne peut créer une copie RUNPATH/RPATH"
 
-#: elf/dl-load.c:729
+#: elf/dl-load.c:703
 msgid "cannot create search path array"
 msgstr "ne peut créer un tableau des chemins de recherche"
 
-#: elf/dl-load.c:968
+#: elf/dl-load.c:978
 msgid "cannot stat shared object"
 msgstr "ne peut évaluer par stat() l'objet partagé"
 
-#: elf/dl-load.c:1059 elf/dl-load.c:2219
+#: elf/dl-load.c:1071 elf/dl-load.c:2155
 msgid "cannot create shared object descriptor"
 msgstr "ne peut créer un descripteur d'objet partagé"
 
-#: elf/dl-load.c:1078 elf/dl-load.c:1655 elf/dl-load.c:1763
+#: elf/dl-load.c:1090 elf/dl-load.c:1605 elf/dl-load.c:1711
 msgid "cannot read file data"
 msgstr "ne peut lire les données du fichier"
 
-#: elf/dl-load.c:1223
+#: elf/dl-load.c:1235
 msgid "object file has no loadable segments"
 msgstr "le fichier objet n'a pas de segment chargeable"
 
-#: elf/dl-load.c:1240
+#: elf/dl-load.c:1252
 msgid "cannot dynamically load executable"
 msgstr "ne peut dynamiquement charger un exécutable"
 
-#: elf/dl-load.c:1247
+#: elf/dl-load.c:1259
 msgid "object file has no dynamic section"
 msgstr "le fichier objet n'a pas de section dynamique"
 
-#: elf/dl-load.c:1282
+#: elf/dl-load.c:1294
 msgid "cannot dynamically load position-independent executable"
 msgstr "ne peut dynamiquement charger l'exécutable indépendant de la position"
 
-#: elf/dl-load.c:1284
+#: elf/dl-load.c:1296
 msgid "shared object cannot be dlopen()ed"
 msgstr "l'objet partagé ne peut pas être ouvert via dlopen()"
 
-#: elf/dl-load.c:1297
+#: elf/dl-load.c:1309
 msgid "cannot allocate memory for program header"
 msgstr "ne peut allouer de la mémoire pour une en-tête de programme"
 
-#: elf/dl-load.c:1330 elf/dl-load.h:131
-msgid "cannot change memory protections"
-msgstr "ne peut modifier les protections de mémoire"
-
-#: elf/dl-load.c:1354
+#: elf/dl-load.c:1334
 msgid "cannot enable executable stack as shared object requires"
 msgstr "ne peut activer une pile exécutable comme l'objet partagé le requiert"
 
-#: elf/dl-load.c:1382
+#: elf/dl-load.c:1362
 msgid "cannot close file descriptor"
 msgstr "ne peut pas fermer le descripteur de fichier"
 
-#: elf/dl-load.c:1655
+#: elf/dl-load.c:1605
 msgid "file too short"
 msgstr "fichier trop court"
 
-#: elf/dl-load.c:1691
+#: elf/dl-load.c:1639
 msgid "invalid ELF header"
 msgstr "en-tête ELF invalide"
 
-#: elf/dl-load.c:1706
+#: elf/dl-load.c:1654
 msgid "ELF file data encoding not big-endian"
 msgstr "l'encodage des données du fichier ELF n'est pas big-endian"
 
-#: elf/dl-load.c:1708
+#: elf/dl-load.c:1656
 msgid "ELF file data encoding not little-endian"
 msgstr "l'encodage des données du fichier ELF n'est pas little-endian"
 
-#: elf/dl-load.c:1712
+#: elf/dl-load.c:1660
 msgid "ELF file version ident does not match current one"
 msgstr "l'identifiant de version du fichier ELF ne concorde pas avec la version courante"
 
-#: elf/dl-load.c:1716
+#: elf/dl-load.c:1664
 msgid "ELF file OS ABI invalid"
 msgstr "Système d'exploitation du fichier ELF ABI invalide"
 
-#: elf/dl-load.c:1719
+#: elf/dl-load.c:1667
 msgid "ELF file ABI version invalid"
 msgstr "Version du fichier ELF ABI invalide"
 
-#: elf/dl-load.c:1722
+#: elf/dl-load.c:1670
 msgid "nonzero padding in e_ident"
 msgstr "remplissage sans zéro dans e_ident"
 
-#: elf/dl-load.c:1725
+#: elf/dl-load.c:1673
 msgid "internal error"
 msgstr "Erreur interne"
 
-#: elf/dl-load.c:1732
+#: elf/dl-load.c:1680
 msgid "ELF file version does not match current one"
 msgstr "Version du fichier ELF ne concorde pas avec la version courante"
 
-#: elf/dl-load.c:1744
+#: elf/dl-load.c:1692
 msgid "only ET_DYN and ET_EXEC can be loaded"
 msgstr "Seuls ET_DYN et ET_EXEC peuvent être chargés"
 
-#: elf/dl-load.c:1749
+#: elf/dl-load.c:1697
 msgid "ELF file's phentsize not the expected size"
 msgstr "« Phentize » du fichier ELF ne concorde pas avec la taille prévue"
 
-#: elf/dl-load.c:2238
+#: elf/dl-load.c:2174
 msgid "wrong ELF class: ELFCLASS64"
 msgstr "mauvaise classe ELF : ELFCLASS64"
 
-#: elf/dl-load.c:2239
+#: elf/dl-load.c:2175
 msgid "wrong ELF class: ELFCLASS32"
 msgstr "mauvaise classe ELF : ELFCLASS32"
 
-#: elf/dl-load.c:2242
+#: elf/dl-load.c:2178
 msgid "cannot open shared object file"
 msgstr "Ne peut ouvrir le fichier d'objet partagé"
 
-#: elf/dl-load.h:129
+#: elf/dl-load.h:126
 msgid "failed to map segment from shared object"
 msgstr "échec d'adressage (mapping) du segment de l'objet partagé"
 
-#: elf/dl-load.h:133
+#: elf/dl-load.h:128
+msgid "cannot change memory protections"
+msgstr "ne peut modifier les protections de mémoire"
+
+#: elf/dl-load.h:130
 msgid "cannot map zero-fill pages"
 msgstr "ne peut adresser des pages remplies de zéros"
 
-#: elf/dl-lookup.c:814
+#: elf/dl-lookup.c:810
 msgid "symbol lookup error"
 msgstr "erreur de recherche de symbole"
 
-#: elf/dl-open.c:84
+#: elf/dl-open.c:83
 msgid "cannot extend global scope"
 msgstr "ne peut augmenter l'étendue de la plage globale"
 
-#: elf/dl-open.c:405
+#: elf/dl-open.c:381
 msgid "TLS generation counter wrapped!  Please report this."
 msgstr "Le compteur de génération TLS a bouclé ! SVP expédier un rapport avec le script 'glibcbug'."
 
-#: elf/dl-open.c:829
+#: elf/dl-open.c:817
 msgid "invalid mode for dlopen()"
 msgstr "mode invalide pour dlopen()"
 
-#: elf/dl-open.c:846
+#: elf/dl-open.c:834
 msgid "no more namespaces available for dlmopen()"
 msgstr "plus d'espace de nommage disponible pour dlmopen()"
 
-#: elf/dl-open.c:871
+#: elf/dl-open.c:859
 msgid "invalid target namespace in dlmopen()"
 msgstr "espace de nommage cible invalide dans dlmopen()"
 
@@ -674,16 +644,16 @@ msgstr "espace de nommage cible invalide dans dlmopen()"
 msgid "cannot allocate memory in static TLS block"
 msgstr "ne peut allouer de la mémoire dans un bloc statique TLS"
 
-#: elf/dl-reloc.c:288
+#: elf/dl-reloc.c:283
 msgid "cannot make segment writable for relocation"
 msgstr "ne peut rendre le segment inscriptible pour une réaffectation"
 
-#: elf/dl-reloc.c:319
+#: elf/dl-reloc.c:313
 #, c-format
 msgid "%s: out of memory to store relocation results for %s\n"
 msgstr "%s : manque de mémoire pour stocker les résultats de la réaffectation pour %s\n"
 
-#: elf/dl-reloc.c:335
+#: elf/dl-reloc.c:328
 msgid "cannot restore segment prot after reloc"
 msgstr "ne peut restaurer le segment prot après reloc"
 
@@ -695,7 +665,7 @@ msgstr "ne peut appliquer les protections additionnelle de mémoire après la r�
 msgid "RTLD_NEXT used in code not dynamically loaded"
 msgstr "RTLD_NEXT est utilisé dans du code qui n'est pas chargé dynamiquement"
 
-#: elf/dl-tls.c:1044
+#: elf/dl-tls.c:1209
 msgid "cannot create TLS data structures"
 msgstr "ne peut créer les structures de données TLS"
 
@@ -829,7 +799,7 @@ msgstr " (ESCAMOTÉ)\n"
 msgid "Can't find %s"
 msgstr "Ne peut repérer %s"
 
-#: elf/ldconfig.c:600 elf/ldconfig.c:744 elf/ldconfig.c:811
+#: elf/ldconfig.c:600 elf/ldconfig.c:759 elf/ldconfig.c:826
 #, c-format
 msgid "Cannot lstat %s"
 msgstr "Ne peut évaluer par lstat %s"
@@ -844,74 +814,74 @@ msgstr "A ignoré le fichier %s parce que ce n'est pas un fichier régulier."
 msgid "No link created since soname could not be found for %s"
 msgstr "Aucun lien créé étant donné que n'a pas été repéré %s"
 
-#: elf/ldconfig.c:675
+#: elf/ldconfig.c:700
 #, c-format
 msgid " (from %s:%d)\n"
 msgstr " (de %s:%d)\n"
 
-#: elf/ldconfig.c:690
+#: elf/ldconfig.c:715
 #, c-format
 msgid "Can't open directory %s"
 msgstr "Ne peut ouvrir le dossier %s"
 
-#: elf/ldconfig.c:761 elf/ldconfig.c:799 elf/readlib.c:78
+#: elf/ldconfig.c:776 elf/ldconfig.c:814 elf/readlib.c:81
 #, c-format
 msgid "Input file %s not found.\n"
 msgstr "Fichier d'entrée %s non repéré\n"
 
-#: elf/ldconfig.c:768
+#: elf/ldconfig.c:783
 #, c-format
 msgid "Cannot stat %s"
 msgstr "Ne peut évaluer par stat %s"
 
-#: elf/ldconfig.c:887
+#: elf/ldconfig.c:902
 #, c-format
 msgid "libc6 library %s in wrong directory"
 msgstr "librairie libc6 %s est dans le mauvais dossier"
 
-#: elf/ldconfig.c:906
+#: elf/ldconfig.c:921
 #, c-format
 msgid "libraries %s and %s in directory %s have same soname but different type."
 msgstr "Les librairies %s et %s du dossier %s ont le même nom mais sont de types différents."
 
-#: elf/ldconfig.c:1035
+#: elf/ldconfig.c:1050
 #, c-format
 msgid "Warning: ignoring configuration file that cannot be opened: %s"
 msgstr "Attention : ignore tout fichier de configuration qui ne peut s'ouvrir : %s"
 
-#: elf/ldconfig.c:1083
+#: elf/ldconfig.c:1098
 #, c-format
 msgid "%s:%u: hwcap directive ignored"
 msgstr "%s:%u: directive hwcap ignorée"
 
-#: elf/ldconfig.c:1102
+#: elf/ldconfig.c:1117
 #, c-format
 msgid "need absolute file name for configuration file when using -r"
 msgstr "nécessite un nom de fichier absolu pour le fichier de configuration quand on utilise -r"
 
-#: elf/ldconfig.c:1109 locale/programs/xasprintf.c:31
+#: elf/ldconfig.c:1124 locale/programs/xasprintf.c:31
 #: locale/programs/xmalloc.c:63 malloc/obstack.c:416 malloc/obstack.c:418
-#: posix/getconf.c:458 posix/getconf.c:697
+#: posix/getconf.c:460 posix/getconf.c:699
 #, c-format
 msgid "memory exhausted"
 msgstr "mémoire épuisée"
 
-#: elf/ldconfig.c:1142
+#: elf/ldconfig.c:1157
 #, c-format
 msgid "%s:%u: cannot read directory %s"
 msgstr "%s:%u : ne peut lire le dossier %s"
 
-#: elf/ldconfig.c:1180
+#: elf/ldconfig.c:1195
 #, c-format
 msgid "relative path `%s' used to build cache"
 msgstr "chemin relatif `%s' utilisé pour construire le cache"
 
-#: elf/ldconfig.c:1202
+#: elf/ldconfig.c:1217
 #, c-format
 msgid "Can't chdir to /"
 msgstr "Ne peut se positionner (chdir) dans /"
 
-#: elf/ldconfig.c:1243
+#: elf/ldconfig.c:1258
 #, c-format
 msgid "Can't open cache file directory %s\n"
 msgstr "Ne peut ouvrir le dossier des fichiers de cache %s\n"
@@ -959,7 +929,7 @@ msgstr "arguments de fichier manquants"
 #. TRANS expected to already exist.
 #: elf/ldd.bash.in:147 sysdeps/gnu/errlist.h:13
 msgid "No such file or directory"
-msgstr "Aucun fichier ou dossier de ce type"
+msgstr "Aucun fichier ou dossier de ce nom"
 
 #: elf/ldd.bash.in:150 inet/rcmd.c:483
 msgid "not regular file"
@@ -1109,27 +1079,27 @@ msgstr "%s n'est pas un fichier objet partagé (Type : %d).\n"
 msgid "more than one dynamic segment\n"
 msgstr "plus d'un segment dynamique\n"
 
-#: elf/readlib.c:84
+#: elf/readlib.c:87
 #, c-format
 msgid "Cannot fstat file %s.\n"
 msgstr "Ne peut évaluer par fstat() %s\n"
 
-#: elf/readlib.c:95
+#: elf/readlib.c:98
 #, c-format
 msgid "File %s is empty, not checked."
 msgstr "Fichier %s est vide, n'a pas été vérifié."
 
-#: elf/readlib.c:101
+#: elf/readlib.c:104
 #, c-format
 msgid "File %s is too small, not checked."
 msgstr "Fichier %s trop petit, n'a pas été vérifié."
 
-#: elf/readlib.c:111
+#: elf/readlib.c:114
 #, c-format
 msgid "Cannot mmap file %s.\n"
 msgstr "Erreur de la procédure mmap sur le fichier %s\n"
 
-#: elf/readlib.c:149
+#: elf/readlib.c:152
 #, c-format
 msgid "%s is not an ELF file - it has the wrong magic bytes at the start.\n"
 msgstr "%s n'est pas un fichier de type ELF - il a un octet magique au début incorrect.\n"
@@ -1265,82 +1235,82 @@ msgstr "SHOBJ [PROFDATA]"
 msgid "failed to load shared object `%s'"
 msgstr "échec de chargement de l'objet partagé « %s »"
 
-#: elf/sprof.c:441 elf/sprof.c:824 elf/sprof.c:922
+#: elf/sprof.c:441 elf/sprof.c:821 elf/sprof.c:919
 #, c-format
 msgid "cannot create internal descriptor"
 msgstr "ne peut créer un descripteur interne"
 
-#: elf/sprof.c:553
+#: elf/sprof.c:550
 #, c-format
 msgid "Reopening shared object `%s' failed"
 msgstr "Échec de réouverture de l'objet partagé « %s »"
 
-#: elf/sprof.c:560 elf/sprof.c:655
+#: elf/sprof.c:557 elf/sprof.c:652
 #, c-format
 msgid "reading of section headers failed"
 msgstr "Échec de la lecture d'en-têtes de section"
 
-#: elf/sprof.c:568 elf/sprof.c:663
+#: elf/sprof.c:565 elf/sprof.c:660
 #, c-format
 msgid "reading of section header string table failed"
 msgstr "Échec de lecture de la table des chaînes d'en-têtes de section"
 
-#: elf/sprof.c:594
+#: elf/sprof.c:591
 #, c-format
 msgid "*** Cannot read debuginfo file name: %m\n"
 msgstr "*** Ne peut lire le nom de fichier de debuginfo : %m\n"
 
-#: elf/sprof.c:615
+#: elf/sprof.c:612
 #, c-format
 msgid "cannot determine file name"
 msgstr "Ne peut déterminer le nom de fichier"
 
-#: elf/sprof.c:648
+#: elf/sprof.c:645
 #, c-format
 msgid "reading of ELF header failed"
 msgstr "Échec de lecture de l'en-tête ELF"
 
-#: elf/sprof.c:684
+#: elf/sprof.c:681
 #, c-format
 msgid "*** The file `%s' is stripped: no detailed analysis possible\n"
 msgstr "*** Le fichier « %s » a été élagué : aucune analyse détaillée possible\n"
 
-#: elf/sprof.c:714
+#: elf/sprof.c:711
 #, c-format
 msgid "failed to load symbol data"
 msgstr "échec du chargement de données de symbole"
 
-#: elf/sprof.c:779
+#: elf/sprof.c:776
 #, c-format
 msgid "cannot load profiling data"
 msgstr "ne peut charger les données de profilage"
 
-#: elf/sprof.c:788
+#: elf/sprof.c:785
 #, c-format
 msgid "while stat'ing profiling data file"
 msgstr "lors de l'évaluation par stat() du fichier de données de profilage"
 
-#: elf/sprof.c:796
+#: elf/sprof.c:793
 #, c-format
 msgid "profiling data file `%s' does not match shared object `%s'"
 msgstr "Le fichier de données de profilage « %s » ne concorde pas avec l'objet partagé « %s »"
 
-#: elf/sprof.c:807
+#: elf/sprof.c:804
 #, c-format
 msgid "failed to mmap the profiling data file"
 msgstr "Échec de la procédure mmap sur le fichier de données de profilage"
 
-#: elf/sprof.c:815
+#: elf/sprof.c:812
 #, c-format
 msgid "error while closing the profiling data file"
 msgstr "erreur lors de la fermeture du fichier de données de profilage"
 
-#: elf/sprof.c:898
+#: elf/sprof.c:895
 #, c-format
 msgid "`%s' is no correct profile data file for `%s'"
 msgstr "« %s » est un fichier de profilage incorrect pour « %s »"
 
-#: elf/sprof.c:1079 elf/sprof.c:1137
+#: elf/sprof.c:1076 elf/sprof.c:1134
 #, c-format
 msgid "cannot allocate symbol data"
 msgstr "ne peut allouer les données des symboles"
@@ -1360,138 +1330,127 @@ msgstr "La table de chaînes a trop d'entrées"
 msgid "String table is too large"
 msgstr "Table de chaînes trop grande"
 
-#: iconv/iconv_charmap.c:146 iconv/iconv_prog.c:427
+#: iconv/iconv_charmap.c:146 iconv/iconv_prog.c:426
 #, c-format
 msgid "cannot open output file"
 msgstr "ne peut ouvrir le fichier de sortie"
 
-#: iconv/iconv_charmap.c:192 iconv/iconv_prog.c:290
+#: iconv/iconv_charmap.c:192
 #, c-format
 msgid "error while closing input `%s'"
 msgstr "erreur lors de la fermeture du fichier d'entrée « %s »"
 
-#: iconv/iconv_charmap.c:462 iconv/iconv_prog.c:518
+#: iconv/iconv_charmap.c:462 iconv/iconv_prog.c:728
 #, c-format
 msgid "incomplete character or shift sequence at end of buffer"
 msgstr "caractère ou séquence de changement incomplet à la fin du tampon"
 
-#: iconv/iconv_charmap.c:507 iconv/iconv_charmap.c:543 iconv/iconv_prog.c:561
-#: iconv/iconv_prog.c:597
+#: iconv/iconv_charmap.c:507 iconv/iconv_charmap.c:543 iconv/iconv_prog.c:736
 #, c-format
 msgid "error while reading the input"
 msgstr "erreur lors de la lecture de l'entrée"
 
-#: iconv/iconv_charmap.c:525 iconv/iconv_prog.c:579
+#: iconv/iconv_charmap.c:525
 #, c-format
 msgid "unable to allocate buffer for input"
 msgstr "incapable d'allouer un tampon pour l'entrée"
 
-#: iconv/iconv_prog.c:59
+#: iconv/iconv_prog.c:60
 msgid "Input/Output format specification:"
 msgstr "Spécification des formats d'entrée/sortie :"
 
-#: iconv/iconv_prog.c:60
+#: iconv/iconv_prog.c:61
 msgid "encoding of original text"
 msgstr "encodage du texte original"
 
-#: iconv/iconv_prog.c:61
+#: iconv/iconv_prog.c:62
 msgid "encoding for output"
 msgstr "encodage de la sortie"
 
-#: iconv/iconv_prog.c:62
+#: iconv/iconv_prog.c:63
 msgid "Information:"
 msgstr "Information :"
 
-#: iconv/iconv_prog.c:63
+#: iconv/iconv_prog.c:64
 msgid "list all known coded character sets"
 msgstr "Liste tous les jeux de code de caractères"
 
-#: iconv/iconv_prog.c:64 locale/programs/localedef.c:123
+#: iconv/iconv_prog.c:65 locale/programs/localedef.c:123
 msgid "Output control:"
 msgstr "Contrôle de sortie :"
 
-#: iconv/iconv_prog.c:65
+#: iconv/iconv_prog.c:66
 msgid "omit invalid characters from output"
 msgstr "omission de caractères invalides à la sortie"
 
-#: iconv/iconv_prog.c:66 iconv/iconvconfig.c:128
+#: iconv/iconv_prog.c:67 iconv/iconvconfig.c:128
 #: locale/programs/localedef.c:116 locale/programs/localedef.c:118
 #: locale/programs/localedef.c:120 locale/programs/localedef.c:149
 #: malloc/memusagestat.c:56
 msgid "FILE"
 msgstr "FICHIER"
 
-#: iconv/iconv_prog.c:66
+#: iconv/iconv_prog.c:67
 msgid "output file"
 msgstr "fichier de sortie"
 
-#: iconv/iconv_prog.c:67
+#: iconv/iconv_prog.c:68
 msgid "suppress warnings"
 msgstr "suppression des AVERTISSEMENTS"
 
-#: iconv/iconv_prog.c:68
+#: iconv/iconv_prog.c:69
 msgid "print progress information"
 msgstr "affiche les informations de progression"
 
-#: iconv/iconv_prog.c:73
+#: iconv/iconv_prog.c:78
 msgid "Convert encoding of given files from one encoding to another."
 msgstr "Convertit l'encodage des fichiers indiqués d'un encodage à l'autre."
 
-#: iconv/iconv_prog.c:77
+#: iconv/iconv_prog.c:82
 msgid "[FILE...]"
 msgstr "[FICHIER...]"
 
-#: iconv/iconv_prog.c:176 iconv/iconv_prog.c:238
+#: iconv/iconv_prog.c:189 iconv/iconv_prog.c:251
 #, c-format
 msgid "failed to start conversion processing"
 msgstr "échec de démarrage du processus de conversion"
 
-#: iconv/iconv_prog.c:212
+#: iconv/iconv_prog.c:225
 #, c-format
 msgid "conversions from `%s' and to `%s' are not supported"
 msgstr "conversions de « %s » et vers « %s » ne sont pas supportées"
 
-#: iconv/iconv_prog.c:217
+#: iconv/iconv_prog.c:230
 #, c-format
 msgid "conversion from `%s' is not supported"
 msgstr "conversion de « %s » n'est pas supportée"
 
-#: iconv/iconv_prog.c:224
+#: iconv/iconv_prog.c:237
 #, c-format
 msgid "conversion to `%s' is not supported"
 msgstr "conversion vers « %s » n'est pas supportée"
 
-#: iconv/iconv_prog.c:228
+#: iconv/iconv_prog.c:241
 #, c-format
 msgid "conversion from `%s' to `%s' is not supported"
 msgstr "conversion de « %s » vers « %s » n'est pas supportée"
 
-#: iconv/iconv_prog.c:336
-#, c-format
-msgid "error while closing output file"
-msgstr "erreur lors de la fermeture du fichier de sortie"
-
-#: iconv/iconv_prog.c:437
+#: iconv/iconv_prog.c:540
 #, c-format
 msgid "conversion stopped due to problem in writing the output"
 msgstr "conversion stoppée en raison d'un problème d'écriture à la sortie"
 
-#: iconv/iconv_prog.c:514
-#, c-format
-msgid "illegal input sequence at position %ld"
-msgstr "séquence d'échappement non permise à la position %ld"
-
-#: iconv/iconv_prog.c:522
+#: iconv/iconv_prog.c:693
 #, c-format
 msgid "internal error (illegal descriptor)"
 msgstr "erreur interne (descripteur non permis)"
 
-#: iconv/iconv_prog.c:525
+#: iconv/iconv_prog.c:696
 #, c-format
 msgid "unknown iconv() error %d"
 msgstr "erreur inconnue de iconv() %d"
 
-#: iconv/iconv_prog.c:768
+#: iconv/iconv_prog.c:909
 msgid ""
 "The following list contains all the coded character sets known.  This does\n"
 "not necessarily mean that all combinations of these names can be used for\n"
@@ -2791,7 +2750,7 @@ msgid "cannot resize archive file"
 msgstr "ne peut modifier la taille du fichier d'archive"
 
 #: locale/programs/locarchive.c:188 locale/programs/locarchive.c:451
-#: locale/programs/locarchive.c:680
+#: locale/programs/locarchive.c:686
 #, c-format
 msgid "cannot map archive header"
 msgstr "ne peut mapper l'en-tête de l'archive"
@@ -2850,59 +2809,59 @@ msgstr "ne peut évaluer par `stat' l'archive des particularisations « %s »"
 msgid "cannot lock locale archive \"%s\""
 msgstr "ne peut verrouiller l'archive des particularisations « %s »"
 
-#: locale/programs/locarchive.c:654
+#: locale/programs/locarchive.c:657
 #, c-format
 msgid "cannot read archive header"
 msgstr "ne peut lire l'en-tête de l'archive"
 
-#: locale/programs/locarchive.c:734
+#: locale/programs/locarchive.c:740
 #, c-format
 msgid "locale '%s' already exists"
 msgstr "particularisation « %s » existe déjà"
 
-#: locale/programs/locarchive.c:1009 locale/programs/locarchive.c:1024
-#: locale/programs/locarchive.c:1036 locale/programs/locarchive.c:1048
+#: locale/programs/locarchive.c:1015 locale/programs/locarchive.c:1030
+#: locale/programs/locarchive.c:1042 locale/programs/locarchive.c:1054
 #: locale/programs/locfile.c:349
 #, c-format
 msgid "cannot add to locale archive"
 msgstr "ne peut l'ajouter à l'archive des particularisations"
 
-#: locale/programs/locarchive.c:1217
+#: locale/programs/locarchive.c:1223
 #, c-format
 msgid "locale alias file `%s' not found"
 msgstr "alias du fichier des particularisations « %s » non trouvé"
 
-#: locale/programs/locarchive.c:1365
+#: locale/programs/locarchive.c:1371
 #, c-format
 msgid "Adding %s\n"
 msgstr "Ajout de %s\n"
 
-#: locale/programs/locarchive.c:1371
+#: locale/programs/locarchive.c:1377
 #, c-format
 msgid "stat of \"%s\" failed: %s: ignored"
 msgstr "échec d'évaluation par stat() de « %s » :  %s : ignoré"
 
-#: locale/programs/locarchive.c:1377
+#: locale/programs/locarchive.c:1383
 #, c-format
 msgid "\"%s\" is no directory; ignored"
 msgstr "« %s » n'est pas un dossier ; ignoré"
 
-#: locale/programs/locarchive.c:1384
+#: locale/programs/locarchive.c:1390
 #, c-format
 msgid "cannot open directory \"%s\": %s: ignored"
 msgstr "ne peut ouvrir le dossier « %s » :  %s : ignoré"
 
-#: locale/programs/locarchive.c:1452
+#: locale/programs/locarchive.c:1458
 #, c-format
 msgid "incomplete set of locale files in \"%s\""
 msgstr "jeu incomplet de fichiers de particularisation dans « %s »"
 
-#: locale/programs/locarchive.c:1516
+#: locale/programs/locarchive.c:1522
 #, c-format
 msgid "cannot read all files in \"%s\": ignored"
 msgstr "ne peut lire tous les fichiers dans « %s » :  ignoré"
 
-#: locale/programs/locarchive.c:1586
+#: locale/programs/locarchive.c:1592
 #, c-format
 msgid "locale \"%s\" not in archive"
 msgstr "particularisation « %s » n'est pas dans l'archive"
@@ -3758,259 +3717,259 @@ msgstr " - all data: "
 msgid " - remaining data %p: "
 msgstr " - données restantes %p: "
 
-#: nscd/connections.c:519
+#: nscd/connections.c:530
 #, c-format
 msgid "invalid persistent database file \"%s\": %s"
 msgstr "fichier persistant de base de données invalide \"%s\" : %s"
 
-#: nscd/connections.c:527
+#: nscd/connections.c:538
 msgid "uninitialized header"
 msgstr "en-tête non initialisée"
 
-#: nscd/connections.c:532
+#: nscd/connections.c:543
 msgid "header size does not match"
 msgstr "la taille de l'entête n'est pas adéquate"
 
-#: nscd/connections.c:542
+#: nscd/connections.c:553
 msgid "file size does not match"
 msgstr "la taille du fichier n'est pas adéquate"
 
-#: nscd/connections.c:559
+#: nscd/connections.c:570
 msgid "verification failed"
 msgstr "échec de la vérification"
 
-#: nscd/connections.c:573
+#: nscd/connections.c:584
 #, c-format
 msgid "suggested size of table for database %s larger than the persistent database's table"
 msgstr "la taille suggérée de la table pour la base de donnée %s est plus grande que la table persistante de la base de donnée"
 
-#: nscd/connections.c:584 nscd/connections.c:668
+#: nscd/connections.c:595 nscd/connections.c:679
 #, c-format
 msgid "cannot create read-only descriptor for \"%s\"; no mmap"
 msgstr "ne peut créer le descripteur en lecture seule pour « %s » ; pas de mmap"
 
-#: nscd/connections.c:600
+#: nscd/connections.c:611
 #, c-format
 msgid "cannot access '%s'"
 msgstr "ne peut accéder '%s'"
 
-#: nscd/connections.c:648
+#: nscd/connections.c:659
 #, c-format
 msgid "database for %s corrupted or simultaneously used; remove %s manually if necessary and restart"
 msgstr "la base de données %s est endommagée ou utilisée concurremment; supprimer %s manuellement au besoin et relancer"
 
-#: nscd/connections.c:654
+#: nscd/connections.c:665
 #, c-format
 msgid "cannot create %s; no persistent database used"
 msgstr "ne peut créer %s; aucune base de données persistante utilisée"
 
-#: nscd/connections.c:657
+#: nscd/connections.c:668
 #, c-format
 msgid "cannot create %s; no sharing possible"
 msgstr "ne peut créer %s; pas de partage possible"
 
-#: nscd/connections.c:728
+#: nscd/connections.c:739
 #, c-format
 msgid "cannot write to database file %s: %s"
 msgstr "ne peut écrire dans le fichier de base de données %s : %s"
 
-#: nscd/connections.c:784
+#: nscd/connections.c:795
 #, c-format
 msgid "cannot open socket: %s"
 msgstr "Ne peut ouvrir le socket : « %s »"
 
-#: nscd/connections.c:803
+#: nscd/connections.c:814
 #, c-format
 msgid "cannot enable socket to accept connections: %s"
 msgstr "Ne peut activer le socket pour accepter des connexions : %s"
 
-#: nscd/connections.c:860
+#: nscd/connections.c:871
 #, c-format
 msgid "disabled inotify-based monitoring for file `%s': %s"
 msgstr "surveillance basée sur inotify désactivée pour fichier `%s': %s"
 
-#: nscd/connections.c:864
+#: nscd/connections.c:875
 #, c-format
 msgid "monitoring file `%s` (%d)"
 msgstr "fichier de surveillance `%s` (%d)"
 
-#: nscd/connections.c:877
+#: nscd/connections.c:888
 #, c-format
 msgid "disabled inotify-based monitoring for directory `%s': %s"
 msgstr "surveillance basée sur inotify désactivée pour répertoire `%s': %s"
 
-#: nscd/connections.c:881
+#: nscd/connections.c:892
 #, c-format
 msgid "monitoring directory `%s` (%d)"
 msgstr "répertoire de surveillance `%s` (%d)"
 
-#: nscd/connections.c:909
+#: nscd/connections.c:920
 #, c-format
 msgid "monitoring file %s for database %s"
 msgstr "fichier de surveillance %s pour base de données %s"
 
-#: nscd/connections.c:919
+#: nscd/connections.c:930
 #, c-format
 msgid "stat failed for file `%s'; will try again later: %s"
 msgstr "stat en échec pour fichier `%s'; nouvel essai plus tard: %s"
 
-#: nscd/connections.c:1038
+#: nscd/connections.c:1049
 #, c-format
 msgid "provide access to FD %d, for %s"
 msgstr "fournit l'accès à FD %d, pour %s"
 
-#: nscd/connections.c:1050
+#: nscd/connections.c:1061
 #, c-format
 msgid "cannot handle old request version %d; current version is %d"
 msgstr "Ne peut traiter une vieille version de requête %d; la version courante est %d"
 
-#: nscd/connections.c:1073
+#: nscd/connections.c:1084
 #, c-format
 msgid "request from %ld not handled due to missing permission"
 msgstr "la requête de %ld non prise en compte du fait du manque de permission"
 
-#: nscd/connections.c:1078
+#: nscd/connections.c:1089
 #, c-format
 msgid "request from '%s' [%ld] not handled due to missing permission"
 msgstr "la requête de '%s' [%ld] non prise en compte du fait du manque de permission"
 
-#: nscd/connections.c:1083
+#: nscd/connections.c:1094
 msgid "request not handled due to missing permission"
 msgstr "la requête de %ld "
 
-#: nscd/connections.c:1121 nscd/connections.c:1147
+#: nscd/connections.c:1132 nscd/connections.c:1158
 #, c-format
 msgid "cannot write result: %s"
 msgstr "Ne peut écrire les résultats : « %s »"
 
-#: nscd/connections.c:1238
+#: nscd/connections.c:1249
 #, c-format
 msgid "error getting caller's id: %s"
 msgstr "erreur lors de la récupération de l'identifiant de l'appelant : %s"
 
-#: nscd/connections.c:1348
+#: nscd/connections.c:1359
 #, c-format
 msgid "cannot open /proc/self/cmdline: %m; disabling paranoia mode"
 msgstr "ne peut ouvrir /proc/self/cmdline : %m; désactive le mode paranoïa"
 
-#: nscd/connections.c:1371
+#: nscd/connections.c:1382
 #, c-format
 msgid "cannot change to old UID: %s; disabling paranoia mode"
 msgstr "ne peut rétablir l'ancien UID : %s; désactive le mode paranoïa"
 
-#: nscd/connections.c:1382
+#: nscd/connections.c:1393
 #, c-format
 msgid "cannot change to old GID: %s; disabling paranoia mode"
 msgstr "ne peut rétablir l'ancien GID : %s; désactive le mode paranoïa"
 
-#: nscd/connections.c:1396
+#: nscd/connections.c:1407
 #, c-format
 msgid "cannot change to old working directory: %s; disabling paranoia mode"
 msgstr "ne peut rétablir l'ancien dossier de travail : %s; désactive le mode paranoïa"
 
-#: nscd/connections.c:1443
+#: nscd/connections.c:1454
 #, c-format
 msgid "re-exec failed: %s; disabling paranoia mode"
 msgstr "re-exec a échoué : %s; désactive le mode paranoïa"
 
-#: nscd/connections.c:1452
+#: nscd/connections.c:1463
 #, c-format
 msgid "cannot change current working directory to \"/\": %s"
 msgstr "ne peut établir le dossier de travail courant à « / » : %s"
 
-#: nscd/connections.c:1636
+#: nscd/connections.c:1647
 #, c-format
 msgid "short read while reading request: %s"
 msgstr "Lecture écourtée lors de la lecture de la requête : « %s »"
 
-#: nscd/connections.c:1669
+#: nscd/connections.c:1680
 #, c-format
 msgid "key length in request too long: %d"
 msgstr "La longueur de la clé de la requête est trop longue : %d"
 
-#: nscd/connections.c:1682
+#: nscd/connections.c:1693
 #, c-format
 msgid "short read while reading request key: %s"
 msgstr "Lecture écourtée lors de la lecture de la clé de requête : %s"
 
-#: nscd/connections.c:1692
+#: nscd/connections.c:1703
 #, c-format
 msgid "handle_request: request received (Version = %d) from PID %ld"
 msgstr "handle_request : requête reçue (Version = %d) à partir du PID %ld"
 
-#: nscd/connections.c:1697
+#: nscd/connections.c:1708
 #, c-format
 msgid "handle_request: request received (Version = %d)"
 msgstr "handle_request : requête reçue (Version = %d)"
 
-#: nscd/connections.c:1837
+#: nscd/connections.c:1848
 #, c-format
 msgid "ignored inotify event for `%s` (file exists)"
 msgstr "événement inotify ignoré pour `%s` (fichier existe)"
 
-#: nscd/connections.c:1842
+#: nscd/connections.c:1853
 #, c-format
 msgid "monitored file `%s` was %s, removing watch"
 msgstr "fichier surveillé `%s` était %s, suppression surveillance"
 
-#: nscd/connections.c:1850 nscd/connections.c:1892
+#: nscd/connections.c:1861 nscd/connections.c:1903
 #, c-format
 msgid "failed to remove file watch `%s`: %s"
 msgstr "échec de suppression de surveillance de fichier `%s`: %s"
 
-#: nscd/connections.c:1865
+#: nscd/connections.c:1876
 #, c-format
 msgid "monitored file `%s` was written to"
 msgstr "fichier surveillé `%s` a été écrit sur"
 
-#: nscd/connections.c:1889
+#: nscd/connections.c:1900
 #, c-format
 msgid "monitored parent directory `%s` was %s, removing watch on `%s`"
 msgstr "le répertoire parent surveillé `%s` était %s, arrêt surveillance sur `%s`"
 
-#: nscd/connections.c:1915
+#: nscd/connections.c:1926
 #, c-format
 msgid "monitored file `%s` was %s, adding watch"
 msgstr "fichier surveillé `%s` était %s, ajout surveillance"
 
-#: nscd/connections.c:1927
+#: nscd/connections.c:1938
 #, c-format
 msgid "failed to add file watch `%s`: %s"
 msgstr "échec de l'ajout du fichier de surveillance `%s`: %s"
 
-#: nscd/connections.c:2105 nscd/connections.c:2270
+#: nscd/connections.c:2116 nscd/connections.c:2281
 #, c-format
 msgid "disabled inotify-based monitoring after read error %d"
 msgstr "surveillance basée sur inotify désactivée après erreur de lecture %d"
 
-#: nscd/connections.c:2386
+#: nscd/connections.c:2397
 msgid "could not initialize conditional variable"
 msgstr "n'a pu initialiser une variable conditionnelle"
 
-#: nscd/connections.c:2394
+#: nscd/connections.c:2405
 msgid "could not start clean-up thread; terminating"
 msgstr "n'a pu démarrer le process(thread) de nettoyage ; en train de s'achever"
 
-#: nscd/connections.c:2408
+#: nscd/connections.c:2419
 msgid "could not start any worker thread; terminating"
 msgstr "n'a pas pu démarrer de process de travail (threads) ; en train de s'achever"
 
-#: nscd/connections.c:2463 nscd/connections.c:2465 nscd/connections.c:2481
-#: nscd/connections.c:2491 nscd/connections.c:2509 nscd/connections.c:2520
-#: nscd/connections.c:2530
+#: nscd/connections.c:2474 nscd/connections.c:2476 nscd/connections.c:2492
+#: nscd/connections.c:2502 nscd/connections.c:2520 nscd/connections.c:2531
+#: nscd/connections.c:2541
 #, c-format
 msgid "Failed to run nscd as user '%s'"
 msgstr "Échec d'exécution de nscd en tant qu'usager « %s »"
 
-#: nscd/connections.c:2483
+#: nscd/connections.c:2494
 msgid "initial getgrouplist failed"
 msgstr "échec du getgrouplist initial"
 
-#: nscd/connections.c:2492
+#: nscd/connections.c:2503
 msgid "getgrouplist failed"
 msgstr "échec de getgrouplist"
 
-#: nscd/connections.c:2510
+#: nscd/connections.c:2521
 msgid "setgroups failed"
 msgstr "échec de setgroups"
 
@@ -4045,22 +4004,22 @@ msgstr "libéré %zu octets dans le cache %s"
 msgid "no more memory for database '%s'"
 msgstr "plus de mémoire disponible pour la base de données '%s'"
 
-#: nscd/netgroupcache.c:121
+#: nscd/netgroupcache.c:198
 #, c-format
 msgid "Haven't found \"%s\" in netgroup cache!"
 msgstr "N'a pas trouvé « %s » dans le cache du netgroupe !"
 
-#: nscd/netgroupcache.c:123
+#: nscd/netgroupcache.c:200
 #, c-format
 msgid "Reloading \"%s\" in netgroup cache!"
 msgstr "Recharge « %s » dans le cache netgroupe !"
 
-#: nscd/netgroupcache.c:469
+#: nscd/netgroupcache.c:486
 #, c-format
 msgid "Haven't found \"%s (%s,%s,%s)\" in netgroup cache!"
 msgstr "N'a pas trouvé « %s (%s,%s,%s) » dans le cache du groupe !"
 
-#: nscd/netgroupcache.c:472
+#: nscd/netgroupcache.c:489
 #, c-format
 msgid "Reloading \"%s (%s,%s,%s)\" in netgroup cache!"
 msgstr "Recharge « %s (%s,%s,%s) » dans le cache netgroupe !"
@@ -4113,7 +4072,7 @@ msgstr "Utiliser une cache séparée pour chaque usager"
 msgid "Name Service Cache Daemon."
 msgstr "« Daemon » du cache du service de noms."
 
-#: nscd/nscd.c:158 nss/getent.c:995 nss/makedb.c:207
+#: nscd/nscd.c:158 nss/getent.c:995 nss/makedb.c:208
 #, c-format
 msgid "wrong number of arguments"
 msgstr "Mauvais nombre d'arguments"
@@ -4548,31 +4507,31 @@ msgstr "Base de données supportées :\n"
 msgid "Unknown database: %s\n"
 msgstr "Base de données inconnue : « %s »\n"
 
-#: nss/makedb.c:120
+#: nss/makedb.c:121
 msgid "Convert key to lower case"
 msgstr "Conversion des caractères en minuscules"
 
-#: nss/makedb.c:123
+#: nss/makedb.c:124
 msgid "Do not print messages while building database"
 msgstr "Ne pas afficher de message lors de la génération de la base de données"
 
-#: nss/makedb.c:125
+#: nss/makedb.c:126
 msgid "Print content of database file, one entry a line"
 msgstr "Afficher le contenu du fichier de base de données, une entrée par ligne"
 
-#: nss/makedb.c:126
+#: nss/makedb.c:127
 msgid "CHAR"
 msgstr "CHAR"
 
-#: nss/makedb.c:127
+#: nss/makedb.c:128
 msgid "Generated line not part of iteration"
 msgstr "La ligne générée ne fait pas partie de l'itération"
 
-#: nss/makedb.c:132
+#: nss/makedb.c:133
 msgid "Create simple database from textual input."
 msgstr "Crée une base de données simple à partir des entrées textuelles."
 
-#: nss/makedb.c:135
+#: nss/makedb.c:136
 msgid ""
 "INPUT-FILE OUTPUT-FILE\n"
 "-o OUTPUT-FILE INPUT-FILE\n"
@@ -4582,86 +4541,86 @@ msgstr ""
 "-o FICHIER_DE_SORTIE FICHIER_D_ENTRÉE\n"
 "-u FICHIER_D_ENTRÉE"
 
-#: nss/makedb.c:228
+#: nss/makedb.c:229
 #, c-format
 msgid "cannot open database file `%s'"
 msgstr "Ne peut ouvrir le fichier de base de données `%s'"
 
-#: nss/makedb.c:273
+#: nss/makedb.c:274
 #, c-format
 msgid "no entries to be processed"
 msgstr "pas d'entrée à traiter"
 
-#: nss/makedb.c:283
+#: nss/makedb.c:284
 #, c-format
 msgid "cannot create temporary file name"
 msgstr "ne peut créer un nom de fichier temporaire"
 
-#: nss/makedb.c:289
+#: nss/makedb.c:290
 #, c-format
 msgid "cannot create temporary file"
 msgstr "ne peut créer un fichier temporaire"
 
-#: nss/makedb.c:305
+#: nss/makedb.c:306
 #, c-format
 msgid "cannot stat newly created file"
 msgstr "pas de stat pour un fichier nouvellement créé"
 
-#: nss/makedb.c:316
+#: nss/makedb.c:317
 #, c-format
 msgid "cannot rename temporary file"
 msgstr "ne peut renommer un fichier temporaire"
 
-#: nss/makedb.c:528 nss/makedb.c:551
+#: nss/makedb.c:529 nss/makedb.c:552
 #, c-format
 msgid "cannot create search tree"
 msgstr "ne peut créer un arbre de recherche"
 
-#: nss/makedb.c:557
+#: nss/makedb.c:558
 msgid "duplicate key"
 msgstr "Duplicité de clé"
 
-#: nss/makedb.c:569
+#: nss/makedb.c:570
 #, c-format
 msgid "problems while reading `%s'"
 msgstr "Problème lors de la lecture de `%s'"
 
-#: nss/makedb.c:805
+#: nss/makedb.c:814
 #, c-format
 msgid "failed to write new database file"
 msgstr "échec à l'écriture du fichier de database"
 
-#: nss/makedb.c:822
+#: nss/makedb.c:833
 #, c-format
 msgid "cannot stat database file"
 msgstr "pas de stat pour le fichier de database"
 
-#: nss/makedb.c:827
+#: nss/makedb.c:838
 #, c-format
 msgid "cannot map database file"
 msgstr "Ne peut corréler (mapper) le fichier de database"
 
-#: nss/makedb.c:830
+#: nss/makedb.c:841
 #, c-format
 msgid "file not a database file"
 msgstr "le fichier n'est pas un fichier de database"
 
-#: nss/makedb.c:891
+#: nss/makedb.c:902
 #, c-format
 msgid "cannot set file creation context for `%s'"
 msgstr "Ne peut établir le contexte de création de fichier pour `%s'"
 
-#: posix/getconf.c:417
+#: posix/getconf.c:419
 #, c-format
 msgid "Usage: %s [-v specification] variable_name [pathname]\n"
 msgstr "Usage : %s [-v spécification] nom_de_variable [chemin_d_accès]\n"
 
-#: posix/getconf.c:420
+#: posix/getconf.c:422
 #, c-format
 msgid "       %s -a [pathname]\n"
 msgstr "       %s -a [pathname]\n"
 
-#: posix/getconf.c:496
+#: posix/getconf.c:498
 #, c-format
 msgid ""
 "Usage: getconf [-v SPEC] VAR\n"
@@ -4680,21 +4639,21 @@ msgstr ""
 "de compilation SPEC.\n"
 "\n"
 
-#: posix/getconf.c:572
+#: posix/getconf.c:574
 #, c-format
 msgid "unknown specification \"%s\""
 msgstr "spécification inconnu « %s »"
 
-#: posix/getconf.c:624
+#: posix/getconf.c:626
 #, c-format
 msgid "Couldn't execute %s"
 msgstr "N'a pas pu exécuter %s"
 
-#: posix/getconf.c:669 posix/getconf.c:685
+#: posix/getconf.c:671 posix/getconf.c:687
 msgid "undefined"
 msgstr "indéfini"
 
-#: posix/getconf.c:707
+#: posix/getconf.c:709
 #, c-format
 msgid "Unrecognized variable `%s'"
 msgstr "Variable non reconnue « %s »"
@@ -4989,7 +4948,7 @@ msgstr "Le tampon de sortie est disponible"
 msgid "Input message available"
 msgstr "Message disponible en entrée "
 
-#: stdio-common/psiginfo-data.h:46 timezone/zdump.c:375 timezone/zic.c:564
+#: stdio-common/psiginfo-data.h:46 timezone/zdump.c:445 timezone/zic.c:652
 msgid "I/O error"
 msgstr "Erreur d'entrée/sortie"
 
@@ -5047,7 +5006,7 @@ msgstr "Signal inconnu %d\n"
 msgid "%s%sUnknown signal %d\n"
 msgstr "%s%ssignal inconnu %d\n"
 
-#: stdio-common/psignal.c:44
+#: stdio-common/psignal.c:44 string/strsignal.c:57
 msgid "Unknown signal"
 msgstr "Signal inconnu"
 
@@ -5055,12 +5014,12 @@ msgstr "Signal inconnu"
 msgid "Unknown error "
 msgstr "Erreur inconnue "
 
-#: string/strsignal.c:39
+#: string/strsignal.c:42
 #, c-format
 msgid "Real-time signal %d"
 msgstr "Signal de temps-Réel %d"
 
-#: string/strsignal.c:43
+#: string/strsignal.c:46
 #, c-format
 msgid "Unknown signal %d"
 msgstr "Signal inconnu %d"
@@ -5478,7 +5437,7 @@ msgstr "Opération non permise"
 #. TRANS No process matches the specified process ID.
 #: sysdeps/gnu/errlist.h:18
 msgid "No such process"
-msgstr "Aucun processus de ce type"
+msgstr "Aucun processus ayant ce numéro"
 
 #. TRANS An asynchronous signal occurred and prevented
 #. TRANS completion of the call.  When this happens, you should try the call
@@ -5539,7 +5498,7 @@ msgstr "Aucun processus enfant"
 #. TRANS noticed; it might just hang.  @xref{File Locks}, for an example.
 #: sysdeps/gnu/errlist.h:79
 msgid "Resource deadlock avoided"
-msgstr "Blocage évité des accès aux ressources"
+msgstr "Interblocage évité des accès à la ressource"
 
 #. TRANS The system cannot allocate more virtual memory
 #. TRANS because its capacity is full.
@@ -5741,7 +5700,7 @@ msgstr "Message trop long"
 #. TRANS The socket type does not support the requested communications protocol.
 #: sysdeps/gnu/errlist.h:295
 msgid "Protocol wrong type for socket"
-msgstr "Mauvais type pour un socket de protocole"
+msgstr "Mauvais type de protocole pour un socket"
 
 #. TRANS You specified a socket option that doesn't make sense for the
 #. TRANS particular protocol being used by the socket.  @xref{Socket Options}.
@@ -6301,11 +6260,23 @@ msgstr "Besoin d'un fournisseur d’authentification"
 #. TRANS @c Don't change it.
 #: sysdeps/gnu/errlist.h:795
 msgid "?"
-msgstr " ?"
+msgstr "?"
 
 #: sysdeps/gnu/errlist.h:798
 msgid "RPC program not available"
 msgstr "Programme RPC non disponible"
+
+#: sysdeps/hppa/dl-fptr.c:96
+msgid "cannot map pages for fdesc table"
+msgstr "ne peut faire correspondre les pages pour la table fdesc "
+
+#: sysdeps/hppa/dl-fptr.c:214
+msgid "cannot map pages for fptr table"
+msgstr "ne peut faire correspondre les pages pour la table fptr"
+
+#: sysdeps/hppa/dl-fptr.c:243
+msgid "internal error: symidx out of range of fptr table"
+msgstr "erreur interne : symidx en dehors de la table fptr "
 
 #: sysdeps/mach/_strerror.c:43 sysdeps/mach/xpg-strerror.c:55
 msgid "Error in unknown error system: "
@@ -6379,50 +6350,41 @@ msgstr "Interrompu par un signal"
 msgid "Parameter string not correctly encoded"
 msgstr "La chaîne paramètre n'est pas correctement encodée"
 
-#: sysdeps/unix/sysv/linux/ia64/makecontext.c:57
-#, c-format
-msgid "makecontext: does not know how to handle more than 8 arguments\n"
-msgstr "makecontext : ne sait pas comment traiter plus de 8 arguments\n"
-
-#: sysdeps/x86/dl-cet.c:154
-msgid "rebuild shared object with IBT support enabled"
-msgstr "la reconstruction de l'objet partagé au moyen d'IBT a été activé"
-
-#: sysdeps/x86/dl-cet.c:165
-msgid "rebuild shared object with SHSTK support enabled"
-msgstr "la reconstruction de l'objet partagé au moyen de SHSTK a été activé"
-
-#: sysdeps/x86/dl-cet.c:194
-msgid "can't disable CET"
-msgstr "Ne peut désactiver CET"
-
 #: sysdeps/x86/dl-prop.h:61
 msgid "CPU ISA level is lower than required"
 msgstr "Niveau CPU ISA inférieur à celui requis"
 
-#: sysdeps/x86/readelflib.c:62
+#: sysdeps/x86/readelflib.c:49
 #, c-format
 msgid "%s is for unknown machine %d.\n"
 msgstr "%s est pour une machine inconnue %d.\n"
 
-#: timezone/zdump.c:332
+#: sysdeps/x86_64/dl-cet.c:214
+msgid "rebuild shared object with IBT support enabled"
+msgstr "la reconstruction de l'objet partagé au moyen d'IBT a été activé"
+
+#: sysdeps/x86_64/dl-cet.c:233
+msgid "rebuild shared object with SHSTK support enabled"
+msgstr "la reconstruction de l'objet partagé au moyen de SHSTK a été activé"
+
+#: timezone/zdump.c:402
 msgid "has characters other than ASCII alphanumerics, '-' or '+'"
 msgstr "a  des caractères autres que de l'alphanumérique ASCII, '-' ou '+'"
 
-#: timezone/zdump.c:334
+#: timezone/zdump.c:404
 msgid "has fewer than 3 characters"
 msgstr "a moins de 3 caractères"
 
-#: timezone/zdump.c:336
+#: timezone/zdump.c:406
 msgid "has more than 6 characters"
 msgstr "a plus de 6 caractères"
 
-#: timezone/zdump.c:341
+#: timezone/zdump.c:411
 #, c-format
 msgid "%s: warning: zone \"%s\" abbreviation \"%s\" %s\n"
 msgstr "%s : attention : zone \"%s\" abréviation \"%s\" %s\n"
 
-#: timezone/zdump.c:387
+#: timezone/zdump.c:457
 #, c-format
 msgid ""
 "%s: usage: %s OPTIONS TIMEZONE ...\n"
@@ -6449,500 +6411,426 @@ msgstr ""
 "\n"
 "Déclarer les bugs à %s.\n"
 
-#: timezone/zdump.c:473
+#: timezone/zdump.c:543
 #, c-format
 msgid "%s: wild -c argument %s\n"
 msgstr "%s : argument -c intempestif %s\n"
 
-#: timezone/zdump.c:506
+#: timezone/zdump.c:576
 #, c-format
 msgid "%s: wild -t argument %s\n"
 msgstr "%s : argument -t intempestif %s\n"
 
-#: timezone/zic.c:432
+#: timezone/zic.c:463
 #, c-format
 msgid "%s: Memory exhausted: %s\n"
 msgstr "%s : mémoire épuisée : %s\n"
 
-#: timezone/zic.c:440
+#: timezone/zic.c:470
 msgid "size overflow"
 msgstr "Débordement de taille"
 
-#: timezone/zic.c:450
-msgid "alignment overflow"
-msgstr "Débordement d'alignement"
-
-#: timezone/zic.c:498
+#: timezone/zic.c:559
 msgid "integer overflow"
 msgstr "Débordement d'entier "
 
-#: timezone/zic.c:532
+#: timezone/zic.c:585
+msgid "command line"
+msgstr "ligne de commande"
+
+#: timezone/zic.c:588
+msgid "standard input"
+msgstr "entrée standard"
+
+#: timezone/zic.c:616
 #, c-format
 msgid "\"%s\", line %<PRIdMAX>: "
 msgstr "\"%s\", ligne %<PRIdMAX>: "
 
-#: timezone/zic.c:535
+#: timezone/zic.c:620
 #, c-format
 msgid " (rule from \"%s\", line %<PRIdMAX>)"
 msgstr " (règle de \"%s\", ligne %<PRIdMAX>)"
 
-#: timezone/zic.c:554
+#: timezone/zic.c:639
 #, c-format
 msgid "warning: "
 msgstr "AVERTISSEMENT : "
 
-#: timezone/zic.c:579
-#, c-format
-msgid ""
-"%s: usage is %s [ --version ] [ --help ] [ -v ] \\\n"
-"\t[ -b {slim|fat} ] [ -d directory ] [ -l localtime ] [ -L leapseconds ] \\\n"
-"\t[ -p posixrules ] [ -r '[@lo][/@hi]' ] [ -t localtime-link ] \\\n"
-"\t[ filename ... ]\n"
-"\n"
-"Report bugs to %s.\n"
-msgstr ""
-"%s : la syntaxe est %s [ --version ] [ --help ] [ -v ] \\\n"
-"\t[ -b {slim|fat} ] [ -d directory ] [ -l localtime ] [ -L leapseconds ] \\\n"
-"\t[ -p posixrules ] [ -r '[@lo][/@hi]' ] [ -t localtime-link ] \\\n"
-"\t[ filename ... ]\n"
-"\n"
-"Rapporter les bugs à %s.\n"
-
-#: timezone/zic.c:604
+#: timezone/zic.c:695
 #, c-format
 msgid "%s: Can't chdir to %s: %s\n"
 msgstr "%s : ne peut faire chdir vers %s : %s\n"
 
-#: timezone/zic.c:698
+#: timezone/zic.c:992
 msgid "wild compilation-time specification of zic_t"
 msgstr "spécification approximative de zic_t au moment de la compilation"
 
-#: timezone/zic.c:716 timezone/zic.c:720
+#: timezone/zic.c:1011 timezone/zic.c:1015
 msgid "incompatible -b options"
 msgstr "options -b incompatible"
 
-#: timezone/zic.c:723
+#: timezone/zic.c:1018
 #, c-format
 msgid "invalid option: -b '%s'"
 msgstr "option invalide : -b '%s'"
 
-#: timezone/zic.c:730
+#: timezone/zic.c:1025
 #, c-format
 msgid "%s: More than one -d option specified\n"
 msgstr "%s : option -d spécifiée plus d'une fois\n"
 
-#: timezone/zic.c:740
+#: timezone/zic.c:1036
 #, c-format
 msgid "%s: More than one -l option specified\n"
 msgstr "%s : option -l spécifiée plus d'une fois\n"
 
-#: timezone/zic.c:750
+#: timezone/zic.c:1047
 #, c-format
 msgid "%s: More than one -p option specified\n"
 msgstr "%s : option -p spécifiée plus d'une fois\n"
 
-#: timezone/zic.c:758
+#: timezone/zic.c:1056
 #, c-format
 msgid "%s: More than one -t option specified\n"
 msgstr "%s: option -t spécifiée plus d'une fois\n"
 
-#: timezone/zic.c:767
-msgid "-y is obsolescent"
-msgstr "-y est obsolète"
-
-#: timezone/zic.c:771
-#, c-format
-msgid "%s: More than one -y option specified\n"
-msgstr "%s : option -y spécifiée plus d'une fois\n"
-
-#: timezone/zic.c:781
+#: timezone/zic.c:1071
 #, c-format
 msgid "%s: More than one -L option specified\n"
 msgstr "%s : option -L spécifiée plus d'une fois\n"
 
-#: timezone/zic.c:792
+#: timezone/zic.c:1083
 #, c-format
 msgid "%s: More than one -r option specified\n"
 msgstr "%s: option -r spécifiée plus d'une fois\n"
 
-#: timezone/zic.c:798
+#: timezone/zic.c:1090
 #, c-format
 msgid "%s: invalid time range: %s\n"
 msgstr "%s: plage de temps invalide: %s\n"
 
-#: timezone/zic.c:805
+#: timezone/zic.c:1104
 msgid "-s ignored"
 msgstr "-s ignoré"
 
-#: timezone/zic.c:848
-msgid "link to link"
-msgstr "lien à lien"
-
-#: timezone/zic.c:851 timezone/zic.c:855
-msgid "command line"
-msgstr "ligne de commande"
-
-#: timezone/zic.c:871
+#: timezone/zic.c:1171
 msgid "empty file name"
 msgstr "nom de fichier vide"
 
-#: timezone/zic.c:874
+#: timezone/zic.c:1174
 #, c-format
 msgid "file name '%s' begins with '/'"
 msgstr "nom de fichier '%s' commence par '/'"
 
-#: timezone/zic.c:884
+#: timezone/zic.c:1184
 #, c-format
 msgid "file name '%s' contains '%.*s' component"
 msgstr "nom de fichier '%s' contient '%.*s' composant"
 
-#: timezone/zic.c:890
+#: timezone/zic.c:1190
 #, c-format
 msgid "file name '%s' component contains leading '-'"
 msgstr "le composant nom de fichier '%s' contient des '-' au début"
 
-#: timezone/zic.c:893
+#: timezone/zic.c:1193
 #, c-format
 msgid "file name '%s' contains overlength component '%.*s...'"
 msgstr "nom de fichier '%s' contient un composant '%.*s...' trop long"
 
-#: timezone/zic.c:921
+#: timezone/zic.c:1221
 #, c-format
 msgid "file name '%s' contains byte '%c'"
 msgstr "nom de fichier '%s' contient '%c' bytes"
 
-#: timezone/zic.c:922
+#: timezone/zic.c:1222
 #, c-format
 msgid "file name '%s' contains byte '\\%o'"
 msgstr "nom de fichier '%s' contient '\\%o' byte"
 
-#: timezone/zic.c:992
-#, c-format
-msgid "%s: link from %s/%s failed: %s\n"
-msgstr "%s: lien depuis  %s/%s a échoué: %s\n"
-
-#: timezone/zic.c:1002 timezone/zic.c:1992
-#, c-format
-msgid "%s: Can't remove %s/%s: %s\n"
-msgstr "%s : ne peut enlever %s/%s: %s\n"
-
-#: timezone/zic.c:1026
-#, c-format
-msgid "symbolic link used because hard link failed: %s"
-msgstr "Le lien symbolique a été utilisé parce que le lien physique a échoué: %s"
-
-#: timezone/zic.c:1034
-#, c-format
-msgid "%s: Can't read %s/%s: %s\n"
-msgstr "%s : Ne peut lire %s/%s: %s\n"
-
-#: timezone/zic.c:1041 timezone/zic.c:2005
+#: timezone/zic.c:1369
 #, c-format
 msgid "%s: Can't create %s/%s: %s\n"
 msgstr "%s : ne peut créer %s/%s : %s\n"
 
-#: timezone/zic.c:1050
+#: timezone/zic.c:1463
+#, c-format
+msgid "%s: Can't remove %s/%s: %s\n"
+msgstr "%s : ne peut enlever %s/%s: %s\n"
+
+#: timezone/zic.c:1536
+#, c-format
+msgid "symbolic link used because hard link failed: %s"
+msgstr "Le lien symbolique a été utilisé parce que le lien physique a échoué: %s"
+
+#: timezone/zic.c:1544
+#, c-format
+msgid "%s: Can't read %s/%s: %s\n"
+msgstr "%s : Ne peut lire %s/%s: %s\n"
+
+#: timezone/zic.c:1554
 #, c-format
 msgid "copy used because hard link failed: %s"
 msgstr "la copie a été utilisée parce que le lien physique a échoué: %s"
 
-#: timezone/zic.c:1053
+#: timezone/zic.c:1557
 #, c-format
 msgid "copy used because symbolic link failed: %s"
 msgstr "La copie a été utilisée parce que  le lien symbolique a échoué: %s"
 
-#: timezone/zic.c:1122 timezone/zic.c:1124
+#: timezone/zic.c:1608 timezone/zic.c:1610
 msgid "same rule name in multiple files"
 msgstr "Même nom de règle dans plusieurs fichiers"
 
-#: timezone/zic.c:1171
+#: timezone/zic.c:1656
 #, c-format
 msgid "%s in ruleless zone"
 msgstr "%s est dans une zone sans règle"
 
-#: timezone/zic.c:1191
-msgid "standard input"
-msgstr "entrée standard"
+#: timezone/zic.c:1688
+msgid "line too long"
+msgstr "Ligne trop longue"
 
-#: timezone/zic.c:1196
+#: timezone/zic.c:1709
 #, c-format
 msgid "%s: Can't open %s: %s\n"
 msgstr "%s : ne peut ouvrir %s : %s\n"
 
-#: timezone/zic.c:1207
-msgid "line too long"
-msgstr "Ligne trop longue"
-
-#: timezone/zic.c:1230
+#: timezone/zic.c:1734
 msgid "input line of unknown type"
 msgstr "Ligne d'entrée de type inconnu"
 
-#: timezone/zic.c:1253 timezone/zic.c:1699 timezone/zic.c:1721
-#, c-format
-msgid "%s: panic: Invalid l_value %d\n"
-msgstr "%s : panique : valeur %d de type « l_value » invalide\n"
-
-#: timezone/zic.c:1262
+#: timezone/zic.c:1761
 msgid "expected continuation line not found"
 msgstr "ligne de continuation attendue, non repérée"
 
-#: timezone/zic.c:1298
+#: timezone/zic.c:1797
 msgid "fractional seconds rejected by pre-2018 versions of zic"
 msgstr "secondes fractionnées non prises en charge par les versions de zic antérieures à 2018"
 
-#: timezone/zic.c:1316 timezone/zic.c:3282
+#: timezone/zic.c:1815 timezone/zic.c:3760
 msgid "time overflow"
 msgstr "Débordement du temps alloué"
 
-#: timezone/zic.c:1322
+#: timezone/zic.c:1821
 msgid "values over 24 hours not handled by pre-2007 versions of zic"
 msgstr "valeurs au-delà de 24 heures non prises en charge par les versions de zic antérieures à 2007"
 
-#: timezone/zic.c:1340
+#: timezone/zic.c:1839
 msgid "invalid saved time"
 msgstr "Temps sauvegardé invalide"
 
-#: timezone/zic.c:1351
+#: timezone/zic.c:1850
 msgid "wrong number of fields on Rule line"
 msgstr "Mauvais nombre de champs sur la ligne de type « Rule »"
 
-#: timezone/zic.c:1360
+#: timezone/zic.c:1859
 #, c-format
 msgid "Invalid rule name \"%s\""
 msgstr "nom de règle invalide  « %s » "
 
-#: timezone/zic.c:1382
+#: timezone/zic.c:1883
 msgid "wrong number of fields on Zone line"
 msgstr "Mauvais nombre de champs sur la ligne de type « Zone »"
 
-#: timezone/zic.c:1387
+#: timezone/zic.c:1887
 #, c-format
 msgid "\"Zone %s\" line and -l option are mutually exclusive"
 msgstr "La ligne \"Zone %s\" et l'option -l sont mutuellement exclusifs"
 
-#: timezone/zic.c:1393
+#: timezone/zic.c:1892
 #, c-format
 msgid "\"Zone %s\" line and -p option are mutually exclusive"
 msgstr "La ligne « Zone %s » et l'option -p sont mutuellement exclusifs"
 
-#: timezone/zic.c:1400
+#: timezone/zic.c:1899
 #, c-format
 msgid "duplicate zone name %s (file \"%s\", line %<PRIdMAX>)"
 msgstr "Double noms de zone  %s (fichier \"%s\", ligne %<PRIdMAX>)"
 
-#: timezone/zic.c:1414
+#: timezone/zic.c:1913
 msgid "wrong number of fields on Zone continuation line"
 msgstr "Mauvais nombre de champs sur la ligne de type continuation de « Zone »"
 
-#: timezone/zic.c:1454
+#: timezone/zic.c:1952
 msgid "invalid UT offset"
 msgstr "décalage de l'UTC invalide"
 
-#: timezone/zic.c:1458
+#: timezone/zic.c:1956
 msgid "invalid abbreviation format"
 msgstr "Format d'abréviation invalide"
 
-#: timezone/zic.c:1467
-#, c-format
-msgid "format '%s' not handled by pre-2015 versions of zic"
-msgstr "format '%s' non pris en charge par les versions de zic antérieures à 2015 "
-
-#: timezone/zic.c:1494
+#: timezone/zic.c:1986
 msgid "Zone continuation line end time is not after end time of previous line"
 msgstr ""
 "Temps final de la ligne de continuation du fuseau horaire est antérieur\n"
 "au temps final de la ligne précédente"
 
-#: timezone/zic.c:1526
+#: timezone/zic.c:1997
+#, c-format
+msgid "format '%s' not handled by pre-2015 versions of zic"
+msgstr "format '%s' non pris en charge par les versions de zic antérieures à 2015 "
+
+#: timezone/zic.c:2027
 msgid "invalid leaping year"
 msgstr "Année bissextile invalide"
 
-#: timezone/zic.c:1548 timezone/zic.c:1653
+#: timezone/zic.c:2049 timezone/zic.c:2154
 msgid "invalid month name"
 msgstr "Nom de mois invalide"
 
-#: timezone/zic.c:1561 timezone/zic.c:1769 timezone/zic.c:1783
+#: timezone/zic.c:2062 timezone/zic.c:2252 timezone/zic.c:2266
 msgid "invalid day of month"
 msgstr "Jour du mois invalide"
 
-#: timezone/zic.c:1566
+#: timezone/zic.c:2067
 msgid "time too small"
 msgstr "valeur de temps trop petite"
 
-#: timezone/zic.c:1570
+#: timezone/zic.c:2071
 msgid "time too large"
 msgstr "valeur de temps trop grande"
 
-#: timezone/zic.c:1574 timezone/zic.c:1682
+#: timezone/zic.c:2075 timezone/zic.c:2183
 msgid "invalid time of day"
 msgstr "Heure du jour invalide"
 
-#: timezone/zic.c:1577
+#: timezone/zic.c:2078
 msgid "leap second precedes Epoch"
 msgstr "La seconde de saut précède Epoch"
 
-#: timezone/zic.c:1585
+#: timezone/zic.c:2086
 msgid "wrong number of fields on Leap line"
 msgstr "Mauvais nombre de champs sur la ligne de type \"Leap\""
 
-#: timezone/zic.c:1591
+#: timezone/zic.c:2092
 msgid "invalid Rolling/Stationary field on Leap line"
 msgstr "Champ « Rolling/Stationary » non permis sur la ligne de type Leap"
 
-#: timezone/zic.c:1599
+#: timezone/zic.c:2100
 msgid "invalid CORRECTION field on Leap line"
 msgstr "champ CORRECTION non permis dans la ligne de type \"Leap\""
 
-#: timezone/zic.c:1611
+#: timezone/zic.c:2112
 msgid "wrong number of fields on Expires line"
 msgstr "Mauvais nombre de champs sur la ligne de type «expiration»"
 
-#: timezone/zic.c:1613
+#: timezone/zic.c:2114
 msgid "multiple Expires lines"
 msgstr "plusieurs lignes d'expiration"
 
-#: timezone/zic.c:1624
+#: timezone/zic.c:2125
 msgid "wrong number of fields on Link line"
 msgstr "Mauvais nombre de champs sur la ligne de type « Link »"
 
-#: timezone/zic.c:1628
-msgid "blank FROM field on Link line"
-msgstr "Champ « FROM » vide dans la ligne de type « Link »"
-
-#: timezone/zic.c:1703
+#: timezone/zic.c:2199
 msgid "invalid starting year"
 msgstr "Année initiale invalide"
 
-#: timezone/zic.c:1725
+#: timezone/zic.c:2214
 msgid "invalid ending year"
 msgstr "Année finale invalide"
 
-#: timezone/zic.c:1729
+#: timezone/zic.c:2218
 msgid "starting year greater than ending year"
 msgstr "année initiale plus grande que l'année finale"
 
-#: timezone/zic.c:1736
-msgid "typed single year"
-msgstr "une seule année fournie"
-
-#: timezone/zic.c:1739
-#, c-format
-msgid "year type \"%s\" is obsolete; use \"-\" instead"
-msgstr "type d'année \"%s\" est obsolète; employer \"-\" à la place"
-
-#: timezone/zic.c:1774
+#: timezone/zic.c:2257
 msgid "invalid weekday name"
 msgstr "Nom du jour de semaine invalide"
 
-#: timezone/zic.c:1935
+#: timezone/zic.c:2435
 #, c-format
 msgid "reference clients mishandle more than %d transition times"
 msgstr "les clients de référence gère mal plus que %d heures de transition"
 
-#: timezone/zic.c:1939
+#: timezone/zic.c:2439
 msgid "pre-2014 clients may mishandle more than 1200 transition times"
 msgstr "les clients pre-2014 peuvent mal gérer plus de 1200 heures de transition"
 
-#: timezone/zic.c:2058
+#: timezone/zic.c:2537
 msgid "too many transition times"
 msgstr "trop d'heures de transition"
 
-#: timezone/zic.c:2297
+#: timezone/zic.c:2801
 #, c-format
 msgid "%%z UT offset magnitude exceeds 99:59:59"
 msgstr "%%z l'ampleur du décalage UTC excède 99:59:59"
 
-#: timezone/zic.c:2673
-msgid "no POSIX environment variable for zone"
-msgstr "pas de variable d'environnement POSIX pour zone"
-
-#: timezone/zic.c:2679
+#: timezone/zic.c:3186
 #, c-format
 msgid "%s: pre-%d clients may mishandle distant timestamps"
 msgstr "%s: pre-%d clients peuvent mal gérer les timestamps distant"
 
-#: timezone/zic.c:2818
+#: timezone/zic.c:3315
 msgid "two rules for same instant"
 msgstr "deux règles au même instant"
 
-#: timezone/zic.c:2889
+#: timezone/zic.c:3388
 msgid "can't determine time zone abbreviation to use just after until time"
 msgstr ""
 "Ne peut déterminer l'abréviation du fuseau horaire à utiliser\n"
 "juste après telle date"
 
-#: timezone/zic.c:2964
+#: timezone/zic.c:3489
 msgid "UT offset out of range"
 msgstr "décalage  de l'UTC en dehors de la plage"
 
-#: timezone/zic.c:2987
+#: timezone/zic.c:3512
 msgid "too many local time types"
 msgstr "trop de types localisés pour la représentation du temps"
 
-#: timezone/zic.c:3005
+#: timezone/zic.c:3530
 msgid "too many leap seconds"
 msgstr "trop de délai en secondes"
 
-#: timezone/zic.c:3032
+#: timezone/zic.c:3561
 msgid "Leap seconds too close together"
 msgstr "Les secondes de saut sont trop proches les unes des autres"
 
-#: timezone/zic.c:3043
-msgid "\"#expires\" is obsolescent; use \"Expires\""
-msgstr "\"#expires\" est obsolète; employer \"Expires\" à la place"
-
-#: timezone/zic.c:3049
+#: timezone/zic.c:3572
 msgid "last Leap time does not precede Expires time"
 msgstr "le dernier saut de temps ne précède pas le délai d'expiration"
 
-#: timezone/zic.c:3095
-msgid "Wild result from command execution"
-msgstr "Résultat anarchique résultant de l'exécution de la commande"
-
-#: timezone/zic.c:3096
-#, c-format
-msgid "%s: command was '%s', result was %d\n"
-msgstr "%s : la commande était « %s », le résultat était %d\n"
-
-#: timezone/zic.c:3202
+#: timezone/zic.c:3679
 #, c-format
 msgid "\"%s\" is undocumented; use \"last%s\" instead"
 msgstr "\"%s\" est non documenté; employer \"last%s\" à la place"
 
-#: timezone/zic.c:3233
+#: timezone/zic.c:3710
 #, c-format
 msgid "\"%s\" is ambiguous in pre-2017c zic"
 msgstr "\"%s\" ambigu dans pre-2017c zic"
 
-#: timezone/zic.c:3267
+#: timezone/zic.c:3741
 msgid "Odd number of quotation marks"
 msgstr "Nombre impair de caractères apostrophe"
 
-#: timezone/zic.c:3361
+#: timezone/zic.c:3838
 msgid "use of 2/29 in non leap-year"
 msgstr "Utiliser 2/29 pour les années non-bissextiles"
 
-#: timezone/zic.c:3396
+#: timezone/zic.c:3864
 msgid "rule goes past start/end of month; will not work with pre-2004 versions of zic"
 msgstr "la règle en dehors de début/fin du mois--ne fonctionnera pas avec les versions de zic antérieures à 2004"
 
-#: timezone/zic.c:3423
+#: timezone/zic.c:3891
 msgid "time zone abbreviation has fewer than 3 characters"
 msgstr "l'abréviation du nom de fuseau horaire a moins de 3 caractères"
 
-#: timezone/zic.c:3425
+#: timezone/zic.c:3893
 msgid "time zone abbreviation has too many characters"
 msgstr "l'abréviation du nom de fuseau horaire a trop de caractères"
 
-#: timezone/zic.c:3427
+#: timezone/zic.c:3895
 msgid "time zone abbreviation differs from POSIX standard"
 msgstr "l'abréviation du nom de fuseau horaire diffère du standard POSIX"
 
-#: timezone/zic.c:3433
+#: timezone/zic.c:3901
 msgid "too many, or too long, time zone abbreviations"
 msgstr "trop ou de trop longues abréviations de fuseaux horaires"
 
-#: timezone/zic.c:3479
+#: timezone/zic.c:3952
 #, c-format
 msgid "%s: Can't create directory %s: %s"
 msgstr "%s : ne peut créer le dossier %s : %s"

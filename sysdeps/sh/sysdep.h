@@ -1,5 +1,5 @@
 /* Assembler macros for SH.
-   Copyright (C) 1999-2023 Free Software Foundation, Inc.
+   Copyright (C) 1999-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 
 #define ALIGNARG(log2) log2
 #define ASM_SIZE_DIRECTIVE(name) .size name,.-name
+#define L(label) .L##label
 
 #ifdef SHARED
 #define PLTJMP(_x)	_x##@PLT

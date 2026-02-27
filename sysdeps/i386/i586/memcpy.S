@@ -1,5 +1,5 @@
 /* Highly optimized version for i586.
-   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@
 #define LEN	SRC+4
 
         .text
-#if defined PIC && IS_IN (libc)
+#if defined SHARED && IS_IN (libc)
 ENTRY (__memcpy_chk)
 	movl	12(%esp), %eax
 	cmpl	%eax, 16(%esp)

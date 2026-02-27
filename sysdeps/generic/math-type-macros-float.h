@@ -1,5 +1,5 @@
 /* Helper macros for float variants of type generic functions of libm.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,6 +29,8 @@
 
 /* GNU extension float constant macros.  */
 #define M_MLIT(c) c ## f
+
+#define M_SET_RESTORE_ROUND(RM) SET_RESTORE_ROUNDF (RM)
 
 #include <libm-alias-float.h>
 #include <math-nan-payload-float.h>

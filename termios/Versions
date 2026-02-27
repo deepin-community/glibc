@@ -3,6 +3,9 @@ libc {
     # c*
     cfgetispeed; cfgetospeed; cfmakeraw; cfsetispeed; cfsetospeed; cfsetspeed;
 
+    # i*
+    isatty;
+
     # t*
     tcdrain; tcflow; tcflush; tcgetattr; tcgetpgrp; tcsendbreak; tcsetattr;
     tcsetpgrp;
@@ -10,5 +13,9 @@ libc {
   GLIBC_2.1 {
     # t*
     tcgetsid;
+  }
+  GLIBC_2.42 {
+    # cf*baud
+    cfgetibaud; cfgetobaud; cfsetibaud; cfsetobaud; cfsetbaud;
   }
 }

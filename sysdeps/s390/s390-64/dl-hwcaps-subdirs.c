@@ -1,5 +1,5 @@
 /* Architecture-specific glibc-hwcaps subdirectories.  s390x version.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,9 +18,11 @@
 
 #include <dl-hwcaps.h>
 #include <ldsodefs.h>
+#include <sys/auxv.h>
+#include <cpu-features.h>
 
-const char _dl_hwcaps_subdirs[] = "z16:z15:z14:z13";
-enum { subdirs_count = 4 }; /* Number of components in _dl_hwcaps_subdirs.  */
+const char _dl_hwcaps_subdirs[] = "z17:z16:z15:z14:z13";
+enum { subdirs_count = 5 }; /* Number of components in _dl_hwcaps_subdirs.  */
 
 uint32_t
 _dl_hwcaps_subdirs_active (void)
@@ -54,6 +56,13 @@ _dl_hwcaps_subdirs_active (void)
    Note: We do not list HWCAP_S390_NNPA here as, according to the Principles of
    Operation, those instructions may be replaced or removed in future.  */
   if (!(GLRO (dl_hwcap) & HWCAP_S390_VXRS_PDE2))
+    return _dl_hwcaps_subdirs_build_bitmask (subdirs_count, active);
+  ++active;
+
+  /* z17.
+     Note: The kernel has not introduced new HWCAP bits as the new facilities do
+     not require kernel interaction.  Thus we check the features via stfle.  */
+  if (!(S390_IS_ARCH15 (GLRO(dl_s390_cpu_features).stfle_orig)))
     return _dl_hwcaps_subdirs_build_bitmask (subdirs_count, active);
   ++active;
 

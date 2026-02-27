@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -69,10 +69,7 @@ __libc_cleanup_pop_restore (struct _pthread_cleanup_buffer *buffer)
 						    &cancelhandling, newval));
 
       if (cancel_enabled_and_canceled (cancelhandling))
-	{
-	  self->result = PTHREAD_CANCELED;
-	  __do_cancel ();
-	}
+	__do_cancel (PTHREAD_CANCELED);
     }
 }
 libc_hidden_def (__libc_cleanup_pop_restore)

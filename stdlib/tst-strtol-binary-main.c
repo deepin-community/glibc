@@ -1,5 +1,5 @@
-/* Test strtol functions with C2X binary integers.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+/* Test strtol functions with C23 binary integers.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@
 #define CHECK_RES(ARG, RES, EP, EXPECTED, EXPECTED_EP)			\
   do									\
     {									\
-      if (TEST_C2X)							\
+      if (TEST_C23)							\
 	{								\
 	  TEST_COMPARE ((RES), EXPECTED);				\
 	  TEST_VERIFY ((EP) == EXPECTED_EP);				\

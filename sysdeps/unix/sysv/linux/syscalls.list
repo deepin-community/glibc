@@ -46,6 +46,7 @@ open_tree	EXTRA	open_tree	i:isU	open_tree
 pipe2		-	pipe2		i:fi	__pipe2		pipe2
 pidfd_open	EXTRA	pidfd_open	i:iU	pidfd_open
 pidfd_getfd	EXTRA	pidfd_getfd	i:iiU	pidfd_getfd
+prctl		EXTRA	prctl		i:iiiii	__prctl		prctl __prctl_time64
 pivot_root	EXTRA	pivot_root	i:ss	pivot_root
 pidfd_send_signal	EXTRA	pidfd_send_signal	i:iiPU	pidfd_send_signal
 process_madvise EXTRA   process_madvise i:iPniU process_madvise
@@ -101,8 +102,8 @@ name_to_handle_at EXTRA	name_to_handle_at i:isppi name_to_handle_at
 setns		EXTRA	setns		i:ii	setns
 
 memfd_create    EXTRA	memfd_create	i:si    memfd_create
-pkey_alloc	EXTRA	pkey_alloc	i:ii	pkey_alloc
-pkey_free	EXTRA	pkey_free	i:i	pkey_free
+pkey_alloc	EXTRA	pkey_alloc	i:ii	__pkey_alloc	pkey_alloc
+pkey_free	EXTRA	pkey_free	i:i	__pkey_free	pkey_free
 gettid          EXTRA   gettid          Ei:     __gettid	gettid
 tgkill          EXTRA   tgkill          i:iii   __tgkill	tgkill
 close_range     -       close_range     i:iii   __close_range   close_range

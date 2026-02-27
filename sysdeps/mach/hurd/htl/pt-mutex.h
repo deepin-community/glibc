@@ -1,5 +1,5 @@
 /* Internal definitions for pthreads library.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -84,7 +84,5 @@
 /* Mutex type, including robustness. */
 #define MTX_TYPE(mtxp)   \
   ((mtxp)->__type | ((mtxp)->__flags & PTHREAD_MUTEX_ROBUST))
-
-extern int __getpid (void) __attribute__ ((const));
 
 #endif /* pt-mutex.h */

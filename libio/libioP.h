@@ -1,4 +1,5 @@
-/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2025 Free Software Foundation, Inc.
+   Copyright The GNU Toolchain Authors.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -429,6 +430,12 @@ libc_hidden_proto (_IO_list_resetlock)
 extern void _IO_enable_locks (void) __THROW;
 libc_hidden_proto (_IO_enable_locks)
 
+/* Functions for operating popen's proc_file_chain_lock during fork.  */
+
+extern void _IO_proc_file_chain_lock (void) __THROW attribute_hidden;
+extern void _IO_proc_file_chain_unlock (void) __THROW attribute_hidden;
+extern void _IO_proc_file_chain_resetlock (void) __THROW attribute_hidden;
+
 /* Default jumptable functions. */
 
 extern int _IO_default_underflow (FILE *) __THROW;
@@ -577,8 +584,8 @@ extern void _IO_old_init (FILE *fp, int flags) __THROW;
        ((__fp)->_wide_data->_IO_write_base \
 	= (__fp)->_wide_data->_IO_write_ptr = __p, \
 	(__fp)->_wide_data->_IO_write_end = (__ep))
-#define _IO_have_backup(fp) ((fp)->_IO_save_base != NULL)
-#define _IO_have_wbackup(fp) ((fp)->_wide_data->_IO_save_base != NULL)
+#define _IO_have_backup(fp) ((fp)->_IO_backup_base != NULL)
+#define _IO_have_wbackup(fp) ((fp)->_wide_data->_IO_backup_base != NULL)
 #define _IO_in_backup(fp) ((fp)->_flags & _IO_IN_BACKUP)
 #define _IO_have_markers(fp) ((fp)->_markers != NULL)
 #define _IO_blen(fp) ((fp)->_IO_buf_end - (fp)->_IO_buf_base)
@@ -904,27 +911,31 @@ extern int _IO_vscanf (const char *, va_list) __THROW;
 # ifdef _IO_USE_OLD_IO_FILE
 #  define FILEBUF_LITERAL(CHAIN, FLAGS, FD, WDP) \
        { _IO_MAGIC+_IO_LINKED+_IO_IS_FILEBUF+FLAGS, \
-	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (FILE *) CHAIN, FD, \
-	 0, _IO_pos_BAD, 0, 0, { 0 }, &_IO_stdfile_##FD##_lock }
+	 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, \
+	 NULL, NULL, (FILE *) CHAIN, FD, 0, { 0 }, \
+	 _IO_pos_BAD, 0, 0, { 0 }, &_IO_stdfile_##FD##_lock }
 # else
 #  define FILEBUF_LITERAL(CHAIN, FLAGS, FD, WDP) \
        { _IO_MAGIC+_IO_LINKED+_IO_IS_FILEBUF+FLAGS, \
-	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (FILE *) CHAIN, FD, \
-	 0, _IO_pos_BAD, 0, 0, { 0 }, &_IO_stdfile_##FD##_lock, _IO_pos_BAD,\
-	 NULL, WDP, 0 }
+	 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, \
+	 NULL, NULL, (FILE *) CHAIN, FD, 0, { 0 }, \
+	 _IO_pos_BAD, 0, 0, { 0 }, &_IO_stdfile_##FD##_lock, \
+	 _IO_pos_BAD, NULL, WDP, NULL }
 # endif
 #else
 # ifdef _IO_USE_OLD_IO_FILE
 #  define FILEBUF_LITERAL(CHAIN, FLAGS, FD, WDP) \
        { _IO_MAGIC+_IO_LINKED+_IO_IS_FILEBUF+FLAGS, \
-	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (FILE *) CHAIN, FD, \
-	 0, _IO_pos_BAD }
+	 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, \
+	 NULL, NULL, (FILE *) CHAIN, FD, 0, { 0 }, \
+	 _IO_pos_BAD }
 # else
 #  define FILEBUF_LITERAL(CHAIN, FLAGS, FD, WDP) \
        { _IO_MAGIC+_IO_LINKED+_IO_IS_FILEBUF+FLAGS, \
-	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (FILE *) CHAIN, FD, \
-	 0, _IO_pos_BAD, 0, 0, { 0 }, 0, _IO_pos_BAD, \
-	 NULL, WDP, 0 }
+	 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, \
+	 NULL, NULL, (FILE *) CHAIN, FD, 0, { 0 }, \
+	 _IO_pos_BAD, 0, 0, { 0 }, NULL, \
+	 _IO_pos_BAD, NULL, WDP, NULL }
 # endif
 #endif
 
@@ -1028,6 +1039,15 @@ IO_validate_vtable (const struct _IO_jump_t *vtable)
        slow path, which will terminate the process if necessary.  */
     _IO_vtable_check ();
   return vtable;
+}
+
+/* In case of an allocation failure, we resort to using the fixed buffer
+   _SHORT_BACKUPBUF.  Free PTR unless it points to that buffer.  */
+static __always_inline void
+_IO_free_backup_buf (FILE *fp, char *ptr)
+{
+  if (ptr != fp->_short_backupbuf)
+    free (ptr);
 }
 
 /* Character set conversion.  */

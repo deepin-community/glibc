@@ -11,6 +11,10 @@ test-xfail-tst-timer = yes
 # control, we'll just let it fail
 test-xfail-tst-create-detached = yes
 
+# Due to a bug/limitation in sbuild, this test fails when running unshare
+# chroot mode, see bug #1070003.
+test-xfail-tst-support_descriptors = yes
+
 ######################################################################
 # alpha
 ######################################################################
@@ -214,6 +218,14 @@ test-xfail-tst-minsigstksz-5 = yes
 
 # See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106458
 test-xfail-tst-scratch_buffer = yes
+
+# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111709
+test-xfail-test-double-fma = yes
+test-xfail-test-double-ldouble-fma = yes
+test-xfail-test-float32x-float64-fma = yes
+test-xfail-test-float32x-fma = yes
+test-xfail-test-float64-fma = yes
+test-xfail-test-ldouble-fma = yes
 endif
 
 
@@ -246,11 +258,6 @@ test-xfail-tst-aio10 = yes
 test-xfail-tst-aio9 = yes
 
 # Needs LD_AUDIT support
-test-xfail-tst-audit1 = yes
-test-xfail-tst-audit2 = yes
-test-xfail-tst-audit3 = yes
-test-xfail-tst-audit8 = yes
-test-xfail-tst-audit9 = yes
 test-xfail-tst-audit14 = yes
 test-xfail-tst-audit14-cmp = yes
 test-xfail-tst-audit14a = yes
@@ -260,7 +267,6 @@ test-xfail-tst-audit15-cmp = yes
 test-xfail-tst-audit16 = yes
 test-xfail-tst-audit16-cmp = yes
 test-xfail-tst-audit18 = yes
-test-xfail-tst-audit20 = yes
 test-xfail-tst-audit23 = yes
 test-xfail-tst-audit24a = yes
 test-xfail-tst-audit24b = yes
@@ -280,10 +286,6 @@ test-xfail-tst-sprofil = yes
 test-xfail-tst-timer4 = yes
 test-xfail-tst-timer5 = yes
 
-# Needs LFS support
-#test-xfail-test-lfs = yes
-test-xfail-tst-tzset = yes
-
 # want /proc/self/fd
 # TODO: make them use FD_TO_FILENAME_PREFIX from <arch-fd_to_filename.h>
 test-xfail-tst-if_index-long = yes
@@ -295,10 +297,11 @@ test-xfail-tst-close_range = yes
 test-xfail-tst-support-open-dev-null-range = yes
 test-xfail-tst-spawn5 = yes
 test-xfail-tst-open-tmpfile = yes
+test-xfail-tst-closedir-leaks = yes
+test-xfail-tst-closedir-leaks-mem = yes
 
 # new in 2.22
 test-xfail-tst-prelink = yes
-test-xfail-tst-tls-atexit = yes
 
 # new in 2.24
 test-xfail-tst-spawn2 = yes
@@ -333,10 +336,8 @@ test-xfail-tst-pututxline-lockfail = yes
 # new in 2.32
 # Assumes some linuxish strings
 test-xfail-tst-strerror = yes
-# We always have several threads
-test-xfail-tst-single_threaded-pthread = yes
 # known to be fixed by the siginfo patch by fixing the returned value
-# #  But for dlsym errors it still returns 9 instead of 127...
+# But for dlsym errors it still returns 9 instead of 127...
 test-xfail-tst-latepthread = yes
 test-xfail-tst-initfinilazyfail = yes
 
@@ -352,12 +353,10 @@ test-xfail-tst-canon-bz26341 = yes
 test-xfail-tst-spawn4-compat = yes
 
 # new in 2.34
-test-xfail-test-cxa_atexit-race2 = yes
 test-xfail-tst-itimer = yes
 test-xfail-tst-wait3 = yes
 test-xfail-tst-nss-compat1 = yes
 test-xfail-tst-dlinfo-phdr = yes
-test-xfail-tst-tls-allocation-failure-static-patched = yes
 
 # new in 2.35
 test-xfail-tst-compathooks-on = yes
@@ -375,13 +374,73 @@ test-xfail-tst-fcntl-lock = yes
 test-xfail-tst-fcntl-lock-lfs = yes
 test-xfail-tst-nss-gai-hv2-canonname = yes
 
-# missing RLIMIT_AS support
-test-xfail-tst-vfprintf-width-prec-mem = yes
-test-xfail-tst-vfprintf-width-prec = yes
-
 # new in 2.38
 test-xfail-tst-sprof-basic = yes
 test-xfail-tst-nss-files-hosts-v4mapped = yes
+test-xfail-test-canon = yes
+
+# new in 2.39
+test-xfail-tst-initgroups1 = yes
+test-xfail-tst-initgroups2 = yes
+test-xfail-tst-sprintf-fortify-rdonly = yes
+test-xfail-tst-plt-rewrite1 = yes
+test-xfail-tst-tunables = yes
+test-xfail-tst-mremap1 = yes
+test-xfail-tst-mremap2 = yes
+
+# new in 2.40
+test-xfail-tst-recursive-tls = yes
+test-xfail-tst-malloc-alternate-path = yes
+test-xfail-tst-malloc-alternate-path-malloc-check = yes
+test-xfail-tst-malloc-alternate-path-malloc-hugetlb1 = yes
+test-xfail-tst-malloc-alternate-path-malloc-hugetlb2 = yes
+test-xfail-tst-malloc-alternate-path-mcheck = yes
+test-xfail-tst-shutdown = yes
+test-xfail-tst-truncate64 = yes
+
+# new in 2.41
+test-xfail-tst-getrandom2 = yes
+test-xfail-tst-freopen2 = yes
+test-xfail-tst-freopen3 = yes
+test-xfail-tst-freopen5 = yes
+test-xfail-tst-freopen64-2 = yes
+test-xfail-tst-freopen64-3 = yes
+test-xfail-tst-freopen2-mem = yes
+test-xfail-tst-freopen3-mem = yes
+test-xfail-tst-freopen5-mem = yes
+test-xfail-tst-freopen64-2-mem = yes
+test-xfail-tst-freopen64-3-mem = yes
+test-xfail-tst-clock_gettime = yes
+test-xfail-tst-clock_nanosleep2 = yes
+test-xfail-tst-dlopen-auditdup = yes
+test-xfail-tst-rtld-no-malloc = yes
+test-xfail-tst-rtld-no-malloc-audit = yes
+test-xfail-tst-rtld-no-malloc-preload = yes
+test-xfail-tst-execstack-prog-noexecstack = yes
+test-xfail-tst-support-process_state = yes
+test-xfail-tst-audit12 = yes
+test-xfail-tst-audit28 = yes
+test-xfail-tst-execstack-prog-static-tunable = yes
+
+# new in 2.42
+test-xfail-tst-fclose-devzero = yes
+test-xfail-tst-malloc-tcache-leak-malloc-largetcache = yes
+test-xfail-tst-malloc-too-large-malloc-largetcache = yes
+test-xfail-tst-mallocfork2-malloc-largetcache = yes
+test-xfail-tst-malloc-alternate-path-malloc-largetcache = yes
+test-xfail-tst-sprintf-fortify-rdonly-static = yes
+test-xfail-tst-pie-bss-static = yes
+
+# new in 2.43
+test-xfail-tst-pthread-exited = yes
+test-xfail-tst-malloc-alternate-path-threaded-worker = yes
+test-xfail-tst-malloc-alternate-path-threaded-main = yes
+# Fixed in 2.43
+test-xfail-tst-single_threaded-pthread = yes
+test-xfail-tst-single_threaded-pthread-static = yes
+
+# new in 2.44
+test-xfail-tst-cancel32 = yes
 
 # actually never succeded
 test-xfail-tst-create_format1 = yes
@@ -394,6 +453,9 @@ test-xfail-tst-lockf = yes
 # assumes that all st_mode flags (32bit) can exist in stx_mode flags (16bit)
 test-xfail-tst-statx = yes
 
+# we don't actually set the secure flag when setgid doesn't actually increase permissions
+test-xfail-tst-env-setuid-static = yes
+test-xfail-tst-env-setuid-tunables = yes
 endif
 
 
@@ -402,7 +464,6 @@ endif
 ######################################################################
 ifeq ($(config-machine)-$(config-os),x86_64-gnu-gnu)
 # TODO: fix default FPU config
-test-xfail-test-fenv = yes
 test-xfail-test-float64x-acos = yes
 test-xfail-test-float64x-log10 = yes
 test-xfail-test-float64x-log2 = yes
@@ -413,53 +474,34 @@ test-xfail-test-ldouble-log10 = yes
 test-xfail-test-ldouble-log2 = yes
 test-xfail-test-ldouble-y0 = yes
 test-xfail-test-ldouble-y1 = yes
-
-# TODO context support
-test-xfail-bug-getcontext = yes
-test-xfail-tst-setcontext2 = yes
-test-xfail-tst-setcontext4 = yes
-test-xfail-tst-setcontext5 = yes
-test-xfail-tst-setcontext6 = yes
-test-xfail-tst-setcontext7 = yes
-test-xfail-tst-setcontext8 = yes
-test-xfail-tst-setcontext9 = yes
-test-xfail-tst-swapcontext1 = yes
-test-xfail-tst-xbzero-opt = yes
-
-# Bus error
-test-xfail-test-bz22786 = yes
+test-xfail-test-fenv = yes
 
 # memory leak
 test-xfail-tst-vfprintf-width-prec-mem = yes
 test-xfail-tst-vfprintf-width-prec = yes
 
 # timeout
-test-xfail-tst-basic7 = yes
-
-# timeout
 test-xfail-tst-malloc-too-large = yes
 test-xfail-tst-malloc-too-large-malloc-check = yes
-test-xfail-tst-malloc-too-large-hugetlb1 = yes
-test-xfail-tst-malloc-too-large-hugetlb2 = yes
+test-xfail-tst-malloc-too-large-malloc-hugetlb1 = yes
+test-xfail-tst-malloc-too-large-malloc-hugetlb2 = yes
+test-xfail-tst-malloc-too-large-threaded-main = yes
+test-xfail-tst-malloc-too-large-threaded-worker = yes
 
-# Bus error
-test-xfail-bug18240 = yes
+# missing support
+test-xfail-tst-map-32bit-1a = yes
+test-xfail-tst-map-32bit-1b = yes
+test-xfail-tst-map-32bit-2 = yes
 
-# cmsg bug
-test-xfail-tst-cmsghdr = yes
-
-# TODO support (for signals I guess)
-test-xfail-tst-backtrace4 = yes
-test-xfail-tst-backtrace5 = yes
-test-xfail-tst-backtrace6 = yes
-
-test-xfail-tst-dlopen-nodelete-reloc = yes
 test-xfail-tst-platform-1 = yes
 test-xfail-tst-audit4 = yes
 test-xfail-tst-audit5 = yes
 test-xfail-tst-audit6 = yes
 test-xfail-tst-audit7 = yes
 test-xfail-tst-audit10 = yes
+
+# This tries to write 2G to /dev/null
+tests-unsupported += tst-writev
 endif
 
 
@@ -468,8 +510,9 @@ endif
 ######################################################################
 ifeq ($(config-machine)-$(config-os),i686-gnu-gnu)
 test-xfail-tst-posix_fallocate64 = yes
-test-xfail-test-fesetexcept-traps = yes
-test-xfail-test-canon = yes
+
+# new in 2.34
+test-xfail-tst-tls-allocation-failure-static-patched = yes
 endif
 
 
@@ -624,6 +667,10 @@ test-xfail-tst-waitid = yes
 
 # The 32-bit protection key behavior is somewhat unclear on 32-bit powerpc.
 test-xfail-tst-pkey = yes
+
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67771
+test-xfail-test-float-log10 = yes
+test-xfail-test-float32-log10 = yes
 endif
 
 
@@ -631,9 +678,6 @@ endif
 # riscv64
 ######################################################################
 ifeq ($(config-machine)-$(config-os),riscv64-linux-gnu)
-test-xfail-tst-resolv-res_init = yes
-test-xfail-tst-resolv-res_init-thread = yes
-test-xfail-tst-resolv-threads = yes
 endif
 
 

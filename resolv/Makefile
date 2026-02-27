@@ -1,4 +1,4 @@
-# Copyright (C) 1994-2023 Free Software Foundation, Inc.
+# Copyright (C) 1994-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ routines := \
   inet_addr \
   inet_ntop \
   inet_pton \
+  inet_pton_length \
   ns_makecanon \
   ns_name_compress \
   ns_name_length_uncompressed \
@@ -73,6 +74,11 @@ routines := \
   resolv_context \
   # routines
 
+# Exclude fortified routines from being built with _FORTIFY_SOURCE
+routines_no_fortify += \
+  inet_pton \
+  # routines_no_fortify
+
 tests = tst-aton tst-leaks tst-inet_ntop
 tests-container = tst-leaks2
 
@@ -102,9 +108,12 @@ tests += \
   tst-resolv-invalid-cname \
   tst-resolv-network \
   tst-resolv-noaaaa \
+  tst-resolv-noaaaa-vc \
   tst-resolv-nondecimal \
   tst-resolv-res_init-multi \
   tst-resolv-search \
+  tst-resolv-semi-failure \
+  tst-resolv-short-response \
   tst-resolv-trailing \
 
 # This test calls __res_context_send directly, which is not exported
@@ -131,6 +140,7 @@ tests += \
   tst-resolv-ai_idn-latin1 \
   tst-resolv-ai_idn-nolibidn2 \
   tst-resolv-canonname \
+  tst-resolv-getaddrinfo-fqdn \
   tst-resolv-trustad \
 
 # Needs resolv_context.
@@ -293,15 +303,21 @@ $(objpfx)tst-resolv-res_init-thread: $(objpfx)libresolv.so \
 $(objpfx)tst-resolv-invalid-cname: $(objpfx)libresolv.so \
   $(shared-thread-library)
 $(objpfx)tst-resolv-noaaaa: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-noaaaa-vc: $(objpfx)libresolv.so $(shared-thread-library)
 $(objpfx)tst-resolv-nondecimal: $(objpfx)libresolv.so $(shared-thread-library)
 $(objpfx)tst-resolv-qtypes: $(objpfx)libresolv.so $(shared-thread-library)
 $(objpfx)tst-resolv-rotate: $(objpfx)libresolv.so $(shared-thread-library)
 $(objpfx)tst-resolv-search: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-semi-failure: $(objpfx)libresolv.so \
+  $(shared-thread-library)
+$(objpfx)tst-resolv-short-response: $(objpfx)libresolv.so \
+  $(shared-thread-library)
 $(objpfx)tst-resolv-trailing: $(objpfx)libresolv.so $(shared-thread-library)
 $(objpfx)tst-resolv-threads: $(objpfx)libresolv.so $(shared-thread-library)
 $(objpfx)tst-resolv-txnid-collision: $(objpfx)libresolv.a \
   $(static-thread-library)
 $(objpfx)tst-resolv-canonname: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-getaddrinfo-fqdn: $(objpfx)libresolv.so $(shared-thread-library)
 $(objpfx)tst-resolv-trustad: $(objpfx)libresolv.so $(shared-thread-library)
 
 $(objpfx)tst-ns_name: $(objpfx)libresolv.so

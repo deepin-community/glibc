@@ -1,5 +1,5 @@
 /* Minimal tests to verify libc_malloc_debug.so functionality.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,8 @@
 
 #include <support/check.h>
 #include <support/support.h>
+
+#include "tst-malloc-aux.h"
 
 extern void (*volatile __free_hook) (void *, const void *);
 extern void *(*volatile __malloc_hook)(size_t, const void *);

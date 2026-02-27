@@ -1,5 +1,5 @@
 /* Special .init and .fini section support for AArch64.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -41,14 +41,10 @@
 
 	.section .init,"ax",%progbits
 	ldp	x29, x30, [sp], 16
-#if HAVE_AARCH64_PAC_RET
-	AUTIASP
-#endif
-	RET
+	autiasp
+	ret
 
 	.section .fini,"ax",%progbits
 	ldp	x29, x30, [sp], 16
-#if HAVE_AARCH64_PAC_RET
-	AUTIASP
-#endif
-	RET
+	autiasp
+	ret

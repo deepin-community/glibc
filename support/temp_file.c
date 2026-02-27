@@ -1,5 +1,5 @@
 /* Temporary file handling for tests.
-   Copyright (C) 1998-2023 Free Software Foundation, Inc.
+   Copyright (C) 1998-2025 Free Software Foundation, Inc.
    Copyright The GNU Tools Authors.
    This file is part of the GNU C Library.
 
@@ -27,6 +27,7 @@
 #include <support/support.h>
 
 #include <errno.h>
+#include <limits.h>
 #include <paths.h>
 #include <stdio.h>
 #include <stdlib.h>

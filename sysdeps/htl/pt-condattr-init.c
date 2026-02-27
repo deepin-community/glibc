@@ -1,5 +1,5 @@
 /* pthread_condattr_init.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <pthread.h>
+#include <shlib-compat.h>
 #include <pt-internal.h>
 
 int
@@ -27,5 +28,9 @@ __pthread_condattr_init (pthread_condattr_t *attr)
   *attr = __pthread_default_condattr;
   return 0;
 }
+libc_hidden_def (__pthread_condattr_init)
+versioned_symbol (libc, __pthread_condattr_init, pthread_condattr_init, GLIBC_2_21);
 
-weak_alias (__pthread_condattr_init, pthread_condattr_init);
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_21)
+compat_symbol (libc, __pthread_condattr_init, pthread_condattr_init, GLIBC_2_12);
+#endif

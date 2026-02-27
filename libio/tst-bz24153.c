@@ -1,5 +1,5 @@
 /* Test that assigning to stdin redirects input (bug 24153).
-   Copyright (C) 2019-2023 Free Software Foundation, Inc.
+   Copyright (C) 2019-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,7 +18,11 @@
 
 /* Prevent getchar -> getc inline expansion.  */
 #define __NO_INLINE__
-#pragma GCC optimize ("O0")
+#ifdef __clang__
+# pragma clang optimize off
+#else
+# pragma GCC optimize("O0")
+#endif
 
 #include <stdarg.h>
 #include <stdio.h>

@@ -1,6 +1,6 @@
 /* Set current context.
 
-   Copyright (C) 2009-2023 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -34,7 +34,6 @@
 	.text
 
 ENTRY (__setcontext)
-	PTR_ARG (0)
 	/* Save a copy of UCP.  */
 	mov	x9, x0
 
@@ -49,6 +48,16 @@ ENTRY (__setcontext)
 	cbz	x0, 1f
 	b	C_SYMBOL_NAME (__syscall_error)
 1:
+	/* Clear ZA state of SME.  */
+	/* The calling convention of __libc_arm_za_disable allows to do
+	   this thus allowing to avoid saving to and reading from stack.
+	   As a result we also don't need to sign the return address and
+	   check it after returning because it is not stored to stack.  */
+	mov	x13, x30
+	cfi_register (x30, x13)
+	bl	__libc_arm_za_disable
+	mov	x30, x13
+	cfi_register (x13, x30)
 	/* Restore the general purpose registers.  */
 	mov	x0, x9
 	cfi_def_cfa (x0, 0)
@@ -111,6 +120,44 @@ ENTRY (__setcontext)
 	ldr	w4, [x3, oFPCR - oFPSR]
 	msr	fpcr, x4
 
+	/* Restore the GCS.  */
+	mov	x16, 1 /* _CHKFEAT_GCS */
+	CHKFEAT_X16
+	tbnz	x16, 0, L(gcs_done)
+	/* Get target GCS from GCS context.  */
+	ldr	w1, [x2, #oHEAD + oSIZE]
+	add	x2, x2, x1
+	mov	w3, #(GCS_MAGIC & 0xffff)
+	movk	w3, #(GCS_MAGIC >> 16), lsl #16
+	ldr	w1, [x2, #oHEAD + oMAGIC]
+	cmp	w1, w3
+	b.ne	L(gcs_done)
+	ldr	x3, [x2, #oGCSPR]
+	MRS_GCSPR (x2)
+	mov	x4, x3
+	/* x2: GCSPR now.  x3, x4: target GCSPR.  x5, x6: tmp regs.  */
+L(gcs_scan):
+	cmp	x2, x4
+	b.eq	L(gcs_pop)
+	sub	x4, x4, 8
+	/* Check for a cap token.  */
+	ldr	x5, [x4]
+	and	x6, x4, 0xfffffffffffff000
+	orr	x6, x6, 1
+	cmp	x5, x6
+	b.ne	L(gcs_scan)
+L(gcs_switch):
+	add	x2, x4, 8
+	GCSSS1 (x4)
+	GCSSS2 (xzr)
+L(gcs_pop):
+	cmp	x2, x3
+	b.eq	L(gcs_done)
+	GCSPOPM (xzr)
+	add	x2, x2, 8
+	b	L(gcs_pop)
+L(gcs_done):
+
 2:
 	ldr     x16, [x0, oPC]
 	/* Restore arg registers.  */
@@ -123,7 +170,11 @@ ENTRY (__setcontext)
 PSEUDO_END (__setcontext)
 weak_alias (__setcontext, setcontext)
 
+/* makecontext start function: receives uc_link in x19 and func in x20.
+   Arguments of func, x29, x30 and sp are set up by the caller.  */
 ENTRY (__startcontext)
+	cfi_undefined (x30)
+	blr	x20
 	mov	x0, x19
 	cbnz	x0, __setcontext
 1:	b       HIDDEN_JUMPTARGET (exit)

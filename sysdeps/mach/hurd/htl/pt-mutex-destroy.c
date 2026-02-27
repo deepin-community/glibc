@@ -1,5 +1,5 @@
 /* pthread_mutex_destroy.  Hurd version.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@
 #include <pt-internal.h>
 #include "pt-mutex.h"
 #include <hurdlock.h>
+#include <shlib-compat.h>
 
 int
 __pthread_mutex_destroy (pthread_mutex_t *mtxp)
@@ -33,6 +34,9 @@ __pthread_mutex_destroy (pthread_mutex_t *mtxp)
   mtxp->__type = -1;
   return 0;
 }
+libc_hidden_def (__pthread_mutex_destroy)
+versioned_symbol (libc, __pthread_mutex_destroy, pthread_mutex_destroy, GLIBC_2_21);
 
-weak_alias (__pthread_mutex_destroy, pthread_mutex_destroy)
-hidden_def (__pthread_mutex_destroy)
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_21)
+compat_symbol (libc, __pthread_mutex_destroy, pthread_mutex_destroy, GLIBC_2_12);
+#endif

@@ -1,5 +1,5 @@
 /* Test log1p.
-   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,10 +40,22 @@ log1p_test (void)
   ALL_RM_TEST (log1p, 0, log1p_test_data, RUN_TEST_LOOP_f_f, END);
 }
 
+#if !TEST_MATHVEC
+static void
+logp1_test (void)
+{
+  /* logp1 uses the same test data as log1p.  */
+  ALL_RM_TEST (logp1, 0, log1p_test_data, RUN_TEST_LOOP_f_f, END);
+}
+#endif
+
 static void
 do_test (void)
 {
   log1p_test ();
+#if !TEST_MATHVEC
+  logp1_test ();
+#endif
 }
 
 /*

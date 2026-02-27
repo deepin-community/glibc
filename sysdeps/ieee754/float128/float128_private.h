@@ -1,5 +1,5 @@
 /* _Float128 overrides for building ldbl-128 as _Float128.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -358,6 +358,7 @@
 #define llroundl llroundf128
 #define log1pl log1pf128
 #define logbl logbf128
+#define logp1l logp1f128
 #define logl logf128
 #define lrintl lrintf128
 #define lroundl lroundf128

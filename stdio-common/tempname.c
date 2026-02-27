@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,18 +19,6 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <errno.h>
-
-/* Perform the "SVID path search malarkey" on DIR and PFX.  Write a
-   template suitable for use in __gen_tempname into TMPL, bounded
-   by TMPL_LEN. */
-int
-__path_search (char *tmpl, size_t tmpl_len, const char *dir, const char *pfx,
-	       int try_tmpdir)
-{
-  __set_errno (ENOSYS);
-  return -1;
-}
-stub_warning (__path_search)
 
 /* Generate a (hopefully) unique temporary filename
    in DIR (if applicable), using template TMPL.

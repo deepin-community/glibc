@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "tmpdir.h"
 
 static char tmpnam_buffer[L_tmpnam];
 

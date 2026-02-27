@@ -1,5 +1,5 @@
 /* AArch64 definitions for profiling support.
-   Copyright (C) 1996-2023 Free Software Foundation, Inc.
+   Copyright (C) 1996-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,9 +27,8 @@ static void mcount_internal (u_long frompc, u_long selfpc);
 #define _MCOUNT_DECL(frompc, selfpc) \
 static inline void mcount_internal (u_long frompc, u_long selfpc)
 
-/* Note: strip_pac is needed for frompc because of gcc PR target/94791.  */
 #define MCOUNT                                                    \
 void __mcount (void *frompc)                                      \
 {                                                                 \
-  mcount_internal ((u_long) strip_pac (frompc), (u_long) RETURN_ADDRESS (0)); \
+  mcount_internal ((u_long) frompc, (u_long) RETURN_ADDRESS (0)); \
 }

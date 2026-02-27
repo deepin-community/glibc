@@ -2,8 +2,17 @@
 # -*- makefile -*-
 # debian/rules file for GNU libc.
 # Copyright 1998, 1999 by Joel Klecker <espy@debian.org>
-# Copyright 2000 Ben Collins <bcollins@debian.org>
-# Copyright 2003 Jeff Bailey <jbailey@debian.org>
+# Copyright 2000-2004 Ben Collins <bcollins@debian.org>
+# Copyright 2002-2004 Jeff Bailey <jbailey@debian.org>
+# Copyright 2002-2005 Philip Blundell <pb@debian.org>
+# Copyright 2002-2006 Daniel Jacobowitz <dan@debian.org>
+# Copyright 2002-2006 GOTO Masanori <gotom@debian.org>
+# Copyright 2006 Denis Barbier <barbier@debian.org>
+# Copyright 2006-2025 Aurelien Jarno <aurel32@debian.org>
+# Copyright 2007-2008 Pierre Habouzit <madcoder@debian.org>
+# Copyright 2010-2013 Clint Adams <clint@debian.org>
+# Copyright 2012-2019 Adam Conrad <adconrad@0c3.net>
+# Copyright 2016-2025 Samuel Thibault <sthibault@debian.org>
 # This Makefile is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -34,16 +43,7 @@ stamp := $(CURDIR)/stamp-dir/
 DUMMY := $(shell mkdir -p $(stamp))
 
 # Beyond here you shouldn't need to customise anything:
-DEB_HOST_ARCH         ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
-DEB_HOST_ARCH_CPU     ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_CPU)
-DEB_HOST_ARCH_ENDIAN  ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_ENDIAN)
-DEB_HOST_ARCH_OS      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
-DEB_HOST_GNU_TYPE     ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_HOST_MULTIARCH    ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
-DEB_BUILD_ARCH        ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)
-DEB_BUILD_ARCH_BITS   ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH_BITS)
-DEB_BUILD_GNU_TYPE    ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-
+include /usr/share/dpkg/architecture.mk
 include /usr/share/dpkg/pkg-info.mk
 
 # The minimum package version with which these packages are compatible.
@@ -56,9 +56,8 @@ DEB_BUILDDIRLIBC ?= $(build-tree)/$(DEB_HOST_ARCH)-libc
 GLIBC_SOURCES = $(filter-out debian $(shell basename $(stamp)) $(build-tree), $(wildcard *))
 
 # Support multiple makes at once based on number of processors
-ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-NJOBS := -j $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-endif
+include /usr/share/dpkg/buildopts.mk
+NJOBS := $(DEB_BUILD_OPTION_PARALLEL:%=-j%)
 
 # use the package settings, not the settings from the environment
 define unsetenv
@@ -98,7 +97,7 @@ BASE_CC = gcc
 BASE_CXX = g++
 BASE_MIG = mig
 # If you override DEB_GCC_VERSION, consider adding DEB_CFLAGS_APPEND=-Wno-error.
-DEB_GCC_VERSION ?= -12
+DEB_GCC_VERSION ?= -15
 
 RUN_TESTSUITE = yes
 TIMEOUTFACTOR = 25
@@ -138,7 +137,7 @@ ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
     DEB_BUILD_OPTIONS+=nocheck
   endif
 else
-  DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg libc-bin libc-dev-bin
+  DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg libc-bin libc-dev-bin libc-gconv-modules-extra
   ifeq ($(filter stage2,$(DEB_BUILD_PROFILES)),)
     DEB_ARCH_REGULAR_PACKAGES += libc-devtools
   endif
@@ -181,7 +180,7 @@ NOSTRIP_$(libc)-dbg = 1
 # Put the debug files from these packages in $(libc)-dbg
 DEBUG_$(libc) = 1
 
-ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
+ifeq ($(filter stage1 stage2,$(DEB_BUILD_PROFILES)),)
   ifeq ($(threads),yes)
   DEB_ARCH_REGULAR_PACKAGES += nscd
   endif
@@ -195,8 +194,6 @@ clean:: unpatch
 	rm -rf $(build-tree)
 	rm -rf $(stamp)
 	rm -rf debian/include
-	rm -f debian/control.in/libc0.3	debian/control.in/libc6 debian/control.in/libc6.1 \
-		debian/*.preinst.* debian/*.links.*
 
 # Required Debian targets
 build-arch: $(stamp)info \

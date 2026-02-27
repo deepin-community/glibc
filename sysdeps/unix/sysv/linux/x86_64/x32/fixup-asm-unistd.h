@@ -1,5 +1,5 @@
 /* Regularize <asm/unistd.h> definitions.  X32 version.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,10 @@
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
+
+#ifndef __NR_map_shadow_stack
+# define __NR_map_shadow_stack 1073742277
+#endif
 
 /* X32 uses the same 64-bit syscall interface for set_thread_area.   */
 #ifndef __NR_set_thread_area

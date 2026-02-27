@@ -1,6 +1,6 @@
 /* Define INIT_ARCH so that midr is initialized before use by IFUNCs.
    This file is part of the GNU C Library.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,8 +31,12 @@
   unsigned __attribute__((unused)) zva_size =				      \
     GLRO(dl_aarch64_cpu_features).zva_size;				      \
   bool __attribute__((unused)) bti =					      \
-    HAVE_AARCH64_BTI && GLRO(dl_aarch64_cpu_features).bti;		      \
+    GLRO(dl_aarch64_cpu_features).bti;					      \
   bool __attribute__((unused)) mte =					      \
     MTE_ENABLED ();							      \
   bool __attribute__((unused)) sve =					      \
-    GLRO(dl_aarch64_cpu_features).sve;
+    GLRO(dl_aarch64_cpu_features).sve;					      \
+  bool __attribute__((unused)) prefer_sve_ifuncs =			      \
+    GLRO(dl_aarch64_cpu_features).prefer_sve_ifuncs;			      \
+  bool __attribute__((unused)) mops =					      \
+    GLRO(dl_aarch64_cpu_features).mops;

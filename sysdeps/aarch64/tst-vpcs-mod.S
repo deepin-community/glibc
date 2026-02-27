@@ -1,5 +1,5 @@
 /* Record the register state before and after a variant PCS call.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -16,6 +16,8 @@
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
+
+#include "tst-asm-helper.h"
 
 	.variant_pcs	vpcs_call
 	.global	vpcs_call
@@ -121,7 +123,7 @@ vpcs_call_regs:
 	/* Emulate a BL using B, but save x30 before the branch.  */
 	adr	x30, .L_return_addr
 	stp	x30, x29, [x1, 240]
-	b	vpcs_call
+	bl	vpcs_call
 .L_return_addr:
 
 	/* Restore callee-saved registers.  */

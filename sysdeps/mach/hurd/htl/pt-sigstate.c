@@ -1,5 +1,5 @@
 /* Set a thread's signal state.  Hurd on Mach version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,57 +28,7 @@ error_t
 __pthread_sigstate (struct __pthread *thread, int how,
 		    const sigset_t *set, sigset_t *oset, int clear_pending)
 {
-  error_t err = 0;
-  struct hurd_sigstate *ss;
-  sigset_t old, new;
-  sigset_t pending;
-
-  if (set != NULL)
-    new = *set;
-
-  ss = _hurd_thread_sigstate (thread->kernel_thread);
-  assert (ss);
-
-  _hurd_sigstate_lock (ss);
-
-  old = ss->blocked;
-
-  if (set != NULL)
-    {
-      switch (how)
-	{
-	case SIG_BLOCK:
-	  ss->blocked |= new;
-	  break;
-
-	case SIG_SETMASK:
-	  ss->blocked = new;
-	  break;
-
-	case SIG_UNBLOCK:
-	  ss->blocked &= ~new;
-	  break;
-
-	default:
-	  err = EINVAL;
-	  break;
-	}
-      ss->blocked &= ~_SIG_CANT_MASK;
-    }
-
-  if (!err && clear_pending)
-    __sigemptyset (&ss->pending);
-
-  pending = _hurd_sigstate_pending (ss) & ~ss->blocked;
-  _hurd_sigstate_unlock (ss);
-
-  if (!err && oset != NULL)
-    *oset = old;
-
-  if (!err && pending)
-    /* Send a message to the signal thread so it
-       will wake up and check for pending signals.  */
-    __msg_sig_post (_hurd_msgport, 0, 0, __mach_task_self ());
-
-  return err;
+  return __sigthreadmask (_hurd_thread_sigstate (thread->kernel_thread),
+			  how, set, oset, clear_pending);
 }
+libc_hidden_def (__pthread_sigstate)

@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -33,12 +33,6 @@
  */
         .text
 ENTRY(__clone)
-	PTR_ARG (0)
-	PTR_ARG (1)
-	PTR_ARG (3)
-	PTR_ARG (4)
-	PTR_ARG (5)
-	PTR_ARG (6)
 	/* Save args for the child.  */
 	mov	x10, x0
 	mov	x11, x2

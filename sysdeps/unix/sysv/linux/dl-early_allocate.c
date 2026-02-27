@@ -1,5 +1,5 @@
 /* Early memory allocation for the dynamic loader.  Generic version.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ _dl_early_allocate (size_t size)
     {
       /* If brk has not been invoked, there is no need to update
          __curbrk.  The first call to brk will take care of that.  */
-      void *previous = __brk_call (0);
+      void *previous = __brk_call (NULL);
       result = __brk_call (previous + size);
       if (result == previous)
         result = NULL;

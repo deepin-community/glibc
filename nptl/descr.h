@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -125,6 +125,12 @@ struct priority_protection_data
   unsigned int priomap[];
 };
 
+enum allocate_stack_mode_t
+{
+  ALLOCATE_GUARD_MADV_GUARD = 0,
+  ALLOCATE_GUARD_PROT_NONE = 1,
+  ALLOCATE_GUARD_USER = 2,
+};
 
 /* Thread descriptor data structure.  */
 struct pthread
@@ -324,7 +330,7 @@ struct pthread
   bool report_events;
 
   /* True if the user provided the stack.  */
-  bool user_stack;
+  enum allocate_stack_mode_t stack_mode;
 
   /* True if thread must stop at startup time.  */
   bool stopped_start;
@@ -404,26 +410,33 @@ struct pthread
   /* Used on strsignal.  */
   struct tls_internal_t tls_state;
 
-  /* rseq area registered with the kernel.  Use a custom definition
-     here to isolate from kernel struct rseq changes.  The
-     implementation of sched_getcpu needs acccess to the cpu_id field;
-     the other fields are unused and not included here.  */
-  union
-  {
-    struct
-    {
-      uint32_t cpu_id_start;
-      uint32_t cpu_id;
-    };
-    char pad[32];		/* Original rseq area size.  */
-  } rseq_area __attribute__ ((aligned (32)));
+  /* getrandom vDSO per-thread opaque state.  */
+  void *getrandom_buf;
 
   /* Amount of end padding, if any, in this structure.
-     This definition relies on rseq_area being last.  */
+     This definition relies on getrandom_buf being last.  */
 #define PTHREAD_STRUCT_END_PADDING \
-  (sizeof (struct pthread) - offsetof (struct pthread, rseq_area) \
-   + sizeof ((struct pthread) {}.rseq_area))
+  (sizeof (struct pthread) - offsetof (struct pthread, getrandom_buf) \
+   + sizeof ((struct pthread) {}.getrandom_buf))
 } __attribute ((aligned (TCB_ALIGNMENT)));
+
+static inline bool
+cancel_enabled (int value)
+{
+  return (value & CANCELSTATE_BITMASK) == 0;
+}
+
+static inline bool
+cancel_async_enabled (int value)
+{
+  return (value & CANCELTYPE_BITMASK) != 0;
+}
+
+static inline bool
+cancel_exiting (int value)
+{
+  return (value & EXITING_BITMASK) != 0;
+}
 
 static inline bool
 cancel_enabled_and_canceled (int value)

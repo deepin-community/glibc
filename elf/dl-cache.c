@@ -1,5 +1,5 @@
 /* Support for reading /etc/ld.so.cache files written by Linux ldconfig.
-   Copyright (C) 1996-2023 Free Software Foundation, Inc.
+   Copyright (C) 1996-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,15 +21,10 @@
 #include <ldsodefs.h>
 #include <sys/mman.h>
 #include <dl-cache.h>
-#include <dl-procinfo.h>
 #include <stdint.h>
 #include <_itoa.h>
 #include <dl-hwcaps.h>
 #include <dl-isa-level.h>
-
-#ifndef _DL_PLATFORMS_COUNT
-# define _DL_PLATFORMS_COUNT 0
-#endif
 
 /* This is the starting address and the size of the mmap()ed file.  */
 static struct cache_file *cache;
@@ -201,15 +196,6 @@ search_cache (const char *string_table, uint32_t string_table_size,
 	      struct file_entry *libs, uint32_t nlibs, uint32_t entry_size,
 	      const char *name)
 {
-  /* Used by the HWCAP check in the struct file_entry_new case.  */
-  uint64_t platform = _dl_string_platform (GLRO (dl_platform));
-  if (platform != (uint64_t) -1)
-    platform = 1ULL << platform;
-  uint64_t hwcap_mask = TUNABLE_GET (glibc, cpu, hwcap_mask, uint64_t, NULL);
-#define _DL_HWCAP_TLS_MASK (1LL << 63)
-  uint64_t hwcap_exclude = ~((GLRO (dl_hwcap) & hwcap_mask)
-			     | _DL_HWCAP_PLATFORM | _DL_HWCAP_TLS_MASK);
-
   int left = 0;
   int right = nlibs - 1;
   const char *best = NULL;
@@ -295,12 +281,9 @@ search_cache (const char *string_table, uint32_t string_table_size,
 		      if (!named_hwcap && best != NULL)
 			break;
 
-		      if ((libnew->hwcap & hwcap_exclude) && !named_hwcap)
-			continue;
-		      if (_DL_PLATFORMS_COUNT
-			  && (libnew->hwcap & _DL_HWCAP_PLATFORM) != 0
-			  && ((libnew->hwcap & _DL_HWCAP_PLATFORM)
-			      != platform))
+		      /* Skip entries with the legacy hwcap/platform mechanism
+			 which was removed with glibc 2.37.  */
+		      if (!named_hwcap && libnew->hwcap != 0)
 			continue;
 
 #ifdef SHARED

@@ -1,0 +1,50 @@
+commit a701ecc9f613ba2a850c7d17371b77afef4bff93
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Nov 9 00:06:38 2025 +0100
+
+    Revert "hurd: Make rename refuse trailing slashes [BZ #32570]"
+    
+    This reverts commit 2ae4ec56c2b18c46ef8220bcddac4303a4b6ef1c.
+    
+    This introduced regressions, as rename should accept trailing slashes
+    for directories: BZ #33607, BZ #33608
+    
+    This was rather fixed on the server side:
+    https://cgit.git.savannah.gnu.org/cgit/hurd/hurd.git/commit/?id=e34000cb395a135dd2ad5c13e6f6d4c5c1006389
+
+diff --git a/sysdeps/mach/hurd/renameat2.c b/sysdeps/mach/hurd/renameat2.c
+index 5b09fedf7f..59a4e314fc 100644
+--- a/sysdeps/mach/hurd/renameat2.c
++++ b/sysdeps/mach/hurd/renameat2.c
+@@ -37,28 +37,15 @@ __renameat2 (int oldfd, const char *old, int newfd, const char *new,
+   if (flags & RENAME_NOREPLACE)
+     excl = 1;
+ 
+-  olddir = __file_name_split_at (oldfd, old, (char **) &oldname);
++  olddir = __directory_name_split_at (oldfd, old, (char **) &oldname);
+   if (olddir == MACH_PORT_NULL)
+     return -1;
+-  if (!*oldname)
+-    {
+-      /* Trailing slash.  */
+-      __mach_port_deallocate (__mach_task_self (), olddir);
+-      return __hurd_fail (ENOTDIR);
+-    }
+-  newdir = __file_name_split_at (newfd, new, (char **) &newname);
++  newdir = __directory_name_split_at (newfd, new, (char **) &newname);
+   if (newdir == MACH_PORT_NULL)
+     {
+-      __mach_port_deallocate (__mach_task_self (), olddir);
++       __mach_port_deallocate (__mach_task_self (), olddir);
+       return -1;
+     }
+-  if (!*newname)
+-    {
+-      /* Trailing slash.  */
+-      __mach_port_deallocate (__mach_task_self (), olddir);
+-      __mach_port_deallocate (__mach_task_self (), newdir);
+-      return __hurd_fail (ENOTDIR);
+-    }
+ 
+   err = __dir_rename (olddir, oldname, newdir, newname, excl);
+   __mach_port_deallocate (__mach_task_self (), olddir);

@@ -1,5 +1,5 @@
 # x86 specific tunables.
-# Copyright (C) 2017-2023 Free Software Foundation, Inc.
+# Copyright (C) 2017-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -28,6 +28,9 @@ glibc {
       type: STRING
     }
     x86_non_temporal_threshold {
+      type: SIZE_T
+    }
+    x86_memset_non_temporal_threshold {
       type: SIZE_T
     }
     x86_rep_movsb_threshold {
@@ -65,6 +68,11 @@ glibc {
     }
     x86_shared_cache_size {
       type: SIZE_T
+    }
+    plt_rewrite {
+      type: INT_32
+      minval: 0
+      maxval: 2
     }
   }
 }

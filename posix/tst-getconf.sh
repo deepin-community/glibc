@@ -1,6 +1,6 @@
 #!/bin/sh
 # Test for getconf(1).
-# Copyright (C) 2001-2023 Free Software Foundation, Inc.
+# Copyright (C) 2001-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -52,6 +52,10 @@ IOV_MAX
 LINE_MAX
 LOGIN_NAME_MAX
 NGROUPS_MAX
+_NPROCESSORS_CONF
+NPROCESSORS_CONF
+_NPROCESSORS_ONLN
+NPROCESSORS_ONLN
 MQ_OPEN_MAX
 MQ_PRIO_MAX
 OPEN_MAX

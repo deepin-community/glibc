@@ -9,7 +9,7 @@ libc_cv_have_sdata_section=no
 libc_cv_asm_line_sep='`'
 AC_DEFINE_UNQUOTED(ASM_LINE_SEP, $libc_cv_asm_line_sep)
 
-# For big endian ABI, generate a symbol for selecting right dynamic linker
+# ARC big endian ABI is no longer supported.
 AC_CACHE_CHECK([for big endian],
   [libc_cv_arc_be],
   [AC_EGREP_CPP(yes,[#ifdef __BIG_ENDIAN__
@@ -17,9 +17,6 @@ AC_CACHE_CHECK([for big endian],
                      #endif
   ], libc_cv_arc_be=yes, libc_cv_arc_be=no)])
 if test $libc_cv_arc_be = yes; then
-  # For shlib-versions.
-  AC_DEFINE(HAVE_ARC_BE)
-  LIBC_CONFIG_VAR([default-abi], [arcbe])
-else
-  LIBC_CONFIG_VAR([default-abi], [arcle])
+  AC_MSG_ERROR([big-endian not supported])
 fi
+LIBC_CONFIG_VAR([default-abi], [arcle])

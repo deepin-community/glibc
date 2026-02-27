@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ __hurd_file_name_lookup (error_t (*use_init_port)
 {
   error_t err;
   enum retry_type doretry;
-  char retryname[1024];		/* XXX string_t LOSES! */
+  string_t retryname;
   int startport;
 
   error_t lookup_op (mach_port_t startdir)

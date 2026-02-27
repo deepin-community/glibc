@@ -1,5 +1,5 @@
 /* Machine-dependent signal context structure for GNU Hurd.  i386 version.
-   Copyright (C) 1991-2023 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -88,6 +88,8 @@ struct sigcontext
     struct i386_fp_save sc_fpsave;
     struct i386_fp_regs sc_fpregs;
     int sc_fpexcsr;		/* FPSR including exception bits.  */
+
+    struct i386_xfloat_state *xstate;
   };
 
 /* Traditional BSD names for some members.  */

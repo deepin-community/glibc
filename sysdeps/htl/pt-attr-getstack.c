@@ -1,5 +1,5 @@
 /* pthread_attr_getstack.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
 
 #include <pthread.h>
 #include <pt-internal.h>
+#include <shlib-compat.h>
 #include <pthreadP.h>
 
 int
@@ -28,4 +29,9 @@ __pthread_attr_getstack (const pthread_attr_t *attr,
   __pthread_attr_getstacksize (attr, stacksize);
   return 0;
 }
-weak_alias (__pthread_attr_getstack, pthread_attr_getstack)
+libc_hidden_def (__pthread_attr_getstack)
+versioned_symbol (libpthread, __pthread_attr_getstack, pthread_attr_getstack, GLIBC_2_41);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_41)
+compat_symbol (libpthread, __pthread_attr_getstack, pthread_attr_getstack, GLIBC_2_12);
+#endif

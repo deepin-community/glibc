@@ -1,5 +1,5 @@
 /* Wrapper to invoke tst-glibc-hwcaps-2 in a container to test ldconfig.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ main (int argc, char **argv)
   /* Run ldconfig to populate the cache.  */
   char *command = xasprintf ("%s/ldconfig", support_install_rootsbindir);
   struct support_capture_subprocess result =
-    support_capture_subprogram (command,  &((char *) { NULL }));
+    support_capture_subprogram (command,  &((char *) { NULL }), NULL);
   support_capture_subprocess_check (&result, "ldconfig", 0, sc_allow_none);
   free (command);
 

@@ -21,6 +21,8 @@ libmemusage.so #PACKAGE# #MINVER#
  munmap@Base 2.38
  realloc@Base 2.38
 #include "symbols.wildcards"
+libmvec.so.1 #PACKAGE# #MINVER#
+#include "symbols.wildcards"
 libnss_compat.so.2 #PACKAGE# #MINVER#
 #include "symbols.wildcards"
 libnss_dns.so.2 #PACKAGE# #MINVER#
@@ -69,7 +71,6 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  __dir_rmdir@Base 2.38
  __dir_unlink@Base 2.38
  __exec_exec@Base 2.38
- __exec_exec_file_name@Base 2.38
  __exec_exec_paths@Base 2.38
  __exec_init@Base 2.38
  __exec_setexecdata@Base 2.38
@@ -80,7 +81,6 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  __file_chmod@Base 2.38
  __file_chown@Base 2.38
  __file_exec@Base 2.38
- __file_exec_file_name@Base 2.38
  __file_exec_paths@Base 2.38
  __file_get_fs_options@Base 2.38
  __file_get_storage_info@Base 2.38
@@ -452,7 +452,6 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  dir_rmdir@Base 2.38
  dir_unlink@Base 2.38
  exec_exec@Base 2.38
- exec_exec_file_name@Base 2.38
  exec_exec_paths@Base 2.38
  exec_init@Base 2.38
  exec_setexecdata@Base 2.38
@@ -463,7 +462,6 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  file_chmod@Base 2.38
  file_chown@Base 2.38
  file_exec@Base 2.38
- file_exec_file_name@Base 2.38
  file_exec_paths@Base 2.38
  file_get_fs_options@Base 2.38
  file_get_storage_info@Base 2.38

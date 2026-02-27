@@ -1,6 +1,6 @@
 /* Common definition for ifunc selections optimized with AVX2/FMA and
    FMA4.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,8 +32,10 @@ IFUNC_SELECTOR (void)
       && CPU_FEATURE_USABLE_P (cpu_features, AVX2))
     return OPTIMIZE (fma);
 
+#ifndef HAVE_X86_APX
   if (CPU_FEATURE_USABLE_P (cpu_features, FMA4))
     return OPTIMIZE (fma4);
+#endif
 
   return OPTIMIZE (sse2);
 }

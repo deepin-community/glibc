@@ -1,5 +1,5 @@
 /* Basic tests for _dl_find_object.
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -122,6 +122,14 @@ check (void *address,
               address, actual.dlfo_eh_count, expected->dlfo_eh_count);
     }
 #endif
+  if (actual.dlfo_flags & DLFO_FLAG_SFRAME
+      && actual.dlfo_sframe != expected->dlfo_sframe)
+    {
+      support_record_failure ();
+      printf ("%s:%d: error: %p: sframe is %p, expected %p\n",
+              __FILE__, line,
+              address, actual.dlfo_sframe, expected->dlfo_sframe);
+    }
 }
 
 /* Check that unwind data for the main executable and the dynamic
@@ -180,6 +188,12 @@ do_test (void)
             dlfo.dlfo_eh_frame, ret);
     TEST_COMPARE (ret, 0);
     TEST_VERIFY (dlfo.dlfo_eh_frame != NULL);
+#if ENABLE_SFRAME
+    TEST_VERIFY ((dlfo.dlfo_flags & DLFO_FLAG_SFRAME) == DLFO_FLAG_SFRAME);
+    TEST_VERIFY (dlfo.dlfo_sframe != NULL);
+#else
+    TEST_VERIFY ((dlfo.dlfo_flags & DLFO_FLAG_SFRAME) != DLFO_FLAG_SFRAME);
+#endif
   }
 
   check_initial ();

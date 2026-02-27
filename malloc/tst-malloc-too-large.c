@@ -1,5 +1,5 @@
 /* Test and verify that too-large memory allocations fail with ENOMEM.
-   Copyright (C) 2018-2023 Free Software Foundation, Inc.
+   Copyright (C) 2018-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -43,6 +43,7 @@
 #include <unistd.h>
 #include <sys/param.h>
 
+#include "tst-malloc-aux.h"
 
 /* This function prepares for each 'too-large memory allocation' test by
    performing a small successful malloc/free and resetting errno prior to

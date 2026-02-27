@@ -1,5 +1,5 @@
 /* uselocale -- fetch and set the current per-thread locale
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ __uselocale (locale_t newloc)
     {
       const locale_t locobj
 	= newloc == LC_GLOBAL_LOCALE ? &_nl_global_locale : newloc;
-      __libc_tsd_set (locale_t, LOCALE, locobj);
+      __libc_tsd_LOCALE = locobj;
 
 #ifdef NL_CURRENT_INDIRECT
       /* Now we must update all the per-category thread-local variables to
@@ -54,7 +54,7 @@ __uselocale (locale_t newloc)
 	extern char _nl_current_##category##_used;			      \
 	weak_extern (_nl_current_##category##_used)			      \
 	weak_extern (_nl_current_##category)				      \
-	if (&_nl_current_##category##_used != 0)			      \
+	if (&_nl_current_##category##_used != NULL)			      \
 	  _nl_current_##category = &locobj->__locales[category];	      \
       }
 # include "categories.def"
@@ -62,11 +62,9 @@ __uselocale (locale_t newloc)
 #endif
 
       /* Update the special tsd cache of some locale data.  */
-      __libc_tsd_set (const uint16_t *, CTYPE_B, (void *) locobj->__ctype_b);
-      __libc_tsd_set (const int32_t *, CTYPE_TOLOWER,
-		      (void *) locobj->__ctype_tolower);
-      __libc_tsd_set (const int32_t *, CTYPE_TOUPPER,
-		      (void *) locobj->__ctype_toupper);
+      __libc_tsd_CTYPE_B = locobj->__ctype_b;
+      __libc_tsd_CTYPE_TOLOWER = locobj->__ctype_tolower;
+      __libc_tsd_CTYPE_TOUPPER = locobj->__ctype_toupper;
     }
 
   return oldloc == &_nl_global_locale ? LC_GLOBAL_LOCALE : oldloc;

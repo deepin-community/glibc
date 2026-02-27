@@ -4,8 +4,8 @@ sysdep_routines += \
   memchr-avx2 \
   memchr-avx2-rtm \
   memchr-evex \
-  memchr-evex512 \
   memchr-evex-rtm \
+  memchr-evex512 \
   memchr-sse2 \
   memcmp-avx2-movbe \
   memcmp-avx2-movbe-rtm \
@@ -37,8 +37,8 @@ sysdep_routines += \
   rawmemchr-avx2 \
   rawmemchr-avx2-rtm \
   rawmemchr-evex \
-  rawmemchr-evex512 \
   rawmemchr-evex-rtm \
+  rawmemchr-evex512 \
   rawmemchr-sse2 \
   stpcpy-avx2 \
   stpcpy-avx2-rtm \
@@ -117,7 +117,6 @@ sysdep_routines += \
   strrchr-evex512 \
   strrchr-sse2 \
   strspn-sse4 \
-  strstr-avx512 \
   strstr-sse2-unaligned \
   varshift \
 # sysdep_routines
@@ -125,8 +124,6 @@ sysdep_routines += \
 CFLAGS-strcspn-sse4.c += -msse4
 CFLAGS-strpbrk-sse4.c += -msse4
 CFLAGS-strspn-sse4.c += -msse4
-
-CFLAGS-strstr-avx512.c += -mavx512f -mavx512vl -mavx512dq -mavx512bw -mbmi -mbmi2 -O3
 endif
 
 ifeq ($(subdir),wcsmbs)

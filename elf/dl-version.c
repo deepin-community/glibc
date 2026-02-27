@@ -1,5 +1,5 @@
 /* Handle symbol and library versioning.
-   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -357,6 +357,13 @@ _dl_check_map_versions (struct link_map *map, int verbose, int trace_mode)
 	      ent = (ElfW(Verdef) *) ((char *) ent + ent->vd_next);
 	    }
 	}
+
+      /* The empty string has ELF hash zero.  This avoids a NULL check
+	 before the version string comparison in check_match in
+	 dl-lookup.c.  */
+      for (unsigned int i = 0; i < map->l_nversions; ++i)
+	if (map->l_versions[i].name == NULL)
+	  map->l_versions[i].name = "";
     }
 
   /* When there is a DT_VERNEED entry with libc.so on DT_NEEDED, issue

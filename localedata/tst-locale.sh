@@ -1,6 +1,6 @@
 #!/bin/sh
 # Testing the implementation of localedata.
-# Copyright (C) 1998-2023 Free Software Foundation, Inc.
+# Copyright (C) 1998-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ test_locale ()
 	     "Outputdir: \"${out}\" failed"
 	exit 1
     else
-	echo -n "locale $out generated succesfully"
+	echo -n "locale $out generated successfully"
         if [ $ret -eq 1 ]; then
 	    echo " (with warnings)"
         else

@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2023 Free Software Foundation, Inc.
+# Copyright (C) 1991-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -86,7 +86,8 @@ libof-check-installed-headers-c := testsuite
 $(objpfx)check-installed-headers-c.out: \
     $(..)scripts/check-installed-headers.sh $(headers)
 	$(SHELL) $(..)scripts/check-installed-headers.sh c $(supported-fortify) \
-	  "$(CC) $(filter-out -std=%,$(CFLAGS)) -D_ISOMAC $(+includes)" \
+	  "$(CC) $(test-config-cflags-finput-charset-ascii) \
+	     $(filter-out -std=%,$(CFLAGS)) -D_ISOMAC $(+includes)" \
 	  $(headers) > $@; \
 	$(evaluate-test)
 
@@ -98,7 +99,8 @@ libof-check-installed-headers-cxx := testsuite
 $(objpfx)check-installed-headers-cxx.out: \
     $(..)scripts/check-installed-headers.sh $(headers)
 	$(SHELL) $(..)scripts/check-installed-headers.sh c++ $(supported-fortify) \
-	  "$(CXX) $(filter-out -std=%,$(CXXFLAGS)) -D_ISOMAC $(+includes)" \
+	  "$(CXX) $(test-config-cxxflags-finput-charset-ascii) \
+	     $(filter-out -std=%,$(CXXFLAGS)) -D_ISOMAC $(+includes)" \
 	  $(headers) > $@; \
 	$(evaluate-test)
 endif # $(CXX)
@@ -143,41 +145,53 @@ endif
 others: $(py-const)
 
 ifeq ($(run-built-tests),no)
+# The $(xtests) dependency ensures that xtests are always built.
 tests: $(addprefix $(objpfx),$(filter-out $(tests-unsupported), \
-                                          $(tests) $(tests-internal) \
-					  $(tests-container)) \
+                                          $(tests) $(tests-internal) $(xtests) \
+					  $(tests-container) \
+					  $(tests-mcheck:%=%-mcheck) \
+					  $(tests-malloc-check:%=%-malloc-check) \
+					  $(tests-malloc-hugetlb1:%=%-malloc-hugetlb1) \
+					  $(tests-malloc-hugetlb2:%=%-malloc-hugetlb2) \
+					  $(tests-malloc-largetcache:%=%-malloc-largetcache)) \
 			     $(test-srcs)) $(tests-special) \
 			     $(tests-printers-programs)
 xtests: tests $(xtests-special)
-else
+else # $(run-built-tests) != no
+# The $(xtests) dependency ensures that xtests are always built.
 tests: $(tests:%=$(objpfx)%.out) $(tests-internal:%=$(objpfx)%.out) \
+       $(addprefix $(objpfx),$(filter-out $(tests-unsupported), $(xtests))) \
        $(tests-container:%=$(objpfx)%.out) \
        $(tests-mcheck:%=$(objpfx)%-mcheck.out) \
        $(tests-malloc-check:%=$(objpfx)%-malloc-check.out) \
        $(tests-malloc-hugetlb1:%=$(objpfx)%-malloc-hugetlb1.out) \
        $(tests-malloc-hugetlb2:%=$(objpfx)%-malloc-hugetlb2.out) \
+       $(tests-malloc-largetcache:%=$(objpfx)%-malloc-largetcache.out) \
        $(tests-special) $(tests-printers-out)
 xtests: tests $(xtests:%=$(objpfx)%.out) $(xtests-special)
-endif
+endif # $(run-built-tests) != no
 
 tests-special-notdir = $(patsubst $(objpfx)%, %, $(tests-special))
 xtests-special-notdir = $(patsubst $(objpfx)%, %, $(xtests-special))
 ifeq ($(run-built-tests),no)
 tests-expected =
-else
+xtests-expected =
+else # $(run-built-tests) != no
 tests-expected = $(tests) $(tests-internal) $(tests-printers) \
 	$(tests-container) $(tests-malloc-check:%=%-malloc-check) \
 	$(tests-malloc-hugetlb1:%=%-malloc-hugetlb1) \
 	$(tests-malloc-hugetlb2:%=%-malloc-hugetlb2) \
+	$(tests-malloc-largetcache:%=%-malloc-largetcache) \
 	$(tests-mcheck:%=%-mcheck)
-endif
+xtests-expected = $(xtests)
+endif # $(run-built-tests) != no
 tests:
 	$(..)scripts/merge-test-results.sh -s $(objpfx) $(subdir) \
 	  $(sort $(tests-expected) $(tests-special-notdir:.out=)) \
 	  > $(objpfx)subdir-tests.sum
 xtests:
 	$(..)scripts/merge-test-results.sh -s $(objpfx) $(subdir) \
-	  $(sort $(xtests) $(xtests-special-notdir:.out=)) \
+	  $(sort $(xtests-expected) $(xtests-special-notdir:.out=)) \
 	  > $(objpfx)subdir-xtests.sum
 
 ifeq ($(build-programs),yes)
@@ -188,6 +202,7 @@ binaries-all = $(binaries-all-notests) $(binaries-all-tests)
 binaries-static-notests = $(others-static)
 binaries-static-tests = $(tests-static) $(xtests-static)
 binaries-static = $(binaries-static-notests) $(binaries-static-tests)
+binaries-shared-2.0-tests = $(tests-2.0)
 ifeq (yesyes,$(have-fpie)$(build-shared))
 binaries-pie-tests = $(tests-pie) $(xtests-pie)
 binaries-pie-notests = $(others-pie)
@@ -199,6 +214,7 @@ binaries-mcheck-tests = $(tests-mcheck:%=%-mcheck)
 binaries-malloc-check-tests = $(tests-malloc-check:%=%-malloc-check)
 binaries-malloc-hugetlb1-tests = $(tests-malloc-hugetlb1:%=%-malloc-hugetlb1)
 binaries-malloc-hugetlb2-tests = $(tests-malloc-hugetlb2:%=%-malloc-hugetlb2)
+binaries-malloc-largetcache-tests = $(tests-malloc-largetcache:%=%-malloc-largetcache)
 else
 binaries-all-notests =
 binaries-all-tests = $(tests) $(tests-internal) $(xtests) $(test-srcs)
@@ -212,10 +228,12 @@ binaries-mcheck-tests =
 binaries-malloc-check-tests =
 binaries-malloc-hugetlb1-tests =
 binaries-malloc-hugetlb2-tests =
+binaries-malloc-largetcache-tests =
 endif
 
 binaries-pie = $(binaries-pie-tests) $(binaries-pie-notests)
-binaries-shared-tests = $(filter-out $(binaries-pie) $(binaries-static), \
+binaries-shared-tests = $(filter-out $(binaries-pie) $(binaries-static) \
+				     $(binaries-shared-2.0-tests), \
 				     $(binaries-all-tests))
 binaries-shared-notests = $(filter-out $(binaries-pie) $(binaries-static), \
 				       $(binaries-all-notests))
@@ -228,11 +246,20 @@ $(addprefix $(objpfx),$(binaries-shared-notests)): %: %.o \
 endif
 
 ifneq "$(strip $(binaries-shared-tests))" ""
-$(addprefix $(objpfx),$(binaries-shared-tests)): %: %.o \
+$(addprefix $(objpfx),$(sort $(binaries-shared-tests))): %: %.o \
   $(link-extra-libs-tests) \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
   $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
 	$(+link-tests)
+endif
+
+# Linking test programs with crt1.o from glibc 2.0.
+ifneq "$(strip $(binaries-shared-2.0-tests))" ""
+$(addprefix $(objpfx),$(binaries-shared-2.0-tests)): %: %.o \
+  $(link-extra-libs-tests) \
+  $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
+  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+	$(+link-2.0-tests)
 endif
 
 ifneq "$(strip $(binaries-mcheck-tests))" ""
@@ -262,6 +289,14 @@ endif
 
 ifneq "$(strip $(binaries-malloc-hugetlb2-tests))" ""
 $(addprefix $(objpfx),$(binaries-malloc-hugetlb2-tests)): %-malloc-hugetlb2: %.o \
+  $(link-extra-libs-tests) \
+  $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
+  $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
+	$(+link-tests)
+endif
+
+ifneq "$(strip $(binaries-malloc-largetcache-tests))" ""
+$(addprefix $(objpfx),$(binaries-malloc-largetcache-tests)): %-malloc-largetcache: %.o \
   $(link-extra-libs-tests) \
   $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
   $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
@@ -316,6 +351,12 @@ define malloc-hugetlb2-ENVS
 $(1)-malloc-hugetlb2-ENV += GLIBC_TUNABLES=glibc.malloc.hugetlb=2
 endef
 $(foreach t,$(tests-malloc-hugetlb2),$(eval $(call malloc-hugetlb2-ENVS,$(t))))
+
+# All malloc-largetcache tests will be run with GLIBC_TUNABLE=glibc.malloc.tcache_max=1048576
+define malloc-largetcache-ENVS
+$(1)-malloc-largetcache-ENV += GLIBC_TUNABLES=glibc.malloc.tcache_max=1048576
+endef
+$(foreach t,$(tests-malloc-largetcache),$(eval $(call malloc-largetcache-ENVS,$(t))))
 
 # mcheck tests need the debug DSO to support -lmcheck.
 define mcheck-ENVS

@@ -1,5 +1,5 @@
 /* Multiple versions of strcat. PowerPC64 version.
-   Copyright (C) 2014-2023 Free Software Foundation, Inc.
+   Copyright (C) 2014-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,14 +25,22 @@
 extern __typeof (strcat) __strcat_ppc attribute_hidden;
 extern __typeof (strcat) __strcat_power7 attribute_hidden;
 extern __typeof (strcat) __strcat_power8 attribute_hidden;
+#ifdef __LITTLE_ENDIAN__
+extern __typeof (strcat) __strcat_power10 attribute_hidden;
+#endif
 # undef strcat
 
 libc_ifunc_redirected (__redirect_strcat, strcat,
-		       (hwcap2 & PPC_FEATURE2_ARCH_2_07
-			&& hwcap & PPC_FEATURE_HAS_VSX)
-		       ? __strcat_power8
-		       : (hwcap & PPC_FEATURE_ARCH_2_06
-			  && hwcap & PPC_FEATURE_HAS_VSX)
-			 ? __strcat_power7
-			 : __strcat_ppc);
+#ifdef __LITTLE_ENDIAN__
+			(hwcap2 & PPC_FEATURE2_ARCH_3_1
+			 && hwcap & PPC_FEATURE_HAS_VSX)
+			? __strcat_power10 :
+#endif
+			  (hwcap2 & PPC_FEATURE2_ARCH_2_07
+			   && hwcap & PPC_FEATURE_HAS_VSX)
+			  ? __strcat_power8
+			   : (hwcap & PPC_FEATURE_ARCH_2_06
+			      && hwcap & PPC_FEATURE_HAS_VSX)
+			     ? __strcat_power7
+			     : __strcat_ppc);
 #endif

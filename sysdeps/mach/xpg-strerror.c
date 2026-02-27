@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -62,9 +62,19 @@ __xpg_strerror_r (int errnum, char *buf, size_t buflen)
   if (sub >= es->max_sub)
     estr = (const char *) es->bad_sub;
   else if (code >= es->subsystem[sub].max_code)
-    return EINVAL;
+    {
+      __snprintf (buf, buflen, "%s%d", _("Unknown error code: "), code);
+      return EINVAL;
+    }
   else
-    estr = (const char *) _(es->subsystem[sub].codes[code]);
+    {
+      estr = (const char *) _(es->subsystem[sub].codes[code]);
+      if (estr == NULL)
+	{
+	  __snprintf (buf, buflen, "%s%d", _("Unknown error code: "), code);
+	  return EINVAL;
+	}
+    }
 
   size_t estrlen = strlen (estr);
 

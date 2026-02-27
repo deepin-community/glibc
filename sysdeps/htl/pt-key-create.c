@@ -1,5 +1,5 @@
 /* pthread_key_create.  Hurd version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,14 +22,18 @@
 
 #include <pt-internal.h>
 #include <pthreadP.h>
+#include <shlib-compat.h>
+#include <ldsodefs.h>
+
 
 pthread_mutex_t __pthread_key_lock;
 pthread_once_t __pthread_key_once = PTHREAD_ONCE_INIT;
 
-void (**__pthread_key_destructors) (void *arg);
-int __pthread_key_size;
+void (*__pthread_static_key_destructors [PTHREAD_STATIC_KEYS]) (void *arg);
+void (**__pthread_key_destructors) (void *arg) = __pthread_static_key_destructors;
+int __pthread_key_size = PTHREAD_STATIC_KEYS;
 int __pthread_key_count;
-int __pthread_key_invalid_count;
+int __pthread_key_invalid_count = PTHREAD_STATIC_KEYS;
 
 int
 __pthread_key_create (pthread_key_t *key, void (*destructor) (void *))
@@ -80,13 +84,21 @@ do_search:
 	void *t;
 	int newsize;
 
-	if (__pthread_key_size == 0)
-	  newsize = 8;
-	else
-	  newsize = __pthread_key_size * 2;
+	newsize = __pthread_key_size * 2;
 
-	t = realloc (__pthread_key_destructors,
-		     newsize * sizeof (*__pthread_key_destructors));
+	if (__pthread_key_destructors == __pthread_static_key_destructors)
+	  {
+	    /* We were still using the static array.  Switch to dynamic.  */
+	    t = malloc (newsize * sizeof (*__pthread_key_destructors));
+
+	    if (t != NULL)
+	      memcpy (t, __pthread_key_destructors,
+		      __pthread_key_size * sizeof (*__pthread_key_destructors));
+	  }
+	else
+	  t = realloc (__pthread_key_destructors,
+		       newsize * sizeof (*__pthread_key_destructors));
+
 	if (t == NULL)
 	  {
 	    __pthread_mutex_unlock (&__pthread_key_lock);
@@ -107,5 +119,9 @@ do_search:
   __pthread_mutex_unlock (&__pthread_key_lock);
   return 0;
 }
-weak_alias (__pthread_key_create, pthread_key_create)
-hidden_def (__pthread_key_create)
+libc_hidden_def (__pthread_key_create)
+versioned_symbol (libc, __pthread_key_create, pthread_key_create, GLIBC_2_42);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_42)
+compat_symbol (libpthread, __pthread_key_create, pthread_key_create, GLIBC_2_12);
+#endif

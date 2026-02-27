@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,12 @@ int
 shutdown (int fd, int how)
 {
   error_t err = HURD_DPORT_USE (fd, __socket_shutdown (port, how));
+
+  if (err == MIG_BAD_ID || err == EOPNOTSUPP)
+    /* The file did not grok the ifsock protocol.  */
+    err = ENOTSOCK;
   if (err)
     return __hurd_dfail (fd, err);
+
   return 0;
 }

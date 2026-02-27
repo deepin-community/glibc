@@ -1,6 +1,6 @@
 /* Test case for strcmp inside a transactionally executing RTM
    region.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,7 +40,7 @@
 CHAR string1[STRING_SIZE];
 CHAR string2[STRING_SIZE];
 
-__attribute__ ((noinline, noclone))
+__attribute_optimization_barrier__
 static int
 prepare (void)
 {
@@ -52,7 +52,7 @@ prepare (void)
     return EXIT_FAILURE;
 }
 
-__attribute__ ((noinline, noclone))
+__attribute_optimization_barrier__
 static int
 function (void)
 {

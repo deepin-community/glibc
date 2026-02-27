@@ -35,7 +35,7 @@ diff --git a/sysdeps/mach/hurd/setitimer.c b/sysdeps/mach/hurd/setitimer.c
 index 39b6b16..4992c89 100644
 --- a/sysdeps/mach/hurd/setitimer.c
 +++ b/sysdeps/mach/hurd/setitimer.c
-@@ -42,7 +42,7 @@ quantize_timeval (struct timeval *tv)
+@@ -43,7 +43,7 @@ quantize_timeval (struct timeval *tv)
    static time_t quantum = -1;
  
    if (quantum == -1)
@@ -56,4 +56,4 @@ index 9e13a75..593c33a 100644
 +  return t->seconds * 100 + t->microseconds / 10000;
  }
  
- /* Store the CPU time used by this process and all its
+ #ifdef HAVE_HURD_PROC_GETCHILDREN_RUSAGE

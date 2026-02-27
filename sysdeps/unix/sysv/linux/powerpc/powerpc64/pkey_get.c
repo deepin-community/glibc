@@ -1,5 +1,5 @@
 /* Reading the per-thread memory protection key, powerpc64 version.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,7 +21,7 @@
 #include <sys/mman.h>
 
 int
-pkey_get (int key)
+__pkey_get (int key)
 {
   if (key < 0 || key > PKEY_MAX)
     {
@@ -40,3 +40,5 @@ pkey_get (int key)
     return PKEY_DISABLE_WRITE;
   return 0;
 }
+libc_hidden_def (__pkey_get)
+weak_alias (__pkey_get, pkey_get)

@@ -1,4 +1,4 @@
-/* Copyright (C) 2012-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2012-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -62,8 +62,6 @@
    NUL too in big-endian, byte-reverse the data before the NUL check.  */
 
 ENTRY(strcmp)
-	PTR_ARG (0)
-	PTR_ARG (1)
 	sub	off2, src2, src1
 	mov	zeroones, REP8_01
 	and	tmp, src1, 7

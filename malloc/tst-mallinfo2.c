@@ -1,5 +1,5 @@
 /* Smoke test for mallinfo2
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,6 +22,8 @@
 #include <malloc.h>
 #include <stdlib.h>
 #include <support/check.h>
+
+#include "tst-malloc-aux.h"
 
 /* This is not specifically needed for the test, but (1) does
    something to the data so gcc doesn't optimize it away, and (2) may

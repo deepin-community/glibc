@@ -1,5 +1,5 @@
 /* Set the scheduling parameters for a thread.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <pthread.h>
+#include <shlib-compat.h>
 #include <pt-internal.h>
 
 int
@@ -26,5 +27,9 @@ __pthread_setschedparam (pthread_t thread, int policy,
   return ENOSYS;
 }
 
-weak_alias (__pthread_setschedparam, pthread_setschedparam);
+versioned_symbol (libc, __pthread_setschedparam, pthread_setschedparam, GLIBC_2_21);
 stub_warning (pthread_setschedparam)
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_21)
+compat_symbol (libc, __pthread_setschedparam, pthread_setschedparam, GLIBC_2_12);
+#endif

@@ -1,5 +1,5 @@
 /* Bug 20198: Do not call object destructors at exit.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@ thread_local A a1;
 thread_local A a2;
 
 void
-__attribute__ ((noinline, noclone))
+__attribute_optimization_barrier__
 optimization_barrier (A &)
 {
 }

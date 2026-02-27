@@ -1,5 +1,5 @@
 /* Common function for preadv2 and pwritev2 tests.
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,8 +34,14 @@
 #ifndef RWF_APPEND
 # define RWF_APPEND 0
 #endif
+#ifndef RWF_NOAPPEND
+# define RWF_NOAPPEND 0
+#endif
+#ifndef RWF_ATOMIC
+# define RWF_ATOMIC 0
+#endif
 #define RWF_SUPPORTED	(RWF_HIPRI | RWF_DSYNC | RWF_SYNC | RWF_NOWAIT \
-			 | RWF_APPEND)
+			 | RWF_APPEND | RWF_NOAPPEND | RWF_ATOMIC)
 
 /* Generic uio_lim.h does not define IOV_MAX.  */
 #ifndef IOV_MAX
@@ -91,7 +97,7 @@ do_test_with_invalid_iov (void)
   {
     /* An invalid iovec buffer should trigger an invalid memory access
        or an error (Linux for instance returns EFAULT).  */
-    struct iovec iov[IOV_MAX+1] = { 0 };
+    struct iovec iov[IOV_MAX+1] = { };
 
     TEST_VERIFY (preadv2 (temp_fd, iov, IOV_MAX + 1, 0, RWF_HIPRI) == -1);
     TEST_VERIFY (errno == EINVAL || errno == ENOTSUP);

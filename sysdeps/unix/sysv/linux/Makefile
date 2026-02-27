@@ -62,6 +62,7 @@ sysdep_routines += \
   clock_adjtime \
   clone \
   clone-internal \
+  clone-pidfd-support \
   clone3 \
   closefrom_fallback \
   convert_scm_timestamps \
@@ -94,8 +95,11 @@ sysdep_routines += \
   process_vm_writev \
   pselect32 \
   readahead \
+  sched_getattr \
+  sched_setattr \
   setfsgid \
   setfsuid \
+  setvmaname \
   signalfd \
   splice \
   sysctl \
@@ -147,15 +151,6 @@ sysdep_headers += \
   bits/struct_stat.h \
   bits/struct_stat_time64_helper.h \
   bits/syscall.h \
-  bits/termios-baud.h \
-  bits/termios-c_cc.h \
-  bits/termios-c_cflag.h \
-  bits/termios-c_iflag.h \
-  bits/termios-c_lflag.h \
-  bits/termios-c_oflag.h \
-  bits/termios-misc.h \
-  bits/termios-struct.h \
-  bits/termios-tcflow.h \
   bits/timerfd.h \
   bits/types/struct_msqid64_ds.h \
   bits/types/struct_msqid64_ds_helper.h \
@@ -198,10 +193,13 @@ tests += \
   tst-clone2 \
   tst-clone3 \
   tst-epoll \
+  tst-epoll-ioctls \
   tst-fanotify \
+  tst-fdopendir-o_path \
   tst-getauxval \
   tst-gettid \
   tst-gettid-kill \
+  tst-linux-mremap1 \
   tst-memfd_create \
   tst-misalign-clone \
   tst-mlock2 \
@@ -212,15 +210,20 @@ tests += \
   tst-ofdlocks \
   tst-personality \
   tst-pidfd \
+  tst-pidfd_getpid \
   tst-pkey \
   tst-ppoll \
   tst-prctl \
   tst-process_mrelease \
   tst-quota \
   tst-rlimit-infinity \
+  tst-sched-affinity-inheritance \
+  tst-sched_setattr \
+  tst-sched_setattr-thread \
   tst-scm_rights \
   tst-sigtimedwait \
   tst-sync_file_range \
+  tst-syscall-restart \
   tst-sysconf-iov_max \
   tst-sysvmsg-linux \
   tst-sysvsem-linux \
@@ -256,6 +259,11 @@ tests-internal += \
 tests-internal += \
   tst-rseq-disable \
   # tests-internal
+
+tests-static += \
+  tst-rseq-disable-static \
+  tst-rseq-static \
+  # tests-static
 
 tests-time64 += \
   tst-adjtimex-time64 \
@@ -389,9 +397,38 @@ $(objpfx)tst-mount-compile.out: ../sysdeps/unix/sysv/linux/tst-mount-compile.py
 	  < /dev/null > $@ 2>&1; $(evaluate-test)
 $(objpfx)tst-mount-compile.out: $(sysdeps-linux-python-deps)
 
+tests-special += \
+  $(objpfx)tst-sched-consts.out \
+  # tests-special
+$(objpfx)tst-sched-consts.out: ../sysdeps/unix/sysv/linux/tst-sched-consts.py
+	$(sysdeps-linux-python) \
+	  ../sysdeps/unix/sysv/linux/tst-sched-consts.py \
+	    $(sysdeps-linux-python-cc) \
+	  < /dev/null > $@ 2>&1; $(evaluate-test)
+$(objpfx)tst-sched-consts.out: $(sysdeps-linux-python-deps)
+
 tst-rseq-disable-ENV = GLIBC_TUNABLES=glibc.pthread.rseq=0
+tst-rseq-disable-static-ENV = GLIBC_TUNABLES=glibc.pthread.rseq=0
 
 endif # $(subdir) == misc
+
+ifeq ($(subdir),termios)
+sysdep_headers += \
+  bits/termios-c_cc.h \
+  bits/termios-c_cflag.h \
+  bits/termios-c_iflag.h \
+  bits/termios-c_lflag.h \
+  bits/termios-c_oflag.h \
+  bits/termios-cbaud.h \
+  bits/termios-misc.h \
+  bits/termios-struct.h \
+  bits/termios-tcflow.h \
+  # sysdep_headers
+
+tests += \
+  tst-termios-linux \
+  # tests
+endif
 
 ifeq ($(subdir),time)
 sysdep_headers += \
@@ -478,12 +515,6 @@ sysdep_headers += \
   # sysdep_headers
 endif
 
-ifeq ($(subdir),termios)
-sysdep_headers += \
-  termio.h \
-  # sysdep_headers
-endif
-
 ifeq ($(subdir),posix)
 sysdep_headers += \
   bits/initspin.h \
@@ -492,12 +523,28 @@ sysdep_headers += \
 sysdep_routines += \
   getcpu \
   oldglob \
+  pidfd_getpid \
+  pidfd_spawn \
+  pidfd_spawnp \
+  procutils \
   sched_getcpu \
+  spawnattr_getcgroup_np \
+  spawnattr_setcgroup_np \
   # sysdep_routines
 
 tests += \
   tst-affinity \
   tst-affinity-pid \
+  tst-posix_spawn-setsid-pidfd \
+  tst-spawn-cgroup \
+  tst-spawn-chdir-pidfd \
+  tst-spawn-pidfd \
+  tst-spawn2-pidfd \
+  tst-spawn3-pidfd \
+  tst-spawn4-pidfd \
+  tst-spawn5-pidfd \
+  tst-spawn6-pidfd \
+  tst-spawn7-pidfd \
   # tests
 
 tests-static += \
@@ -511,6 +558,14 @@ tests += \
 CFLAGS-fork.c = $(libio-mtsafe)
 CFLAGS-getpid.o = -fomit-frame-pointer
 CFLAGS-getpid.os = -fomit-frame-pointer
+CFLAGS-tst-spawn3-pidfd.c += -DOBJPFX=\"$(objpfx)\"
+
+tst-spawn-cgroup-ARGS = -- $(host-test-program-cmd)
+tst-spawn-pidfd-ARGS = -- $(host-test-program-cmd)
+tst-spawn5-pidfd-ARGS = -- $(host-test-program-cmd)
+tst-spawn6-pidfd-ARGS = -- $(host-test-program-cmd)
+tst-spawn7-pidfd-ARGS = -- $(host-test-program-cmd)
+tst-posix_spawn-setsid-pidfd-ARGS = -- $(host-test-program-cmd)
 endif
 
 ifeq ($(subdir),inet)
@@ -557,6 +612,7 @@ endif
 ifeq ($(subdir),io)
 sysdep_routines += \
   close_nocancel \
+  close_nocancel_nostatus \
   fallocate \
   fallocate64 \
   fcntl_nocancel \
@@ -587,6 +643,10 @@ tests += \
 endif
 
 ifeq ($(subdir),elf)
+dl-routines += \
+  dl-rseq-symbols \
+  # dl-routines
+
 sysdep-rtld-routines += \
   dl-brk \
   dl-getcwd \
@@ -604,7 +664,29 @@ install-bin += \
   # install-bin
 
 $(objpfx)pldd: $(objpfx)xmalloc.o
+
+tests += tst-rseq-tls-range tst-rseq-tls-range-4096
+tests-static += tst-rseq-tls-range-static tst-rseq-tls-range-4096-static
+modules-names += tst-rseq-tls-range-mod
+CFLAGS-tst-rseq-tls-range.c += -DMAIN_TLS_ALIGN=4
+CFLAGS-tst-rseq-tls-range-4096.c += -DMAIN_TLS_ALIGN=4096
+CFLAGS-tst-rseq-tls-range-static.c += -DMAIN_TLS_ALIGN=4
+CFLAGS-tst-rseq-tls-range-4096-static.c += -DMAIN_TLS_ALIGN=4096
+$(objpfx)tst-rseq-tls-range.out: $(objpfx)tst-rseq-tls-range-mod.so
+$(objpfx)tst-rseq-tls-range-4096.out: $(objpfx)tst-rseq-tls-range-mod.so
+$(objpfx)tst-rseq-tls-range-static.out: $(objpfx)tst-rseq-tls-range-mod.so
+$(objpfx)tst-rseq-tls-range-4096-static.out: $(objpfx)tst-rseq-tls-range-mod.so
+tst-rseq-tls-range-static-ENV = LD_LIBRARY_PATH=$(objpfx):$(common-objpfx)
+tst-rseq-tls-range-4096-static-ENV = LD_LIBRARY_PATH=$(objpfx):$(common-objpfx)
+
+test-internal-extras += tst-nolink-libc
+ifeq ($(run-built-tests),yes)
+tests-special += \
+  $(objpfx)tst-nolink-libc-1.out \
+  $(objpfx)tst-nolink-libc-2.out \
+  # tests-special
 endif
+endif # $(subdir) == elf
 
 ifeq ($(subdir),rt)
 CFLAGS-mq_send.c += -fexceptions
@@ -620,6 +702,7 @@ ifeq ($(subdir),nptl)
 tests += \
   tst-align-clone \
   tst-getpid1 \
+  tst-sem_getvalue-affinity \
   # tests
 
 # tst-rseq-nptl is an internal test because it requires a definition of
@@ -627,4 +710,8 @@ tests += \
 tests-internal += \
   tst-rseq-nptl \
   # tests-internal
+
+tests-static += \
+  tst-rseq-nptl-static \
+  # tests-static
 endif

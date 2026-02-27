@@ -1,5 +1,5 @@
 /* Constants from kernel header for various FSes.
-   Copyright (C) 1998-2023 Free Software Foundation, Inc.
+   Copyright (C) 1998-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -251,6 +251,7 @@
 #define XFS_SUPER_MAGIC		0x58465342
 
 /* Maximum link counts.  */
+#define BTRFS_LINK_MAX		65535
 #define COH_LINK_MAX		10000
 #define EXT2_LINK_MAX		32000
 #define EXT4_LINK_MAX		65000

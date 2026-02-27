@@ -1,5 +1,5 @@
 # sysdeps makefile fragment for all pthread-supporting configurations.
-# Copyright (C) 2014-2023 Free Software Foundation, Inc.
+# Copyright (C) 2014-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -62,7 +62,6 @@ tests += \
   tst-abstime \
   tst-atfork1 \
   tst-attr1 \
-  tst-backtrace1 \
   tst-bad-schedattr \
   tst-barrier1 \
   tst-barrier2 \
@@ -106,6 +105,7 @@ tests += \
   tst-cancel28 \
   tst-cancel29 \
   tst-cancel30 \
+  tst-cancel32 \
   tst-cleanup0 \
   tst-cleanup1 \
   tst-cleanup2 \
@@ -154,6 +154,7 @@ tests += \
   tst-exit3 \
   tst-flock1 \
   tst-flock2 \
+  tst-fopen-threaded \
   tst-fork1 \
   tst-fork2 \
   tst-fork3 \
@@ -174,6 +175,7 @@ tests += \
   tst-join13 \
   tst-join14 \
   tst-join15 \
+  tst-join16 \
   tst-key1 \
   tst-key2 \
   tst-key3 \
@@ -215,6 +217,7 @@ tests += \
   tst-pt-vfork2 \
   tst-pthread-exit-signal \
   tst-pthread-mutexattr \
+  tst-pthread-mutexattr-2 \
   tst-pthread-raise-blocked-self \
   tst-pthread-setuid-loop \
   tst-pthread_cancel-exited \
@@ -254,6 +257,8 @@ tests += \
   tst-sem14 \
   tst-sem15 \
   tst-sem16 \
+  tst-sem18 \
+  tst-sem19 \
   tst-setuid3 \
   tst-signal1 \
   tst-signal2 \
@@ -265,7 +270,9 @@ tests += \
   tst-spin2 \
   tst-spin3 \
   tst-spin4 \
+  tst-spin5 \
   tst-stack1 \
+  tst-stack2 \
   tst-stdio1 \
   tst-stdio2 \
   tst-thrd-detach \
@@ -282,18 +289,23 @@ tests += \
   tst-vfork2x \
   # tests
 
+tests-2.0 += \
+  tst-pthread_kill-exited
+  # tests-2.0
+
 tests-time64 += \
   tst-abstime-time64 \
   tst-cnd-timedwait-time64 \
   tst-cond11-time64 \
   tst-join14-time64 \
+  tst-join16-time64 \
   tst-mtx-timedlock-time64 \
   tst-rwlock14-time64 \
   tst-sem5-time64 \
   tst-thrd-sleep-time64 \
   # tests-time64
 
-static-only-routines = pthread_atfork
+static-only-routines += pthread_atfork
 
 # Files which must not be linked with libpthread.
 tests-nolibpthread += \
@@ -356,6 +368,7 @@ modules-names += \
   tst-atfork4mod \
   tst-create1mod \
   tst-fini1mod \
+  tst-stack2-mod \
   tst-tls4moda \
   tst-tls4modb \
   # modules-names
@@ -528,5 +541,13 @@ CFLAGS-tst-unwind-thread.c += -funwind-tables
 LDFLAGS-tst-create1 = -Wl,-export-dynamic
 $(objpfx)tst-create1: $(shared-thread-library)
 $(objpfx)tst-create1.out: $(objpfx)tst-create1mod.so
+
+$(objpfx)tst-stack2.out: $(objpfx)tst-stack2-mod.so
+$(objpfx)tst-stack2-mod.so: $(shared-thread-library)
+LDFLAGS-tst-stack2-mod.so = -Wl,-z,execstack
+ifeq ($(have-no-error-execstack),yes)
+LDFLAGS-tst-stack2-mod.so += -Wl,--no-error-execstack
+endif
+tst-stack2-ENV = GLIBC_TUNABLES=glibc.rtld.execstack=2
 
 endif

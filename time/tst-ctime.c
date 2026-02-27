@@ -1,5 +1,5 @@
 /* Test for ctime
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <support/check.h>
 
+#if __GNUC_PREREQ (5, 0)
 static int
 do_test (void)
 {
@@ -70,3 +71,12 @@ do_test (void)
 }
 
 #include <support/test-driver.c>
+#else
+#include <support/test-driver.h>
+
+int
+main (void)
+{
+  return EXIT_UNSUPPORTED;
+}
+#endif

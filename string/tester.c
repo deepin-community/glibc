@@ -1,5 +1,5 @@
 /* Tester for string functions.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,6 +34,14 @@
 DIAG_IGNORE_NEEDS_COMMENT (8, "-Wstringop-truncation");
 #endif
 
+/* When building with fortify enabled, GCC < 12 issues a warning on the
+   fortify strncat wrapper might overflow the destination buffer (the
+   failure is tied to -Werror).
+   Triggered by strncat fortify wrapper when it is enabled.  */
+#if __GNUC_PREREQ (11, 0)
+DIAG_IGNORE_NEEDS_COMMENT (11, "-Wstringop-overread");
+#endif
+
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -42,18 +50,26 @@ DIAG_IGNORE_NEEDS_COMMENT (8, "-Wstringop-truncation");
 #include <strings.h>
 #include <fcntl.h>
 
+static __typeof (bzero) * volatile bzero_indirect = bzero;
+static __typeof (memset) * volatile memset_indirect = memset;
+
+#undef bzero
+#undef memset
+
+#define bzero bzero_indirect
+#define memset memset_indirect
+
 /* This file tests a range of corner cases of string functions,
    including cases where truncation occurs or where sizes specified
    are larger than the actual buffers, which result in various
    warnings.  */
 DIAG_IGNORE_NEEDS_COMMENT (8, "-Warray-bounds");
+#if __GNUC_PREREQ (5, 0)
 DIAG_IGNORE_NEEDS_COMMENT (5.0, "-Wmemset-transposed-args");
+#endif
 #if __GNUC_PREREQ (7, 0)
 DIAG_IGNORE_NEEDS_COMMENT (9, "-Wrestrict");
 DIAG_IGNORE_NEEDS_COMMENT (7, "-Wstringop-overflow=");
-#endif
-#if __GNUC_PREREQ (11, 0)
-DIAG_IGNORE_NEEDS_COMMENT (11, "-Wstringop-overread");
 #endif
 
 

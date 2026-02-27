@@ -1,5 +1,5 @@
 /* Get the scheduling parameters for a thread.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <pthread.h>
+#include <shlib-compat.h>
 #include <pt-internal.h>
 
 int
@@ -28,4 +29,8 @@ __pthread_getschedparam (pthread_t thread, int *policy,
   return 0;
 }
 
-weak_alias (__pthread_getschedparam, pthread_getschedparam);
+versioned_symbol (libc, __pthread_getschedparam, pthread_getschedparam, GLIBC_2_21);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_21)
+compat_symbol (libc, __pthread_getschedparam, pthread_getschedparam, GLIBC_2_12);
+#endif

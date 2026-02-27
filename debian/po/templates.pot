@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glibc\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2023-01-03 21:34+0100\n"
+"POT-Creation-Date: 2025-01-02 16:30+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,6 +44,14 @@ msgid ""
 "Please choose which locales to generate. UTF-8 locales should be chosen by "
 "default, particularly for new installations. Other character sets may be "
 "useful for backwards compatibility with older systems and software."
+msgstr ""
+
+#. Type: multiselect
+#. Description
+#: ../debhelper.in/locales.templates:1002
+msgid ""
+"Please note that the C, C.UTF-8 and POSIX locales are always available and "
+"do not need to be generated."
 msgstr ""
 
 #. Type: select

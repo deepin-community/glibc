@@ -1,5 +1,5 @@
 /* pthread_mutex_unlock.  Hurd version.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,12 +16,14 @@
    License along with the GNU C Library;  if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <pthread.h>
+#include <pthreadP.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <pt-internal.h>
 #include "pt-mutex.h"
 #include <hurdlock.h>
+#include <unistd.h>
+#include <shlib-compat.h>
 
 int
 __pthread_mutex_unlock (pthread_mutex_t *mtxp)
@@ -86,7 +88,9 @@ __pthread_mutex_unlock (pthread_mutex_t *mtxp)
 
   return ret;
 }
+libc_hidden_def (__pthread_mutex_unlock)
+versioned_symbol (libc, __pthread_mutex_unlock, pthread_mutex_unlock, GLIBC_2_21);
 
-hidden_def (__pthread_mutex_unlock)
-strong_alias (__pthread_mutex_unlock, _pthread_mutex_unlock)
-weak_alias (__pthread_mutex_unlock, pthread_mutex_unlock)
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_21)
+compat_symbol (libc, __pthread_mutex_unlock, pthread_mutex_unlock, GLIBC_2_12);
+#endif

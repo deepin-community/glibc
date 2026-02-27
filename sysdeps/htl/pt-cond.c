@@ -1,5 +1,5 @@
 /* Default condition attributes.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,3 +25,4 @@ const struct __pthread_condattr __pthread_default_condattr = {
   __pshared: PTHREAD_PROCESS_PRIVATE,
   __clock: CLOCK_REALTIME
 };
+libc_hidden_data_def (__pthread_default_condattr)

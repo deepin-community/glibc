@@ -1,5 +1,5 @@
 /* Test that explicit_bzero block clears are not optimized out.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -97,7 +97,7 @@ static const unsigned char test_pattern[16] =
 
 static ucontext_t uc_main, uc_co;
 
-static __attribute__ ((noinline, noclone)) int
+static __attribute_optimization_barrier__ int
 use_test_buffer (unsigned char *buf)
 {
   unsigned int sum = 0;

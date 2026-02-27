@@ -1,5 +1,5 @@
 /* Internal functions for the *scanf* implementation.
-   Copyright (C) 1991-2023 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -381,6 +381,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
   while (*f != '\0')
     {
       unsigned int argpos;
+      bool is_fast;
       /* Extract the next argument, which is of type TYPE.
 	 For a %N$... spec, this is the Nth argument from the beginning;
 	 otherwise it is the next argument after the state now in ARG.  */
@@ -601,6 +602,53 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 	    flags |= LONGDBL;
 	  else if (sizeof (ptrdiff_t) > sizeof (int))
 	    flags |= LONG;
+	  break;
+	case L_('w'):
+	  {
+	    is_fast = false;
+	    if (*f == L_('f'))
+	      {
+		++f;
+		is_fast = true;
+	      }
+	    int bitwidth = 0;
+	    if (ISDIGIT (*f))
+	      bitwidth = read_int (&f);
+	    if (is_fast)
+	      switch (bitwidth)
+		{
+		case 8:
+		  bitwidth = INT_FAST8_WIDTH;
+		  break;
+		case 16:
+		  bitwidth = INT_FAST16_WIDTH;
+		  break;
+		case 32:
+		  bitwidth = INT_FAST32_WIDTH;
+		  break;
+		case 64:
+		  bitwidth = INT_FAST64_WIDTH;
+		  break;
+		}
+	    switch (bitwidth)
+	      {
+	      case 8:
+		flags |= CHAR;
+		break;
+	      case 16:
+		flags |= SHORT;
+		break;
+	      case 32:
+		break;
+	      case 64:
+		flags |= LONGDBL | LONG;
+		break;
+	      default:
+		/* ISO C requires this error to be detected.  */
+		__set_errno (EINVAL);
+		goto errout;
+	      }
+	  }
 	  break;
 	default:
 	  /* Not a recognized modifier.  Backup.  */
@@ -1415,22 +1463,24 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 	  /* Look for a leading indication of base.  */
 	  if (width != 0 && c == L_('0'))
 	    {
+	      WINT_T ctmp = c;
+
 	      if (width > 0)
 		--width;
-
-	      char_buffer_add (&charbuf, c);
 	      c = inchar ();
 
-	      if (width != 0 && TOLOWER (c) == L_('x'))
+	      if (width != 0
+		  && TOLOWER (c) == L_('x')
+		  && (base == 0 || base == 16))
 		{
-		  if (base == 0)
-		    base = 16;
-		  if (base == 16)
-		    {
-		      if (width > 0)
-			--width;
-		      c = inchar ();
-		    }
+		  base = 16;
+		  if (width > 0)
+		    --width;
+		  /* If we try to read a number in hexadecimal notation
+		     and we have only the `0x' prefix, this is an error.  */
+		  if (width == 0)
+		    conv_error ();
+		  c = inchar ();
 		}
 	      else if (width != 0
 		       && TOLOWER (c) == L_('b')
@@ -1441,10 +1491,18 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 		  base = 2;
 		  if (width > 0)
 		    --width;
+		  /* If we try to read a number in binary notation and
+		     we have only the `0b' prefix, this is an error.  */
+		  if (width == 0)
+		    conv_error ();
 		  c = inchar ();
 		}
-	      else if (base == 0)
-		base = 8;
+	      else
+		{
+		  if (base == 0)
+		    base = 8;
+		  char_buffer_add (&charbuf, ctmp);
+		}
 	    }
 
 	  if (base == 0)
@@ -1679,7 +1737,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 #endif
 			    }
 
-			  if (n < 10)
+			  if (n < num_digits_len)
 			    {
 			      /* Found it.  */
 			      from_level = level;
@@ -1980,7 +2038,51 @@ digits_extended_fail:
 	      if (width > 0)
 		--width;
 	      char_buffer_add (&charbuf, c);
-	      /* It is "nan".  */
+	      /* It is at least "nan".  Now we check for nan() and
+		 nan(n-char-sequence).  */
+	      if (width != 0 && inchar () != EOF)
+		{
+		  if (c == L_('('))
+		    {
+		      if (width > 0)
+			--width;
+		      char_buffer_add (&charbuf, c);
+		      /* A '(' was observed, check for a closing ')', there
+			 may or may not be a n-char-sequence in between.  We
+			 have to check the longest prefix until there is a
+			 conversion error or closing parenthesis.  */
+		      do
+			{
+			  if (__glibc_unlikely (width == 0
+						|| inchar () == EOF))
+			    {
+			      /* Conversion error because we ran out of
+				 characters.  */
+			      conv_error ();
+			      break;
+			    }
+			  if (!((c >= L_('0') && c <= L_('9'))
+				|| (c >= L_('A') && c <= L_('Z'))
+				|| (c >= L_('a') && c <= L_('z'))
+				|| c == L_('_') || c == L_(')')))
+			    {
+			      /* Invalid character was observed.  Only valid
+				 characters are [a-zA-Z0-9_] and ')'.  */
+			      conv_error ();
+			      break;
+			    }
+			  if (width > 0)
+			    --width;
+			  char_buffer_add (&charbuf, c);
+			}
+		      while (c != L_(')'));
+		      /* The loop only exits successfully when ')' is the
+			 last character.  */
+		    }
+		  else
+		    /* It is only 'nan'.  */
+		    ungetc (c, s);
+		}
 	      goto scan_float;
 	    }
 	  else if (TOLOWER (c) == L_('i'))
@@ -2053,8 +2155,13 @@ digits_extended_fail:
 	      c = inchar ();
 	      if (width > 0)
 		--width;
-	      if (width != 0 && TOLOWER (c) == L_('x'))
+	      if (TOLOWER (c) == L_('x'))
 		{
+		  /* If we try to read a number in hexadecimal notation
+		     and we have only the `0x' prefix, this is an error.  */
+		  if (width == 0)
+		    conv_error ();
+
 		  /* It is a number in hexadecimal format.  */
 		  char_buffer_add (&charbuf, c);
 
@@ -2097,6 +2204,7 @@ digits_extended_fail:
 		{
 		  char_buffer_add (&charbuf, exp_char);
 		  got_e = got_dot = 1;
+		  got_digit = 0;
 		}
 	      else
 		{
@@ -2317,7 +2425,7 @@ digits_extended_fail:
 		      if (got_e && charbuf.current[-1] == exp_char
 			  && (c == L_('-') || c == L_('+')))
 			char_buffer_add (&charbuf, c);
-		      else if (char_buffer_size (&charbuf) > got_sign && !got_e
+		      else if (got_digit && !got_e
 			       && (CHAR_T) TOLOWER (c) == exp_char)
 			{
 			  char_buffer_add (&charbuf, exp_char);
@@ -2334,7 +2442,10 @@ digits_extended_fail:
 			      if (c == wcdigits[n])
 				{
 				  if (n < 10)
-				    char_buffer_add (&charbuf, L_('0') + n);
+				    {
+				      char_buffer_add (&charbuf, L_('0') + n);
+				      got_digit = 1;
+				    }
 				  else if (n == 11 && !got_dot)
 				    {
 				      char_buffer_add (&charbuf, decimal);
@@ -2369,7 +2480,10 @@ digits_extended_fail:
 				    width = avail;
 
 				  if (n < 10)
-				    char_buffer_add (&charbuf, L_('0') + n);
+				    {
+				      char_buffer_add (&charbuf, L_('0') + n);
+				      got_digit = 1;
+				    }
 				  else if (n == 11 && !got_dot)
 				    {
 				      /* Add all the characters.  */
@@ -2440,11 +2554,13 @@ digits_extended_fail:
 
 	  /* Have we read any character?  If we try to read a number
 	     in hexadecimal notation and we have read only the `0x'
-	     prefix this is an error.  */
+	     prefix this is an error.  Also it is an error where we
+	     have read no digits after the exponent character.  */
 	  if (__glibc_unlikely (char_buffer_size (&charbuf) == got_sign
 				|| ((flags & HEXA_FLOAT)
 				    && (char_buffer_size (&charbuf)
-					== 2 + got_sign))))
+					== 2 + got_sign)))
+				|| (got_e && !got_digit))
 	    conv_error ();
 
 	scan_float:

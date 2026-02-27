@@ -1,5 +1,5 @@
 /* pthread_cond_common -- shared code for condition variable.
-   Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -189,19 +189,17 @@ __condvar_get_private (int flags)
     return FUTEX_SHARED;
 }
 
-/* This closes G1 (whose index is in G1INDEX), waits for all futex waiters to
-   leave G1, converts G1 into a fresh G2, and then switches group roles so that
-   the former G2 becomes the new G1 ending at the current __wseq value when we
-   eventually make the switch (WSEQ is just an observation of __wseq by the
-   signaler).
+/* This closes G1 (whose index is in G1INDEX), converts G1 into a fresh G2,
+   and then switches group roles so that the former G2 becomes the new G1
+   ending at the current __wseq value when we eventually make the switch
+   (WSEQ is just an observation of __wseq by the signaler).
    If G2 is empty, it will not switch groups because then it would create an
    empty G1 which would require switching groups again on the next signal.
    Returns false iff groups were not switched because G2 was empty.  */
 static bool __attribute__ ((unused))
-__condvar_quiesce_and_switch_g1 (pthread_cond_t *cond, uint64_t wseq,
+__condvar_switch_g1 (pthread_cond_t *cond, uint64_t wseq,
     unsigned int *g1index, int private)
 {
-  const unsigned int maxspin = 0;
   unsigned int g1 = *g1index;
 
   /* If there is no waiter in G2, we don't do anything.  The expression may
@@ -210,96 +208,23 @@ __condvar_quiesce_and_switch_g1 (pthread_cond_t *cond, uint64_t wseq,
      behavior.
      Note that this works correctly for a zero-initialized condvar too.  */
   unsigned int old_orig_size = __condvar_get_orig_size (cond);
-  uint64_t old_g1_start = __condvar_load_g1_start_relaxed (cond) >> 1;
-  if (((unsigned) (wseq - old_g1_start - old_orig_size)
-	  + cond->__data.__g_size[g1 ^ 1]) == 0)
+  uint64_t old_g1_start = __condvar_load_g1_start_relaxed (cond);
+  uint64_t new_g1_start = old_g1_start + old_orig_size;
+  if (((unsigned) (wseq - new_g1_start) + cond->__data.__g_size[g1 ^ 1]) == 0)
 	return false;
 
-  /* Now try to close and quiesce G1.  We have to consider the following kinds
-     of waiters:
+  /* We have to consider the following kinds of waiters:
      * Waiters from less recent groups than G1 are not affected because
        nothing will change for them apart from __g1_start getting larger.
      * New waiters arriving concurrently with the group switching will all go
        into G2 until we atomically make the switch.  Waiters existing in G2
        are not affected.
-     * Waiters in G1 will be closed out immediately by setting a flag in
-       __g_signals, which will prevent waiters from blocking using a futex on
-       __g_signals and also notifies them that the group is closed.  As a
-       result, they will eventually remove their group reference, allowing us
-       to close switch group roles.  */
+     * Waiters in G1 have already received a signal and been woken.  */
 
-  /* First, set the closed flag on __g_signals.  This tells waiters that are
-     about to wait that they shouldn't do that anymore.  This basically
-     serves as an advance notification of the upcoming change to __g1_start;
-     waiters interpret it as if __g1_start was larger than their waiter
-     sequence position.  This allows us to change __g1_start after waiting
-     for all existing waiters with group references to leave, which in turn
-     makes recovery after stealing a signal simpler because it then can be
-     skipped if __g1_start indicates that the group is closed (otherwise,
-     we would have to recover always because waiters don't know how big their
-     groups are).  Relaxed MO is fine.  */
-  atomic_fetch_or_relaxed (cond->__data.__g_signals + g1, 1);
-
-  /* Wait until there are no group references anymore.  The fetch-or operation
-     injects us into the modification order of __g_refs; release MO ensures
-     that waiters incrementing __g_refs after our fetch-or see the previous
-     changes to __g_signals and to __g1_start that had to happen before we can
-     switch this G1 and alias with an older group (we have two groups, so
-     aliasing requires switching group roles twice).  Note that nobody else
-     can have set the wake-request flag, so we do not have to act upon it.
-
-     Also note that it is harmless if older waiters or waiters from this G1
-     get a group reference after we have quiesced the group because it will
-     remain closed for them either because of the closed flag in __g_signals
-     or the later update to __g1_start.  New waiters will never arrive here
-     but instead continue to go into the still current G2.  */
-  unsigned r = atomic_fetch_or_release (cond->__data.__g_refs + g1, 0);
-  while ((r >> 1) > 0)
-    {
-      for (unsigned int spin = maxspin; ((r >> 1) > 0) && (spin > 0); spin--)
-	{
-	  /* TODO Back off.  */
-	  r = atomic_load_relaxed (cond->__data.__g_refs + g1);
-	}
-      if ((r >> 1) > 0)
-	{
-	  /* There is still a waiter after spinning.  Set the wake-request
-	     flag and block.  Relaxed MO is fine because this is just about
-	     this futex word.
-
-	     Update r to include the set wake-request flag so that the upcoming
-	     futex_wait only blocks if the flag is still set (otherwise, we'd
-	     violate the basic client-side futex protocol).  */
-	  r = atomic_fetch_or_relaxed (cond->__data.__g_refs + g1, 1) | 1;
-
-	  if ((r >> 1) > 0)
-	    futex_wait_simple (cond->__data.__g_refs + g1, r, private);
-	  /* Reload here so we eventually see the most recent value even if we
-	     do not spin.   */
-	  r = atomic_load_relaxed (cond->__data.__g_refs + g1);
-	}
-    }
-  /* Acquire MO so that we synchronize with the release operation that waiters
-     use to decrement __g_refs and thus happen after the waiters we waited
-     for.  */
-  atomic_thread_fence_acquire ();
-
-  /* Update __g1_start, which finishes closing this group.  The value we add
-     will never be negative because old_orig_size can only be zero when we
-     switch groups the first time after a condvar was initialized, in which
-     case G1 will be at index 1 and we will add a value of 1.  See above for
-     why this takes place after waiting for quiescence of the group.
-     Relaxed MO is fine because the change comes with no additional
-     constraints that others would have to observe.  */
-  __condvar_add_g1_start_relaxed (cond,
-      (old_orig_size << 1) + (g1 == 1 ? 1 : - 1));
-
-  /* Now reopen the group, thus enabling waiters to again block using the
-     futex controlled by __g_signals.  Release MO so that observers that see
-     no signals (and thus can block) also see the write __g1_start and thus
-     that this is now a new group (see __pthread_cond_wait_common for the
-     matching acquire MO loads).  */
-  atomic_store_release (cond->__data.__g_signals + g1, 0);
+  /* Update __g1_start, which closes this group.  Relaxed MO is fine because
+     the change comes with no additional constraints that others would have
+     to observe.  */
+  __condvar_add_g1_start_relaxed (cond, old_orig_size);
 
   /* At this point, the old G1 is now a valid new G2 (but not in use yet).
      No old waiter can neither grab a signal nor acquire a reference without
@@ -311,9 +236,13 @@ __condvar_quiesce_and_switch_g1 (pthread_cond_t *cond, uint64_t wseq,
   g1 ^= 1;
   *g1index ^= 1;
 
+  /* Now advance the new G1 g_signals to the new g1_start, giving it
+     an effective signal count of 0 to start.  */
+  atomic_store_release (cond->__data.__g_signals + g1, (unsigned)new_g1_start);
+
   /* These values are just observed by signalers, and thus protected by the
      lock.  */
-  unsigned int orig_size = wseq - (old_g1_start + old_orig_size);
+  unsigned int orig_size = wseq - new_g1_start;
   __condvar_set_orig_size (cond, orig_size);
   /* Use and addition to not loose track of cancellations in what was
      previously G2.  */

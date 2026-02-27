@@ -1,5 +1,5 @@
 /* Check if clone (CLONE_THREAD) does not call exit_group (BZ #21512)
-   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -54,7 +54,7 @@ f (void *a)
   } while (0)
 
 static inline int
-futex_wait (int *futexp, int val)
+futex_wait (_Atomic int *futexp, int val)
 {
 #ifdef __NR_futex
   return syscall (__NR_futex, futexp, FUTEX_WAIT, val);
@@ -75,16 +75,9 @@ do_test (void)
   /* Initialize with a known value.  ctid is set to zero by the kernel after the
      cloned thread has exited.  */
 #define CTID_INIT_VAL 1
-  pid_t ctid = CTID_INIT_VAL;
+  _Atomic pid_t ctid = CTID_INIT_VAL;
   pid_t tid;
 
-#ifdef __ia64__
-  extern int __clone2 (int (*__fn) (void *__arg), void *__child_stack_base,
-		       size_t __child_stack_size, int __flags,
-		       void *__arg, ...);
-  tid = __clone2 (f, st, sizeof (st), clone_flags, NULL, /* ptid */ NULL,
-		  /* tls */ NULL, &ctid);
-#else
 #if _STACK_GROWS_DOWN
   tid = clone (f, st + sizeof (st), clone_flags, NULL, /* ptid */ NULL,
 	       /* tls */ NULL, &ctid);
@@ -93,7 +86,6 @@ do_test (void)
 	       &ctid);
 #else
 #error "Define either _STACK_GROWS_DOWN or _STACK_GROWS_UP"
-#endif
 #endif
   if (tid == -1)
     FAIL_EXIT1 ("clone failed: %m");

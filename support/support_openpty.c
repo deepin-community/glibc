@@ -1,5 +1,5 @@
 /* Open a pseudoterminal.
-   Copyright (C) 2018-2023 Free Software Foundation, Inc.
+   Copyright (C) 2018-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -57,7 +57,7 @@ support_openpty (int *a_outer, int *a_inner, char **a_name,
                  const struct winsize *winp)
 {
   int outer = -1, inner = -1;
-  char *namebuf = 0;
+  char *namebuf = NULL;
 
   outer = posix_openpt (O_RDWR | O_NOCTTY);
   if (outer == -1)

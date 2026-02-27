@@ -1,5 +1,5 @@
 /* pthread_barrierattr_destroy.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,11 +16,18 @@
    License along with the GNU C Library;  if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <pthread.h>
+#include <pthreadP.h>
 #include <pt-internal.h>
+#include <shlib-compat.h>
 
 int
-pthread_barrierattr_destroy (pthread_barrierattr_t *attr)
+__pthread_barrierattr_destroy (pthread_barrierattr_t *attr)
 {
   return 0;
 }
+libc_hidden_def (__pthread_barrierattr_destroy)
+versioned_symbol (libc, __pthread_barrierattr_destroy, pthread_barrierattr_destroy, GLIBC_2_42);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_42)
+compat_symbol (libpthread, __pthread_barrierattr_destroy, pthread_barrierattr_destroy, GLIBC_2_12);
+#endif

@@ -1,5 +1,5 @@
 /* Parse the Linux auxiliary vector.
-   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 #include <fpu_control.h>
 #include <ldsodefs.h>
 #include <link.h>
+#include <rseq-internal.h>
 
 typedef ElfW(Addr) dl_parse_auxv_t[AT_MINSIGSTKSZ + 1];
 
@@ -47,6 +48,8 @@ void _dl_parse_auxv (ElfW(auxv_t) *av, dl_parse_auxv_t auxv_values)
   GLRO(dl_platform) = (void *) auxv_values[AT_PLATFORM];
   GLRO(dl_hwcap) = auxv_values[AT_HWCAP];
   GLRO(dl_hwcap2) = auxv_values[AT_HWCAP2];
+  GLRO(dl_hwcap3) = auxv_values[AT_HWCAP3];
+  GLRO(dl_hwcap4) = auxv_values[AT_HWCAP4];
   GLRO(dl_clktck) = auxv_values[AT_CLKTCK];
   GLRO(dl_fpu_control) = auxv_values[AT_FPUCW];
   _dl_random = (void *) auxv_values[AT_RANDOM];
@@ -56,6 +59,12 @@ void _dl_parse_auxv (ElfW(auxv_t) *av, dl_parse_auxv_t auxv_values)
   if (GLRO(dl_sysinfo_dso) != NULL)
     GLRO(dl_sysinfo) = auxv_values[AT_SYSINFO];
 #endif
+
+  /* Get the rseq feature size, with a minimum of RSEQ_AREA_SIZE_INITIAL_USED
+     (20) for kernels that don't have AT_RSEQ_FEATURE_SIZE.  */
+  _rseq_size = MAX (auxv_values[AT_RSEQ_FEATURE_SIZE],
+                    RSEQ_AREA_SIZE_INITIAL_USED);
+  _rseq_align = MAX (auxv_values[AT_RSEQ_ALIGN], RSEQ_MIN_ALIGN);
 
   DL_PLATFORM_AUXV
 }

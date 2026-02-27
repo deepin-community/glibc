@@ -1,5 +1,5 @@
 /* xstat64 using Linux stat64 system call.
-   Copyright (C) 1991-2023 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ ___xstat64 (int vers, const char *name, struct stat64 *buf)
       return r ?: __xstat32_conv (vers, &st64, (struct stat *) buf);
     }
 # elif defined __NR_stat
-  /* Old 64-bit kABI, e.g. ia64, powerpc64*, s390x, and x86_64.  */
+  /* Old 64-bit kABI, e.g. powerpc64*, s390x, and x86_64.  */
   if (vers == _STAT_VER_KERNEL || vers == _STAT_VER_LINUX)
     return INLINE_SYSCALL_CALL (stat, name, buf);
 # elif defined __NR_newfstatat
@@ -67,7 +67,7 @@ ___xstat64 (int vers, const char *name, struct stat64 *buf)
 #else
 # if STAT_IS_KERNEL_STAT
   /* New kABIs which uses generic pre 64-bit time Linux ABI,
-     e.g. csky, nios2  */
+     e.g. csky.  */
   if (vers == _STAT_VER_KERNEL)
     return INLINE_SYSCALL_CALL (fstatat64, AT_FDCWD, name, buf, 0);
 # else

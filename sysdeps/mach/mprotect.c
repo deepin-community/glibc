@@ -1,4 +1,4 @@
-/* Copyright (C) 1994-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1994-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -42,6 +42,9 @@ __mprotect (void *addr, size_t len, int prot)
 			  (vm_address_t) addr, (vm_size_t) len,
 			  0, vmprot))
     {
+      if (err == KERN_PROTECTION_FAILURE)
+        err = EACCES;
+
       errno = err;
       return -1;
     }

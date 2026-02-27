@@ -1,5 +1,5 @@
 /* Acquire a rwlock for reading.  Generic version.
-   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,8 +19,8 @@
 #include <pthread.h>
 #include <assert.h>
 #include <time.h>
-
 #include <pt-internal.h>
+#include <shlib-compat.h>
 
 /* Acquire the rwlock *RWLOCK for reading blocking until *ABSTIME if
    it is already held.  As a GNU extension, if TIMESPEC is NULL then
@@ -122,7 +122,12 @@ __pthread_rwlock_timedrdlock (struct __pthread_rwlock *rwlock,
 {
   return __pthread_rwlock_timedrdlock_internal (rwlock, CLOCK_REALTIME, abstime);
 }
-weak_alias (__pthread_rwlock_timedrdlock, pthread_rwlock_timedrdlock)
+libc_hidden_def (__pthread_rwlock_timedrdlock)
+versioned_symbol (libc, __pthread_rwlock_timedrdlock, pthread_rwlock_timedrdlock, GLIBC_2_42);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_12, GLIBC_2_42)
+compat_symbol (libpthread, __pthread_rwlock_timedrdlock, pthread_rwlock_timedrdlock, GLIBC_2_12);
+#endif
 
 int
 __pthread_rwlock_clockrdlock (struct __pthread_rwlock *rwlock,
@@ -131,4 +136,9 @@ __pthread_rwlock_clockrdlock (struct __pthread_rwlock *rwlock,
 {
   return __pthread_rwlock_timedrdlock_internal (rwlock, clockid, abstime);
 }
-weak_alias (__pthread_rwlock_clockrdlock, pthread_rwlock_clockrdlock)
+libc_hidden_def (__pthread_rwlock_clockrdlock)
+versioned_symbol (libc, __pthread_rwlock_clockrdlock, pthread_rwlock_clockrdlock, GLIBC_2_42);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_32, GLIBC_2_42)
+compat_symbol (libpthread, __pthread_rwlock_clockrdlock, pthread_rwlock_clockrdlock, GLIBC_2_32);
+#endif

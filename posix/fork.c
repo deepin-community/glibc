@@ -1,5 +1,5 @@
 /* fork - create a child process.
-   Copyright (C) 1991-2023 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -62,6 +62,7 @@ __libc_fork (void)
       call_function_static_weak (__nss_database_fork_prepare_parent,
 				 &nss_database_data);
 
+      _IO_proc_file_chain_lock ();
       _IO_list_lock ();
 
       /* Acquire malloc locks.  This needs to come last because fork
@@ -84,6 +85,8 @@ __libc_fork (void)
 
 	  fork_system_setup_after_fork ();
 
+	  call_function_static_weak (__abort_fork_reset_child);
+
 	  /* Release malloc locks.  */
 	  call_function_static_weak (__malloc_fork_unlock_child);
 
@@ -92,6 +95,7 @@ __libc_fork (void)
 
 	  /* Reset locks in the I/O code.  */
 	  _IO_list_resetlock ();
+	  _IO_proc_file_chain_resetlock ();
 
 	  call_function_static_weak (__nss_database_fork_subprocess,
 				     &nss_database_data);
@@ -121,6 +125,7 @@ __libc_fork (void)
 
 	  /* We execute this even if the 'fork' call failed.  */
 	  _IO_list_unlock ();
+	  _IO_proc_file_chain_unlock ();
 	}
 
       /* Run the handlers registered for the parent.  */

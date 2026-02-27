@@ -78,6 +78,55 @@ CFLAGS-vfwprintf-internal.c += -mfloat128 -mabi=ibmlongdouble
 CFLAGS-vfscanf-internal.c += -mfloat128 -mabi=ibmlongdouble
 CFLAGS-vfwscanf-internal.c += -mfloat128 -mabi=ibmlongdouble
 
+ifeq ($(subdir),stdio-common)
+# We already have the long double conversion defined with our common rules
+# for the IBM format, so define these special rules to build and run extra
+# executables for the IEEE binary128 format, reusing the same sources and
+# inputs.
+define tst-scanf-format-128ibm-compat-tests
+test-srcs += \
+  tst-scanf-format-$(1)-ldouble-128ibm-compat \
+  # test-srcs
+
+$$(objpfx)tst-scanf-format-$(1)-ldouble-128ibm-compat.o: \
+	tst-scanf-format-$(1)-ldouble.c $$(before-compile)
+	$$(compile-command.c)
+$$(objpfx)tst-scanf-format-$(1)-ldouble-128ibm-compat: $$(libm)
+endef
+$(foreach p,$(xscanf-funcs), \
+  $(eval $(call tst-scanf-format-128ibm-compat-tests,$(p))))
+
+ifeq ($(run-built-tests),yes)
+define tst-scanf-format-128ibm-compat-rule
+tests-special += \
+  $$(objpfx)tst-scanf-format-$(1)-ldouble-128ibm-compat-$(2).out \
+  # tests-special
+
+$$(objpfx)tst-scanf-format-$(1)-ldouble-128ibm-compat-$(2).out: \
+	../sysdeps/ieee754/ldbl-128/tst-scanf-format-ldouble-$(2).input \
+	$$(objpfx)tst-scanf-format-$(1)-ldouble-128ibm-compat
+	$$(make-tst-scanf-format-out) > $$@ < $$<; \
+	$$(evaluate-test)
+
+ifeq (yes,$(build-shared))
+ifneq ($(PERL),no)
+tests-special += \
+  $$(objpfx)tst-scanf-format-$(1)-ldouble-128ibm-compat-$(2)-mem.out \
+  # tests-special
+
+generated += \
+  $$(objpfx)tst-scanf-format-$(1)-ldouble-128ibm-compat-$(2)-mem.out \
+  $$(objpfx)tst-scanf-format-$(1)-ldouble-128ibm-compat-$(2).mtrace \
+  # generated
+endif
+endif
+endef
+$(foreach f,$(fmts-xscanf-real), \
+  $(foreach p,$(xscanf-funcs), \
+    $(eval $(call tst-scanf-format-128ibm-compat-rule,$(p),$(f)))))
+endif # $(run-built-tests) == yes
+endif # $(subdir) == stdio-common
+
 # Basic tests for the implementation of long double with IEEE binary128
 # format and for the related redirections in installed headers.
 tests-internal += test-printf-ieee128 test-printf-ibm128
@@ -346,20 +395,21 @@ endif
 
 ifeq ($(subdir), stdio-common)
 tests += tst-ibm128-scanf-binary-c11 \
-	 tst-ibm128-scanf-binary-c2x \
+	 tst-ibm128-scanf-binary-c23 \
 	 tst-ibm128-scanf-binary-gnu11 \
 	 tst-ibm128-scanf-binary-gnu89 \
 	 tst-ieee128-scanf-binary-c11 \
-	 tst-ieee128-scanf-binary-c2x \
+	 tst-ieee128-scanf-binary-c23 \
 	 tst-ieee128-scanf-binary-gnu11 \
 	 tst-ieee128-scanf-binary-gnu89
 
-# Some versions of GCC supported for building glibc do not support -std=c2x, so
-# the test for that version uses -std=c11 and then _ISOC2X_SOURCE is defined in
+# Some versions of GCC supported for building glibc do not support -std=c23
+# (added in GCC 14), or the older name -std=c2x (added in GCC 9), so
+# the test for that version uses -std=c11 and then _ISOC23_SOURCE is defined in
 # the test as needed.
 CFLAGS-tst-ibm128-scanf-binary-c11.c += -mabi=ibmlongdouble -Wno-psabi \
 					-std=c11 -DOBJPFX=\"$(objpfx)\"
-CFLAGS-tst-ibm128-scanf-binary-c2x.c += -mabi=ibmlongdouble -Wno-psabi \
+CFLAGS-tst-ibm128-scanf-binary-c23.c += -mabi=ibmlongdouble -Wno-psabi \
 					-std=c11 -DOBJPFX=\"$(objpfx)\"
 CFLAGS-tst-ibm128-scanf-binary-gnu11.c += -mabi=ibmlongdouble -Wno-psabi \
 					  -std=gnu11 -DOBJPFX=\"$(objpfx)\"
@@ -368,7 +418,7 @@ CFLAGS-tst-ibm128-scanf-binary-gnu89.c += -mabi=ibmlongdouble -Wno-psabi \
 CFLAGS-tst-ieee128-scanf-binary-c11.c += -mfloat128 -mabi=ieeelongdouble \
 					 -Wno-psabi -std=c11 \
 					 -DOBJPFX=\"$(objpfx)\"
-CFLAGS-tst-ieee128-scanf-binary-c2x.c += -mfloat128 -mabi=ieeelongdouble \
+CFLAGS-tst-ieee128-scanf-binary-c23.c += -mfloat128 -mabi=ieeelongdouble \
 					 -Wno-psabi -std=c11 \
 					 -DOBJPFX=\"$(objpfx)\"
 CFLAGS-tst-ieee128-scanf-binary-gnu11.c += -mfloat128 -mabi=ieeelongdouble \
@@ -382,20 +432,21 @@ endif
 
 ifeq ($(subdir), wcsmbs)
 tests += tst-ibm128-wscanf-binary-c11 \
-	 tst-ibm128-wscanf-binary-c2x \
+	 tst-ibm128-wscanf-binary-c23 \
 	 tst-ibm128-wscanf-binary-gnu11 \
 	 tst-ibm128-wscanf-binary-gnu89 \
 	 tst-ieee128-wscanf-binary-c11 \
-	 tst-ieee128-wscanf-binary-c2x \
+	 tst-ieee128-wscanf-binary-c23 \
 	 tst-ieee128-wscanf-binary-gnu11 \
 	 tst-ieee128-wscanf-binary-gnu89
 
-# Some versions of GCC supported for building glibc do not support -std=c2x, so
-# the test for that version uses -std=c11 and then _ISOC2X_SOURCE is defined in
+# Some versions of GCC supported for building glibc do not support -std=c23
+# (added in GCC 14), or the older name -std=c2x (added in GCC 9), so
+# the test for that version uses -std=c11 and then _ISOC23_SOURCE is defined in
 # the test as needed.
 CFLAGS-tst-ibm128-wscanf-binary-c11.c += -mabi=ibmlongdouble -Wno-psabi \
 					 -std=c11 -DOBJPFX=\"$(objpfx)\"
-CFLAGS-tst-ibm128-wscanf-binary-c2x.c += -mabi=ibmlongdouble -Wno-psabi \
+CFLAGS-tst-ibm128-wscanf-binary-c23.c += -mabi=ibmlongdouble -Wno-psabi \
 					 -std=c11 -DOBJPFX=\"$(objpfx)\"
 CFLAGS-tst-ibm128-wscanf-binary-gnu11.c += -mabi=ibmlongdouble -Wno-psabi \
 					   -std=gnu11 -DOBJPFX=\"$(objpfx)\"
@@ -404,7 +455,7 @@ CFLAGS-tst-ibm128-wscanf-binary-gnu89.c += -mabi=ibmlongdouble -Wno-psabi \
 CFLAGS-tst-ieee128-wscanf-binary-c11.c += -mfloat128 -mabi=ieeelongdouble \
 					  -Wno-psabi -std=c11 \
 					  -DOBJPFX=\"$(objpfx)\"
-CFLAGS-tst-ieee128-wscanf-binary-c2x.c += -mfloat128 -mabi=ieeelongdouble \
+CFLAGS-tst-ieee128-wscanf-binary-c23.c += -mfloat128 -mabi=ieeelongdouble \
 					  -Wno-psabi -std=c11 \
 					  -DOBJPFX=\"$(objpfx)\"
 CFLAGS-tst-ieee128-wscanf-binary-gnu11.c += -mfloat128 -mabi=ieeelongdouble \

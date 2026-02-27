@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # Generate tests for <tgmath.h> macros.
-# Copyright (C) 2017-2023 Free Software Foundation, Inc.
+# Copyright (C) 2017-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 #
 # The GNU C Library is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@
 # complex integer types, which are a GNU extension, but are currently
 # disabled here because they do not work properly with tgmath.h).
 
-# C2x makes the <tgmath.h> rules for selecting a function to call
+# C23 makes the <tgmath.h> rules for selecting a function to call
 # correspond to the usual arithmetic conversions (applied successively
 # to the arguments for generic parameters in order), which choose the
 # type whose set of values contains that of the other type (undefined
@@ -414,7 +414,7 @@ class Tests(object):
         elif ret == 'g' or 'g' in args:
             # Real and complex.
             have_complex = True
-            if complex_func == None:
+            if complex_func is None:
                 complex_func = 'c%s' % func
         # For narrowing macros, compute narrow_args, the list of
         # argument types for which there is an actual corresponding
@@ -462,7 +462,7 @@ class Tests(object):
                 continue
             if t.complex and not have_complex:
                 continue
-            if func == None and not t.complex:
+            if func is None and not t.complex:
                 continue
             if ret == 's' and t.name.startswith('_Float'):
                 continue
@@ -544,7 +544,7 @@ class Tests(object):
             all_conds.append(can_comb)
             if narrowing:
                 all_conds.append(narrow_cond)
-            any_complex = func == None
+            any_complex = func is None
             for t in this_args:
                 if t.complex:
                     any_complex = True
@@ -742,8 +742,25 @@ class Tests(object):
                                 ('_Float64x', 'f64x')):
                 self.add_tests(prefix + fn, ret, ['r'] * args)
         # TS 18661-4 functions.
+        self.add_tests('acospi', 'r', ['r'])
+        self.add_tests('asinpi', 'r', ['r'])
+        self.add_tests('atan2pi', 'r', ['r', 'r'])
+        self.add_tests('atanpi', 'r', ['r'])
+        self.add_tests('compoundn', 'r', ['r', 'long long int'])
+        self.add_tests('cospi', 'r', ['r'])
         self.add_tests('exp10', 'r', ['r'])
-        # C2X functions.
+        self.add_tests('exp2m1', 'r', ['r'])
+        self.add_tests('exp10m1', 'r', ['r'])
+        self.add_tests('log2p1', 'r', ['r'])
+        self.add_tests('log10p1', 'r', ['r'])
+        self.add_tests('logp1', 'r', ['r'])
+        self.add_tests('pown', 'r', ['r', 'long long int'])
+        self.add_tests('powr', 'r', ['r', 'r'])
+        self.add_tests('rootn', 'r', ['r', 'long long int'])
+        self.add_tests('rsqrt', 'r', ['r'])
+        self.add_tests('sinpi', 'r', ['r'])
+        self.add_tests('tanpi', 'r', ['r'])
+        # C23 functions.
         self.add_tests('fmaximum', 'r', ['r', 'r'])
         self.add_tests('fmaximum_mag', 'r', ['r', 'r'])
         self.add_tests('fmaximum_num', 'r', ['r', 'r'])

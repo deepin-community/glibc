@@ -1,5 +1,5 @@
 /* Read a directory in reentrant mode.  Linux LFS version.
-   Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ __readdir64_r (DIR *dirp, struct dirent64 *entry, struct dirent64 **result)
 
   __libc_lock_lock (dirp->lock);
 
-  do
+  while (1)
     {
       if (dirp->offset >= dirp->size)
 	{
@@ -79,26 +79,21 @@ __readdir64_r (DIR *dirp, struct dirent64 *entry, struct dirent64 **result)
 
       dirp->filepos = dp->d_off;
 
-      if (reclen > offsetof (struct dirent64, d_name) + NAME_MAX + 1)
+      if (reclen <= offsetof (struct dirent64, d_name) + NAME_MAX + 1)
+	break;
+
+      /* The record is very long.  It could still fit into the
+	 caller-supplied buffer if we can skip padding at the end.  */
+      size_t namelen = _D_EXACT_NAMLEN (dp);
+      if (namelen <= NAME_MAX)
 	{
-	  /* The record is very long.  It could still fit into the
-	     caller-supplied buffer if we can skip padding at the
-	     end.  */
-	  size_t namelen = _D_EXACT_NAMLEN (dp);
-	  if (namelen <= NAME_MAX)
-	    reclen = offsetof (struct dirent64, d_name) + namelen + 1;
-	  else
-	    {
-	      /* The name is too long.  Ignore this file.  */
-	      dirp->errcode = ENAMETOOLONG;
-	      dp->d_ino = 0;
-	      continue;
-	    }
+	  reclen = offsetof (struct dirent64, d_name) + namelen + 1;
+	  break;
 	}
 
-      /* Skip deleted and ignored files.  */
+      /* The name is too long.  Ignore this file.  */
+      dirp->errcode = ENAMETOOLONG;
     }
-  while (dp->d_ino == 0);
 
   if (dp != NULL)
     {
@@ -135,91 +130,37 @@ attribute_compat_text_section
 __old_readdir64_r (DIR *dirp, struct __old_dirent64 *entry,
 		   struct __old_dirent64 **result)
 {
-  struct __old_dirent64 *dp;
-  size_t reclen;
-  const int saved_errno = errno;
-  int ret;
-
-  __libc_lock_lock (dirp->lock);
-
-  do
+  while (1)
     {
-      if (dirp->offset >= dirp->size)
+      struct dirent64 new_entry;
+      struct dirent64 *newp;
+      int ret = __readdir64_r (dirp, &new_entry, &newp);
+
+      if (ret != 0)
+	return ret;
+      else if (newp == NULL)
 	{
-	  /* We've emptied out our buffer.  Refill it.  */
-
-	  size_t maxread = dirp->allocation;
-	  ssize_t bytes;
-
-	  maxread = dirp->allocation;
-
-	  bytes = __old_getdents64 (dirp->fd, dirp->data, maxread);
-	  if (bytes <= 0)
-	    {
-	      /* On some systems getdents fails with ENOENT when the
-		 open directory has been rmdir'd already.  POSIX.1
-		 requires that we treat this condition like normal EOF.  */
-	      if (bytes < 0 && errno == ENOENT)
-		{
-		  bytes = 0;
-		  __set_errno (saved_errno);
-		}
-	      if (bytes < 0)
-		dirp->errcode = errno;
-
-	      dp = NULL;
-	      break;
-	    }
-	  dirp->size = (size_t) bytes;
-
-	  /* Reset the offset into the buffer.  */
-	  dirp->offset = 0;
+	  *result = NULL;
+	  return 0;
 	}
-
-      dp = (struct __old_dirent64 *) &dirp->data[dirp->offset];
-
-      reclen = dp->d_reclen;
-
-      dirp->offset += reclen;
-
-      dirp->filepos = dp->d_off;
-
-      if (reclen > offsetof (struct __old_dirent64, d_name) + NAME_MAX + 1)
+      else
 	{
-	  /* The record is very long.  It could still fit into the
-	     caller-supplied buffer if we can skip padding at the
-	     end.  */
-	  size_t namelen = _D_EXACT_NAMLEN (dp);
-	  if (namelen <= NAME_MAX)
-	    reclen = offsetof (struct __old_dirent64, d_name) + namelen + 1;
-	  else
+	  entry->d_ino = newp->d_ino;
+	  if (entry->d_ino != newp->d_ino)
 	    {
-	      /* The name is too long.  Ignore this file.  */
-	      dirp->errcode = ENAMETOOLONG;
-	      dp->d_ino = 0;
+	      dirp->errcode = EOVERFLOW;
 	      continue;
 	    }
+	  size_t namelen = strlen (newp->d_name);
+	  entry->d_off = newp->d_off;
+	  entry->d_reclen = (offsetof (struct __old_dirent64, d_name)
+			     + namelen + 1);
+	  entry->d_type = newp->d_type;
+	  memcpy (entry->d_name, newp->d_name, namelen + 1);
+	  *result = entry;
+	  return 0;
 	}
-
-      /* Skip deleted and ignored files.  */
     }
-  while (dp->d_ino == 0);
-
-  if (dp != NULL)
-    {
-      *result = memcpy (entry, dp, reclen);
-      entry->d_reclen = reclen;
-      ret = 0;
-    }
-  else
-    {
-      *result = NULL;
-      ret = dirp->errcode;
-    }
-
-  __libc_lock_unlock (dirp->lock);
-
-  return ret;
 }
 
 compat_symbol (libc, __old_readdir64_r, readdir64_r, GLIBC_2_1);

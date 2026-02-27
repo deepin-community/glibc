@@ -1,5 +1,5 @@
 /* Make a link between file names relative to open directories.  Hurd version.
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -48,7 +48,11 @@ __linkat_common (int fromfd, const char *from, int tofd, const char *to, int at_
   todir = __file_name_split_at (tofd, to, &toname);
   if (todir != MACH_PORT_NULL)
     {
-      err = __dir_link (todir, linknode, toname, 1);
+      if (! *toname)
+	/* Can't link to the existing directory itself.  */
+	err = ENOTDIR;
+      else
+	err = __dir_link (todir, linknode, toname, 1);
       __mach_port_deallocate (__mach_task_self (), todir);
     }
   __mach_port_deallocate (__mach_task_self (), linknode);
