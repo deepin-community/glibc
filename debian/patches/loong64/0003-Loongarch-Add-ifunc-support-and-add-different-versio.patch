@@ -1,22 +1,21 @@
-From 43d3e583c736c54928b6f4f649e06f25adc37e27 Mon Sep 17 00:00:00 2001
 From: dengjianbo <dengjianbo@loongson.cn>
 Date: Tue, 8 Aug 2023 14:15:44 +0800
-Subject: [PATCH 03/24] Loongarch: Add ifunc support and add different versions
- of strlen
+Subject: [PATCH 03/24] Loongarch: Add ifunc support and add different
+ versions of strlen
 
 strlen-lasx is implemeted by LASX simd instructions(256bit)
 strlen-lsx is implemeted by LSX simd instructions(128bit)
 strlen-align is implemented by LA basic instructions and never use unaligned memory acess
 ---
- sysdeps/loongarch/lp64/multiarch/Makefile     |   7 ++
- .../lp64/multiarch/ifunc-impl-list.c          |  41 +++++++
- .../loongarch/lp64/multiarch/ifunc-strlen.h   |  40 +++++++
- .../loongarch/lp64/multiarch/strlen-aligned.S | 100 ++++++++++++++++++
- .../loongarch/lp64/multiarch/strlen-lasx.S    |  63 +++++++++++
- sysdeps/loongarch/lp64/multiarch/strlen-lsx.S |  71 +++++++++++++
- sysdeps/loongarch/lp64/multiarch/strlen.c     |  37 +++++++
- sysdeps/loongarch/sys/regdef.h                |  57 ++++++++++
- .../unix/sysv/linux/loongarch/cpu-features.h  |   2 +
+ sysdeps/loongarch/lp64/multiarch/Makefile          |   7 ++
+ sysdeps/loongarch/lp64/multiarch/ifunc-impl-list.c |  41 +++++++++
+ sysdeps/loongarch/lp64/multiarch/ifunc-strlen.h    |  40 +++++++++
+ sysdeps/loongarch/lp64/multiarch/strlen-aligned.S  | 100 +++++++++++++++++++++
+ sysdeps/loongarch/lp64/multiarch/strlen-lasx.S     |  63 +++++++++++++
+ sysdeps/loongarch/lp64/multiarch/strlen-lsx.S      |  71 +++++++++++++++
+ sysdeps/loongarch/lp64/multiarch/strlen.c          |  37 ++++++++
+ sysdeps/loongarch/sys/regdef.h                     |  57 ++++++++++++
+ sysdeps/unix/sysv/linux/loongarch/cpu-features.h   |   2 +
  9 files changed, 418 insertions(+)
  create mode 100644 sysdeps/loongarch/lp64/multiarch/Makefile
  create mode 100644 sysdeps/loongarch/lp64/multiarch/ifunc-impl-list.c
@@ -28,7 +27,7 @@ strlen-align is implemented by LA basic instructions and never use unaligned mem
 
 diff --git a/sysdeps/loongarch/lp64/multiarch/Makefile b/sysdeps/loongarch/lp64/multiarch/Makefile
 new file mode 100644
-index 0000000000..76c506c966
+index 0000000..76c506c
 --- /dev/null
 +++ b/sysdeps/loongarch/lp64/multiarch/Makefile
 @@ -0,0 +1,7 @@
@@ -41,7 +40,7 @@ index 0000000000..76c506c966
 +endif
 diff --git a/sysdeps/loongarch/lp64/multiarch/ifunc-impl-list.c b/sysdeps/loongarch/lp64/multiarch/ifunc-impl-list.c
 new file mode 100644
-index 0000000000..1a2a576fcd
+index 0000000..1a2a576
 --- /dev/null
 +++ b/sysdeps/loongarch/lp64/multiarch/ifunc-impl-list.c
 @@ -0,0 +1,41 @@
@@ -88,7 +87,7 @@ index 0000000000..1a2a576fcd
 +}
 diff --git a/sysdeps/loongarch/lp64/multiarch/ifunc-strlen.h b/sysdeps/loongarch/lp64/multiarch/ifunc-strlen.h
 new file mode 100644
-index 0000000000..6258bb76c3
+index 0000000..6258bb7
 --- /dev/null
 +++ b/sysdeps/loongarch/lp64/multiarch/ifunc-strlen.h
 @@ -0,0 +1,40 @@
@@ -134,7 +133,7 @@ index 0000000000..6258bb76c3
 +}
 diff --git a/sysdeps/loongarch/lp64/multiarch/strlen-aligned.S b/sysdeps/loongarch/lp64/multiarch/strlen-aligned.S
 new file mode 100644
-index 0000000000..e9e1d2fc04
+index 0000000..e9e1d2f
 --- /dev/null
 +++ b/sysdeps/loongarch/lp64/multiarch/strlen-aligned.S
 @@ -0,0 +1,100 @@
@@ -240,7 +239,7 @@ index 0000000000..e9e1d2fc04
 +libc_hidden_builtin_def (STRLEN)
 diff --git a/sysdeps/loongarch/lp64/multiarch/strlen-lasx.S b/sysdeps/loongarch/lp64/multiarch/strlen-lasx.S
 new file mode 100644
-index 0000000000..258c47cea0
+index 0000000..258c47c
 --- /dev/null
 +++ b/sysdeps/loongarch/lp64/multiarch/strlen-lasx.S
 @@ -0,0 +1,63 @@
@@ -309,7 +308,7 @@ index 0000000000..258c47cea0
 +#endif
 diff --git a/sysdeps/loongarch/lp64/multiarch/strlen-lsx.S b/sysdeps/loongarch/lp64/multiarch/strlen-lsx.S
 new file mode 100644
-index 0000000000..b194355e7b
+index 0000000..b194355
 --- /dev/null
 +++ b/sysdeps/loongarch/lp64/multiarch/strlen-lsx.S
 @@ -0,0 +1,71 @@
@@ -386,7 +385,7 @@ index 0000000000..b194355e7b
 +#endif
 diff --git a/sysdeps/loongarch/lp64/multiarch/strlen.c b/sysdeps/loongarch/lp64/multiarch/strlen.c
 new file mode 100644
-index 0000000000..381c2daa86
+index 0000000..381c2da
 --- /dev/null
 +++ b/sysdeps/loongarch/lp64/multiarch/strlen.c
 @@ -0,0 +1,37 @@
@@ -428,7 +427,7 @@ index 0000000000..381c2daa86
 +
 +#endif
 diff --git a/sysdeps/loongarch/sys/regdef.h b/sysdeps/loongarch/sys/regdef.h
-index 5100f36d24..524d2e3277 100644
+index 5100f36..524d2e3 100644
 --- a/sysdeps/loongarch/sys/regdef.h
 +++ b/sysdeps/loongarch/sys/regdef.h
 @@ -89,6 +89,14 @@
@@ -509,7 +508,7 @@ index 5100f36d24..524d2e3277 100644
  
  #endif /* _SYS_REGDEF_H */
 diff --git a/sysdeps/unix/sysv/linux/loongarch/cpu-features.h b/sysdeps/unix/sysv/linux/loongarch/cpu-features.h
-index e371e13b15..d1a280a5ee 100644
+index e371e13..d1a280a 100644
 --- a/sysdeps/unix/sysv/linux/loongarch/cpu-features.h
 +++ b/sysdeps/unix/sysv/linux/loongarch/cpu-features.h
 @@ -25,5 +25,7 @@
@@ -520,6 +519,3 @@ index e371e13b15..d1a280a5ee 100644
 +
  #endif /* _CPU_FEATURES_LOONGARCH64_H  */
  
--- 
-2.45.1
-

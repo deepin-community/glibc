@@ -1,4 +1,3 @@
-From eef2a1cd36c3224464f166ee1bcc549831bf6683 Mon Sep 17 00:00:00 2001
 From: Xi Ruoyao <xry111@xry111.site>
 Date: Thu, 13 Jun 2024 19:04:05 +0800
 Subject: [PATCH 14/23] LoongArch: Ensure sp 16-byte aligned for tlsdesc
@@ -16,7 +15,7 @@ Signed-off-by: Xi Ruoyao <xry111@xry111.site>
  2 files changed, 4 insertions(+), 7 deletions(-)
 
 diff --git a/sysdeps/loongarch/dl-tlsdesc.S b/sysdeps/loongarch/dl-tlsdesc.S
-index 15d5fa1c..346b80f2 100644
+index 15d5fa1..346b80f 100644
 --- a/sysdeps/loongarch/dl-tlsdesc.S
 +++ b/sysdeps/loongarch/dl-tlsdesc.S
 @@ -100,7 +100,7 @@ _dl_tlsdesc_undefweak:
@@ -60,7 +59,7 @@ index 15d5fa1c..346b80f2 100644
  #endif /* #ifndef __loongarch_soft_float */
  
 diff --git a/sysdeps/loongarch/sys/asm.h b/sysdeps/loongarch/sys/asm.h
-index dbee93ee..c5eb8afa 100644
+index dbee93e..c5eb8af 100644
 --- a/sysdeps/loongarch/sys/asm.h
 +++ b/sysdeps/loongarch/sys/asm.h
 @@ -25,7 +25,6 @@
@@ -71,6 +70,3 @@ index dbee93ee..c5eb8afa 100644
  #define SZVREG 16
  #define SZXREG 32
  #define REG_L ld.d
--- 
-2.43.0
-

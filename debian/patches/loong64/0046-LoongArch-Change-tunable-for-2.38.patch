@@ -1,14 +1,13 @@
-From bb5feafe0bbac7a520740e298ba6d9c19b82fc1c Mon Sep 17 00:00:00 2001
 From: Xing Li <lixing@loongson.cn>
 Date: Fri, 25 Oct 2024 07:31:30 +0000
 Subject: [PATCH 22/23] LoongArch: Change tunable for 2.38
 
 ---
- sysdeps/loongarch/cpu-tunables.c | 54 ++++++++++++++++++++++----------
+ sysdeps/loongarch/cpu-tunables.c | 54 +++++++++++++++++++++++++++-------------
  1 file changed, 37 insertions(+), 17 deletions(-)
 
 diff --git a/sysdeps/loongarch/cpu-tunables.c b/sysdeps/loongarch/cpu-tunables.c
-index e274e993..3b341a0d 100644
+index e274e99..3b341a0 100644
 --- a/sysdeps/loongarch/cpu-tunables.c
 +++ b/sysdeps/loongarch/cpu-tunables.c
 @@ -24,14 +24,12 @@
@@ -93,6 +92,3 @@ index e274e993..3b341a0d 100644
  
    /* Ensure that the user has not enabled any unsupported features.  */
    GLRO(dl_larch_cpu_features).hwcap &= GLRO(dl_hwcap);
--- 
-2.43.0
-

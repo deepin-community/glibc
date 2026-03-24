@@ -1,4 +1,3 @@
-From 5d3a9dd4e094f171b8b7e0dcea01fc73717ad0d2 Mon Sep 17 00:00:00 2001
 From: dengjianbo <dengjianbo@loongson.cn>
 Date: Thu, 24 Aug 2023 16:50:17 +0800
 Subject: [PATCH 07/24] LoongArch: Add ifunc support for strnlen{aligned, lsx,
@@ -9,13 +8,13 @@ reduce the runtime more than 10%, strnlen-lsx implementation could reduce
 the runtime about 50%-78%, strnlen-lasx implementation could reduce the
 runtime about 50%-88%.
 ---
- sysdeps/loongarch/lp64/multiarch/Makefile     |   3 +
- .../lp64/multiarch/ifunc-impl-list.c          |   8 ++
- .../loongarch/lp64/multiarch/ifunc-strnlen.h  |  41 +++++++
- .../lp64/multiarch/strnlen-aligned.S          | 102 ++++++++++++++++++
- .../loongarch/lp64/multiarch/strnlen-lasx.S   | 100 +++++++++++++++++
- .../loongarch/lp64/multiarch/strnlen-lsx.S    |  89 +++++++++++++++
- sysdeps/loongarch/lp64/multiarch/strnlen.c    |  39 +++++++
+ sysdeps/loongarch/lp64/multiarch/Makefile          |   3 +
+ sysdeps/loongarch/lp64/multiarch/ifunc-impl-list.c |   8 ++
+ sysdeps/loongarch/lp64/multiarch/ifunc-strnlen.h   |  41 +++++++++
+ sysdeps/loongarch/lp64/multiarch/strnlen-aligned.S | 102 +++++++++++++++++++++
+ sysdeps/loongarch/lp64/multiarch/strnlen-lasx.S    | 100 ++++++++++++++++++++
+ sysdeps/loongarch/lp64/multiarch/strnlen-lsx.S     |  89 ++++++++++++++++++
+ sysdeps/loongarch/lp64/multiarch/strnlen.c         |  39 ++++++++
  7 files changed, 382 insertions(+)
  create mode 100644 sysdeps/loongarch/lp64/multiarch/ifunc-strnlen.h
  create mode 100644 sysdeps/loongarch/lp64/multiarch/strnlen-aligned.S
@@ -24,7 +23,7 @@ runtime about 50%-88%.
  create mode 100644 sysdeps/loongarch/lp64/multiarch/strnlen.c
 
 diff --git a/sysdeps/loongarch/lp64/multiarch/Makefile b/sysdeps/loongarch/lp64/multiarch/Makefile
-index afa5104174..c4dd3143d1 100644
+index afa5104..c4dd314 100644
 --- a/sysdeps/loongarch/lp64/multiarch/Makefile
 +++ b/sysdeps/loongarch/lp64/multiarch/Makefile
 @@ -3,6 +3,9 @@ sysdep_routines += \
@@ -38,7 +37,7 @@ index afa5104174..c4dd3143d1 100644
    strchr-lsx \
    strchr-lasx \
 diff --git a/sysdeps/loongarch/lp64/multiarch/ifunc-impl-list.c b/sysdeps/loongarch/lp64/multiarch/ifunc-impl-list.c
-index 25eb96b061..7cec0b7724 100644
+index 25eb96b..7cec0b7 100644
 --- a/sysdeps/loongarch/lp64/multiarch/ifunc-impl-list.c
 +++ b/sysdeps/loongarch/lp64/multiarch/ifunc-impl-list.c
 @@ -38,6 +38,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
@@ -58,7 +57,7 @@ index 25eb96b061..7cec0b7724 100644
  	      IFUNC_IMPL_ADD (array, i, strchr, SUPPORT_LASX, __strchr_lasx)
 diff --git a/sysdeps/loongarch/lp64/multiarch/ifunc-strnlen.h b/sysdeps/loongarch/lp64/multiarch/ifunc-strnlen.h
 new file mode 100644
-index 0000000000..5cf8981021
+index 0000000..5cf8981
 --- /dev/null
 +++ b/sysdeps/loongarch/lp64/multiarch/ifunc-strnlen.h
 @@ -0,0 +1,41 @@
@@ -105,7 +104,7 @@ index 0000000000..5cf8981021
 +}
 diff --git a/sysdeps/loongarch/lp64/multiarch/strnlen-aligned.S b/sysdeps/loongarch/lp64/multiarch/strnlen-aligned.S
 new file mode 100644
-index 0000000000..b900430a5d
+index 0000000..b900430
 --- /dev/null
 +++ b/sysdeps/loongarch/lp64/multiarch/strnlen-aligned.S
 @@ -0,0 +1,102 @@
@@ -213,7 +212,7 @@ index 0000000000..b900430a5d
 +libc_hidden_builtin_def (STRNLEN)
 diff --git a/sysdeps/loongarch/lp64/multiarch/strnlen-lasx.S b/sysdeps/loongarch/lp64/multiarch/strnlen-lasx.S
 new file mode 100644
-index 0000000000..2c03d3d9b4
+index 0000000..2c03d3d
 --- /dev/null
 +++ b/sysdeps/loongarch/lp64/multiarch/strnlen-lasx.S
 @@ -0,0 +1,100 @@
@@ -319,7 +318,7 @@ index 0000000000..2c03d3d9b4
 +#endif
 diff --git a/sysdeps/loongarch/lp64/multiarch/strnlen-lsx.S b/sysdeps/loongarch/lp64/multiarch/strnlen-lsx.S
 new file mode 100644
-index 0000000000..b769a89584
+index 0000000..b769a89
 --- /dev/null
 +++ b/sysdeps/loongarch/lp64/multiarch/strnlen-lsx.S
 @@ -0,0 +1,89 @@
@@ -414,7 +413,7 @@ index 0000000000..b769a89584
 +#endif
 diff --git a/sysdeps/loongarch/lp64/multiarch/strnlen.c b/sysdeps/loongarch/lp64/multiarch/strnlen.c
 new file mode 100644
-index 0000000000..38b7a25a7a
+index 0000000..38b7a25
 --- /dev/null
 +++ b/sysdeps/loongarch/lp64/multiarch/strnlen.c
 @@ -0,0 +1,39 @@
@@ -457,6 +456,3 @@ index 0000000000..38b7a25a7a
 +  __attribute__((weak, visibility ("hidden"))) __attribute_copy__ (strnlen);
 +# endif
 +#endif
--- 
-2.45.1
-

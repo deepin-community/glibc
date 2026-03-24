@@ -1,4 +1,3 @@
-From dd9949bbb06e3d426ff78e7ca0c99752ecd91d28 Mon Sep 17 00:00:00 2001
 From: Xi Ruoyao <xry111@xry111.site>
 Date: Sun, 27 Aug 2023 00:36:51 +0800
 Subject: [PATCH 13/24] LoongArch: Micro-optimize LD_PCREL
@@ -12,7 +11,7 @@ Signed-off-by: Xi Ruoyao <xry111@xry111.site>
  1 file changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/sysdeps/unix/sysv/linux/loongarch/pointer_guard.h b/sysdeps/unix/sysv/linux/loongarch/pointer_guard.h
-index b25e353b37..d6c78687d4 100644
+index b25e353..d6c7868 100644
 --- a/sysdeps/unix/sysv/linux/loongarch/pointer_guard.h
 +++ b/sysdeps/unix/sysv/linux/loongarch/pointer_guard.h
 @@ -19,17 +19,15 @@
@@ -37,6 +36,3 @@ index b25e353b37..d6c78687d4 100644
  
  #if (IS_IN (rtld) \
       || (!defined SHARED && (IS_IN (libc) \
--- 
-2.45.1
-

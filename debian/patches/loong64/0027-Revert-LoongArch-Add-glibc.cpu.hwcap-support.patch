@@ -1,4 +1,3 @@
-From 003110c53463717bcfb52f0b9334c3232bcf2cdf Mon Sep 17 00:00:00 2001
 From: caiyinyu <caiyinyu@loongson.cn>
 Date: Thu, 21 Sep 2023 09:10:11 +0800
 Subject: [PATCH 03/23] Revert "LoongArch: Add glibc.cpu.hwcap support."
@@ -8,17 +7,17 @@ This reverts commit a53451559dc9cce765ea5bcbb92c4007e058e92b.
 Signed-off-by: Peng Fan <fanpeng@loongson.cn>
 Signed-off-by: ticat_fp <fanpeng@loongson.cn>
 ---
- sysdeps/loongarch/Makefile                    |  4 -
- sysdeps/loongarch/Versions                    |  5 --
- sysdeps/loongarch/cpu-tunables.c              | 89 -------------------
- sysdeps/loongarch/dl-get-cpu-features.c       | 25 ------
- sysdeps/loongarch/dl-machine.h                | 27 +-----
- sysdeps/loongarch/dl-tunables.list            | 25 ------
- .../unix/sysv/linux/loongarch/cpu-features.c  | 29 ------
- .../unix/sysv/linux/loongarch/cpu-features.h  | 18 +---
- .../unix/sysv/linux/loongarch/dl-procinfo.c   | 60 -------------
- sysdeps/unix/sysv/linux/loongarch/dl-sysdep.c | 21 -----
- .../unix/sysv/linux/loongarch/libc-start.c    | 34 -------
+ sysdeps/loongarch/Makefile                       |  4 --
+ sysdeps/loongarch/Versions                       |  5 --
+ sysdeps/loongarch/cpu-tunables.c                 | 89 ------------------------
+ sysdeps/loongarch/dl-get-cpu-features.c          | 25 -------
+ sysdeps/loongarch/dl-machine.h                   | 27 ++-----
+ sysdeps/loongarch/dl-tunables.list               | 25 -------
+ sysdeps/unix/sysv/linux/loongarch/cpu-features.c | 29 --------
+ sysdeps/unix/sysv/linux/loongarch/cpu-features.h | 18 ++---
+ sysdeps/unix/sysv/linux/loongarch/dl-procinfo.c  | 60 ----------------
+ sysdeps/unix/sysv/linux/loongarch/dl-sysdep.c    | 21 ------
+ sysdeps/unix/sysv/linux/loongarch/libc-start.c   | 34 ---------
  11 files changed, 8 insertions(+), 329 deletions(-)
  delete mode 100644 sysdeps/loongarch/Versions
  delete mode 100644 sysdeps/loongarch/cpu-tunables.c
@@ -30,7 +29,7 @@ Signed-off-by: ticat_fp <fanpeng@loongson.cn>
  delete mode 100644 sysdeps/unix/sysv/linux/loongarch/libc-start.c
 
 diff --git a/sysdeps/loongarch/Makefile b/sysdeps/loongarch/Makefile
-index 30a1f4a8..43d2f583 100644
+index 30a1f4a..43d2f58 100644
 --- a/sysdeps/loongarch/Makefile
 +++ b/sysdeps/loongarch/Makefile
 @@ -6,10 +6,6 @@ ifeq ($(subdir),elf)
@@ -46,7 +45,7 @@ index 30a1f4a8..43d2f583 100644
  ASFLAGS-.os += $(pic-ccflag)
 diff --git a/sysdeps/loongarch/Versions b/sysdeps/loongarch/Versions
 deleted file mode 100644
-index 33ae2cc0..00000000
+index 33ae2cc..0000000
 --- a/sysdeps/loongarch/Versions
 +++ /dev/null
 @@ -1,5 +0,0 @@
@@ -57,7 +56,7 @@ index 33ae2cc0..00000000
 -}
 diff --git a/sysdeps/loongarch/cpu-tunables.c b/sysdeps/loongarch/cpu-tunables.c
 deleted file mode 100644
-index 8e9fab93..00000000
+index 8e9fab9..0000000
 --- a/sysdeps/loongarch/cpu-tunables.c
 +++ /dev/null
 @@ -1,89 +0,0 @@
@@ -152,7 +151,7 @@ index 8e9fab93..00000000
 -}
 diff --git a/sysdeps/loongarch/dl-get-cpu-features.c b/sysdeps/loongarch/dl-get-cpu-features.c
 deleted file mode 100644
-index 7cd9bc15..00000000
+index 7cd9bc1..0000000
 --- a/sysdeps/loongarch/dl-get-cpu-features.c
 +++ /dev/null
 @@ -1,25 +0,0 @@
@@ -182,7 +181,7 @@ index 7cd9bc15..00000000
 -  return &GLRO(dl_larch_cpu_features);
 -}
 diff --git a/sysdeps/loongarch/dl-machine.h b/sysdeps/loongarch/dl-machine.h
-index b395a928..57913cef 100644
+index b395a92..57913ce 100644
 --- a/sysdeps/loongarch/dl-machine.h
 +++ b/sysdeps/loongarch/dl-machine.h
 @@ -29,8 +29,6 @@
@@ -244,7 +243,7 @@ index b395a928..57913cef 100644
  #endif
 diff --git a/sysdeps/loongarch/dl-tunables.list b/sysdeps/loongarch/dl-tunables.list
 deleted file mode 100644
-index 66b34275..00000000
+index 66b3427..0000000
 --- a/sysdeps/loongarch/dl-tunables.list
 +++ /dev/null
 @@ -1,25 +0,0 @@
@@ -275,7 +274,7 @@ index 66b34275..00000000
 -}
 diff --git a/sysdeps/unix/sysv/linux/loongarch/cpu-features.c b/sysdeps/unix/sysv/linux/loongarch/cpu-features.c
 deleted file mode 100644
-index 1290c4ce..00000000
+index 1290c4c..0000000
 --- a/sysdeps/unix/sysv/linux/loongarch/cpu-features.c
 +++ /dev/null
 @@ -1,29 +0,0 @@
@@ -309,7 +308,7 @@ index 1290c4ce..00000000
 -    TUNABLE_GET (glibc, cpu, hwcaps, tunable_val_t *, TUNABLE_CALLBACK (set_hwcaps));
 -}
 diff --git a/sysdeps/unix/sysv/linux/loongarch/cpu-features.h b/sysdeps/unix/sysv/linux/loongarch/cpu-features.h
-index 450963ce..d1a280a5 100644
+index 450963c..d1a280a 100644
 --- a/sysdeps/unix/sysv/linux/loongarch/cpu-features.h
 +++ b/sysdeps/unix/sysv/linux/loongarch/cpu-features.h
 @@ -19,23 +19,13 @@
@@ -342,7 +341,7 @@ index 450963ce..d1a280a5 100644
 +
 diff --git a/sysdeps/unix/sysv/linux/loongarch/dl-procinfo.c b/sysdeps/unix/sysv/linux/loongarch/dl-procinfo.c
 deleted file mode 100644
-index 6217fda9..00000000
+index 6217fda..0000000
 --- a/sysdeps/unix/sysv/linux/loongarch/dl-procinfo.c
 +++ /dev/null
 @@ -1,60 +0,0 @@
@@ -408,7 +407,7 @@ index 6217fda9..00000000
 -#undef PROCINFO_CLASS
 diff --git a/sysdeps/unix/sysv/linux/loongarch/dl-sysdep.c b/sysdeps/unix/sysv/linux/loongarch/dl-sysdep.c
 deleted file mode 100644
-index 455fd71a..00000000
+index 455fd71..0000000
 --- a/sysdeps/unix/sysv/linux/loongarch/dl-sysdep.c
 +++ /dev/null
 @@ -1,21 +0,0 @@
@@ -435,7 +434,7 @@ index 455fd71a..00000000
 -#include <sysdeps/unix/sysv/linux/dl-sysdep.c>
 diff --git a/sysdeps/unix/sysv/linux/loongarch/libc-start.c b/sysdeps/unix/sysv/linux/loongarch/libc-start.c
 deleted file mode 100644
-index f1346ece..00000000
+index f1346ec..0000000
 --- a/sysdeps/unix/sysv/linux/loongarch/libc-start.c
 +++ /dev/null
 @@ -1,34 +0,0 @@
@@ -473,6 +472,3 @@ index f1346ece..00000000
 -
 -#endif
 -#include <csu/libc-start.c>
--- 
-2.43.0
-

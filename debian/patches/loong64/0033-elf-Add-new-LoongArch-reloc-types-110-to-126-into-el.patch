@@ -1,4 +1,3 @@
-From e27ec642bab2c296d1aee7326169b340ff202313 Mon Sep 17 00:00:00 2001
 From: Xi Ruoyao <xry111@xry111.site>
 Date: Thu, 22 Feb 2024 18:57:43 +0800
 Subject: [PATCH 09/23] elf: Add new LoongArch reloc types (110 to 126) into
@@ -13,7 +12,7 @@ Signed-off-by: Xi Ruoyao <xry111@xry111.site>
  1 file changed, 17 insertions(+)
 
 diff --git a/elf/elf.h b/elf/elf.h
-index 51633079..3dbc7c0f 100644
+index 5163307..3dbc7c0 100644
 --- a/elf/elf.h
 +++ b/elf/elf.h
 @@ -4219,6 +4219,23 @@ enum
@@ -40,6 +39,3 @@ index 51633079..3dbc7c0f 100644
  
  /* ARC specific declarations.  */
  
--- 
-2.43.0
-

@@ -1,4 +1,3 @@
-From 78257b95aa2a622b5e0868b38ae9ded58814c8c5 Mon Sep 17 00:00:00 2001
 From: caiyinyu <caiyinyu@loongson.cn>
 Date: Tue, 24 Sep 2024 11:09:32 +0800
 Subject: [PATCH 19/23] LoongArch: Undef __NR_fstat and __NR_newfstatat.
@@ -12,13 +11,13 @@ Signed-off-by: caiyinyu <caiyinyu@loongson.cn>
 Reviewed-by: Xi Ruoyao <xry111@xry111.site>
 Suggested-by: Florian Weimer <fweimer@redhat.com>
 ---
- .../sysv/linux/loongarch/fixup-asm-unistd.h   | 21 +++++++++++++++++++
+ .../unix/sysv/linux/loongarch/fixup-asm-unistd.h    | 21 +++++++++++++++++++++
  1 file changed, 21 insertions(+)
  create mode 100644 sysdeps/unix/sysv/linux/loongarch/fixup-asm-unistd.h
 
 diff --git a/sysdeps/unix/sysv/linux/loongarch/fixup-asm-unistd.h b/sysdeps/unix/sysv/linux/loongarch/fixup-asm-unistd.h
 new file mode 100644
-index 00000000..0062756b
+index 0000000..0062756
 --- /dev/null
 +++ b/sysdeps/unix/sysv/linux/loongarch/fixup-asm-unistd.h
 @@ -0,0 +1,21 @@
@@ -43,6 +42,3 @@ index 00000000..0062756b
 +only use statx.  */
 +#undef __NR_fstat
 +#undef __NR_newfstatat
--- 
-2.43.0
-

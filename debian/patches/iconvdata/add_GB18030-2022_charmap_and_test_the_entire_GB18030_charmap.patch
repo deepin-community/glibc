@@ -1,4 +1,3 @@
-From e1d3312015e8f70344620375aedf91afe7e7e7a4 Mon Sep 17 00:00:00 2001
 From: lijianglin <lijianglin2@huawei.com>
 Date: Tue, 27 Jun 2023 20:15:49 +0800
 Subject: [PATCH] add GB18030-2022 charmap and test the entire GB18030 charmap
@@ -46,15 +45,15 @@ Co-authored-by: Bruno Haible <bruno@clisp.org>
 Reviewed-by: Andreas Schwab <schwab@suse.de>
 Reviewed-by: Mike FABIAN <mfabian@redhat.com>
 ---
- iconvdata/gb18030.c         | 423 +++++++++++++++++++-----------------
+ iconvdata/gb18030.c         | 423 +++++++++++++++++++++++---------------------
  iconvdata/tst-table-from.c  |   5 +-
  iconvdata/tst-table-to.c    |  12 +-
- iconvdata/tst-table.sh      |  50 +++--
- localedata/charmaps/GB18030 |  91 +++-----
+ iconvdata/tst-table.sh      |  50 ++++--
+ localedata/charmaps/GB18030 |  91 +++-------
  5 files changed, 292 insertions(+), 289 deletions(-)
 
 diff --git a/iconvdata/gb18030.c b/iconvdata/gb18030.c
-index 9996a59eaf..be6cfe652c 100644
+index 9996a59..be6cfe6 100644
 --- a/iconvdata/gb18030.c
 +++ b/iconvdata/gb18030.c
 @@ -6009,49 +6009,50 @@ static const uint16_t __twobyte_to_ucs[] =
@@ -535,7 +534,7 @@ index 9996a59eaf..be6cfe652c 100644
  	  {								      \
  	    idx = ch + 0x1E248;						      \
 diff --git a/iconvdata/tst-table-from.c b/iconvdata/tst-table-from.c
-index 09aaaf0942..55a7113d8c 100644
+index 09aaaf0..55a7113 100644
 --- a/iconvdata/tst-table-from.c
 +++ b/iconvdata/tst-table-from.c
 @@ -194,10 +194,9 @@ main (int argc, char *argv[])
@@ -552,7 +551,7 @@ index 09aaaf0942..55a7113d8c 100644
  
    {
 diff --git a/iconvdata/tst-table-to.c b/iconvdata/tst-table-to.c
-index 4dec4acad1..2b75f0c6e8 100644
+index 4dec4ac..2b75f0c 100644
 --- a/iconvdata/tst-table-to.c
 +++ b/iconvdata/tst-table-to.c
 @@ -32,6 +32,7 @@ main (int argc, char *argv[])
@@ -588,7 +587,7 @@ index 4dec4acad1..2b75f0c6e8 100644
  	unsigned char in[6];
  	unsigned int incount =
 diff --git a/iconvdata/tst-table.sh b/iconvdata/tst-table.sh
-index bc6f542b24..7ba15bbf5c 100755
+index bc6f542..7ba15bb 100755
 --- a/iconvdata/tst-table.sh
 +++ b/iconvdata/tst-table.sh
 @@ -37,7 +37,8 @@ set -e
@@ -660,7 +659,7 @@ index bc6f542b24..7ba15bbf5c 100755
  
  exit 0
 diff --git a/localedata/charmaps/GB18030 b/localedata/charmaps/GB18030
-index ad6728c5bd..fc3b1d2d40 100644
+index ad6728c..fc3b1d2 100644
 --- a/localedata/charmaps/GB18030
 +++ b/localedata/charmaps/GB18030
 @@ -57234,32 +57234,16 @@ CHARMAP
@@ -850,5 +849,3 @@ index ad6728c5bd..fc3b1d2d40 100644
  <U00024208>..<U00024211> /x96/x35/xb7/x30 <CJK>
  <U00024212>..<U0002421B> /x96/x35/xb8/x30 <CJK>
  <U0002421C>..<U00024225> /x96/x35/xb9/x30 <CJK>
--- 
-2.43.5

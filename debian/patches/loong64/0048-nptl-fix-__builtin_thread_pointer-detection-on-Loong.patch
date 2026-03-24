@@ -1,7 +1,7 @@
-From 4fc83ec7003cd216c651d7695e78910b0d0400f2 Mon Sep 17 00:00:00 2001
 From: caiyinyu <caiyinyu@loongson.cn>
 Date: Wed, 6 Nov 2024 10:06:21 +0800
-Subject: [PATCH 3/3] nptl: fix __builtin_thread_pointer detection on LoongArch
+Subject: [PATCH 3/3] nptl: fix __builtin_thread_pointer detection on
+ LoongArch
 
 Signed-off-by: caiyinyu <caiyinyu@loongson.cn>
 ---
@@ -10,7 +10,7 @@ Signed-off-by: caiyinyu <caiyinyu@loongson.cn>
  2 files changed, 3 insertions(+), 9 deletions(-)
 
 diff --git a/sysdeps/loongarch/nptl/thread_pointer.h b/sysdeps/loongarch/nptl/thread_pointer.h
-index 5dec2ef4..cc96062c 100644
+index 5dec2ef..cc96062 100644
 --- a/sysdeps/loongarch/nptl/thread_pointer.h
 +++ b/sysdeps/loongarch/nptl/thread_pointer.h
 @@ -19,18 +19,12 @@
@@ -35,7 +35,7 @@ index 5dec2ef4..cc96062c 100644
  
  #endif /* _SYS_THREAD_POINTER_H */
 diff --git a/sysdeps/loongarch/nptl/tls.h b/sysdeps/loongarch/nptl/tls.h
-index c52ede4d..6356a54d 100644
+index c52ede4..6356a54 100644
 --- a/sysdeps/loongarch/nptl/tls.h
 +++ b/sysdeps/loongarch/nptl/tls.h
 @@ -26,8 +26,8 @@
@@ -48,6 +48,3 @@ index c52ede4d..6356a54d 100644
  #define READ_THREAD_POINTER() ({ __thread_self; })
  
  /* Get system call information.  */
--- 
-2.43.0
-

@@ -1,4 +1,3 @@
-From bb5bbc20702981c287aa3e44640e7d2f2b9a28cf Mon Sep 17 00:00:00 2001
 From: Mike FABIAN <mfabian@redhat.com>
 Date: Thu, 14 Sep 2023 18:01:40 +0200
 Subject: [PATCH] Update to Unicode 15.1.0 [BZ #30854]
@@ -35,26 +34,26 @@ Resolves: BZ #30854
 
 Reviewed-by: Carlos O'Donell <carlos@redhat.com>
 ---
- localedata/charmaps/UTF-8                     |   23 +-
- localedata/locales/i18n_ctype                 |  200 +-
- localedata/locales/tr_TR                      |  200 +-
- localedata/locales/translit_circle            |    2 +-
- localedata/locales/translit_cjk_compat        |    2 +-
- localedata/locales/translit_combining         |    2 +-
- localedata/locales/translit_compat            |    2 +-
- localedata/locales/translit_font              |    2 +-
- localedata/locales/translit_fraction          |    2 +-
- .../unicode-gen/DerivedCoreProperties.txt     |  277 +-
- localedata/unicode-gen/EastAsianWidth.txt     | 5170 +++++++++--------
- localedata/unicode-gen/Makefile               |    2 +-
- localedata/unicode-gen/PropList.txt           |   78 +-
- localedata/unicode-gen/UnicodeData.txt        |    7 +
+ localedata/charmaps/UTF-8                        |   23 +-
+ localedata/locales/i18n_ctype                    |  200 +-
+ localedata/locales/tr_TR                         |  200 +-
+ localedata/locales/translit_circle               |    2 +-
+ localedata/locales/translit_cjk_compat           |    2 +-
+ localedata/locales/translit_combining            |    2 +-
+ localedata/locales/translit_compat               |    2 +-
+ localedata/locales/translit_font                 |    2 +-
+ localedata/locales/translit_fraction             |    2 +-
+ localedata/unicode-gen/DerivedCoreProperties.txt |  277 +-
+ localedata/unicode-gen/EastAsianWidth.txt        | 5170 +++++++++++-----------
+ localedata/unicode-gen/Makefile                  |    2 +-
+ localedata/unicode-gen/PropList.txt              |   78 +-
+ localedata/unicode-gen/UnicodeData.txt           |    7 +
  14 files changed, 3155 insertions(+), 2814 deletions(-)
 
-Index: glibc/localedata/charmaps/UTF-8
-===================================================================
---- glibc.orig/localedata/charmaps/UTF-8
-+++ glibc/localedata/charmaps/UTF-8
+diff --git a/localedata/charmaps/UTF-8 b/localedata/charmaps/UTF-8
+index bd8075f..94f20d5 100644
+--- a/localedata/charmaps/UTF-8
++++ b/localedata/charmaps/UTF-8
 @@ -11240,6 +11240,10 @@ CHARMAP
  <U2FF9>     /xe2/xbf/xb9 IDEOGRAPHIC DESCRIPTION CHARACTER SURROUND FROM UPPER RIGHT
  <U2FFA>     /xe2/xbf/xba IDEOGRAPHIC DESCRIPTION CHARACTER SURROUND FROM LOWER LEFT
@@ -127,10 +126,10 @@ Index: glibc/localedata/charmaps/UTF-8
  <U0002F800>...<U0002FA1D>	2
  <U00030000>...<U0003134A>	2
  <U00031350>...<U000323AF>	2
-Index: glibc/localedata/locales/i18n_ctype
-===================================================================
---- glibc.orig/localedata/locales/i18n_ctype
-+++ glibc/localedata/locales/i18n_ctype
+diff --git a/localedata/locales/i18n_ctype b/localedata/locales/i18n_ctype
+index 850c902..f86855c 100644
+--- a/localedata/locales/i18n_ctype
++++ b/localedata/locales/i18n_ctype
 @@ -26,13 +26,13 @@ fax       ""
  language  ""
  territory "Earth"
@@ -388,10 +387,10 @@ Index: glibc/localedata/locales/i18n_ctype
  
  % The "xdigit" class must only contain the BASIC LATIN digits and A-F, a-f,
  % says ISO C 99 (sections 7.25.2.1.12 and 6.4.4.1).
-Index: glibc/localedata/locales/tr_TR
-===================================================================
---- glibc.orig/localedata/locales/tr_TR
-+++ glibc/localedata/locales/tr_TR
+diff --git a/localedata/locales/tr_TR b/localedata/locales/tr_TR
+index 33fe2f7..47f5d70 100644
+--- a/localedata/locales/tr_TR
++++ b/localedata/locales/tr_TR
 @@ -43,7 +43,7 @@ fax        ""
  language   "Turkish"
  territory  "Turkey"
@@ -651,10 +650,10 @@ Index: glibc/localedata/locales/tr_TR
  
  % The "xdigit" class must only contain the BASIC LATIN digits and A-F, a-f,
  % says ISO C 99 (sections 7.25.2.1.12 and 6.4.4.1).
-Index: glibc/localedata/locales/translit_circle
-===================================================================
---- glibc.orig/localedata/locales/translit_circle
-+++ glibc/localedata/locales/translit_circle
+diff --git a/localedata/locales/translit_circle b/localedata/locales/translit_circle
+index ff7abc2..20fd571 100644
+--- a/localedata/locales/translit_circle
++++ b/localedata/locales/translit_circle
 @@ -9,7 +9,7 @@ comment_char %
  % otherwise be governed by that license.
  
@@ -664,10 +663,10 @@ Index: glibc/localedata/locales/translit_circle
  
  LC_CTYPE
  
-Index: glibc/localedata/locales/translit_cjk_compat
-===================================================================
---- glibc.orig/localedata/locales/translit_cjk_compat
-+++ glibc/localedata/locales/translit_cjk_compat
+diff --git a/localedata/locales/translit_cjk_compat b/localedata/locales/translit_cjk_compat
+index c3fdccb..7951e0c 100644
+--- a/localedata/locales/translit_cjk_compat
++++ b/localedata/locales/translit_cjk_compat
 @@ -9,7 +9,7 @@ comment_char %
  % otherwise be governed by that license.
  
@@ -677,10 +676,10 @@ Index: glibc/localedata/locales/translit_cjk_compat
  
  LC_CTYPE
  
-Index: glibc/localedata/locales/translit_combining
-===================================================================
---- glibc.orig/localedata/locales/translit_combining
-+++ glibc/localedata/locales/translit_combining
+diff --git a/localedata/locales/translit_combining b/localedata/locales/translit_combining
+index b4732d1..ce2f19e 100644
+--- a/localedata/locales/translit_combining
++++ b/localedata/locales/translit_combining
 @@ -10,7 +10,7 @@ comment_char %
  
  % Transliterations that remove all combining characters (accents,
@@ -690,10 +689,10 @@ Index: glibc/localedata/locales/translit_combining
  
  LC_CTYPE
  
-Index: glibc/localedata/locales/translit_compat
-===================================================================
---- glibc.orig/localedata/locales/translit_compat
-+++ glibc/localedata/locales/translit_compat
+diff --git a/localedata/locales/translit_compat b/localedata/locales/translit_compat
+index 489a2c2..7a214b2 100644
+--- a/localedata/locales/translit_compat
++++ b/localedata/locales/translit_compat
 @@ -9,7 +9,7 @@ comment_char %
  % otherwise be governed by that license.
  
@@ -703,10 +702,10 @@ Index: glibc/localedata/locales/translit_compat
  
  LC_CTYPE
  
-Index: glibc/localedata/locales/translit_font
-===================================================================
---- glibc.orig/localedata/locales/translit_font
-+++ glibc/localedata/locales/translit_font
+diff --git a/localedata/locales/translit_font b/localedata/locales/translit_font
+index e21de6c..a977ae1 100644
+--- a/localedata/locales/translit_font
++++ b/localedata/locales/translit_font
 @@ -9,7 +9,7 @@ comment_char %
  % otherwise be governed by that license.
  
@@ -716,10 +715,10 @@ Index: glibc/localedata/locales/translit_font
  
  LC_CTYPE
  
-Index: glibc/localedata/locales/translit_fraction
-===================================================================
---- glibc.orig/localedata/locales/translit_fraction
-+++ glibc/localedata/locales/translit_fraction
+diff --git a/localedata/locales/translit_fraction b/localedata/locales/translit_fraction
+index c4b0367..115273c 100644
+--- a/localedata/locales/translit_fraction
++++ b/localedata/locales/translit_fraction
 @@ -9,7 +9,7 @@ comment_char %
  % otherwise be governed by that license.
  
@@ -729,10 +728,10 @@ Index: glibc/localedata/locales/translit_fraction
  % The replacements have been surrounded with spaces, because fractions are
  % often preceded by a decimal number and followed by a unit or a math symbol.
  
-Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
-===================================================================
---- glibc.orig/localedata/unicode-gen/DerivedCoreProperties.txt
-+++ glibc/localedata/unicode-gen/DerivedCoreProperties.txt
+diff --git a/localedata/unicode-gen/DerivedCoreProperties.txt b/localedata/unicode-gen/DerivedCoreProperties.txt
+index 8b482b5..220c556 100644
+--- a/localedata/unicode-gen/DerivedCoreProperties.txt
++++ b/localedata/unicode-gen/DerivedCoreProperties.txt
 @@ -1,6 +1,6 @@
 -# DerivedCoreProperties-15.0.0.txt
 -# Date: 2022-08-05, 22:17:05 GMT
@@ -743,7 +742,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  # Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries.
  # For terms of use, see https://www.unicode.org/terms_of_use.html
  #
-@@ -1397,11 +1397,12 @@ FFDA..FFDC    ; Alphabetic # Lo   [3] HA
+@@ -1397,11 +1397,12 @@ FFDA..FFDC    ; Alphabetic # Lo   [3] HALFWIDTH HANGUL LETTER EU..HALFWIDTH HANG
  2B740..2B81D  ; Alphabetic # Lo [222] CJK UNIFIED IDEOGRAPH-2B740..CJK UNIFIED IDEOGRAPH-2B81D
  2B820..2CEA1  ; Alphabetic # Lo [5762] CJK UNIFIED IDEOGRAPH-2B820..CJK UNIFIED IDEOGRAPH-2CEA1
  2CEB0..2EBE0  ; Alphabetic # Lo [7473] CJK UNIFIED IDEOGRAPH-2CEB0..CJK UNIFIED IDEOGRAPH-2EBE0
@@ -757,7 +756,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  
  # ================================================
  
-@@ -6853,11 +6854,12 @@ FFDA..FFDC    ; ID_Start # Lo   [3] HALF
+@@ -6853,11 +6854,12 @@ FFDA..FFDC    ; ID_Start # Lo   [3] HALFWIDTH HANGUL LETTER EU..HALFWIDTH HANGUL
  2B740..2B81D  ; ID_Start # Lo [222] CJK UNIFIED IDEOGRAPH-2B740..CJK UNIFIED IDEOGRAPH-2B81D
  2B820..2CEA1  ; ID_Start # Lo [5762] CJK UNIFIED IDEOGRAPH-2B820..CJK UNIFIED IDEOGRAPH-2CEA1
  2CEB0..2EBE0  ; ID_Start # Lo [7473] CJK UNIFIED IDEOGRAPH-2CEB0..CJK UNIFIED IDEOGRAPH-2EBE0
@@ -771,7 +770,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  
  # ================================================
  
-@@ -7438,6 +7440,7 @@ FFDA..FFDC    ; ID_Start # Lo   [3] HALF
+@@ -7438,6 +7440,7 @@ FFDA..FFDC    ; ID_Start # Lo   [3] HALFWIDTH HANGUL LETTER EU..HALFWIDTH HANGUL
  1FE0..1FEC    ; ID_Continue # L&  [13] GREEK SMALL LETTER UPSILON WITH VRACHY..GREEK CAPITAL LETTER RHO WITH DASIA
  1FF2..1FF4    ; ID_Continue # L&   [3] GREEK SMALL LETTER OMEGA WITH VARIA AND YPOGEGRAMMENI..GREEK SMALL LETTER OMEGA WITH OXIA AND YPOGEGRAMMENI
  1FF6..1FFC    ; ID_Continue # L&   [7] GREEK SMALL LETTER OMEGA WITH PERISPOMENI..GREEK CAPITAL LETTER OMEGA WITH PROSGEGRAMMENI
@@ -779,7 +778,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  203F..2040    ; ID_Continue # Pc   [2] UNDERTIE..CHARACTER TIE
  2054          ; ID_Continue # Pc       INVERTED UNDERTIE
  2071          ; ID_Continue # Lm       SUPERSCRIPT LATIN SMALL LETTER I
-@@ -7504,6 +7507,7 @@ FFDA..FFDC    ; ID_Start # Lo   [3] HALF
+@@ -7504,6 +7507,7 @@ FFDA..FFDC    ; ID_Start # Lo   [3] HALFWIDTH HANGUL LETTER EU..HALFWIDTH HANGUL
  309D..309E    ; ID_Continue # Lm   [2] HIRAGANA ITERATION MARK..HIRAGANA VOICED ITERATION MARK
  309F          ; ID_Continue # Lo       HIRAGANA DIGRAPH YORI
  30A1..30FA    ; ID_Continue # Lo  [90] KATAKANA LETTER SMALL A..KATAKANA LETTER VO
@@ -787,7 +786,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  30FC..30FE    ; ID_Continue # Lm   [3] KATAKANA-HIRAGANA PROLONGED SOUND MARK..KATAKANA VOICED ITERATION MARK
  30FF          ; ID_Continue # Lo       KATAKANA DIGRAPH KOTO
  3105..312F    ; ID_Continue # Lo  [43] BOPOMOFO LETTER B..BOPOMOFO LETTER NN
-@@ -7683,6 +7687,7 @@ FF10..FF19    ; ID_Continue # Nd  [10] F
+@@ -7683,6 +7687,7 @@ FF10..FF19    ; ID_Continue # Nd  [10] FULLWIDTH DIGIT ZERO..FULLWIDTH DIGIT NIN
  FF21..FF3A    ; ID_Continue # L&  [26] FULLWIDTH LATIN CAPITAL LETTER A..FULLWIDTH LATIN CAPITAL LETTER Z
  FF3F          ; ID_Continue # Pc       FULLWIDTH LOW LINE
  FF41..FF5A    ; ID_Continue # L&  [26] FULLWIDTH LATIN SMALL LETTER A..FULLWIDTH LATIN SMALL LETTER Z
@@ -795,7 +794,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  FF66..FF6F    ; ID_Continue # Lo  [10] HALFWIDTH KATAKANA LETTER WO..HALFWIDTH KATAKANA LETTER SMALL TU
  FF70          ; ID_Continue # Lm       HALFWIDTH KATAKANA-HIRAGANA PROLONGED SOUND MARK
  FF71..FF9D    ; ID_Continue # Lo  [45] HALFWIDTH KATAKANA LETTER A..HALFWIDTH KATAKANA LETTER N
-@@ -8207,12 +8212,13 @@ FFDA..FFDC    ; ID_Continue # Lo   [3] H
+@@ -8207,12 +8212,13 @@ FFDA..FFDC    ; ID_Continue # Lo   [3] HALFWIDTH HANGUL LETTER EU..HALFWIDTH HAN
  2B740..2B81D  ; ID_Continue # Lo [222] CJK UNIFIED IDEOGRAPH-2B740..CJK UNIFIED IDEOGRAPH-2B81D
  2B820..2CEA1  ; ID_Continue # Lo [5762] CJK UNIFIED IDEOGRAPH-2B820..CJK UNIFIED IDEOGRAPH-2CEA1
  2CEB0..2EBE0  ; ID_Continue # Lo [7473] CJK UNIFIED IDEOGRAPH-2CEB0..CJK UNIFIED IDEOGRAPH-2EBE0
@@ -810,7 +809,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  
  # ================================================
  
-@@ -8962,11 +8968,12 @@ FFDA..FFDC    ; XID_Start # Lo   [3] HAL
+@@ -8962,11 +8968,12 @@ FFDA..FFDC    ; XID_Start # Lo   [3] HALFWIDTH HANGUL LETTER EU..HALFWIDTH HANGU
  2B740..2B81D  ; XID_Start # Lo [222] CJK UNIFIED IDEOGRAPH-2B740..CJK UNIFIED IDEOGRAPH-2B81D
  2B820..2CEA1  ; XID_Start # Lo [5762] CJK UNIFIED IDEOGRAPH-2B820..CJK UNIFIED IDEOGRAPH-2CEA1
  2CEB0..2EBE0  ; XID_Start # Lo [7473] CJK UNIFIED IDEOGRAPH-2CEB0..CJK UNIFIED IDEOGRAPH-2EBE0
@@ -824,7 +823,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  
  # ================================================
  
-@@ -9543,6 +9550,7 @@ FFDA..FFDC    ; XID_Start # Lo   [3] HAL
+@@ -9543,6 +9550,7 @@ FFDA..FFDC    ; XID_Start # Lo   [3] HALFWIDTH HANGUL LETTER EU..HALFWIDTH HANGU
  1FE0..1FEC    ; XID_Continue # L&  [13] GREEK SMALL LETTER UPSILON WITH VRACHY..GREEK CAPITAL LETTER RHO WITH DASIA
  1FF2..1FF4    ; XID_Continue # L&   [3] GREEK SMALL LETTER OMEGA WITH VARIA AND YPOGEGRAMMENI..GREEK SMALL LETTER OMEGA WITH OXIA AND YPOGEGRAMMENI
  1FF6..1FFC    ; XID_Continue # L&   [7] GREEK SMALL LETTER OMEGA WITH PERISPOMENI..GREEK CAPITAL LETTER OMEGA WITH PROSGEGRAMMENI
@@ -832,7 +831,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  203F..2040    ; XID_Continue # Pc   [2] UNDERTIE..CHARACTER TIE
  2054          ; XID_Continue # Pc       INVERTED UNDERTIE
  2071          ; XID_Continue # Lm       SUPERSCRIPT LATIN SMALL LETTER I
-@@ -9608,6 +9616,7 @@ FFDA..FFDC    ; XID_Start # Lo   [3] HAL
+@@ -9608,6 +9616,7 @@ FFDA..FFDC    ; XID_Start # Lo   [3] HALFWIDTH HANGUL LETTER EU..HALFWIDTH HANGU
  309D..309E    ; XID_Continue # Lm   [2] HIRAGANA ITERATION MARK..HIRAGANA VOICED ITERATION MARK
  309F          ; XID_Continue # Lo       HIRAGANA DIGRAPH YORI
  30A1..30FA    ; XID_Continue # Lo  [90] KATAKANA LETTER SMALL A..KATAKANA LETTER VO
@@ -840,7 +839,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  30FC..30FE    ; XID_Continue # Lm   [3] KATAKANA-HIRAGANA PROLONGED SOUND MARK..KATAKANA VOICED ITERATION MARK
  30FF          ; XID_Continue # Lo       KATAKANA DIGRAPH KOTO
  3105..312F    ; XID_Continue # Lo  [43] BOPOMOFO LETTER B..BOPOMOFO LETTER NN
-@@ -9793,6 +9802,7 @@ FF10..FF19    ; XID_Continue # Nd  [10]
+@@ -9793,6 +9802,7 @@ FF10..FF19    ; XID_Continue # Nd  [10] FULLWIDTH DIGIT ZERO..FULLWIDTH DIGIT NI
  FF21..FF3A    ; XID_Continue # L&  [26] FULLWIDTH LATIN CAPITAL LETTER A..FULLWIDTH LATIN CAPITAL LETTER Z
  FF3F          ; XID_Continue # Pc       FULLWIDTH LOW LINE
  FF41..FF5A    ; XID_Continue # L&  [26] FULLWIDTH LATIN SMALL LETTER A..FULLWIDTH LATIN SMALL LETTER Z
@@ -848,7 +847,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  FF66..FF6F    ; XID_Continue # Lo  [10] HALFWIDTH KATAKANA LETTER WO..HALFWIDTH KATAKANA LETTER SMALL TU
  FF70          ; XID_Continue # Lm       HALFWIDTH KATAKANA-HIRAGANA PROLONGED SOUND MARK
  FF71..FF9D    ; XID_Continue # Lo  [45] HALFWIDTH KATAKANA LETTER A..HALFWIDTH KATAKANA LETTER N
-@@ -10317,12 +10327,13 @@ FFDA..FFDC    ; XID_Continue # Lo   [3]
+@@ -10317,12 +10327,13 @@ FFDA..FFDC    ; XID_Continue # Lo   [3] HALFWIDTH HANGUL LETTER EU..HALFWIDTH HA
  2B740..2B81D  ; XID_Continue # Lo [222] CJK UNIFIED IDEOGRAPH-2B740..CJK UNIFIED IDEOGRAPH-2B81D
  2B820..2CEA1  ; XID_Continue # Lo [5762] CJK UNIFIED IDEOGRAPH-2B820..CJK UNIFIED IDEOGRAPH-2CEA1
  2CEB0..2EBE0  ; XID_Continue # Lo [7473] CJK UNIFIED IDEOGRAPH-2CEB0..CJK UNIFIED IDEOGRAPH-2EBE0
@@ -863,7 +862,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  
  # ================================================
  
-@@ -10335,6 +10346,15 @@ E0100..E01EF  ; XID_Continue # Mn [240]
+@@ -10335,6 +10346,15 @@ E0100..E01EF  ; XID_Continue # Mn [240] VARIATION SELECTOR-17..VARIATION SELECTO
  #  - FFF9..FFFB (Interlinear annotation format characters)
  #  - 13430..13440 (Egyptian hieroglyph format characters)
  #  - Prepended_Concatenation_Mark (Exceptional format characters that should be visible)
@@ -879,7 +878,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  
  00AD          ; Default_Ignorable_Code_Point # Cf       SOFT HYPHEN
  034F          ; Default_Ignorable_Code_Point # Mn       COMBINING GRAPHEME JOINER
-@@ -11602,7 +11622,7 @@ E0100..E01EF  ; Grapheme_Extend # Mn [24
+@@ -11602,7 +11622,7 @@ E0100..E01EF  ; Grapheme_Extend # Mn [240] VARIATION SELECTOR-17..VARIATION SELE
  2E80..2E99    ; Grapheme_Base # So  [26] CJK RADICAL REPEAT..CJK RADICAL RAP
  2E9B..2EF3    ; Grapheme_Base # So  [89] CJK RADICAL CHOKE..CJK RADICAL C-SIMPLIFIED TURTLE
  2F00..2FD5    ; Grapheme_Base # So [214] KANGXI RADICAL ONE..KANGXI RADICAL FLUTE
@@ -888,7 +887,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  3000          ; Grapheme_Base # Zs       IDEOGRAPHIC SPACE
  3001..3003    ; Grapheme_Base # Po   [3] IDEOGRAPHIC COMMA..DITTO MARK
  3004          ; Grapheme_Base # So       JAPANESE INDUSTRIAL STANDARD SYMBOL
-@@ -11657,6 +11677,7 @@ E0100..E01EF  ; Grapheme_Extend # Mn [24
+@@ -11657,6 +11677,7 @@ E0100..E01EF  ; Grapheme_Extend # Mn [240] VARIATION SELECTOR-17..VARIATION SELE
  3196..319F    ; Grapheme_Base # So  [10] IDEOGRAPHIC ANNOTATION TOP MARK..IDEOGRAPHIC ANNOTATION MAN MARK
  31A0..31BF    ; Grapheme_Base # Lo  [32] BOPOMOFO LETTER BU..BOPOMOFO LETTER AH
  31C0..31E3    ; Grapheme_Base # So  [36] CJK STROKE T..CJK STROKE Q
@@ -896,7 +895,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  31F0..31FF    ; Grapheme_Base # Lo  [16] KATAKANA LETTER SMALL KU..KATAKANA LETTER SMALL RO
  3200..321E    ; Grapheme_Base # So  [31] PARENTHESIZED HANGUL KIYEOK..PARENTHESIZED KOREAN CHARACTER O HU
  3220..3229    ; Grapheme_Base # No  [10] PARENTHESIZED IDEOGRAPH ONE..PARENTHESIZED IDEOGRAPH TEN
-@@ -12497,11 +12518,12 @@ FFFC..FFFD    ; Grapheme_Base # So   [2]
+@@ -12497,11 +12518,12 @@ FFFC..FFFD    ; Grapheme_Base # So   [2] OBJECT REPLACEMENT CHARACTER..REPLACEME
  2B740..2B81D  ; Grapheme_Base # Lo [222] CJK UNIFIED IDEOGRAPH-2B740..CJK UNIFIED IDEOGRAPH-2B81D
  2B820..2CEA1  ; Grapheme_Base # Lo [5762] CJK UNIFIED IDEOGRAPH-2B820..CJK UNIFIED IDEOGRAPH-2CEA1
  2CEB0..2EBE0  ; Grapheme_Base # Lo [7473] CJK UNIFIED IDEOGRAPH-2CEB0..CJK UNIFIED IDEOGRAPH-2EBE0
@@ -910,7 +909,7 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
  
  # ================================================
  
-@@ -12572,4 +12594,239 @@ ABED          ; Grapheme_Link # Mn
+@@ -12572,4 +12594,239 @@ ABED          ; Grapheme_Link # Mn       MEETEI MAYEK APUN IYEK
  
  # Total code points: 65
  
@@ -1150,10 +1149,10 @@ Index: glibc/localedata/unicode-gen/DerivedCoreProperties.txt
 +# Total code points: 884
 +
  # EOF
-Index: glibc/localedata/unicode-gen/EastAsianWidth.txt
-===================================================================
---- glibc.orig/localedata/unicode-gen/EastAsianWidth.txt
-+++ glibc/localedata/unicode-gen/EastAsianWidth.txt
+diff --git a/localedata/unicode-gen/EastAsianWidth.txt b/localedata/unicode-gen/EastAsianWidth.txt
+index 38b7076..02df4df 100644
+--- a/localedata/unicode-gen/EastAsianWidth.txt
++++ b/localedata/unicode-gen/EastAsianWidth.txt
 @@ -1,11 +1,11 @@
 -# EastAsianWidth-15.0.0.txt
 -# Date: 2022-05-24, 17:40:20 GMT [KW, LI]
@@ -6343,10 +6342,10 @@ Index: glibc/localedata/unicode-gen/EastAsianWidth.txt
 +100000..10FFFD ; A  # Co [65534] <private-use-100000>..<private-use-10FFFD>
  
  # EOF
-Index: glibc/localedata/unicode-gen/Makefile
-===================================================================
---- glibc.orig/localedata/unicode-gen/Makefile
-+++ glibc/localedata/unicode-gen/Makefile
+diff --git a/localedata/unicode-gen/Makefile b/localedata/unicode-gen/Makefile
+index fd0c732..1570e43 100644
+--- a/localedata/unicode-gen/Makefile
++++ b/localedata/unicode-gen/Makefile
 @@ -35,7 +35,7 @@
  # files for making modifications.
  
@@ -6356,10 +6355,10 @@ Index: glibc/localedata/unicode-gen/Makefile
  
  PYTHON3 = python3
  WGET = wget
-Index: glibc/localedata/unicode-gen/PropList.txt
-===================================================================
---- glibc.orig/localedata/unicode-gen/PropList.txt
-+++ glibc/localedata/unicode-gen/PropList.txt
+diff --git a/localedata/unicode-gen/PropList.txt b/localedata/unicode-gen/PropList.txt
+index b49d646..777e8a2 100644
+--- a/localedata/unicode-gen/PropList.txt
++++ b/localedata/unicode-gen/PropList.txt
 @@ -1,6 +1,6 @@
 -# PropList-15.0.0.txt
 -# Date: 2022-08-05, 22:17:16 GMT
@@ -6370,7 +6369,7 @@ Index: glibc/localedata/unicode-gen/PropList.txt
  # Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries.
  # For terms of use, see https://www.unicode.org/terms_of_use.html
  #
-@@ -856,11 +856,12 @@ FA70..FAD9    ; Ideographic # Lo [106] C
+@@ -856,11 +856,12 @@ FA70..FAD9    ; Ideographic # Lo [106] CJK COMPATIBILITY IDEOGRAPH-FA70..CJK COM
  2B740..2B81D  ; Ideographic # Lo [222] CJK UNIFIED IDEOGRAPH-2B740..CJK UNIFIED IDEOGRAPH-2B81D
  2B820..2CEA1  ; Ideographic # Lo [5762] CJK UNIFIED IDEOGRAPH-2B820..CJK UNIFIED IDEOGRAPH-2CEA1
  2CEB0..2EBE0  ; Ideographic # Lo [7473] CJK UNIFIED IDEOGRAPH-2CEB0..CJK UNIFIED IDEOGRAPH-2EBE0
@@ -6384,7 +6383,7 @@ Index: glibc/localedata/unicode-gen/PropList.txt
  
  # ================================================
  
-@@ -1241,9 +1242,10 @@ E0020..E007F  ; Other_Grapheme_Extend #
+@@ -1241,9 +1242,10 @@ E0020..E007F  ; Other_Grapheme_Extend # Cf  [96] TAG SPACE..CANCEL TAG
  # ================================================
  
  2FF0..2FF1    ; IDS_Binary_Operator # So   [2] IDEOGRAPHIC DESCRIPTION CHARACTER LEFT TO RIGHT..IDEOGRAPHIC DESCRIPTION CHARACTER ABOVE TO BELOW
@@ -6397,7 +6396,7 @@ Index: glibc/localedata/unicode-gen/PropList.txt
  
  # ================================================
  
-@@ -1253,6 +1255,12 @@ E0020..E007F  ; Other_Grapheme_Extend #
+@@ -1253,6 +1255,12 @@ E0020..E007F  ; Other_Grapheme_Extend # Cf  [96] TAG SPACE..CANCEL TAG
  
  # ================================================
  
@@ -6410,7 +6409,7 @@ Index: glibc/localedata/unicode-gen/PropList.txt
  2E80..2E99    ; Radical # So  [26] CJK RADICAL REPEAT..CJK RADICAL RAP
  2E9B..2EF3    ; Radical # So  [89] CJK RADICAL CHOKE..CJK RADICAL C-SIMPLIFIED TURTLE
  2F00..2FD5    ; Radical # So [214] KANGXI RADICAL ONE..KANGXI RADICAL FLUTE
-@@ -1275,10 +1283,11 @@ FA27..FA29    ; Unified_Ideograph # Lo
+@@ -1275,10 +1283,11 @@ FA27..FA29    ; Unified_Ideograph # Lo   [3] CJK COMPATIBILITY IDEOGRAPH-FA27..C
  2B740..2B81D  ; Unified_Ideograph # Lo [222] CJK UNIFIED IDEOGRAPH-2B740..CJK UNIFIED IDEOGRAPH-2B81D
  2B820..2CEA1  ; Unified_Ideograph # Lo [5762] CJK UNIFIED IDEOGRAPH-2B820..CJK UNIFIED IDEOGRAPH-2CEA1
  2CEB0..2EBE0  ; Unified_Ideograph # Lo [7473] CJK UNIFIED IDEOGRAPH-2CEB0..CJK UNIFIED IDEOGRAPH-2EBE0
@@ -6423,17 +6422,17 @@ Index: glibc/localedata/unicode-gen/PropList.txt
  
  # ================================================
  
-@@ -1376,8 +1385,58 @@ AABB..AABC    ; Logical_Order_Exception
+@@ -1376,8 +1385,58 @@ AABB..AABC    ; Logical_Order_Exception # Lo   [2] TAI VIET VOWEL AUE..TAI VIET
  0387          ; Other_ID_Continue # Po       GREEK ANO TELEIA
  1369..1371    ; Other_ID_Continue # No   [9] ETHIOPIC DIGIT ONE..ETHIOPIC DIGIT NINE
  19DA          ; Other_ID_Continue # No       NEW TAI LUE THAM DIGIT ONE
 +200C..200D    ; Other_ID_Continue # Cf   [2] ZERO WIDTH NON-JOINER..ZERO WIDTH JOINER
 +30FB          ; Other_ID_Continue # Po       KATAKANA MIDDLE DOT
 +FF65          ; Other_ID_Continue # Po       HALFWIDTH KATAKANA MIDDLE DOT
-+
-+# Total code points: 16
  
 -# Total code points: 12
++# Total code points: 16
++
 +# ================================================
 +
 +00B2..00B3    ; ID_Compat_Math_Continue # No   [2] SUPERSCRIPT TWO..SUPERSCRIPT THREE
@@ -6483,7 +6482,7 @@ Index: glibc/localedata/unicode-gen/PropList.txt
  
  # ================================================
  
-@@ -1398,6 +1457,7 @@ AABB..AABC    ; Logical_Order_Exception
+@@ -1398,6 +1457,7 @@ AABB..AABC    ; Logical_Order_Exception # Lo   [2] TAI VIET VOWEL AUE..TAI VIET
  1367..1368    ; Sentence_Terminal # Po   [2] ETHIOPIC QUESTION MARK..ETHIOPIC PARAGRAPH SEPARATOR
  166E          ; Sentence_Terminal # Po       CANADIAN SYLLABICS FULL STOP
  1735..1736    ; Sentence_Terminal # Po   [2] PHILIPPINE SINGLE PUNCTUATION..PHILIPPINE DOUBLE PUNCTUATION
@@ -6491,7 +6490,7 @@ Index: glibc/localedata/unicode-gen/PropList.txt
  1803          ; Sentence_Terminal # Po       MONGOLIAN FULL STOP
  1809          ; Sentence_Terminal # Po       MONGOLIAN MANCHU FULL STOP
  1944..1945    ; Sentence_Terminal # Po   [2] LIMBU EXCLAMATION MARK..LIMBU QUESTION MARK
-@@ -1462,7 +1522,7 @@ FF61          ; Sentence_Terminal # Po
+@@ -1462,7 +1522,7 @@ FF61          ; Sentence_Terminal # Po       HALFWIDTH IDEOGRAPHIC FULL STOP
  1BC9F         ; Sentence_Terminal # Po       DUPLOYAN PUNCTUATION CHINOOK FULL STOP
  1DA88         ; Sentence_Terminal # Po       SIGNWRITING FULL STOP
  
@@ -6500,10 +6499,10 @@ Index: glibc/localedata/unicode-gen/PropList.txt
  
  # ================================================
  
-Index: glibc/localedata/unicode-gen/UnicodeData.txt
-===================================================================
---- glibc.orig/localedata/unicode-gen/UnicodeData.txt
-+++ glibc/localedata/unicode-gen/UnicodeData.txt
+diff --git a/localedata/unicode-gen/UnicodeData.txt b/localedata/unicode-gen/UnicodeData.txt
+index ea963a7..bdcc418 100644
+--- a/localedata/unicode-gen/UnicodeData.txt
++++ b/localedata/unicode-gen/UnicodeData.txt
 @@ -11231,6 +11231,10 @@
  2FF9;IDEOGRAPHIC DESCRIPTION CHARACTER SURROUND FROM UPPER RIGHT;So;0;ON;;;;;N;;;;;
  2FFA;IDEOGRAPHIC DESCRIPTION CHARACTER SURROUND FROM LOWER LEFT;So;0;ON;;;;;N;;;;;
@@ -6523,7 +6522,7 @@ Index: glibc/localedata/unicode-gen/UnicodeData.txt
  31F0;KATAKANA LETTER SMALL KU;Lo;0;L;;;;;N;;;;;
  31F1;KATAKANA LETTER SMALL SI;Lo;0;L;;;;;N;;;;;
  31F2;KATAKANA LETTER SMALL SU;Lo;0;L;;;;;N;;;;;
-@@ -34035,6 +34040,8 @@ FFFD;REPLACEMENT CHARACTER;So;0;ON;;;;;N
+@@ -34035,6 +34040,8 @@ FFFD;REPLACEMENT CHARACTER;So;0;ON;;;;;N;;;;;
  2CEA1;<CJK Ideograph Extension E, Last>;Lo;0;L;;;;;N;;;;;
  2CEB0;<CJK Ideograph Extension F, First>;Lo;0;L;;;;;N;;;;;
  2EBE0;<CJK Ideograph Extension F, Last>;Lo;0;L;;;;;N;;;;;
