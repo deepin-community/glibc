@@ -1,3 +1,9 @@
+glibc (2.38-6deepin21) UNRELEASED; urgency=medium
+
+  * debian/patches/git-updates.diff: update from upstream stable branch
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Tue, 24 Mar 2026 17:40:01 +0800
+
 glibc (2.38-6deepin20) unstable; urgency=medium
 
   * LoongArch: common sync from upstream
