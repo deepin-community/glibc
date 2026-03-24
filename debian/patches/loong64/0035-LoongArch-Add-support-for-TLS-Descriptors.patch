@@ -815,8 +815,8 @@ index dfc7ecfd..0d1e9ed8 100644
 +++ b/sysdeps/loongarch/preconfigure
 @@ -43,6 +43,7 @@ loongarch*)
  
- 
      base_machine=loongarch
+     mtls_traditional=trad
 +    mtls_descriptor=desc
      ;;
  esac
