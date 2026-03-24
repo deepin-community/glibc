@@ -1,4 +1,3 @@
-From 5126918e0383df3b9e02fdbdfc34da6cbb7ceb7c Mon Sep 17 00:00:00 2001
 From: caiyinyu <caiyinyu@loongson.cn>
 Date: Fri, 20 Oct 2023 09:20:02 +0800
 Subject: [PATCH 04/23] LoongArch: Unify Register Names.
@@ -11,7 +10,7 @@ Signed-off-by: ticat_fp <fanpeng@loongson.cn>
  2 files changed, 19 insertions(+), 19 deletions(-)
 
 diff --git a/sysdeps/loongarch/__longjmp.S b/sysdeps/loongarch/__longjmp.S
-index cbde1946..e87ce311 100644
+index cbde194..e87ce31 100644
 --- a/sysdeps/loongarch/__longjmp.S
 +++ b/sysdeps/loongarch/__longjmp.S
 @@ -43,18 +43,18 @@ ENTRY (__longjmp)
@@ -44,7 +43,7 @@ index cbde1946..e87ce311 100644
  
  END (__longjmp)
 diff --git a/sysdeps/loongarch/setjmp.S b/sysdeps/loongarch/setjmp.S
-index 6c7065cd..b6e4f727 100644
+index 6c7065c..b6e4f72 100644
 --- a/sysdeps/loongarch/setjmp.S
 +++ b/sysdeps/loongarch/setjmp.S
 @@ -52,19 +52,19 @@ ENTRY (__sigsetjmp)
@@ -76,6 +75,3 @@ index 6c7065cd..b6e4f727 100644
  #else
  	b		__sigjmp_save
  #endif
--- 
-2.43.0
-

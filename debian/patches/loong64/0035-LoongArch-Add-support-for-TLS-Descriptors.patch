@@ -1,4 +1,3 @@
-From 08464376236b8bc2931744488b17e89352a23928 Mon Sep 17 00:00:00 2001
 From: mengqinggang <mengqinggang@loongson.cn>
 Date: Wed, 8 May 2024 10:06:15 +0800
 Subject: [PATCH 11/23] LoongArch: Add support for TLS Descriptors
@@ -15,17 +14,17 @@ all vector registers.
  sysdeps/loongarch/Makefile        |  34 ++-
  sysdeps/loongarch/configure       |  33 +++
  sysdeps/loongarch/configure.ac    |  16 ++
- sysdeps/loongarch/dl-machine.h    |  52 +++-
+ sysdeps/loongarch/dl-machine.h    |  52 ++++-
  sysdeps/loongarch/dl-tls.h        |   9 +-
- sysdeps/loongarch/dl-tlsdesc.S    | 436 ++++++++++++++++++++++++++++++
- sysdeps/loongarch/dl-tlsdesc.h    |  49 ++++
+ sysdeps/loongarch/dl-tlsdesc.S    | 436 ++++++++++++++++++++++++++++++++++++++
+ sysdeps/loongarch/dl-tlsdesc.h    |  49 +++++
  sysdeps/loongarch/linkmap.h       |   3 +-
  sysdeps/loongarch/preconfigure    |   1 +
  sysdeps/loongarch/sys/asm.h       |   1 +
  sysdeps/loongarch/sys/regdef.h    |   1 +
- sysdeps/loongarch/tlsdesc.c       |  39 +++
- sysdeps/loongarch/tlsdesc.sym     |  28 ++
- sysdeps/loongarch/tst-gnu2-tls2.h | 377 ++++++++++++++++++++++++++
+ sysdeps/loongarch/tlsdesc.c       |  39 ++++
+ sysdeps/loongarch/tlsdesc.sym     |  28 +++
+ sysdeps/loongarch/tst-gnu2-tls2.h | 377 ++++++++++++++++++++++++++++++++
  16 files changed, 1076 insertions(+), 8 deletions(-)
  create mode 100644 sysdeps/loongarch/dl-tlsdesc.S
  create mode 100644 sysdeps/loongarch/dl-tlsdesc.h
@@ -34,7 +33,7 @@ all vector registers.
  create mode 100644 sysdeps/loongarch/tst-gnu2-tls2.h
 
 diff --git a/config.h.in b/config.h.in
-index 44a34072..7b5283ba 100644
+index 44a3407..7b5283b 100644
 --- a/config.h.in
 +++ b/config.h.in
 @@ -141,6 +141,9 @@
@@ -48,7 +47,7 @@ index 44a34072..7b5283ba 100644
  #undef	__LINUX_KERNEL_VERSION
  
 diff --git a/elf/elf.h b/elf/elf.h
-index 3dbc7c0f..a4695042 100644
+index 3dbc7c0..a469504 100644
 --- a/elf/elf.h
 +++ b/elf/elf.h
 @@ -4125,6 +4125,8 @@ enum
@@ -61,7 +60,7 @@ index 3dbc7c0f..a4695042 100644
  /* Reserved for future relocs that the dynamic linker must understand.  */
  
 diff --git a/sysdeps/loongarch/Makefile b/sysdeps/loongarch/Makefile
-index 446bda65..a4ee915e 100644
+index 446bda6..a4ee915 100644
 --- a/sysdeps/loongarch/Makefile
 +++ b/sysdeps/loongarch/Makefile
 @@ -1,5 +1,7 @@
@@ -123,7 +122,7 @@ index 446bda65..a4ee915e 100644
 +  # CFLAGS-.oS
  endif
 diff --git a/sysdeps/loongarch/configure b/sysdeps/loongarch/configure
-index 30b60d19..731f7943 100644
+index 30b60d1..731f794 100644
 --- a/sysdeps/loongarch/configure
 +++ b/sysdeps/loongarch/configure
 @@ -110,3 +110,36 @@ if test $libc_cv_loongarch_vec_asm = no; then
@@ -164,7 +163,7 @@ index 30b60d19..731f7943 100644
 +
 +fi
 diff --git a/sysdeps/loongarch/configure.ac b/sysdeps/loongarch/configure.ac
-index 28a8ae54..24fee55d 100644
+index 28a8ae5..24fee55 100644
 --- a/sysdeps/loongarch/configure.ac
 +++ b/sysdeps/loongarch/configure.ac
 @@ -65,3 +65,19 @@ rm -f conftest*])
@@ -188,7 +187,7 @@ index 28a8ae54..24fee55d 100644
 +  AC_DEFINE(HAVE_LOONGARCH_VEC_COM)
 +fi
 diff --git a/sysdeps/loongarch/dl-machine.h b/sysdeps/loongarch/dl-machine.h
-index befb29a3..222d51a8 100644
+index befb29a..222d51a 100644
 --- a/sysdeps/loongarch/dl-machine.h
 +++ b/sysdeps/loongarch/dl-machine.h
 @@ -25,7 +25,7 @@
@@ -265,7 +264,7 @@ index befb29a3..222d51a8 100644
      _dl_reloc_bad_type (map, r_type, 1);
  }
 diff --git a/sysdeps/loongarch/dl-tls.h b/sysdeps/loongarch/dl-tls.h
-index a551594b..1ca37648 100644
+index a551594..1ca3764 100644
 --- a/sysdeps/loongarch/dl-tls.h
 +++ b/sysdeps/loongarch/dl-tls.h
 @@ -16,6 +16,9 @@
@@ -302,7 +301,7 @@ index a551594b..1ca37648 100644
 +#endif
 diff --git a/sysdeps/loongarch/dl-tlsdesc.S b/sysdeps/loongarch/dl-tlsdesc.S
 new file mode 100644
-index 00000000..15d5fa1c
+index 0000000..15d5fa1
 --- /dev/null
 +++ b/sysdeps/loongarch/dl-tlsdesc.S
 @@ -0,0 +1,436 @@
@@ -744,7 +743,7 @@ index 00000000..15d5fa1c
 +#endif /* #ifdef SHARED */
 diff --git a/sysdeps/loongarch/dl-tlsdesc.h b/sysdeps/loongarch/dl-tlsdesc.h
 new file mode 100644
-index 00000000..ff8c69cb
+index 0000000..ff8c69c
 --- /dev/null
 +++ b/sysdeps/loongarch/dl-tlsdesc.h
 @@ -0,0 +1,49 @@
@@ -798,7 +797,7 @@ index 00000000..ff8c69cb
 +
 +#endif
 diff --git a/sysdeps/loongarch/linkmap.h b/sysdeps/loongarch/linkmap.h
-index 2f5bf534..4e637d49 100644
+index 2f5bf53..4e637d4 100644
 --- a/sysdeps/loongarch/linkmap.h
 +++ b/sysdeps/loongarch/linkmap.h
 @@ -18,5 +18,6 @@
@@ -810,10 +809,10 @@ index 2f5bf534..4e637d49 100644
 +  void *tlsdesc_table;	/* Address of TLS descriptor hash table.  */
  };
 diff --git a/sysdeps/loongarch/preconfigure b/sysdeps/loongarch/preconfigure
-index dfc7ecfd..0d1e9ed8 100644
+index 6b015ae..4f241e1 100644
 --- a/sysdeps/loongarch/preconfigure
 +++ b/sysdeps/loongarch/preconfigure
-@@ -43,6 +43,7 @@ loongarch*)
+@@ -44,6 +44,7 @@ loongarch*)
  
      base_machine=loongarch
      mtls_traditional=trad
@@ -822,7 +821,7 @@ index dfc7ecfd..0d1e9ed8 100644
  esac
  
 diff --git a/sysdeps/loongarch/sys/asm.h b/sysdeps/loongarch/sys/asm.h
-index c5eb8afa..dbee93ee 100644
+index c5eb8af..dbee93e 100644
 --- a/sysdeps/loongarch/sys/asm.h
 +++ b/sysdeps/loongarch/sys/asm.h
 @@ -25,6 +25,7 @@
@@ -834,7 +833,7 @@ index c5eb8afa..dbee93ee 100644
  #define SZXREG 32
  #define REG_L ld.d
 diff --git a/sysdeps/loongarch/sys/regdef.h b/sysdeps/loongarch/sys/regdef.h
-index 524d2e32..c26b729e 100644
+index 524d2e3..c26b729 100644
 --- a/sysdeps/loongarch/sys/regdef.h
 +++ b/sysdeps/loongarch/sys/regdef.h
 @@ -97,6 +97,7 @@
@@ -847,7 +846,7 @@ index 524d2e32..c26b729e 100644
  #define vr1 $vr1
 diff --git a/sysdeps/loongarch/tlsdesc.c b/sysdeps/loongarch/tlsdesc.c
 new file mode 100644
-index 00000000..76708f7e
+index 0000000..76708f7
 --- /dev/null
 +++ b/sysdeps/loongarch/tlsdesc.c
 @@ -0,0 +1,39 @@
@@ -892,7 +891,7 @@ index 00000000..76708f7e
 +}
 diff --git a/sysdeps/loongarch/tlsdesc.sym b/sysdeps/loongarch/tlsdesc.sym
 new file mode 100644
-index 00000000..213d0b30
+index 0000000..213d0b3
 --- /dev/null
 +++ b/sysdeps/loongarch/tlsdesc.sym
 @@ -0,0 +1,28 @@
@@ -926,7 +925,7 @@ index 00000000..213d0b30
 +HWCAP_LOONGARCH_LASX	HWCAP_LOONGARCH_LASX
 diff --git a/sysdeps/loongarch/tst-gnu2-tls2.h b/sysdeps/loongarch/tst-gnu2-tls2.h
 new file mode 100644
-index 00000000..8e421678
+index 0000000..8e42167
 --- /dev/null
 +++ b/sysdeps/loongarch/tst-gnu2-tls2.h
 @@ -0,0 +1,377 @@
@@ -1307,6 +1306,3 @@ index 00000000..8e421678
 +#endif /* #ifdef __loongarch_soft_float */
 +
 +#include_next <tst-gnu2-tls2.h>
--- 
-2.43.0
-

@@ -1,4 +1,3 @@
-From 0f90acb2c9f1ce7ff0cada2d6a5bf1a844ce8e3d Mon Sep 17 00:00:00 2001
 From: mengqinggang <mengqinggang@loongson.cn>
 Date: Fri, 21 Jun 2024 16:08:53 +0800
 Subject: [PATCH 16/23] LoongArch: Fix tst-gnu2-tls2 test case
@@ -27,11 +26,11 @@ directly compared for equality.
 Put LOAD_REGISTER_FCSR and SAVE_REGISTER_FCC after LOAD_REGISTER_FLOAT.
 Some float instructions may change fcsr register.
 ---
- sysdeps/loongarch/tst-gnu2-tls2.h | 296 +++++++++++++++---------------
+ sysdeps/loongarch/tst-gnu2-tls2.h | 296 ++++++++++++++++++++------------------
  1 file changed, 153 insertions(+), 143 deletions(-)
 
 diff --git a/sysdeps/loongarch/tst-gnu2-tls2.h b/sysdeps/loongarch/tst-gnu2-tls2.h
-index 8e421678..863abe59 100644
+index 8e42167..863abe5 100644
 --- a/sysdeps/loongarch/tst-gnu2-tls2.h
 +++ b/sysdeps/loongarch/tst-gnu2-tls2.h
 @@ -16,6 +16,7 @@
@@ -415,6 +414,3 @@ index 8e421678..863abe59 100644
  
  #endif /* #ifdef __loongarch_soft_float */
  
--- 
-2.43.0
-

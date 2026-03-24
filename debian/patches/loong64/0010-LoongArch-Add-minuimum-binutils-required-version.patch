@@ -1,4 +1,3 @@
-From 200bb3e9062c278a2f080ea3b07f428579e87051 Mon Sep 17 00:00:00 2001
 From: dengjianbo <dengjianbo@loongson.cn>
 Date: Tue, 8 Aug 2023 14:15:43 +0800
 Subject: [PATCH 10/24] LoongArch: Add minuimum binutils required version
@@ -17,10 +16,10 @@ accordingly.
  6 files changed, 9 insertions(+), 13 deletions(-)
 
 diff --git a/NEWS b/NEWS
-index 6768c2da6f..3bbfa299a3 100644
+index c81099e..b5f7205 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -191,6 +191,8 @@ Deprecated and removed features, and other changes affecting compatibility:
+@@ -227,6 +227,8 @@ Deprecated and removed features, and other changes affecting compatibility:
    subdirectories on the library search path or the subdirectory that
    corresponds to the AT_PLATFORM system name, or employs the legacy AT_HWCAP
    search mechanism, which was deprecated in version 2.33.
@@ -30,7 +29,7 @@ index 6768c2da6f..3bbfa299a3 100644
  Security related changes:
  
 diff --git a/config.h.in b/config.h.in
-index 0dedc124f7..44a34072a4 100644
+index 0dedc12..44a3407 100644
 --- a/config.h.in
 +++ b/config.h.in
 @@ -141,11 +141,6 @@
@@ -46,7 +45,7 @@ index 0dedc124f7..44a34072a4 100644
  #undef	__LINUX_KERNEL_VERSION
  
 diff --git a/sysdeps/loongarch/configure b/sysdeps/loongarch/configure
-index 5843c7cf90..395ddc92ca 100644
+index 5843c7c..395ddc9 100644
 --- a/sysdeps/loongarch/configure
 +++ b/sysdeps/loongarch/configure
 @@ -128,8 +128,7 @@ rm -f conftest*
@@ -61,7 +60,7 @@ index 5843c7cf90..395ddc92ca 100644
  fi
  
 diff --git a/sysdeps/loongarch/configure.ac b/sysdeps/loongarch/configure.ac
-index ba89d8346d..989287c6d2 100644
+index ba89d83..989287c 100644
 --- a/sysdeps/loongarch/configure.ac
 +++ b/sysdeps/loongarch/configure.ac
 @@ -74,6 +74,6 @@ else
@@ -74,7 +73,7 @@ index ba89d8346d..989287c6d2 100644
 +  AC_MSG_ERROR([binutils version is too old, use 2.41 or newer version])
  fi
 diff --git a/sysdeps/loongarch/dl-machine.h b/sysdeps/loongarch/dl-machine.h
-index 51ce9af84b..066bb233ac 100644
+index 51ce9af..066bb23 100644
 --- a/sysdeps/loongarch/dl-machine.h
 +++ b/sysdeps/loongarch/dl-machine.h
 @@ -270,7 +270,7 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
@@ -96,7 +95,7 @@ index 51ce9af84b..066bb233ac 100644
  	    gotplt[0] = (ElfW(Addr)) &_dl_runtime_resolve_lasx;
  	  else if (SUPPORT_LSX)
 diff --git a/sysdeps/loongarch/dl-trampoline.S b/sysdeps/loongarch/dl-trampoline.S
-index f6ba5e443c..8fd9146978 100644
+index f6ba5e4..8fd9146 100644
 --- a/sysdeps/loongarch/dl-trampoline.S
 +++ b/sysdeps/loongarch/dl-trampoline.S
 @@ -19,7 +19,7 @@
@@ -108,6 +107,3 @@ index f6ba5e443c..8fd9146978 100644
  #define USE_LASX
  #define _dl_runtime_resolve _dl_runtime_resolve_lasx
  #include "dl-trampoline.h"
--- 
-2.45.1
-

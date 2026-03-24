@@ -1,7 +1,7 @@
-From 315446ba2fb3013c4eb823ad5d9567315cf941e1 Mon Sep 17 00:00:00 2001
 From: mengqinggang <mengqinggang@loongson.cn>
 Date: Fri, 5 Jul 2024 10:40:33 +0800
-Subject: [PATCH 17/23] LoongArch: Add cfi instructions for _dl_tlsdesc_dynamic
+Subject: [PATCH 17/23] LoongArch: Add cfi instructions for
+ _dl_tlsdesc_dynamic
 
 In _dl_tlsdesc_dynamic, there are three 'addi.d sp, sp, -size'
 instructions to allocate stack size for Float/LSX/LASX registers.
@@ -16,15 +16,15 @@ Conflicting cfi instructions can be distributed to the three functions.
 And cfi instructions can correspond to stack down instructions.
 ---
  sysdeps/loongarch/dl-machine.h         |   7 +
- sysdeps/loongarch/dl-tlsdesc-dynamic.h | 225 ++++++++++++++
- sysdeps/loongarch/dl-tlsdesc.S         | 386 ++-----------------------
+ sysdeps/loongarch/dl-tlsdesc-dynamic.h | 225 +++++++++++++++++++
+ sysdeps/loongarch/dl-tlsdesc.S         | 386 ++-------------------------------
  sysdeps/loongarch/dl-tlsdesc.h         |   4 +
  sysdeps/loongarch/tlsdesc.sym          |   9 -
  5 files changed, 258 insertions(+), 373 deletions(-)
  create mode 100644 sysdeps/loongarch/dl-tlsdesc-dynamic.h
 
 diff --git a/sysdeps/loongarch/dl-machine.h b/sysdeps/loongarch/dl-machine.h
-index 222d51a8..d934c77f 100644
+index 222d51a..d934c77 100644
 --- a/sysdeps/loongarch/dl-machine.h
 +++ b/sysdeps/loongarch/dl-machine.h
 @@ -222,6 +222,13 @@ elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
@@ -43,7 +43,7 @@ index 222d51a8..d934c77f 100644
  	    else
 diff --git a/sysdeps/loongarch/dl-tlsdesc-dynamic.h b/sysdeps/loongarch/dl-tlsdesc-dynamic.h
 new file mode 100644
-index 00000000..d10f4a88
+index 0000000..d10f4a8
 --- /dev/null
 +++ b/sysdeps/loongarch/dl-tlsdesc-dynamic.h
 @@ -0,0 +1,225 @@
@@ -273,7 +273,7 @@ index 00000000..d10f4a88
 +	.size	_dl_tlsdesc_dynamic, .-_dl_tlsdesc_dynamic
 +	.hidden HIDDEN_JUMPTARGET(__tls_get_addr)
 diff --git a/sysdeps/loongarch/dl-tlsdesc.S b/sysdeps/loongarch/dl-tlsdesc.S
-index a6627cc7..b6cfd612 100644
+index a6627cc..b6cfd61 100644
 --- a/sysdeps/loongarch/dl-tlsdesc.S
 +++ b/sysdeps/loongarch/dl-tlsdesc.S
 @@ -59,376 +59,34 @@ _dl_tlsdesc_undefweak:
@@ -676,7 +676,7 @@ index a6627cc7..b6cfd612 100644
  
  #endif /* #ifdef SHARED */
 diff --git a/sysdeps/loongarch/dl-tlsdesc.h b/sysdeps/loongarch/dl-tlsdesc.h
-index ff8c69cb..45c43a5b 100644
+index ff8c69c..45c43a5 100644
 --- a/sysdeps/loongarch/dl-tlsdesc.h
 +++ b/sysdeps/loongarch/dl-tlsdesc.h
 @@ -43,6 +43,10 @@ extern ptrdiff_t attribute_hidden _dl_tlsdesc_undefweak (struct tlsdesc *);
@@ -691,7 +691,7 @@ index ff8c69cb..45c43a5b 100644
  #endif
  
 diff --git a/sysdeps/loongarch/tlsdesc.sym b/sysdeps/loongarch/tlsdesc.sym
-index 213d0b30..9f80fcec 100644
+index 213d0b3..9f80fce 100644
 --- a/sysdeps/loongarch/tlsdesc.sym
 +++ b/sysdeps/loongarch/tlsdesc.sym
 @@ -4,12 +4,6 @@
@@ -714,6 +714,3 @@ index 213d0b30..9f80fcec 100644
 -GLRO_DL_HWCAP_OFFSET    GLRO_offsetof (dl_hwcap)
 -HWCAP_LOONGARCH_LSX	HWCAP_LOONGARCH_LSX
 -HWCAP_LOONGARCH_LASX	HWCAP_LOONGARCH_LASX
--- 
-2.43.0
-

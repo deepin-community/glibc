@@ -1,4 +1,3 @@
-From 27555b0942b3ed2c233fd822c3563ce5794086d7 Mon Sep 17 00:00:00 2001
 From: mengqinggang <mengqinggang@loongson.cn>
 Date: Mon, 20 May 2024 17:05:12 +0800
 Subject: [PATCH 12/23] LoongArch: Fix tst-gnu2-tls2 compiler error
@@ -12,7 +11,7 @@ Add escape character '\' in vector support test function.
  3 files changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/sysdeps/loongarch/Makefile b/sysdeps/loongarch/Makefile
-index a4ee915e..b00c090f 100644
+index a4ee915..b00c090 100644
 --- a/sysdeps/loongarch/Makefile
 +++ b/sysdeps/loongarch/Makefile
 @@ -35,10 +35,12 @@ sysdep-dl-routines += \
@@ -29,7 +28,7 @@ index a4ee915e..b00c090f 100644
  # LoongArch's assembler also needs to know about PIC as it changes the
  # definition of some assembler macros.
 diff --git a/sysdeps/loongarch/configure b/sysdeps/loongarch/configure
-index 731f7943..afcef6cd 100644
+index 731f794..afcef6c 100644
 --- a/sysdeps/loongarch/configure
 +++ b/sysdeps/loongarch/configure
 @@ -143,3 +143,6 @@ then
@@ -40,7 +39,7 @@ index 731f7943..afcef6cd 100644
 +loongarch-vec-com = $libc_cv_loongarch_vec_com"
 +
 diff --git a/sysdeps/loongarch/configure.ac b/sysdeps/loongarch/configure.ac
-index 24fee55d..c56a2035 100644
+index 24fee55..c56a203 100644
 --- a/sysdeps/loongarch/configure.ac
 +++ b/sysdeps/loongarch/configure.ac
 @@ -71,8 +71,8 @@ AC_CACHE_CHECK([for vector support in compiler],
@@ -59,6 +58,3 @@ index 24fee55d..c56a2035 100644
    AC_DEFINE(HAVE_LOONGARCH_VEC_COM)
  fi
 +LIBC_CONFIG_VAR([loongarch-vec-com], [$libc_cv_loongarch_vec_com])
--- 
-2.43.0
-
