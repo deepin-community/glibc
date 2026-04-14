@@ -173,3 +173,4 @@ all/math-Remove-ldbl-96-fma-implementation.patch
 CVE-2026-0861.patch
 CVE-2026-0915.patch
 CVE-2025-15281.patch
+CVE-2026-4437.patch
