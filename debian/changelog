@@ -1,3 +1,12 @@
+glibc (2.38-6deepin22) unstable; urgency=medium
+
+  * Fix git-updates.diff tab indentation in check-dt-x86-64-plt recipe
+    to prevent LC_ALL variable pollution
+  * Mark io/tst-lchmod as xfail due to pbuilder bind mount descriptor
+    path mismatch
+
+ -- lichenggang <lichenggang@uniontech.com>  Fri, 17 Apr 2026 14:19:33 +0800
+
 glibc (2.38-6deepin21) unstable; urgency=medium
 
   * debian/patches/git-updates.diff: update from upstream stable branch
