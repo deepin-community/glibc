@@ -11,9 +11,9 @@ test-xfail-tst-timer = yes
 # control, we'll just let it fail
 test-xfail-tst-create-detached = yes
 
-# Fails in pbuilder/sbuild due to bind mount causing descriptor path
+# Fails in pbuilder due to bind mount causing descriptor path
 # difference between /build/... and /var/cache/pbuilder/build/.../build/...
-test-xfail-io/tst-lchmod = yes
+test-xfail-tst-lchmod = yes
 
 ######################################################################
 # alpha

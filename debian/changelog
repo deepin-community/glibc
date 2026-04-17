@@ -4,6 +4,8 @@ glibc (2.38-6deepin22) unstable; urgency=medium
     to prevent LC_ALL variable pollution
   * Mark io/tst-lchmod as xfail due to pbuilder bind mount descriptor
     path mismatch
+  * Fix placement of tst-lchmod xfail in testsuite-xfail-debian.mk
+    - Move from Hurd-specific block to all-architectures section
 
  -- lichenggang <lichenggang@uniontech.com>  Fri, 17 Apr 2026 14:19:33 +0800
 
