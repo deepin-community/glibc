@@ -1,3 +1,16 @@
+glibc (2.38-6deepin23) unstable; urgency=medium
+
+  * Exclude tst-malloc-too-large from hugetlb2 tests to fix timeout on CI
+    - When GLIBC_TUNABLES=glibc.malloc.hugetlb=2 is set, the test triggers
+      MAP_HUGETLB mmap calls for impossibly large sizes (near SIZE_MAX),
+      which hit the kernel slow path and time out (default 20s * factor)
+      on the shuttle CI builder environment
+    - The test purpose is to verify ENOMEM on too-large allocations, which
+      is unrelated to huge page functionality; excluding it matches the
+      existing exclusion of tst-free-errno for the same reason
+
+ -- lichenggang <lichenggang@uniontech.com>  Sat, 18 Apr 2026 09:55:52 +0800
+
 glibc (2.38-6deepin22) unstable; urgency=medium
 
   * Fix git-updates.diff tab indentation in check-dt-x86-64-plt recipe

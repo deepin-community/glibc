@@ -166,6 +166,7 @@ loong64/0054-LoongArch-Fix-build-failure-for-loongarch64-linux-gn.patch
 loong64/0055-malloc-Fix-tst-bug-in-malloc-tst-free-errno-malloc-h.patch
 loong64/0056-LoongArch-Call-elf_ifunc_invoke-for-R_LARCH_IRELATIV.patch
 loong64/0057-LoongArch-Use-generic-__builtin_trap-in-abort.patch
+loong64/0058-malloc-Exclude-tst-malloc-too-large-from-hugetlb2.patch
 
 iconvdata/add_GB18030-2022_charmap_and_test_the_entire_GB18030_charmap.patch
 
