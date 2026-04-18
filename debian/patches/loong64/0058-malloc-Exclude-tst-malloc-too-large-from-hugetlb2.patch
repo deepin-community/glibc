@@ -1,0 +1,14 @@
+diff --git a/malloc/Makefile b/malloc/Makefile
+index c1db3347..3a4d03a7 100644
+--- a/malloc/Makefile
++++ b/malloc/Makefile
+@@ -103,7 +103,8 @@ tests-exclude-hugetlb1 = \
+ # overlapping region.
+ tests-exclude-hugetlb2 = \
+ 	$(tests-exclude-hugetlb1) \
+-	tst-free-errno
++	tst-free-errno \
++	tst-malloc-too-large
+ tests-malloc-hugetlb1 = \
+ 	$(filter-out $(tests-exclude-hugetlb1), $(tests))
+ tests-malloc-hugetlb2 = \
