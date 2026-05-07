@@ -1,3 +1,9 @@
+glibc (2.38-6deepin23) unstable; urgency=medium
+
+  * Fix: handle leading spaces in /etc/locale.gen configuration.
+
+ -- liujianqiang <liujianqiang@uniontech.com>  Thu, 07 May 2026 15:05:29 +0800
+
 glibc (2.38-6deepin22) unstable; urgency=medium
 
   * Fix git-updates.diff tab indentation in check-dt-x86-64-plt recipe
