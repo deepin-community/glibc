@@ -1,3 +1,10 @@
+glibc (2.38-6deepin24) unstable; urgency=medium
+
+  * Fix CVE-2026-4046: Use pending character state in IBM1390, IBM1399
+    character sets to avoid assertion failure when converting inputs.
+
+ -- deepin-ci-robot <packages@deepin.org>  Mon, 11 May 2026 15:35:00 +0800
+
 glibc (2.38-6deepin23) unstable; urgency=medium
 
   * Fix: handle leading spaces in /etc/locale.gen configuration.
