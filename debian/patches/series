@@ -180,3 +180,6 @@ all/math-Remove-ldbl-96-fma-implementation.patch
 #Fix CVE
 resolv-Count-records-correctly-CVE-2026-4437.patch
 resolv-Check-hostname-for-validity-CVE-2026-4438.patch
+
+# Fix CVE-2026-4046
+iconvdata-Use-pending-character-state-in-IBM1390-IBM1399-character-sets-CVE-2026-4046.patch
