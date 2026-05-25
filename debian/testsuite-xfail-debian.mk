@@ -15,6 +15,12 @@ test-xfail-tst-create-detached = yes
 # difference between /build/... and /var/cache/pbuilder/build/.../build/...
 test-xfail-tst-lchmod = yes
 
+# x86 cpu feature tests read /proc/cpuinfo directly. In pbuilder this is not
+# consistently available for all multilib passes, which makes the tests fail
+# in clean chroot builds.
+test-xfail-tst-cpu-features-cpuinfo = yes
+test-xfail-tst-cpu-features-cpuinfo-static = yes
+
 ######################################################################
 # alpha
 ######################################################################
@@ -231,8 +237,6 @@ test-xfail-tst-null-argv = yes
 
 # We don't provide /proc/cpuinfo yet
 test-xfail-test-multiarch = yes
-test-xfail-tst-cpu-features-cpuinfo = yes
-test-xfail-tst-cpu-features-cpuinfo-static = yes
 
 # Need actual porting
 test-xfail-exe = yes

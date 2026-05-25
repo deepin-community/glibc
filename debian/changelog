@@ -1,3 +1,9 @@
+glibc (2.38-6deepin25) unstable; urgency=medium
+
+  * Fix mark cpuinfo feature tests xfail in pbuilder.
+
+ -- liujianqiang <liujianqiang@uniontech.com>  Mon, 25 May 2026 13:17:41 +0800
+
 glibc (2.38-6deepin24) unstable; urgency=medium
 
   * Fix CVE-2026-4046: Use pending character state in IBM1390, IBM1399
