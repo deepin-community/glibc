@@ -1,3 +1,10 @@
+glibc (2.38-6deepin26) unstable; urgency=high
+
+  * Fix CVE-2026-5928: ungetwc operates on byte stream instead of wide stream
+    (Closes: CVE-2026-5928)
+
+ -- deepin-ci-robot <packages@deepin.org>  Fri, 10 Jul 2026 04:11:26 +0800
+
 glibc (CVE-2026-5450+fix1) unstable; urgency=high
 
   * Fix CVE-2026-5450: backport upstream fix
