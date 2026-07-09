@@ -1,3 +1,10 @@
+glibc (CVE-2026-5450+fix1) unstable; urgency=high
+
+  * Fix CVE-2026-5450: backport upstream fix
+    (Closes: CVE-2026-5450)
+
+ -- deepin-ci-robot <packages@deepin.org>  Fri, 10 Jul 2026 03:56:05 +0800
+
 glibc (2.38-6deepin25) unstable; urgency=medium
 
   * Fix mark cpuinfo feature tests xfail in pbuilder.

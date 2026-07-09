@@ -1,3 +1,4 @@
+CVE-2026-5450.patch
 git-updates.diff
 
 locale/check-unknown-symbols.diff
