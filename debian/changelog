@@ -1,3 +1,9 @@
+glibc (2.38-6deepin30) unstable; urgency=medium
+
+  * fix(cve): CVE-2026-6791
+
+ -- deepin-ci-robot <packages@deepin.org>  Tue, 11 Aug 2026 10:34:43 +0800
+
 glibc (2.38-6deepin29) unstable; urgency=medium
 
   * fix(cve): CVE-2026-6238
