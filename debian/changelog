@@ -3,6 +3,10 @@ glibc (2.38-6deepin31) unstable; urgency=medium
   * fix(cve): CVE-2026-18374 (medium) - [PATCH] libio: Fix CVE-2026-
     18374 heap buffer overflow in ccs= handling   Upstream:
     https://sourceware.org/git/glibc.git/commit/?id=f806c45178
+  * fix(cve): CVE-2026-19499 (unknown) - stdlib: Fix right-justification
+    in strfmon (bug 34510, CVE-2026-19499)   Upstream:
+    https://sourceware.org/git/gitweb.cgi?p=glibc.git;a=commit;h=b090cf2
+    26ff65b913e41536f1f573f500855615c
 
  -- deepin-ci-robot <packages@deepin.org>  Mon, 07 Sep 2026 00:52:17 +0800
 
