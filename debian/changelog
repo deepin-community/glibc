@@ -1,3 +1,9 @@
+glibc (2.42-13deepin1) unstable; urgency=medium
+
+  * add patch from ultrarisc to fix issue with npctl/pthread_mutex_lock.c
+
+ -- Chang Yang <yangchang@deepin.org>  Thu, 10 Sep 2026 10:48:22 +0800
+
 glibc (2.42-13) unstable; urgency=medium
 
   [ Samuel Thibault ]
