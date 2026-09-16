@@ -14,6 +14,10 @@ glibc (2.38-6deepin31) unstable; urgency=medium
   * fix(build): only define OPEN_TREE_* macros in <sys/mount.h> if undefined,
     fixing the x86_64 build failure with kernel headers that define
     OPEN_TREE_CLONE as (1 << 0)
+  * fix(cve): CVE-2026-19542 (unknown) - misc: Fix out-of-bounds array
+    write in tdelete (bug 34506)   Upstream:
+    https://sourceware.org/git/?p=glibc.git;a=commit;h=e2789c46e3bfdcd67
+    a82bea9946b315c179e83d3
 
  -- deepin-ci-robot <packages@deepin.org>  Mon, 07 Sep 2026 00:52:17 +0800
 

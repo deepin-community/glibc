@@ -194,3 +194,4 @@ CVE-2026-77117.patch
 
 # Fix x86_64 build: OPEN_TREE_CLONE redefined by newer kernel headers
 all/fix-OPEN_TREE_CLONE-redefinition.patch
+CVE-2026-19542.patch
