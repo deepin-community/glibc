@@ -196,3 +196,4 @@ CVE-2026-77117.patch
 all/fix-OPEN_TREE_CLONE-redefinition.patch
 CVE-2026-19542.patch
 CVE-2026-80489.patch
+CVE-2026-6368.patch
