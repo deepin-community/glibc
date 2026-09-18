@@ -27,6 +27,7 @@ glibc (2.38-6deepin31) unstable; urgency=medium
     Upstream:
     https://sourceware.org/git/gitweb.cgi?p=glibc.git;a=commit;h=dfc8ef3
     88ef7856f318ade7dec501f92ce54f9e3
+  * Rebuild with LTO enabled (dpkg vendor feature optimize/lto).
 
  -- deepin-ci-robot <packages@deepin.org>  Mon, 07 Sep 2026 00:52:17 +0800
 
