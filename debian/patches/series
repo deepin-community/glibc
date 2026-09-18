@@ -188,3 +188,12 @@ CVE-2026-5450.patch
 CVE-2026-5435.patch
 CVE-2026-6238.patch
 CVE-2026-6791.patch
+CVE-2026-18374.patch
+CVE-2026-19499.patch
+CVE-2026-77117.patch
+
+# Fix x86_64 build: OPEN_TREE_CLONE redefined by newer kernel headers
+all/fix-OPEN_TREE_CLONE-redefinition.patch
+CVE-2026-19542.patch
+CVE-2026-80489.patch
+CVE-2026-6368.patch
