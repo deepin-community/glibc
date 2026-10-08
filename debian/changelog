@@ -4,6 +4,10 @@ glibc (2.38-6deepin32) unstable; urgency=medium
     rpath in AT_SECURE programs (BZ 34360)   Upstream:
     https://sourceware.org/git/?p=glibc.git;a=commit;h=ed0c137b97eb940b4
     b64981e84ed806d3276edd9
+  * fix(cve): CVE-2026-89092 (medium) - CVE-2026-89092: nscd: replace
+    alloca with malloc in aicache, hstcache   Upstream:
+    https://sourceware.org/git/?p=glibc.git;a=commit;h=cbf59b836645b6ac6
+    9ad8c47a560598bc4942ecc
 
  -- deepin-ci-robot <packages@deepin.org>  Thu, 08 Oct 2026 23:09:48 +0800
 
