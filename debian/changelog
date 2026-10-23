@@ -8,6 +8,10 @@ glibc (2.38-6deepin32) unstable; urgency=medium
     alloca with malloc in aicache, hstcache   Upstream:
     https://sourceware.org/git/?p=glibc.git;a=commit;h=cbf59b836645b6ac6
     9ad8c47a560598bc4942ecc
+  * fix(cve): CVE-2026-97399 (unknown) - powerpc: Fix one byte overread
+    in strncasecmp (bug 34683, CVE-2026-97399)   Upstream:
+    https://sourceware.org/git/?p=glibc.git;a=commit;h=e622f82ea8797704a
+    c8f761f88ed3e429e97fedd
 
  -- deepin-ci-robot <packages@deepin.org>  Thu, 08 Oct 2026 23:09:48 +0800
 
