@@ -201,3 +201,4 @@ CVE-2026-8674.patch
 any/local-tst-support-descriptors-cross-device.diff
 CVE-2026-86805.patch
 CVE-2026-89092.patch
+CVE-2026-97399.patch
