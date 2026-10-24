@@ -29,20 +29,20 @@ passes regardless of whether the extra device line is printed.  Both
 diagnostics are still verified individually.
 
 ---
- support/tst-support_descriptors.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ support/tst-support_descriptors.c |   20 ++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
 --- a/support/tst-support_descriptors.c
 +++ b/support/tst-support_descriptors.c
-@@ -127,11 +127,17 @@
+@@ -128,20 +128,28 @@
    support_capture_subprocess_free (&proc);
    free (expected);
-+
+ 
 +  /* The device difference line is only printed when /dev/null and /dev
 +     live on different filesystems (for example a bind-mounted /dev/null
 +     in unshare-based build chroots), so the two diagnostics below must
 +     be matched separately.  */
-
++
    expected = xasprintf ("\nDifferences:\n"
                          "error: descriptor %d changed from \"/dev/null\""
 -                        " to \"/dev\"\n"
@@ -55,7 +55,6 @@ diagnostics are still verified individually.
    good = good && !support_record_failure_is_failed ();
    proc = support_capture_subprocess (&subprocess_changed_descriptor, NULL);
    good = good && support_record_failure_is_failed ();
-@@ -139,8 +145,10 @@
    support_record_failure_reset (); /* Discard the reported error.  */
    report_subprocess_output ("subprocess_changed_descriptor", &proc);
    TEST_VERIFY (strstr (proc.out.buffer, expected) != NULL);
@@ -66,3 +65,4 @@ diagnostics are still verified individually.
 +  free (expected_ino);
    free (expected);
  }
+ 
