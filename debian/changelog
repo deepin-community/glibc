@@ -1,3 +1,22 @@
+glibc (2.38-6deepin32) unstable; urgency=medium
+
+  * fix(test): make tst-support_descriptors pass when /dev/null and /dev
+    are on different filesystems
+    - In the uos-debrebuild chroot (sbuild --chroot-mode=unshare) /dev/null
+      is bind-mounted from a different filesystem than /dev (st_dev 0:6
+      vs 0:34); support_descriptors_check then prints an extra "changed
+      device" line, the glued expected string in the test no longer
+      matches, and the build aborts at the check stage (the only failing
+      test of 2.38-6deepin31: 5168 PASS, 1 FAIL)
+    - Split the expectation into two independent substring checks; the
+      diagnostics themselves are unchanged
+    - Verified on a real glibc 2.38 build: unpatched the test exits 1 in a
+      mount namespace with /dev/null bind-mounted cross-device (same
+      error signature as the pipeline), patched it exits 0 both with and
+      without the cross-device /dev/null
+
+ -- lichenggang <lichenggang@uniontech.com>  Sat, 24 Oct 2026 22:32:13 +0800
+
 glibc (2.38-6deepin31) unstable; urgency=medium
 
   * fix(cve): CVE-2026-18374 (medium) - [PATCH] libio: Fix CVE-2026-
