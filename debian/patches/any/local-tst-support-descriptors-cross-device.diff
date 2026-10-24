@@ -1,0 +1,68 @@
+Description: Accept optional "changed device" line in tst-support_descriptors
+Author: lichenggang <lichenggang@uniontech.com>
+
+The uos-debrebuild pipeline (sbuild --chroot-mode=unshare) builds glibc
+in a mount namespace where /dev/null is bind-mounted from a different
+filesystem than /dev (st_dev 0:6 vs 0:34).  In that environment the
+subprocess_changed_descriptor part of tst-support_descriptors prints
+
+  error: descriptor 3 changed from "/dev/null" to "/dev"
+  error: descriptor 3 changed device from 0:6 to 0:34
+  error: descriptor 3 changed ino from 4 to ...
+
+and the single strstr for the glued expectation
+
+  "changed from \"/dev/null\" to \"/dev\"\n"
+  "error: descriptor %d changed ino "
+
+no longer matches because of the inserted "changed device" line:
+
+  error: tst-support_descriptors.c:141: not true: strstr (...) != NULL
+
+This was the only test failure of 2.38-6deepin31 in that pipeline
+(5168 PASS, 1 FAIL) and it aborted the whole build at the check stage.
+On ordinary build systems /dev/null and /dev share st_dev, so the extra
+line never appears and the test passes.
+
+Split the expectation into two independent substring checks so the test
+passes regardless of whether the extra device line is printed.  Both
+diagnostics are still verified individually.
+
+---
+ support/tst-support_descriptors.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+--- a/support/tst-support_descriptors.c
++++ b/support/tst-support_descriptors.c
+@@ -127,11 +127,17 @@
+   support_capture_subprocess_free (&proc);
+   free (expected);
++
++  /* The device difference line is only printed when /dev/null and /dev
++     live on different filesystems (for example a bind-mounted /dev/null
++     in unshare-based build chroots), so the two diagnostics below must
++     be matched separately.  */
+
+   expected = xasprintf ("\nDifferences:\n"
+                         "error: descriptor %d changed from \"/dev/null\""
+-                        " to \"/dev\"\n"
+-                        "error: descriptor %d changed ino ",
+-                        free_descriptor, free_descriptor);
++                        " to \"/dev\"\n",
++                        free_descriptor);
++  char *expected_ino = xasprintf ("error: descriptor %d changed ino ",
++                                  free_descriptor);
+   good = good && !support_record_failure_is_failed ();
+   proc = support_capture_subprocess (&subprocess_changed_descriptor, NULL);
+   good = good && support_record_failure_is_failed ();
+@@ -139,8 +145,10 @@
+   support_record_failure_reset (); /* Discard the reported error.  */
+   report_subprocess_output ("subprocess_changed_descriptor", &proc);
+   TEST_VERIFY (strstr (proc.out.buffer, expected) != NULL);
++  TEST_VERIFY (strstr (proc.out.buffer, expected_ino) != NULL);
+   support_capture_subprocess_check (&proc, "subprocess_changed_descriptor",
+                                     0, sc_allow_stdout);
+   support_capture_subprocess_free (&proc);
++  free (expected_ino);
+   free (expected);
+ }
