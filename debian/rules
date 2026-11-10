@@ -169,6 +169,25 @@ standard-add-ons = libidn,
 -include debian/sysdeps/$(DEB_HOST_ARCH_OS).mk
 -include debian/sysdeps/$(DEB_HOST_ARCH).mk
 
+# Deepin compatibility mode (DCM): on UOS build environments, additionally
+# build an alternate dynamic linker (ld.so) with the DCM patch enabled, and
+# ship it in a separate package under /var/lib/deepin-compatible/ldrd2/.
+# Only amd64 and arm64 are supported; other architectures and non-UOS
+# environments build the stock glibc only.
+deepin_compat_arches = amd64 arm64
+ifeq ($(filter $(DEB_HOST_ARCH),$(deepin_compat_arches)),$(DEB_HOST_ARCH))
+  ifneq (,$(filter uos Uos,$(shell lsb_release -i -s 2>/dev/null)))
+    DCM_BUILD = yes
+    GLIBC_PASSES += dcm
+    dcm_HOST_CFLAGS = -DDCM_ENABLED $(HOST_CFLAGS)
+    dcm_RUN_TESTSUITE = no
+    dcm_rtlddir = $(if $(libc_rtlddir),$(libc_rtlddir),$(rtlddir))
+    ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
+      DEB_ARCH_REGULAR_PACKAGES += deepin-compatible-ld
+    endif
+  endif
+endif
+
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 DEB_ARCH_REGULAR_PACKAGES += $(foreach p,$(DEB_ARCH_MULTILIB_PACKAGES), $(if $(findstring -dev,$(p)), $(p)))
 else
