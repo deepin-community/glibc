@@ -155,3 +155,15 @@ Description: GNU C Library: Name Service Cache Daemon
  query. You should install this package only if you use
  slow services like LDAP, NIS or NIS+.
 
+Package: deepin-compatible-ld
+Architecture: amd64 arm64
+Section: libs
+Priority: optional
+Depends: ${misc:Depends}, @libc@ (= ${source:Version})
+Build-Profiles: <!stage1>
+Description: GNU C Library: dynamic linker for deepin compatibility mode
+ This package provides an alternate dynamic linker (ld.so) built with the
+ deepin compatibility mode (DCM) enabled. It is installed under
+ /var/lib/deepin-compatible/ldrd2/ and does not replace the system dynamic
+ linker.
+

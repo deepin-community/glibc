@@ -1,3 +1,15 @@
+glibc (2.38-6deepin33) unstable; urgency=medium
+
+  * Add deepin-compatible-ld package: an alternate dynamic linker built
+    with the deepin compatibility mode (DCM) enabled, shipped under
+    /var/lib/deepin-compatible/ldrd2/ (amd64 and arm64, UOS only)
+    - Apply uniontech001-compat-mode.patch to support DCM_LIBRARY_PATH,
+      DCM_RUNPATH_MODE, DCM_SYSPATH_MODE and DCM_ORIGIN_LIBRARY_MODE
+    - Build a dedicated "dcm" pass with -DDCM_ENABLED; the stock glibc
+      package remains unchanged
+
+ -- liujianqiang <liujianqiang@uniontech.com>  Tue, 10 Nov 2026 20:44:02 +0800
+
 glibc (2.38-6deepin32) unstable; urgency=medium
 
   * fix(test): make tst-support_descriptors pass when /dev/null and /dev
