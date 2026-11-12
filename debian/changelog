@@ -1,3 +1,9 @@
+glibc (2.38-6deepin33) unstable; urgency=medium
+
+  * Also declare build-dep on libgdbm-compat-dev in control.in files
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Thu, 12 Nov 2026 13:22:25 +0800
+
 glibc (2.38-6deepin32) unstable; urgency=medium
 
   * fix(test): make tst-support_descriptors pass when /dev/null and /dev
